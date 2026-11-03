@@ -95,3 +95,61 @@ def test_suspended_tenant_public_qr_returns_404(venue_test_setup):
     res = anon_client.get(f"/api/v1/public/qr/{qr.public_token}/")
     assert res.status_code == 404
 
+
+@pytest.mark.django_db
+def test_qr_entropy_and_uniqueness(venue_test_setup):
+    branch = venue_test_setup["branch_a1"]
+    table = venue_test_setup["table_a1_1"]
+
+    tokens = set()
+    for _ in range(30):
+        qr = generate_qr_code(branch=branch, target_type=QRTargetType.TABLE, table=table)
+        assert len(qr.public_token) >= 32
+        # Check URL safe character set
+        assert all(c.isalnum() or c in "-_" for c in qr.public_token)
+        tokens.add(qr.public_token)
+
+    assert len(tokens) == 30
+
+
+@pytest.mark.django_db
+def test_rotated_and_inactive_token_returns_404(venue_test_setup):
+    branch = venue_test_setup["branch_a1"]
+    table = venue_test_setup["table_a1_1"]
+    qr = generate_qr_code(branch=branch, target_type=QRTargetType.TABLE, table=table)
+    old_token = qr.public_token
+
+    anon_client = APIClient()
+    # Active token succeeds
+    assert anon_client.get(f"/api/v1/public/qr/{old_token}/").status_code == 200
+
+    # Rotate QR code
+    rotated = rotate_qr_code(qr)
+    new_token = rotated.public_token
+
+    # Old token is now inactive/replaced -> returns 404
+    assert anon_client.get(f"/api/v1/public/qr/{old_token}/").status_code == 404
+    # New token succeeds
+    assert anon_client.get(f"/api/v1/public/qr/{new_token}/").status_code == 200
+
+    # Deactivate new token -> returns 404
+    deactivate_qr_code(rotated)
+    assert anon_client.get(f"/api/v1/public/qr/{new_token}/").status_code == 404
+
+
+@pytest.mark.django_db
+def test_qr_tenant_isolation(venue_test_setup):
+    from apps.venues.tests.conftest import make_client
+
+    branch_a = venue_test_setup["branch_a1"]
+    table_a = venue_test_setup["table_a1_1"]
+    qr_a = generate_qr_code(branch=branch_a, target_type=QRTargetType.TABLE, table=table_a)
+
+    tenant_b = venue_test_setup["tenant_b"]
+    owner_b = venue_test_setup["owner_b"]
+
+    client_b = make_client(owner_b, tenant_b)
+
+    # Tenant B tries to rotate Tenant A's QR code -> 404
+    res_rotate = client_b.post(f"/api/v1/qr-codes/{qr_a.id}/rotate/")
+    assert res_rotate.status_code == 404

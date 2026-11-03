@@ -12,6 +12,7 @@ class BusinessSettingsSerializer(serializers.ModelSerializer):
 class TenantSerializer(serializers.ModelSerializer):
     business_settings = BusinessSettingsSerializer(read_only=True)
     subscription_status = serializers.CharField(source="subscription.status", read_only=True)
+    suggested_venue_profile = serializers.SerializerMethodField()
 
     class Meta:
         model = Tenant
@@ -19,6 +20,8 @@ class TenantSerializer(serializers.ModelSerializer):
             "id",
             "name",
             "slug",
+            "business_type",
+            "suggested_venue_profile",
             "status",
             "email",
             "phone",
@@ -30,12 +33,28 @@ class TenantSerializer(serializers.ModelSerializer):
             "created_at",
             "updated_at",
         )
-        read_only_fields = ("id", "created_at", "updated_at", "subscription_status")
+        read_only_fields = (
+            "id",
+            "created_at",
+            "updated_at",
+            "subscription_status",
+            "suggested_venue_profile",
+        )
+
+    def get_suggested_venue_profile(self, obj: Tenant) -> str:
+        from apps.venues.presets import suggest_venue_profile
+
+        return suggest_venue_profile(obj.business_type)
 
 
 class TenantCreateSerializer(serializers.Serializer):
     name = serializers.CharField(max_length=255)
     slug = serializers.SlugField(max_length=255, required=False)
+    business_type = serializers.ChoiceField(
+        choices=Tenant.BusinessType.choices,
+        default=Tenant.BusinessType.RESTAURANT,
+        required=False,
+    )
     email = serializers.EmailField(required=False, default="")
     phone = serializers.CharField(max_length=32, required=False, default="")
     address = serializers.CharField(required=False, allow_blank=True, default="")
@@ -54,6 +73,7 @@ class BranchSerializer(serializers.ModelSerializer):
             "name",
             "address",
             "phone",
+            "venue_profile",
             "is_active",
             "operating_hours",
             "created_at",
@@ -66,5 +86,13 @@ class BranchCreateUpdateSerializer(serializers.Serializer):
     name = serializers.CharField(max_length=255)
     address = serializers.CharField(required=False, allow_blank=True, default="")
     phone = serializers.CharField(max_length=32, required=False, allow_blank=True, default="")
+    venue_profile = serializers.CharField(required=False, allow_blank=True, default="")
     is_active = serializers.BooleanField(default=True)
     operating_hours = serializers.DictField(required=False, default=dict)
+
+
+class OnboardingStatusSerializer(serializers.Serializer):
+    is_complete = serializers.BooleanField()
+    next_step = serializers.CharField(allow_null=True)
+    steps = serializers.DictField(child=serializers.BooleanField())
+    details = serializers.DictField()

@@ -14,6 +14,7 @@ class QROrderingMode(models.TextChoices):
     ORDER_PAY_LATER = "ORDER_PAY_LATER", "Order Pay Later"
     ORDER_PAY_FIRST = "ORDER_PAY_FIRST", "Order Pay First"
     ORDER_WITH_APPROVAL = "ORDER_WITH_APPROVAL", "Order With Approval"
+    ORDER_DIRECT = "ORDER_DIRECT", "Order Direct"
     DIRECT_TO_KITCHEN = "DIRECT_TO_KITCHEN", "Direct To Kitchen"
     DISABLED = "DISABLED", "Disabled"
 

@@ -40,7 +40,7 @@ def venue_test_setup():
         name="Alpha Dining",
         slug="alpha-dining",
         status=Tenant.Status.ACTIVE,
-        business_type=Tenant.BusinessType.CASUAL_DINING,
+        business_type=Tenant.BusinessType.RESTAURANT,
     )
     BusinessSettings.objects.create(tenant=tenant_a, invoice_prefix="ALP-")
     Subscription.objects.create(
@@ -119,7 +119,7 @@ def venue_test_setup():
         name="Beta Foods",
         slug="beta-foods",
         status=Tenant.Status.ACTIVE,
-        business_type=Tenant.BusinessType.QUICK_SERVICE,
+        business_type=Tenant.BusinessType.TEA_SHOP,
     )
     Subscription.objects.create(
         tenant=tenant_b,

@@ -92,3 +92,52 @@ def test_session_api_endpoints(venue_test_setup):
     res_close = client.post(f"/api/v1/table-sessions/{session_id}/close/")
     assert res_close.status_code == 200
     assert res_close.data["status"] == SessionStatus.CLOSED
+
+
+@pytest.mark.django_db
+def test_db_unique_open_session_constraint(venue_test_setup):
+    from django.db import IntegrityError
+
+    branch = venue_test_setup["branch_a1"]
+    table = venue_test_setup["table_a1_1"]
+    tenant = venue_test_setup["tenant_a"]
+
+    # Open first session
+    open_session(branch=branch, table=table)
+
+    # Attempt direct DB insertion of a second OPEN session on the same table
+    with pytest.raises(IntegrityError):
+        TableSession.objects.create(
+            tenant=tenant,
+            branch=branch,
+            table=table,
+            session_code="DUPE01",
+            opened_via=OpenedVia.STAFF,
+            status=SessionStatus.OPEN,
+        )
+
+
+@pytest.mark.django_db
+def test_staff_only_table_opening_policy(venue_test_setup):
+    from rest_framework.test import APIClient
+
+    from apps.venues.constants import QRSessionPolicy, QRTargetType
+    from apps.venues.services import generate_qr_code
+
+    branch = venue_test_setup["branch_a1"]
+    table = venue_test_setup["table_a1_1"]
+
+    # Configure branch to STAFF_ONLY table opening policy
+    branch.capabilities.qr_session_policy = QRSessionPolicy.STAFF_ONLY
+    branch.capabilities.save()
+
+    qr = generate_qr_code(branch=branch, target_type=QRTargetType.TABLE, table=table)
+
+    anon_client = APIClient()
+
+    # Customer tries to open a session -> blocked because staff must open table
+    res = anon_client.post(
+        f"/api/v1/public/qr/{qr.public_token}/session/",
+        {"guest_count": 2},
+    )
+    assert res.status_code == 403

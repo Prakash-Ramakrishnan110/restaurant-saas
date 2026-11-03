@@ -28,9 +28,12 @@ ignore = [
 DJANGO_SETTINGS_MODULE = "config.settings.test"
 python_files = ["test_*.py", "*_test.py"]
 addopts = "--strict-markers --cov=apps --cov-report=term-missing --cov-fail-under=90"
+asyncio_default_fixture_loop_scope = "function"
 filterwarnings = [
     "ignore::DeprecationWarning",
     "ignore::PendingDeprecationWarning",
+    "ignore:.*UnorderedObjectListWarning.*",
+    "ignore:.*asyncio_default_fixture_loop_scope.*",
 ]
 
 [tool.mypy]

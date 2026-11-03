@@ -18,6 +18,7 @@ User = get_user_model()
 def create_tenant_with_defaults(
     name: str,
     slug: str | None = None,
+    business_type: str = Tenant.BusinessType.RESTAURANT,
     email: str = "",
     phone: str = "",
     address: str = "",
@@ -44,6 +45,7 @@ def create_tenant_with_defaults(
     tenant = Tenant.objects.create(
         name=name,
         slug=slug,
+        business_type=business_type,
         status=Tenant.Status.ACTIVE,
         email=email,
         phone=phone,
@@ -158,14 +160,18 @@ def create_branch(
     name: str,
     address: str = "",
     phone: str = "",
-    venue_profile: str = Branch.VenueProfile.CASUAL_DINING,
+    venue_profile: str | None = None,
     operating_hours: dict[str, Any] | None = None,
     actor: Any | None = None,
     request: Any | None = None,
 ) -> Branch:
     """Create a new branch for the tenant and apply default venue capability presets."""
     from apps.subscriptions.services import enforce_limit
+    from apps.venues.presets import suggest_venue_profile
     from apps.venues.services import apply_preset
+
+    if not venue_profile:
+        venue_profile = suggest_venue_profile(tenant.business_type)
 
     current_branches = Branch.objects.filter(tenant=tenant).count()
     enforce_limit(tenant, "max_branches", current_branches)
@@ -290,3 +296,86 @@ def get_idle_sessions(cutoff: Any) -> list[Any]:
             last_activity_at__lt=cutoff,
         )
     )
+
+
+def get_onboarding_status(tenant: Tenant) -> dict[str, Any]:
+    """Compute the onboarding wizard completion checklist for a tenant."""
+    from apps.accounts.models import Membership
+    from apps.venues.models import (
+        BranchCapabilities,
+        DiningTable,
+        QRCode,
+        ServiceArea,
+        TokenCounter,
+    )
+    from apps.venues.presets import suggest_venue_profile
+
+    # 1. Business Profile
+    has_profile = bool(tenant.name and (tenant.email or tenant.phone) and tenant.timezone)
+
+    # 2. First Branch
+    branches = Branch.objects.filter(tenant=tenant, is_active=True)
+    first_branch = branches.first()
+    has_first_branch = first_branch is not None
+
+    # 3. Venue Profile Chosen & Capabilities
+    has_venue_profile = False
+    uses_tables = True
+    if first_branch:
+        capabilities = BranchCapabilities.objects.filter(branch=first_branch).first()
+        has_venue_profile = bool(first_branch.venue_profile and capabilities is not None)
+        if capabilities:
+            uses_tables = capabilities.uses_tables
+
+    # 4. Service Areas
+    service_areas_count = ServiceArea.objects.filter(tenant=tenant).count()
+    has_service_areas = service_areas_count >= 1
+
+    # 5. Tables or Counters
+    tables_count = DiningTable.objects.filter(tenant=tenant).count()
+    counters_count = TokenCounter.objects.filter(tenant=tenant).count()
+    if uses_tables:
+        has_tables_or_counters = tables_count >= 1
+    else:
+        # Counter/takeaway venue without tables
+        has_tables_or_counters = counters_count >= 1 or has_service_areas
+
+    # 6. QR Codes
+    qr_codes_count = QRCode.objects.filter(tenant=tenant, is_active=True).count()
+    has_qr_codes = qr_codes_count >= 1
+
+    # 7. Staff Invited (At least 2 memberships: Owner + 1 staff)
+    staff_count = Membership.objects.filter(tenant=tenant, is_active=True).count()
+    has_staff_invited = staff_count >= 2
+
+    steps = {
+        "business_profile": has_profile,
+        "first_branch": has_first_branch,
+        "venue_profile_chosen": has_venue_profile,
+        "service_areas": has_service_areas,
+        "tables_or_counters": has_tables_or_counters,
+        "qr_codes": has_qr_codes,
+        "staff_invited": has_staff_invited,
+    }
+
+    next_step = next((k for k, v in steps.items() if not v), None)
+    is_complete = next_step is None
+    suggested_profile = suggest_venue_profile(tenant.business_type)
+
+    return {
+        "is_complete": is_complete,
+        "next_step": next_step,
+        "steps": steps,
+        "details": {
+            "tenant_id": str(tenant.id),
+            "tenant_name": tenant.name,
+            "business_type": tenant.business_type,
+            "suggested_venue_profile": suggested_profile,
+            "branch_count": branches.count(),
+            "service_area_count": service_areas_count,
+            "table_count": tables_count,
+            "token_counter_count": counters_count,
+            "qr_code_count": qr_codes_count,
+            "staff_count": staff_count,
+        },
+    }

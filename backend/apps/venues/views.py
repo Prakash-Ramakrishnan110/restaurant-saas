@@ -15,7 +15,7 @@ from rest_framework.throttling import AnonRateThrottle
 from rest_framework.views import APIView
 
 from apps.audit.services import log_audit_event
-from apps.core.context import set_current_tenant
+from apps.core.context import get_current_tenant, set_current_tenant
 from apps.rbac.constants import Permission
 from apps.rbac.permissions import HasTenantPermission, verify_tenant_and_branch_access
 from apps.subscriptions.services import enforce_limit, is_tenant_allowed
@@ -231,7 +231,7 @@ class DiningTableViewSet(viewsets.ModelViewSet):
         return qs
 
     def perform_create(self, serializer: Any) -> None:
-        tenant = getattr(self.request, "tenant", None)
+        tenant = getattr(self.request, "tenant", None) or get_current_tenant()
         branch = serializer.validated_data.get("branch")
         section = serializer.validated_data.get("section")
         verify_tenant_and_branch_access(self.request.user, branch)

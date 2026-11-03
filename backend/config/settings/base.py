@@ -133,9 +133,20 @@ CELERY_TIMEZONE = env.str("DEFAULT_TIMEZONE", default="Asia/Kolkata")
 CELERY_BEAT_SCHEDULE = {
     "expire-idle-sessions-every-30-minutes": {
         "task": "apps.core.tasks.expire_idle_sessions_task",
-        "schedule": 1800.0,
+        "schedule": 30.0,
     },
 }
+
+# CORS & CSRF
+CORS_ALLOW_CREDENTIALS = True
+CORS_ALLOWED_ORIGINS = env.list(
+    "CORS_ALLOWED_ORIGINS",
+    default=["http://localhost:5173", "http://127.0.0.1:5173"],
+)
+CSRF_TRUSTED_ORIGINS = env.list(
+    "CSRF_TRUSTED_ORIGINS",
+    default=["http://localhost:5173", "http://127.0.0.1:5173"],
+)
 
 # Internationalization
 LANGUAGE_CODE = "en-us"

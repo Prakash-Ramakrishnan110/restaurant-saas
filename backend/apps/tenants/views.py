@@ -1,8 +1,10 @@
 from django.http import Http404
+from drf_spectacular.utils import extend_schema
 from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.request import Request
 from rest_framework.response import Response
+from rest_framework.views import APIView
 from rest_framework.viewsets import ViewSet
 
 from apps.core.context import get_current_tenant
@@ -17,6 +19,7 @@ from apps.tenants.models import Branch, Tenant
 from apps.tenants.serializers import (
     BranchCreateUpdateSerializer,
     BranchSerializer,
+    OnboardingStatusSerializer,
     TenantCreateSerializer,
     TenantSerializer,
 )
@@ -25,6 +28,7 @@ from apps.tenants.services import (
     create_branch,
     create_tenant_with_defaults,
     delete_branch,
+    get_onboarding_status,
     suspend_tenant,
     update_branch,
 )
@@ -58,6 +62,9 @@ class TenantViewSet(ViewSet):
         tenant, _, _ = create_tenant_with_defaults(
             name=serializer.validated_data["name"],
             slug=serializer.validated_data.get("slug"),
+            business_type=serializer.validated_data.get(
+                "business_type", Tenant.BusinessType.RESTAURANT
+            ),
             email=serializer.validated_data.get("email", ""),
             phone=serializer.validated_data.get("phone", ""),
             address=serializer.validated_data.get("address", ""),
@@ -168,6 +175,7 @@ class BranchViewSet(ViewSet):
             name=serializer.validated_data["name"],
             address=serializer.validated_data.get("address", ""),
             phone=serializer.validated_data.get("phone", ""),
+            venue_profile=serializer.validated_data.get("venue_profile") or None,
             operating_hours=serializer.validated_data.get("operating_hours", {}),
             actor=request.user,
             request=request,
@@ -240,3 +248,32 @@ class BranchViewSet(ViewSet):
 
         delete_branch(branch, actor=request.user, request=request)
         return Response({"message": "Branch deactivated successfully."}, status=status.HTTP_200_OK)
+
+
+class OnboardingStatusView(APIView):
+    """Retrieve onboarding checklist and completion status for active tenant."""
+
+    permission_classes = [HasTenantPermission(Permission.BRANCH_VIEW)]
+
+    @extend_schema(
+        responses={200: OnboardingStatusSerializer},
+        summary="Get tenant onboarding status",
+        description="Returns completion checklist for tenant onboarding wizard.",
+    )
+    def get(self, request: Request) -> Response:
+        tenant = getattr(request, "tenant", None) or get_current_tenant()
+        if not tenant:
+            return Response(
+                {
+                    "error": {
+                        "code": "NO_TENANT_CONTEXT",
+                        "message": "Active tenant context required.",
+                        "details": {},
+                    }
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        status_data = get_onboarding_status(tenant)
+        serializer = OnboardingStatusSerializer(status_data)
+        return Response(serializer.data, status=status.HTTP_200_OK)

@@ -92,6 +92,12 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "celery -A config inspect ping || exit 1"]
+      interval: 10s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
     restart: unless-stopped
 
   celery_beat:
@@ -99,7 +105,7 @@ services:
       context: ./backend
       dockerfile: Dockerfile
     container_name: fusion_celery_beat
-    command: celery -A config beat -l info
+    command: celery -A config beat -l info --pidfile=/tmp/celerybeat.pid
     volumes:
       - ./backend:/app
     environment:
@@ -118,6 +124,12 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import os; exit(0 if os.path.exists('/tmp/celerybeat.pid') else 1)\""]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
     restart: unless-stopped
 
 volumes:

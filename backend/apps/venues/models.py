@@ -128,6 +128,9 @@ class TableGroup(BranchOwnedModel):
     label = models.CharField(max_length=100)
     is_active = models.BooleanField(default=True)
 
+    class Meta:
+        ordering = ["label"]
+
     def __str__(self) -> str:
         return f"Group: {self.label} ({self.branch.name})"
 
@@ -206,6 +209,9 @@ class StaffSectionAssignment(BranchOwnedModel):
     )
     valid_from = models.DateTimeField(default=timezone.now)
     valid_to = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        ordering = ["-valid_from"]
 
     def __str__(self) -> str:
         return f"{self.membership.user.email} -> {self.section.name}"
@@ -292,6 +298,9 @@ class QRCode(BranchOwnedModel):
     version = models.IntegerField(default=1)
     rotated_at = models.DateTimeField(default=timezone.now)
 
+    class Meta:
+        ordering = ["-created_at"]
+
     def __str__(self) -> str:
         return f"QR [{self.public_token[:8]}...] ({self.target_type})"
 
@@ -310,6 +319,7 @@ class TokenCounter(BranchOwnedModel):
     last_number = models.IntegerField(default=0)
 
     class Meta:
+        ordering = ["-service_date"]
         constraints = [
             models.UniqueConstraint(
                 fields=["branch", "service_date", "service_area"],

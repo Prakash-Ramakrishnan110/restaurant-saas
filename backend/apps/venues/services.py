@@ -559,7 +559,11 @@ def deactivate_qr_code(
 
 
 @transaction.atomic
-def next_token(branch: Branch, service_area: ServiceArea | None = None) -> int:
+def next_token(
+    branch: Branch,
+    service_area: ServiceArea | None = None,
+    for_date: Any | None = None,
+) -> int:
     """Atomically increments and returns the next daily sequential token number.
 
     Resets daily at midnight in the tenant's configured timezone.
@@ -567,13 +571,16 @@ def next_token(branch: Branch, service_area: ServiceArea | None = None) -> int:
     if get_current_tenant() is None:
         set_current_tenant(branch.tenant)
 
-    tz_name = branch.tenant.timezone or "Asia/Kolkata"
-    tz = zoneinfo.ZoneInfo(tz_name)
-    local_date = timezone.now().astimezone(tz).date()
+    if for_date is None:
+        tz_name = branch.tenant.timezone or "Asia/Kolkata"
+        tz = zoneinfo.ZoneInfo(tz_name)
+        target_date = timezone.now().astimezone(tz).date()
+    else:
+        target_date = for_date
 
     counter, created = TokenCounter.objects.select_for_update().get_or_create(
         branch=branch,
-        service_date=local_date,
+        service_date=target_date,
         service_area=service_area,
         defaults={
             "tenant": branch.tenant,

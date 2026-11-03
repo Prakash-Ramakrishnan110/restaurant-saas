@@ -84,6 +84,7 @@ class SectionSerializer(serializers.ModelSerializer[Section]):
 
 class DiningTableSerializer(serializers.ModelSerializer[DiningTable]):
     active_session_code = serializers.SerializerMethodField()
+    is_active = serializers.BooleanField(default=True)
 
     class Meta:
         model = DiningTable

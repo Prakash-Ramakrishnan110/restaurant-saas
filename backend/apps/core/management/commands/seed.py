@@ -130,12 +130,12 @@ class Command(BaseCommand):
             plans[str(p["slug"])] = plan_obj
 
         # 3. Demo Tenants Specification
-        # Tenant 1: Chai Corner (QUICK_SERVICE, Starter)
+        # Tenant 1: Chai Corner (TEA_SHOP, Starter)
         t1, _ = Tenant.objects.get_or_create(
             slug="chai-corner",
             defaults={
                 "name": "Chai Corner",
-                "business_type": Tenant.BusinessType.QUICK_SERVICE,
+                "business_type": Tenant.BusinessType.TEA_SHOP,
                 "email": "contact@chaicorner.in",
                 "phone": "+91 98765 00001",
                 "address": "Koramangala 4th Block, Bengaluru",
@@ -266,12 +266,12 @@ class Command(BaseCommand):
             user=u2_waiter, tenant=t2, defaults={"role": Role.WAITER, "is_active": True}
         )
 
-        # Tenant 3: Spice Garden (CASUAL_DINING, Professional)
+        # Tenant 3: Spice Garden (RESTAURANT, Professional)
         t3, _ = Tenant.objects.get_or_create(
             slug="spice-garden",
             defaults={
                 "name": "Spice Garden",
-                "business_type": Tenant.BusinessType.CASUAL_DINING,
+                "business_type": Tenant.BusinessType.RESTAURANT,
                 "email": "contact@spicegarden.com",
                 "phone": "+91 98765 43210",
                 "address": "100ft Road, Indiranagar, Bengaluru",
@@ -461,7 +461,7 @@ class Command(BaseCommand):
             slug="foodie-plaza",
             defaults={
                 "name": "Foodie Plaza",
-                "business_type": Tenant.BusinessType.FOOD_TRUCK_COURT,
+                "business_type": Tenant.BusinessType.FOOD_COURT,
                 "email": "operations@foodieplaza.in",
                 "phone": "+91 98765 00005",
                 "address": "Phoenix Marketcity, Whitefield, Bengaluru",

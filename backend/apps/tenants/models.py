@@ -14,13 +14,11 @@ class Tenant(UUIDModel, TimeStampedModel):
         TEA_SHOP = "TEA_SHOP", "Tea Shop"
         BAKERY = "BAKERY", "Bakery"
         CAFE = "CAFE", "Café"
-        CASUAL_DINING = "CASUAL_DINING", "Casual Dining"
+        RESTAURANT = "RESTAURANT", "Restaurant"
         FINE_DINING = "FINE_DINING", "Fine Dining"
         HOTEL = "HOTEL", "Hotel"
         FOOD_COURT = "FOOD_COURT", "Food Court"
-        QUICK_SERVICE = "QUICK_SERVICE", "Quick Service"
-        FOOD_TRUCK_COURT = "FOOD_TRUCK_COURT", "Food Truck / Court"
-        OTHER = "OTHER", "Other"
+        CHAIN = "CHAIN", "Chain"
 
     name = models.CharField(max_length=255)
     slug = models.SlugField(max_length=255, unique=True, db_index=True)
@@ -33,7 +31,7 @@ class Tenant(UUIDModel, TimeStampedModel):
     business_type = models.CharField(
         max_length=32,
         choices=BusinessType.choices,
-        default=BusinessType.CASUAL_DINING,
+        default=BusinessType.RESTAURANT,
     )
     email = models.EmailField(blank=True)
     phone = models.CharField(max_length=32, blank=True)

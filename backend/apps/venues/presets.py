@@ -1,6 +1,6 @@
 from typing import Any
 
-from apps.tenants.models import Branch
+from apps.tenants.models import Branch, Tenant
 from apps.venues.constants import (
     OrderWorkflow,
     PaymentTiming,
@@ -83,7 +83,7 @@ VENUE_CAPABILITY_PRESETS: dict[str, dict[str, Any]] = {
         "allows_room_service": False,
         "allows_qr_ordering": True,
         "payment_timing": PaymentTiming.PAY_FIRST,
-        "qr_ordering_mode": QROrderingMode.ORDER_PAY_FIRST,
+        "qr_ordering_mode": QROrderingMode.ORDER_DIRECT,
         "qr_session_policy": QRSessionPolicy.CUSTOMER_CAN_OPEN,
         "order_workflow": OrderWorkflow.COUNTER_TOKEN,
     },
@@ -109,3 +109,21 @@ def get_preset_capabilities(venue_profile: str) -> dict[str, Any]:
         venue_profile,
         VENUE_CAPABILITY_PRESETS[Branch.VenueProfile.CASUAL_DINING],
     ).copy()
+
+
+# Mapping from informational BusinessType to recommended operational VenueProfile
+BUSINESS_TYPE_TO_VENUE_PROFILE: dict[str, str] = {
+    Tenant.BusinessType.TEA_SHOP: Branch.VenueProfile.QUICK_SERVICE,
+    Tenant.BusinessType.BAKERY: Branch.VenueProfile.QUICK_SERVICE,
+    Tenant.BusinessType.CAFE: Branch.VenueProfile.CAFE,
+    Tenant.BusinessType.RESTAURANT: Branch.VenueProfile.CASUAL_DINING,
+    Tenant.BusinessType.FINE_DINING: Branch.VenueProfile.FINE_DINING,
+    Tenant.BusinessType.HOTEL: Branch.VenueProfile.HOTEL_RESTAURANT,
+    Tenant.BusinessType.FOOD_COURT: Branch.VenueProfile.FOOD_COURT,
+    Tenant.BusinessType.CHAIN: Branch.VenueProfile.CASUAL_DINING,
+}
+
+
+def suggest_venue_profile(business_type: str) -> str:
+    """Returns recommended venue profile based on tenant's business type."""
+    return BUSINESS_TYPE_TO_VENUE_PROFILE.get(business_type, Branch.VenueProfile.CASUAL_DINING)

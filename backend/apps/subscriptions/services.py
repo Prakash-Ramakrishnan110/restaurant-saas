@@ -33,7 +33,9 @@ def get_entitlement(tenant: Any, key: str, default: Any = None) -> Any:
     if not tenant:
         return default
 
-    subscription = getattr(tenant, "subscription", None)
+    from apps.subscriptions.models import Subscription
+
+    subscription = Subscription.objects.select_related("plan").filter(tenant_id=tenant.id).first()
     if not subscription or not subscription.plan:
         # Default fallback limits if no plan attached
         default_limits = {
