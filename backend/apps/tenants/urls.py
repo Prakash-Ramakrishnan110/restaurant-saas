@@ -1,8 +1,19 @@
 from django.urls import path
 
-from apps.tenants.views import BranchViewSet, OnboardingStatusView, TenantViewSet
+from apps.tenants.views import (
+    BranchViewSet,
+    BusinessProfileView,
+    OnboardingStatusView,
+    TenantViewSet,
+)
 
 urlpatterns = [
+    # Business Profile (Active Tenant)
+    path(
+        "business/",
+        BusinessProfileView.as_view(),
+        name="business-profile",
+    ),
     # Onboarding Status
     path(
         "onboarding/status/",

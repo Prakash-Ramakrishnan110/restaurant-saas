@@ -1,6 +1,7 @@
 version: '3.8'
 
 services:
+  # Notice: In a production deployment, do NOT publish PostgreSQL or Redis ports to the host (internal docker network only)
   postgres:
     image: postgres:16-alpine
     container_name: fusion_postgres
@@ -22,12 +23,13 @@ services:
   redis:
     image: redis:7-alpine
     container_name: fusion_redis
+    command: ["redis-server", "--requirepass", "${REDIS_PASSWORD:-devredispassword}"]
     ports:
-      - "6379:6379"
+      - "127.0.0.1:6379:6379"
     volumes:
       - redis_data:/data
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD:-devredispassword}", "ping"]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -42,7 +44,7 @@ services:
     volumes:
       - ./backend:/app
     ports:
-      - "8000:8000"
+      - "127.0.0.1:8000:8000"
     environment:
       - DEBUG=True
       - DJANGO_SETTINGS_MODULE=config.settings.dev
@@ -51,9 +53,10 @@ services:
       - DB_PASSWORD=${DB_PASSWORD:-postgres}
       - DB_HOST=postgres
       - DB_PORT=5432
-      - REDIS_URL=redis://redis:6379/0
-      - CELERY_BROKER_URL=redis://redis:6379/1
-      - CELERY_RESULT_BACKEND=redis://redis:6379/2
+      - REDIS_PASSWORD=${REDIS_PASSWORD:-devredispassword}
+      - REDIS_URL=redis://:${REDIS_PASSWORD:-devredispassword}@redis:6379/0
+      - CELERY_BROKER_URL=redis://:${REDIS_PASSWORD:-devredispassword}@redis:6379/1
+      - CELERY_RESULT_BACKEND=redis://:${REDIS_PASSWORD:-devredispassword}@redis:6379/2
       - SECRET_KEY=${SECRET_KEY:-django-insecure-dev-secret-key-change-in-production}
       - ALLOWED_HOSTS=*
     depends_on:
@@ -83,9 +86,10 @@ services:
       - DB_PASSWORD=${DB_PASSWORD:-postgres}
       - DB_HOST=postgres
       - DB_PORT=5432
-      - REDIS_URL=redis://redis:6379/0
-      - CELERY_BROKER_URL=redis://redis:6379/1
-      - CELERY_RESULT_BACKEND=redis://redis:6379/2
+      - REDIS_PASSWORD=${REDIS_PASSWORD:-devredispassword}
+      - REDIS_URL=redis://:${REDIS_PASSWORD:-devredispassword}@redis:6379/0
+      - CELERY_BROKER_URL=redis://:${REDIS_PASSWORD:-devredispassword}@redis:6379/1
+      - CELERY_RESULT_BACKEND=redis://:${REDIS_PASSWORD:-devredispassword}@redis:6379/2
       - SECRET_KEY=${SECRET_KEY:-django-insecure-dev-secret-key-change-in-production}
     depends_on:
       postgres:
@@ -115,9 +119,10 @@ services:
       - DB_PASSWORD=${DB_PASSWORD:-postgres}
       - DB_HOST=postgres
       - DB_PORT=5432
-      - REDIS_URL=redis://redis:6379/0
-      - CELERY_BROKER_URL=redis://redis:6379/1
-      - CELERY_RESULT_BACKEND=redis://redis:6379/2
+      - REDIS_PASSWORD=${REDIS_PASSWORD:-devredispassword}
+      - REDIS_URL=redis://:${REDIS_PASSWORD:-devredispassword}@redis:6379/0
+      - CELERY_BROKER_URL=redis://:${REDIS_PASSWORD:-devredispassword}@redis:6379/1
+      - CELERY_RESULT_BACKEND=redis://:${REDIS_PASSWORD:-devredispassword}@redis:6379/2
       - SECRET_KEY=${SECRET_KEY:-django-insecure-dev-secret-key-change-in-production}
     depends_on:
       postgres:

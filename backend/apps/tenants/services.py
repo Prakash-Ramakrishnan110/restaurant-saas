@@ -298,8 +298,82 @@ def get_idle_sessions(cutoff: Any) -> list[Any]:
     )
 
 
+@transaction.atomic
+def update_business_profile(
+    tenant: Tenant,
+    data: dict[str, Any],
+    actor: Any | None = None,
+    request: Any | None = None,
+) -> Tenant:
+    """Updates the active tenant's profile and business settings with audit logging.
+
+    Fields on tenant: name, business_type, email, phone, timezone, address.
+    Fields on business_settings: invoice_prefix, logo_url, primary_color, tax_mode.
+    Read-only / immutable via this endpoint: id, slug, status, subscription_status, currency.
+    """
+    settings, _ = BusinessSettings.objects.get_or_create(tenant=tenant)
+
+    before_state = {
+        "name": tenant.name,
+        "business_type": tenant.business_type,
+        "email": tenant.email,
+        "phone": tenant.phone,
+        "timezone": tenant.timezone,
+        "address": tenant.address,
+        "invoice_prefix": settings.invoice_prefix,
+        "logo_url": settings.logo_url,
+        "primary_color": settings.primary_color,
+        "tax_mode": settings.tax_mode,
+    }
+
+    # Settings fields can be passed directly or under business_settings
+    settings_data = data.get("business_settings", {})
+    if not isinstance(settings_data, dict):
+        settings_data = {}
+
+    for field in ["invoice_prefix", "logo_url", "primary_color", "tax_mode"]:
+        if field in data and data[field] is not None:
+            setattr(settings, field, data[field])
+        elif field in settings_data and settings_data[field] is not None:
+            setattr(settings, field, settings_data[field])
+
+    for field in ["name", "business_type", "email", "phone", "timezone", "address"]:
+        if field in data and data[field] is not None:
+            setattr(tenant, field, data[field])
+
+    tenant.save()
+    settings.save()
+
+    after_state = {
+        "name": tenant.name,
+        "business_type": tenant.business_type,
+        "email": tenant.email,
+        "phone": tenant.phone,
+        "timezone": tenant.timezone,
+        "address": tenant.address,
+        "invoice_prefix": settings.invoice_prefix,
+        "logo_url": settings.logo_url,
+        "primary_color": settings.primary_color,
+        "tax_mode": settings.tax_mode,
+    }
+
+    log_audit_event(
+        action="business.update",
+        entity_type="Tenant",
+        entity_id=str(tenant.id),
+        tenant=tenant,
+        actor=actor,
+        request=request,
+        before_state=before_state,
+        after_state=after_state,
+    )
+
+    return tenant
+
+
 def get_onboarding_status(tenant: Tenant) -> dict[str, Any]:
     """Compute the onboarding wizard completion checklist for a tenant."""
+
     from apps.accounts.models import Membership
     from apps.venues.models import (
         BranchCapabilities,

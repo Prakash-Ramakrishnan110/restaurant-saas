@@ -42,16 +42,16 @@ paths:
   /api/v1/auth/logout/:
     post:
       operationId: auth_logout_create
-      description: Blacklists refresh token, clears refresh cookie, and records audit
-        trail.
+      description: Blacklists refresh token, deletes refresh cookie, returns 204.
+      summary: User logout
       tags:
       - auth
       security:
-      - jwtAuth: []
+      - optionalJwtAuth: []
       - {}
       responses:
-        '200':
-          description: No response body
+        '204':
+          description: Logged out successfully
   /api/v1/auth/me/:
     get:
       operationId: auth_me_retrieve
@@ -71,6 +71,22 @@ paths:
   /api/v1/auth/refresh/:
     post:
       operationId: auth_refresh_create
+      description: Refreshes access token and rotates the httpOnly refresh cookie.
+      tags:
+      - auth
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          description: Token refreshed successfully
+        '401':
+          description: Invalid or expired refresh token
+        '403':
+          description: Invalid request origin
+  /api/v1/auth/token/refresh/:
+    post:
+      operationId: auth_token_refresh_create
       description: Refreshes access token and rotates the httpOnly refresh cookie.
       tags:
       - auth
@@ -191,6 +207,61 @@ paths:
       - jwtAuth: []
       responses:
         '204':
+          description: No response body
+  /api/v1/business/:
+    get:
+      operationId: business_retrieve
+      description: Returns profile and settings for the active tenant context.
+      summary: Get active business profile
+      tags:
+      - business
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BusinessProfile'
+          description: ''
+    patch:
+      operationId: business_partial_update
+      description: Update profile and settings for the active tenant context. Audited.
+      summary: Update active business profile
+      tags:
+      - business
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedBusinessProfileRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedBusinessProfileRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedBusinessProfileRequest'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BusinessProfile'
+          description: ''
+  /api/v1/entitlements/:
+    get:
+      operationId: entitlements_retrieve
+      description: Returns plan name, subscription status, numeric limits with remaining
+        headroom, and feature flags.
+      summary: Get tenant subscription entitlements and usage
+      tags:
+      - entitlements
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
           description: No response body
   /api/v1/onboarding/status/:
     get:
@@ -1623,6 +1694,32 @@ paths:
                 $ref: '#/components/schemas/DiningTable'
           description: ''
   /api/v1/tables/layout/:
+    post:
+      operationId: tables_layout_create
+      description: CRUD and lifecycle operations for dining tables.
+      tags:
+      - tables
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DiningTableRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/DiningTableRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/DiningTableRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DiningTable'
+          description: ''
     patch:
       operationId: tables_layout_partial_update
       description: CRUD and lifecycle operations for dining tables.
@@ -1848,6 +1945,95 @@ components:
       required:
       - id
       - name
+    BusinessProfile:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        name:
+          type: string
+          maxLength: 255
+        slug:
+          type: string
+          readOnly: true
+          pattern: ^[-a-zA-Z0-9_]+$
+        business_type:
+          $ref: '#/components/schemas/BusinessTypeEnum'
+        status:
+          allOf:
+          - $ref: '#/components/schemas/BusinessProfileStatusEnum'
+          readOnly: true
+        subscription_status:
+          type: string
+          readOnly: true
+        email:
+          type: string
+          format: email
+          maxLength: 254
+        phone:
+          type: string
+          maxLength: 32
+        timezone:
+          type: string
+          maxLength: 64
+        currency:
+          type: string
+          readOnly: true
+        invoice_prefix:
+          type: string
+        logo_url:
+          type: string
+        primary_color:
+          type: string
+        tax_mode:
+          $ref: '#/components/schemas/TaxModeEnum'
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - created_at
+      - currency
+      - id
+      - name
+      - slug
+      - status
+      - subscription_status
+      - updated_at
+    BusinessProfileStatusEnum:
+      enum:
+      - ACTIVE
+      - SUSPENDED
+      type: string
+      description: |-
+        * `ACTIVE` - Active
+        * `SUSPENDED` - Suspended
+    BusinessTypeEnum:
+      enum:
+      - TEA_SHOP
+      - BAKERY
+      - CAFE
+      - RESTAURANT
+      - FINE_DINING
+      - HOTEL
+      - FOOD_COURT
+      - CHAIN
+      type: string
+      description: |-
+        * `TEA_SHOP` - Tea Shop
+        * `BAKERY` - Bakery
+        * `CAFE` - Café
+        * `RESTAURANT` - Restaurant
+        * `FINE_DINING` - Fine Dining
+        * `HOTEL` - Hotel
+        * `FOOD_COURT` - Food Court
+        * `CHAIN` - Chain
     DiningTable:
       type: object
       properties:
@@ -2257,6 +2443,34 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/TableSession'
+    PatchedBusinessProfileRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 255
+        business_type:
+          $ref: '#/components/schemas/BusinessTypeEnum'
+        email:
+          type: string
+          format: email
+          maxLength: 254
+        phone:
+          type: string
+          maxLength: 32
+        timezone:
+          type: string
+          minLength: 1
+          maxLength: 64
+        invoice_prefix:
+          type: string
+        logo_url:
+          type: string
+        primary_color:
+          type: string
+        tax_mode:
+          $ref: '#/components/schemas/TaxModeEnum'
     PatchedDiningTableRequest:
       type: object
       properties:
@@ -2890,6 +3104,14 @@ components:
         * `ROOM` - Hotel Room
         * `COUNTER` - Order Counter
         * `BRANCH_MENU` - General Branch Menu
+    TaxModeEnum:
+      enum:
+      - INCLUSIVE
+      - EXCLUSIVE
+      type: string
+      description: |-
+        * `INCLUSIVE` - Tax Inclusive
+        * `EXCLUSIVE` - Tax Exclusive
     User:
       type: object
       properties:
@@ -2923,6 +3145,10 @@ components:
       - phone
   securitySchemes:
     jwtAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+    optionalJwtAuth:
       type: http
       scheme: bearer
       bearerFormat: JWT

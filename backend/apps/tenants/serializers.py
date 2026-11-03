@@ -9,6 +9,54 @@ class BusinessSettingsSerializer(serializers.ModelSerializer):
         fields = ("tax_mode", "invoice_prefix", "logo_url", "primary_color")
 
 
+class BusinessProfileSerializer(serializers.ModelSerializer):
+    invoice_prefix = serializers.CharField(
+        source="business_settings.invoice_prefix", required=False, allow_blank=True
+    )
+    logo_url = serializers.CharField(
+        source="business_settings.logo_url", required=False, allow_blank=True
+    )
+    primary_color = serializers.CharField(
+        source="business_settings.primary_color", required=False, allow_blank=True
+    )
+    tax_mode = serializers.ChoiceField(
+        choices=BusinessSettings.TaxMode.choices,
+        source="business_settings.tax_mode",
+        required=False,
+    )
+    subscription_status = serializers.CharField(source="subscription.status", read_only=True)
+
+    class Meta:
+        model = Tenant
+        fields = (
+            "id",
+            "name",
+            "slug",
+            "business_type",
+            "status",
+            "subscription_status",
+            "email",
+            "phone",
+            "timezone",
+            "currency",
+            "invoice_prefix",
+            "logo_url",
+            "primary_color",
+            "tax_mode",
+            "created_at",
+            "updated_at",
+        )
+        read_only_fields = (
+            "id",
+            "slug",
+            "status",
+            "subscription_status",
+            "currency",
+            "created_at",
+            "updated_at",
+        )
+
+
 class TenantSerializer(serializers.ModelSerializer):
     business_settings = BusinessSettingsSerializer(read_only=True)
     subscription_status = serializers.CharField(source="subscription.status", read_only=True)

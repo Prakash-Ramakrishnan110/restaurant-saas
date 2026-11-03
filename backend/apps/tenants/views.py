@@ -19,6 +19,7 @@ from apps.tenants.models import Branch, Tenant
 from apps.tenants.serializers import (
     BranchCreateUpdateSerializer,
     BranchSerializer,
+    BusinessProfileSerializer,
     OnboardingStatusSerializer,
     TenantCreateSerializer,
     TenantSerializer,
@@ -31,6 +32,7 @@ from apps.tenants.services import (
     get_onboarding_status,
     suspend_tenant,
     update_branch,
+    update_business_profile,
 )
 
 
@@ -277,3 +279,62 @@ class OnboardingStatusView(APIView):
         status_data = get_onboarding_status(tenant)
         serializer = OnboardingStatusSerializer(status_data)
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class BusinessProfileView(APIView):
+    """View and update business profile and business settings for active tenant."""
+
+    def get_permissions(self):
+        if self.request.method == "PATCH":
+            return [HasTenantPermission(Permission.BUSINESS_MANAGE)()]
+        return [HasTenantPermission(Permission.BUSINESS_VIEW)()]
+
+    @extend_schema(
+        responses={200: BusinessProfileSerializer},
+        summary="Get active business profile",
+        description="Returns profile and settings for the active tenant context.",
+    )
+    def get(self, request: Request) -> Response:
+        tenant = getattr(request, "tenant", None) or get_current_tenant()
+        if not tenant:
+            return Response(
+                {
+                    "error": {
+                        "code": "NO_TENANT_CONTEXT",
+                        "message": "Active tenant context required.",
+                        "details": {},
+                    }
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        serializer = BusinessProfileSerializer(tenant)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    @extend_schema(
+        request=BusinessProfileSerializer,
+        responses={200: BusinessProfileSerializer},
+        summary="Update active business profile",
+        description="Update profile and settings for the active tenant context. Audited.",
+    )
+    def patch(self, request: Request) -> Response:
+        tenant = getattr(request, "tenant", None) or get_current_tenant()
+        if not tenant:
+            return Response(
+                {
+                    "error": {
+                        "code": "NO_TENANT_CONTEXT",
+                        "message": "Active tenant context required.",
+                        "details": {},
+                    }
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        serializer = BusinessProfileSerializer(tenant, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        updated_tenant = update_business_profile(
+            tenant=tenant,
+            data=serializer.validated_data,
+            actor=request.user,
+            request=request,
+        )
+        return Response(BusinessProfileSerializer(updated_tenant).data, status=status.HTTP_200_OK)

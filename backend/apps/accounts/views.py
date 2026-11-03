@@ -1,5 +1,8 @@
+from typing import Any
+
 from django.conf import settings
 from django.http import Http404
+from drf_spectacular.extensions import OpenApiAuthenticationExtension
 from drf_spectacular.utils import OpenApiResponse, extend_schema
 from rest_framework import status
 from rest_framework.permissions import AllowAny, IsAuthenticated
@@ -7,6 +10,7 @@ from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.viewsets import ViewSet
+from rest_framework_simplejwt.authentication import JWTAuthentication
 
 from apps.accounts.models import Membership
 from apps.accounts.serializers import (
@@ -173,11 +177,40 @@ class RefreshTokenView(APIView):
         return response
 
 
+class OptionalJWTAuthentication(JWTAuthentication):
+    """Permissive JWT authenticator for logout where an expired access token must not block the request."""
+
+    def authenticate(self, request: Any) -> tuple[Any, Any] | None:
+        try:
+            return super().authenticate(request)
+        except Exception:
+            return None
+
+
+class OptionalJWTScheme(OpenApiAuthenticationExtension):
+    target_class = "apps.accounts.views.OptionalJWTAuthentication"
+    name = "optionalJwtAuth"
+
+    def get_security_definition(self, auto_schema: Any) -> dict[str, Any]:
+        return {
+            "type": "http",
+            "scheme": "bearer",
+            "bearerFormat": "JWT",
+        }
+
+
 class LogoutView(APIView):
     """Blacklists refresh token, clears refresh cookie, and records audit trail."""
 
+    authentication_classes = [OptionalJWTAuthentication]
     permission_classes = [AllowAny]
 
+    @extend_schema(
+        request=None,
+        responses={204: OpenApiResponse(description="Logged out successfully")},
+        summary="User logout",
+        description="Blacklists refresh token, deletes refresh cookie, returns 204.",
+    )
     def post(self, request: Request) -> Response:
         cookie_token = request.COOKIES.get(settings.REFRESH_COOKIE_NAME)
         if cookie_token and not validate_cookie_origin(request):
@@ -193,10 +226,22 @@ class LogoutView(APIView):
             )
 
         refresh_token = cookie_token or request.data.get("refresh")
-        logout_user(refresh_token, user=request.user, request=request)
+        try:
+            logout_user(refresh_token, user=request.user, request=request)
+        except Exception:
+            pass
 
-        response = Response({"message": "Successfully logged out."}, status=status.HTTP_200_OK)
-        response.delete_cookie(settings.REFRESH_COOKIE_NAME, path=settings.COOKIE_PATH)
+        response = Response(status=status.HTTP_204_NO_CONTENT)
+        response.delete_cookie(
+            settings.REFRESH_COOKIE_NAME,
+            path=settings.COOKIE_PATH,
+            samesite=settings.COOKIE_SAMESITE,
+        )
+        response.delete_cookie(
+            settings.REFRESH_COOKIE_NAME,
+            path="/",
+            samesite=settings.COOKIE_SAMESITE,
+        )
         return response
 
 

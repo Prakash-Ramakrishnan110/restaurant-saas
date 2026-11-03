@@ -133,7 +133,7 @@ CELERY_TIMEZONE = env.str("DEFAULT_TIMEZONE", default="Asia/Kolkata")
 CELERY_BEAT_SCHEDULE = {
     "expire-idle-sessions-every-30-minutes": {
         "task": "apps.core.tasks.expire_idle_sessions_task",
-        "schedule": 30.0,
+        "schedule": 1800.0,
     },
 }
 

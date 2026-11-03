@@ -7,6 +7,8 @@ ROLE_PERMISSIONS: dict[str, set[str]] = {
         Permission.TENANT_MANAGE,
     },
     Role.OWNER: {
+        Permission.BUSINESS_VIEW,
+        Permission.BUSINESS_MANAGE,
         Permission.TENANT_MANAGE,
         Permission.BRANCH_MANAGE,
         Permission.BRANCH_VIEW,
@@ -32,6 +34,7 @@ ROLE_PERMISSIONS: dict[str, set[str]] = {
         Permission.PRINTER_REPRINT,
     },
     Role.BRANCH_MANAGER: {
+        Permission.BUSINESS_VIEW,
         Permission.BRANCH_VIEW,
         Permission.STAFF_MANAGE,
         Permission.STAFF_VIEW,

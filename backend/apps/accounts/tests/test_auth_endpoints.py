@@ -144,7 +144,7 @@ def test_logout_blacklists_token(auth_setup):
     client.credentials(HTTP_AUTHORIZATION=f"Bearer {access}")
     client.cookies[settings.REFRESH_COOKIE_NAME] = refresh
     logout_resp = client.post("/api/v1/auth/logout/")
-    assert logout_resp.status_code == status.HTTP_200_OK
+    assert logout_resp.status_code == status.HTTP_204_NO_CONTENT
 
     # Refresh cookie is deleted
     assert logout_resp.cookies[settings.REFRESH_COOKIE_NAME].value == ""
@@ -155,6 +155,51 @@ def test_logout_blacklists_token(auth_setup):
 
     # AuditLog recorded logout
     assert AuditLog.objects.filter(action="auth.logout").exists()
+
+
+@pytest.mark.django_db
+def test_logout_with_expired_access_token(auth_setup):
+    from datetime import timedelta
+
+    from rest_framework_simplejwt.tokens import AccessToken
+
+    client = APIClient()
+    login_resp = client.post(
+        "/api/v1/auth/login/",
+        {"email": "owner@authtenant.com", "password": "SecretPassword123!"},
+        format="json",
+    )
+    refresh = login_resp.cookies[settings.REFRESH_COOKIE_NAME].value
+
+    # Create an artificially expired access token
+    user = auth_setup["user"]
+    token = AccessToken.for_user(user)
+    # Set expiration to past
+    token.set_exp(lifetime=-timedelta(minutes=10))
+    expired_access = str(token)
+
+    # Pass expired access token and valid refresh cookie
+    client.credentials(HTTP_AUTHORIZATION=f"Bearer {expired_access}")
+    client.cookies[settings.REFRESH_COOKIE_NAME] = refresh
+
+    logout_resp = client.post("/api/v1/auth/logout/")
+    assert logout_resp.status_code == status.HTTP_204_NO_CONTENT
+    assert logout_resp.cookies[settings.REFRESH_COOKIE_NAME].value == ""
+
+    # Refresh token was blacklisted despite expired access token
+    client.credentials()
+    client.cookies[settings.REFRESH_COOKIE_NAME] = refresh
+    assert client.post("/api/v1/auth/refresh/").status_code == status.HTTP_401_UNAUTHORIZED
+
+
+@pytest.mark.django_db
+def test_logout_without_cookie_or_token(auth_setup):
+    client = APIClient()
+    # No credentials, no cookies
+    logout_resp = client.post("/api/v1/auth/logout/")
+    assert logout_resp.status_code == status.HTTP_204_NO_CONTENT
+    # Cookie is still deleted / cleared
+    assert logout_resp.cookies[settings.REFRESH_COOKIE_NAME].value == ""
 
 
 @pytest.mark.django_db

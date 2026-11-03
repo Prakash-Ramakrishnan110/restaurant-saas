@@ -1,3 +1,5 @@
+from typing import Any
+
 from django.db import models
 from django.utils import timezone
 
@@ -144,6 +146,8 @@ class DiningTable(BranchOwnedModel):
         related_name="tables",
     )
     label = models.CharField(max_length=50, help_text="e.g. T12, Room 301, Counter 2")
+    label_prefix = models.CharField(max_length=50, default="", db_index=True)
+    label_number = models.IntegerField(default=0, db_index=True)
     table_type = models.CharField(
         max_length=30,
         choices=TableType.choices,
@@ -181,7 +185,7 @@ class DiningTable(BranchOwnedModel):
     )
 
     class Meta:
-        ordering = ["label"]
+        ordering = ["section__sort_order", "label_prefix", "label_number", "label"]
         constraints = [
             models.UniqueConstraint(
                 fields=["tenant", "branch", "label"],
@@ -189,6 +193,19 @@ class DiningTable(BranchOwnedModel):
                 name="unique_active_tenant_branch_table_label",
             )
         ]
+
+    def save(self, *args: Any, **kwargs: Any) -> None:
+        import re
+
+        if self.label:
+            match = re.match(r"^([^\d]*)(\d+)?", self.label.strip())
+            if match:
+                self.label_prefix = match.group(1).strip()
+                self.label_number = int(match.group(2)) if match.group(2) else 0
+            else:
+                self.label_prefix = self.label.strip()
+                self.label_number = 0
+        super().save(*args, **kwargs)
 
     def __str__(self) -> str:
         return f"{self.label} ({self.section.name})"

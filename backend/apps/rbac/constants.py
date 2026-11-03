@@ -39,6 +39,10 @@ class Role:
 
 
 class Permission:
+    # Business & Tenant
+    BUSINESS_VIEW = "business.view"
+    BUSINESS_MANAGE = "business.manage"
+
     # Tenant & Branches
     TENANT_MANAGE = "tenant.manage"
     BRANCH_MANAGE = "branch.manage"

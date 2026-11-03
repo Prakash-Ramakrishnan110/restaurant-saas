@@ -277,10 +277,15 @@ class DiningTableViewSet(viewsets.ModelViewSet):
         table_ids = serializer.validated_data["table_ids"]
         label = serializer.validated_data.get("label", "")
 
-        first_table = DiningTable.objects.filter(id=table_ids[0]).first()
-        if not first_table:
-            raise Http404("Table not found.")
-        verify_tenant_and_branch_access(request.user, first_table)
+        first_table = None
+        for tid in table_ids:
+            table_obj = DiningTable.objects.filter(id=tid).first()
+            if not table_obj:
+                raise Http404("Table not found.")
+            verify_tenant_and_branch_access(request.user, table_obj)
+            if first_table is None:
+                first_table = table_obj
+        assert first_table is not None
 
         group = join_tables(
             branch=first_table.branch,
@@ -333,7 +338,7 @@ class DiningTableViewSet(viewsets.ModelViewSet):
             DiningTableSerializer(tables, many=True).data, status=status.HTTP_201_CREATED
         )
 
-    @action(detail=False, methods=["patch"], url_path="layout")
+    @action(detail=False, methods=["post", "patch"], url_path="layout")
     def layout(self, request: Request) -> Response:
         tenant = getattr(request, "tenant", None)
         enforce_limit(tenant, "floor_editor")
@@ -349,7 +354,7 @@ class DiningTableViewSet(viewsets.ModelViewSet):
             try:
                 table = DiningTable.objects.get(id=table_id)
             except DiningTable.DoesNotExist:
-                continue
+                raise Http404("Table not found.") from None
             verify_tenant_and_branch_access(request.user, table)
 
             fields_to_update = []
@@ -466,9 +471,12 @@ class StaffSectionAssignmentViewSet(viewsets.ModelViewSet):
         tenant = getattr(self.request, "tenant", None)
         section = serializer.validated_data.get("section")
         branch = serializer.validated_data.get("branch")
+        membership = serializer.validated_data.get("membership")
         verify_tenant_and_branch_access(self.request.user, section)
         if branch:
             verify_tenant_and_branch_access(self.request.user, branch)
+        if membership and tenant and membership.tenant_id != tenant.id:
+            raise Http404("Membership not found.")
 
         serializer.save(tenant=tenant)
 
