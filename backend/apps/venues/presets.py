@@ -1,0 +1,111 @@
+from typing import Any
+
+from apps.tenants.models import Branch
+from apps.venues.constants import (
+    OrderWorkflow,
+    PaymentTiming,
+    QROrderingMode,
+    QRSessionPolicy,
+)
+
+VENUE_CAPABILITY_PRESETS: dict[str, dict[str, Any]] = {
+    Branch.VenueProfile.QUICK_SERVICE: {
+        "uses_tables": False,
+        "uses_token_numbers": True,
+        "uses_kds": False,
+        "uses_courses": False,
+        "allows_takeaway": True,
+        "allows_room_service": False,
+        "allows_qr_ordering": True,
+        "payment_timing": PaymentTiming.PAY_FIRST,
+        "qr_ordering_mode": QROrderingMode.BROWSE_ONLY,
+        "qr_session_policy": QRSessionPolicy.CUSTOMER_CAN_OPEN,
+        "order_workflow": OrderWorkflow.COUNTER_TOKEN,
+    },
+    Branch.VenueProfile.CAFE: {
+        "uses_tables": True,
+        "uses_token_numbers": False,
+        "uses_kds": True,
+        "uses_courses": False,
+        "allows_takeaway": True,
+        "allows_room_service": False,
+        "allows_qr_ordering": True,
+        "payment_timing": PaymentTiming.EITHER,
+        "qr_ordering_mode": QROrderingMode.ORDER_PAY_FIRST,
+        "qr_session_policy": QRSessionPolicy.CUSTOMER_CAN_OPEN,
+        "order_workflow": OrderWorkflow.COUNTER_TOKEN,
+    },
+    Branch.VenueProfile.CASUAL_DINING: {
+        "uses_tables": True,
+        "uses_token_numbers": False,
+        "uses_kds": True,
+        "uses_courses": False,
+        "allows_takeaway": True,
+        "allows_room_service": False,
+        "allows_qr_ordering": True,
+        "payment_timing": PaymentTiming.PAY_LATER,
+        "qr_ordering_mode": QROrderingMode.ORDER_WITH_APPROVAL,
+        "qr_session_policy": QRSessionPolicy.CUSTOMER_CAN_OPEN,
+        "order_workflow": OrderWorkflow.TABLE_SERVICE,
+    },
+    Branch.VenueProfile.FINE_DINING: {
+        "uses_tables": True,
+        "uses_token_numbers": False,
+        "uses_kds": True,
+        "uses_courses": True,
+        "allows_takeaway": False,
+        "allows_room_service": False,
+        "allows_qr_ordering": True,
+        "payment_timing": PaymentTiming.PAY_LATER,
+        "qr_ordering_mode": QROrderingMode.BROWSE_ONLY,
+        "qr_session_policy": QRSessionPolicy.STAFF_ONLY,
+        "order_workflow": OrderWorkflow.TABLE_SERVICE,
+    },
+    Branch.VenueProfile.HOTEL_RESTAURANT: {
+        "uses_tables": True,
+        "uses_token_numbers": False,
+        "uses_kds": True,
+        "uses_courses": True,
+        "allows_takeaway": True,
+        "allows_room_service": True,
+        "allows_qr_ordering": True,
+        "payment_timing": PaymentTiming.ROOM_CHARGE,
+        "qr_ordering_mode": QROrderingMode.ORDER_WITH_APPROVAL,
+        "qr_session_policy": QRSessionPolicy.STAFF_ONLY,
+        "order_workflow": OrderWorkflow.TABLE_SERVICE,
+    },
+    Branch.VenueProfile.FOOD_COURT: {
+        "uses_tables": False,
+        "uses_token_numbers": True,
+        "uses_kds": True,
+        "uses_courses": False,
+        "allows_takeaway": True,
+        "allows_room_service": False,
+        "allows_qr_ordering": True,
+        "payment_timing": PaymentTiming.PAY_FIRST,
+        "qr_ordering_mode": QROrderingMode.ORDER_PAY_FIRST,
+        "qr_session_policy": QRSessionPolicy.CUSTOMER_CAN_OPEN,
+        "order_workflow": OrderWorkflow.COUNTER_TOKEN,
+    },
+    Branch.VenueProfile.BAR_BREWERY: {
+        "uses_tables": True,
+        "uses_token_numbers": False,
+        "uses_kds": True,
+        "uses_courses": False,
+        "allows_takeaway": False,
+        "allows_room_service": False,
+        "allows_qr_ordering": True,
+        "payment_timing": PaymentTiming.TAB,
+        "qr_ordering_mode": QROrderingMode.ORDER_PAY_LATER,
+        "qr_session_policy": QRSessionPolicy.CUSTOMER_CAN_OPEN,
+        "order_workflow": OrderWorkflow.BAR_TAB,
+    },
+}
+
+
+def get_preset_capabilities(venue_profile: str) -> dict[str, Any]:
+    """Retrieve default capabilities dict for a given venue profile."""
+    return VENUE_CAPABILITY_PRESETS.get(
+        venue_profile,
+        VENUE_CAPABILITY_PRESETS[Branch.VenueProfile.CASUAL_DINING],
+    ).copy()
