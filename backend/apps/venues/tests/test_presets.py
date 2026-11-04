@@ -48,7 +48,81 @@ def test_fine_dining_preset_values():
 def test_hotel_preset_values():
     hotel_preset = get_preset_capabilities(Branch.VenueProfile.HOTEL_RESTAURANT)
     assert hotel_preset["allows_room_service"] is True
-    assert hotel_preset["payment_timing"] == PaymentTiming.ROOM_CHARGE
+    assert hotel_preset["payment_timing"] == PaymentTiming.PAY_LATER
+    assert hotel_preset["allows_room_charge"] is True
+
+
+@pytest.mark.django_db
+def test_all_presets_pass_validation():
+    from apps.venues.services import validate_capabilities
+
+    for _profile, preset in VENUE_CAPABILITY_PRESETS.items():
+        # Assert does not raise
+        validate_capabilities(preset)
+
+
+@pytest.mark.django_db
+def test_patch_capabilities_rejects_invalid_combinations(venue_test_setup):
+    from apps.venues.tests.conftest import make_client
+
+    client = make_client(venue_test_setup["owner_a"], venue_test_setup["tenant_a"])
+    branch = venue_test_setup["branch_a1"]
+
+    # 1. COUNTER_TOKEN requires uses_token_numbers=True
+    res1 = client.patch(
+        f"/api/v1/branches/{branch.id}/capabilities/",
+        {"order_workflow": OrderWorkflow.COUNTER_TOKEN, "uses_token_numbers": False},
+        format="json",
+    )
+    assert res1.status_code == 400
+    assert res1.data["error"]["code"] == "INVALID_CAPABILITY_COMBINATION"
+
+    # 2. TABLE_SERVICE requires uses_tables=True
+    res2 = client.patch(
+        f"/api/v1/branches/{branch.id}/capabilities/",
+        {"order_workflow": OrderWorkflow.TABLE_SERVICE, "uses_tables": False},
+        format="json",
+    )
+    assert res2.status_code == 400
+    assert res2.data["error"]["code"] == "INVALID_CAPABILITY_COMBINATION"
+
+    # 3. ROOM_SERVICE requires allows_room_service=True
+    res3 = client.patch(
+        f"/api/v1/branches/{branch.id}/capabilities/",
+        {"order_workflow": OrderWorkflow.ROOM_SERVICE, "allows_room_service": False},
+        format="json",
+    )
+    assert res3.status_code == 400
+    assert res3.data["error"]["code"] == "INVALID_CAPABILITY_COMBINATION"
+
+    # 4. uses_courses=True requires uses_tables=True
+    res4 = client.patch(
+        f"/api/v1/branches/{branch.id}/capabilities/",
+        {"uses_courses": True, "uses_tables": False},
+        format="json",
+    )
+    assert res4.status_code == 400
+    assert res4.data["error"]["code"] == "INVALID_CAPABILITY_COMBINATION"
+
+    # 5. allows_room_charge=True requires payment_timing != PAY_FIRST
+    res5 = client.patch(
+        f"/api/v1/branches/{branch.id}/capabilities/",
+        {"allows_room_charge": True, "payment_timing": PaymentTiming.PAY_FIRST},
+        format="json",
+    )
+    assert res5.status_code == 400
+    assert res5.data["error"]["code"] == "INVALID_CAPABILITY_COMBINATION"
+
+    # 6. qr_ordering_mode in ['ORDER_WITH_APPROVAL', 'ORDER_DIRECT'] requires allows_qr_ordering=True
+    from apps.venues.constants import QROrderingMode
+
+    res6 = client.patch(
+        f"/api/v1/branches/{branch.id}/capabilities/",
+        {"qr_ordering_mode": QROrderingMode.ORDER_DIRECT, "allows_qr_ordering": False},
+        format="json",
+    )
+    assert res6.status_code == 400
+    assert res6.data["error"]["code"] == "INVALID_CAPABILITY_COMBINATION"
 
 
 @pytest.mark.django_db

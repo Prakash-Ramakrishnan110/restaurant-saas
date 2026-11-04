@@ -33,6 +33,10 @@ class BranchCapabilities(TenantOwnedModel):
     uses_courses = models.BooleanField(default=False)
     allows_takeaway = models.BooleanField(default=True)
     allows_room_service = models.BooleanField(default=False)
+    allows_room_charge = models.BooleanField(default=False)
+    has_sections = models.BooleanField(default=True)
+    has_seat_ordering = models.BooleanField(default=False)
+    allows_table_transfer = models.BooleanField(default=True)
     allows_qr_ordering = models.BooleanField(default=True)
 
     payment_timing = models.CharField(
@@ -55,6 +59,22 @@ class BranchCapabilities(TenantOwnedModel):
         choices=OrderWorkflow.choices,
         default=OrderWorkflow.TABLE_SERVICE,
     )
+
+    @property
+    def has_table_management(self) -> bool:
+        return self.uses_tables
+
+    @has_table_management.setter
+    def has_table_management(self, value: bool) -> None:
+        self.uses_tables = value
+
+    @property
+    def supports_courses(self) -> bool:
+        return self.uses_courses
+
+    @supports_courses.setter
+    def supports_courses(self, value: bool) -> None:
+        self.uses_courses = value
 
     class Meta:
         verbose_name_plural = "Branch capabilities"

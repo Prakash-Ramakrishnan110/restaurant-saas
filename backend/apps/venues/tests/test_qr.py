@@ -153,3 +153,53 @@ def test_qr_tenant_isolation(venue_test_setup):
     # Tenant B tries to rotate Tenant A's QR code -> 404
     res_rotate = client_b.post(f"/api/v1/qr-codes/{qr_a.id}/rotate/")
     assert res_rotate.status_code == 404
+
+
+@pytest.mark.django_db
+def test_qr_generate_idempotency_and_deactivation_api(venue_test_setup):
+    from apps.venues.tests.conftest import make_client
+
+    branch_a = venue_test_setup["branch_a1"]
+    table_a = venue_test_setup["table_a1_1"]
+    owner_a = venue_test_setup["owner_a"]
+    tenant_a = venue_test_setup["tenant_a"]
+
+    client = make_client(owner_a, tenant_a)
+
+    # 1. Generate QR code -> 201 Created
+    res1 = client.post(
+        "/api/v1/qr-codes/generate/",
+        {"branch_id": str(branch_a.id), "table_id": str(table_a.id), "target_type": "TABLE"},
+        format="json",
+    )
+    assert res1.status_code == 201
+    qr_id = res1.data["id"]
+    token = res1.data["public_token"]
+
+    # 2. Idempotent call with same target -> 200 OK returning same QR code
+    res2 = client.post(
+        "/api/v1/qr-codes/generate/",
+        {"branch_id": str(branch_a.id), "table_id": str(table_a.id), "target_type": "TABLE"},
+        format="json",
+    )
+    assert res2.status_code == 200
+    assert res2.data["id"] == qr_id
+    assert res2.data["public_token"] == token
+
+    # 3. Deactivate via DELETE /api/v1/qr-codes/{id}/
+    res_del = client.delete(f"/api/v1/qr-codes/{qr_id}/")
+    assert res_del.status_code == 200
+
+    # 4. Generate again after deactivation -> creates fresh active QR code (201 Created)
+    res3 = client.post(
+        "/api/v1/qr-codes/generate/",
+        {"branch_id": str(branch_a.id), "table_id": str(table_a.id), "target_type": "TABLE"},
+        format="json",
+    )
+    assert res3.status_code == 201
+    new_qr_id = res3.data["id"]
+    assert new_qr_id != qr_id
+
+    # 5. Deactivate via POST /api/v1/qr-codes/{id}/deactivate/
+    res_deact = client.post(f"/api/v1/qr-codes/{new_qr_id}/deactivate/")
+    assert res_deact.status_code == 200

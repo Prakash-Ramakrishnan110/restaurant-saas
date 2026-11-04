@@ -1,6 +1,7 @@
 from typing import Any
 
 from django.http import Http404
+from rest_framework import serializers
 from rest_framework.exceptions import (
     APIException,
     AuthenticationFailed,
@@ -12,6 +13,24 @@ from rest_framework.exceptions import (
 )
 from rest_framework.response import Response
 from rest_framework.views import exception_handler
+
+# Ensure PrimaryKeyRelatedField does not leak object existence details
+serializers.PrimaryKeyRelatedField.default_error_messages["does_not_exist"] = (
+    "Invalid reference - object does not exist."
+)
+
+
+def _extract_codes(codes_obj: Any) -> list[str]:
+    extracted: list[str] = []
+    if isinstance(codes_obj, str):
+        extracted.append(codes_obj)
+    elif isinstance(codes_obj, list):
+        for item in codes_obj:
+            extracted.extend(_extract_codes(item))
+    elif isinstance(codes_obj, dict):
+        for item in codes_obj.values():
+            extracted.extend(_extract_codes(item))
+    return extracted
 
 
 def custom_exception_handler(exc: Exception, context: dict[str, Any]) -> Response | None:
@@ -35,8 +54,20 @@ def custom_exception_handler(exc: Exception, context: dict[str, Any]) -> Respons
     details: Any = {}
 
     if isinstance(exc, ValidationError):
-        code = "VALIDATION_ERROR"
-        message = "Input validation failed."
+        raw_codes = _extract_codes(exc.get_codes()) if hasattr(exc, "get_codes") else []
+        codes = [c.upper() for c in raw_codes]
+        if "INVALID_CAPABILITY_COMBINATION" in codes:
+            code = "INVALID_CAPABILITY_COMBINATION"
+            message = "Invalid capability combination."
+        elif any(c in ("DOES_NOT_EXIST", "INVALID_REFERENCE") for c in codes):
+            code = "INVALID_REFERENCE"
+            message = "Referenced entity does not exist."
+        elif getattr(exc, "default_code", "invalid").lower() != "invalid":
+            code = exc.default_code.upper()
+            message = "Input validation failed."
+        else:
+            code = "VALIDATION_ERROR"
+            message = "Input validation failed."
         details = exc.detail
     elif isinstance(exc, NotAuthenticated | AuthenticationFailed):
         code = "AUTHENTICATION_FAILED"

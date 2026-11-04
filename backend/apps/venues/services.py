@@ -17,6 +17,9 @@ from apps.tenants.models import Branch
 from apps.venues.constants import (
     ALLOWED_TABLE_STATUS_TRANSITIONS,
     OpenedVia,
+    OrderWorkflow,
+    PaymentTiming,
+    QROrderingMode,
     QRSessionPolicy,
     QRTargetType,
     SessionStatus,
@@ -36,6 +39,65 @@ from apps.venues.models import (
     TokenCounter,
 )
 from apps.venues.presets import get_preset_capabilities
+
+
+def validate_capabilities(data: dict[str, Any]) -> None:
+    """Validate 6 invariant capability rules across branch operations.
+
+    1. COUNTER_TOKEN requires uses_token_numbers=True
+    2. TABLE_SERVICE requires uses_tables=True
+    3. ROOM_SERVICE requires allows_room_service=True
+    4. uses_courses=True requires uses_tables=True
+    5. allows_room_charge=True requires payment_timing != PAY_FIRST
+    6. qr_ordering_mode in ['ORDER_WITH_APPROVAL', 'ORDER_DIRECT'] requires allows_qr_ordering=True
+    """
+    order_workflow = data.get("order_workflow")
+    uses_token_numbers = data.get("uses_token_numbers")
+    uses_tables = data.get("uses_tables")
+    allows_room_service = data.get("allows_room_service")
+    uses_courses = data.get("uses_courses")
+    allows_room_charge = data.get("allows_room_charge")
+    payment_timing = data.get("payment_timing")
+    qr_ordering_mode = data.get("qr_ordering_mode")
+    allows_qr_ordering = data.get("allows_qr_ordering")
+
+    if order_workflow == OrderWorkflow.COUNTER_TOKEN and not uses_token_numbers:
+        raise ValidationError(
+            {"order_workflow": "COUNTER_TOKEN workflow requires uses_token_numbers=True."},
+            code="INVALID_CAPABILITY_COMBINATION",
+        )
+    if order_workflow == OrderWorkflow.TABLE_SERVICE and not uses_tables:
+        raise ValidationError(
+            {"order_workflow": "TABLE_SERVICE workflow requires uses_tables=True."},
+            code="INVALID_CAPABILITY_COMBINATION",
+        )
+    if order_workflow == OrderWorkflow.ROOM_SERVICE and not allows_room_service:
+        raise ValidationError(
+            {"order_workflow": "ROOM_SERVICE workflow requires allows_room_service=True."},
+            code="INVALID_CAPABILITY_COMBINATION",
+        )
+    if uses_courses and not uses_tables:
+        raise ValidationError(
+            {"uses_courses": "uses_courses=True requires uses_tables=True."},
+            code="INVALID_CAPABILITY_COMBINATION",
+        )
+    if allows_room_charge and payment_timing == PaymentTiming.PAY_FIRST:
+        raise ValidationError(
+            {
+                "allows_room_charge": (
+                    "allows_room_charge=True requires payment_timing to be PAY_LATER or EITHER (cannot be PAY_FIRST)."
+                )
+            },
+            code="INVALID_CAPABILITY_COMBINATION",
+        )
+    if (
+        qr_ordering_mode in (QROrderingMode.ORDER_WITH_APPROVAL, QROrderingMode.ORDER_DIRECT)
+        and not allows_qr_ordering
+    ):
+        raise ValidationError(
+            {"qr_ordering_mode": f"{qr_ordering_mode} requires allows_qr_ordering=True."},
+            code="INVALID_CAPABILITY_COMBINATION",
+        )
 
 
 @transaction.atomic
@@ -118,6 +180,27 @@ def update_capabilities(
     if capabilities_data.get("uses_courses") is True:
         enforce_limit(branch.tenant, "courses")
 
+    # Validate merged capability invariant rules
+    merged = {
+        "payment_timing": capabilities.payment_timing,
+        "qr_ordering_mode": capabilities.qr_ordering_mode,
+        "qr_session_policy": capabilities.qr_session_policy,
+        "order_workflow": capabilities.order_workflow,
+        "uses_tables": capabilities.uses_tables,
+        "uses_token_numbers": capabilities.uses_token_numbers,
+        "uses_kds": capabilities.uses_kds,
+        "uses_courses": capabilities.uses_courses,
+        "allows_takeaway": capabilities.allows_takeaway,
+        "allows_room_service": capabilities.allows_room_service,
+        "allows_room_charge": capabilities.allows_room_charge,
+        "has_sections": capabilities.has_sections,
+        "has_seat_ordering": capabilities.has_seat_ordering,
+        "allows_table_transfer": capabilities.allows_table_transfer,
+        "allows_qr_ordering": capabilities.allows_qr_ordering,
+    }
+    merged.update(capabilities_data)
+    validate_capabilities(merged)
+
     before_state = {
         "payment_timing": capabilities.payment_timing,
         "qr_ordering_mode": capabilities.qr_ordering_mode,
@@ -129,6 +212,10 @@ def update_capabilities(
         "uses_courses": capabilities.uses_courses,
         "allows_takeaway": capabilities.allows_takeaway,
         "allows_room_service": capabilities.allows_room_service,
+        "allows_room_charge": capabilities.allows_room_charge,
+        "has_sections": capabilities.has_sections,
+        "has_seat_ordering": capabilities.has_seat_ordering,
+        "allows_table_transfer": capabilities.allows_table_transfer,
         "allows_qr_ordering": capabilities.allows_qr_ordering,
     }
 

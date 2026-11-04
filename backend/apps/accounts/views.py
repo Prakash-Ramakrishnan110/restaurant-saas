@@ -12,9 +12,10 @@ from rest_framework.views import APIView
 from rest_framework.viewsets import ViewSet
 from rest_framework_simplejwt.authentication import JWTAuthentication
 
-from apps.accounts.models import Membership
+from apps.accounts.models import Membership, User
 from apps.accounts.serializers import (
     AuthMeResponseSerializer,
+    ChangePasswordSerializer,
     LoginRequestSerializer,
     LoginResponseSerializer,
     MembershipSummarySerializer,
@@ -284,6 +285,67 @@ class AuthMeView(APIView):
         )
 
 
+class ChangePasswordView(APIView):
+    """Authenticated endpoint to change password, revoke prior sessions, and issue fresh access token."""
+
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request: Request) -> Response:
+        serializer = ChangePasswordSerializer(data=request.data, context={"request": request})
+        serializer.is_valid(raise_exception=True)
+
+        user = request.user
+        assert isinstance(user, User)
+        new_password = serializer.validated_data["new_password"]
+        user.set_password(new_password)
+        user.must_change_password = False
+        user.save()
+
+        # Audit event
+        from apps.audit.services import log_audit_event
+
+        log_audit_event(
+            action="auth.password_change",
+            entity_type="User",
+            entity_id=str(user.id),
+            actor=user,
+            request=request,
+        )
+
+        # Invalidate all outstanding tokens for this user
+        from rest_framework_simplejwt.token_blacklist.models import (
+            BlacklistedToken,
+            OutstandingToken,
+        )
+        from rest_framework_simplejwt.tokens import RefreshToken
+
+        for tok in OutstandingToken.objects.filter(user=user):
+            BlacklistedToken.objects.get_or_create(token=tok)
+
+        # Issue fresh token pair
+        fresh_refresh = RefreshToken.for_user(user)
+        fresh_access = str(fresh_refresh.access_token)
+
+        response = Response(
+            {
+                "access": fresh_access,
+                "access_token": fresh_access,
+                "message": "Password changed successfully.",
+            },
+            status=status.HTTP_200_OK,
+        )
+        response.set_cookie(
+            key=settings.REFRESH_COOKIE_NAME,
+            value=str(fresh_refresh),
+            max_age=int(settings.REFRESH_TOKEN_LIFETIME.total_seconds()),
+            httponly=True,
+            secure=settings.COOKIE_SECURE,
+            samesite=settings.COOKIE_SAMESITE,
+            path=settings.COOKIE_PATH,
+        )
+        return response
+
+
 class StaffViewSet(ViewSet):
     """Staff management endpoints scoped to the active tenant."""
 
@@ -350,7 +412,7 @@ class StaffViewSet(ViewSet):
             else (user_membership.role if user_membership else "STAFF")
         )
 
-        membership = create_staff_member(
+        membership, temp_password = create_staff_member(
             tenant=tenant,
             actor=request.user,
             actor_role=caller_role,
@@ -364,7 +426,10 @@ class StaffViewSet(ViewSet):
             request=request,
         )
 
-        return Response(StaffDetailSerializer(membership).data, status=status.HTTP_201_CREATED)
+        response_data = StaffDetailSerializer(membership).data
+        if temp_password:
+            response_data["temporary_password"] = temp_password
+        return Response(response_data, status=status.HTTP_201_CREATED)
 
     def retrieve(self, request: Request, pk: str | None = None) -> Response:
         if not pk:

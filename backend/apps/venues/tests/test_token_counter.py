@@ -2,7 +2,9 @@ import concurrent.futures
 
 import pytest
 from django.db import connection
+from freezegun import freeze_time
 
+from apps.core.context import reset_current_tenant, set_current_tenant
 from apps.venues.services import next_token
 
 
@@ -10,7 +12,7 @@ from apps.venues.services import next_token
 def test_token_counter_concurrency(venue_test_setup):
     """Concurrency test: simulate 20 parallel threads calling next_token.
 
-    Assert exactly 20 distinct sequential integers without duplicates or gaps.
+    Assert exactly 20 distinct sequential integers 1..20 without duplicates or gaps.
     """
     branch = venue_test_setup["branch_a1"]
     area = venue_test_setup["area_a1"]
@@ -21,8 +23,6 @@ def test_token_counter_concurrency(venue_test_setup):
         # Close connection so each thread gets its own db connection from pool
         connection.close()
         try:
-            from apps.core.context import set_current_tenant
-
             set_current_tenant(branch.tenant)
             return next_token(branch=branch, service_area=area)
         finally:
@@ -44,36 +44,76 @@ def test_token_counter_concurrency(venue_test_setup):
 
 @pytest.mark.django_db
 def test_token_counter_scoping_and_reset(venue_test_setup):
-    from apps.core.context import set_current_tenant
     from apps.venues.constants import AreaType
     from apps.venues.models import ServiceArea
 
     branch = venue_test_setup["branch_a1"]
     area1 = venue_test_setup["area_a1"]
     tenant = venue_test_setup["tenant_a"]
-    set_current_tenant(tenant)
+    ctx_token = set_current_tenant(tenant)
 
-    # Area 2 in same branch
-    area2 = ServiceArea.objects.create(
-        tenant=tenant,
-        branch=branch,
-        name="Dessert Counter",
-        area_type=AreaType.TAKEAWAY,
-    )
+    try:
+        # Area 2 in same branch
+        area2 = ServiceArea.objects.create(
+            tenant=tenant,
+            branch=branch,
+            name="Dessert Counter",
+            area_type=AreaType.TAKEAWAY,
+        )
 
-    # Area 1 gets tokens 1, 2
-    t1_1 = next_token(branch=branch, service_area=area1)
-    t1_2 = next_token(branch=branch, service_area=area1)
-    assert t1_1 == 1
-    assert t1_2 == 2
+        # Area 1 gets tokens 1, 2
+        t1_1 = next_token(branch=branch, service_area=area1)
+        t1_2 = next_token(branch=branch, service_area=area1)
+        assert t1_1 == 1
+        assert t1_2 == 2
 
-    # Area 2 gets its own independent counter starting from 1
-    t2_1 = next_token(branch=branch, service_area=area2)
-    assert t2_1 == 1
+        # Area 2 gets its own independent counter starting from 1
+        t2_1 = next_token(branch=branch, service_area=area2)
+        assert t2_1 == 1
+    finally:
+        reset_current_tenant(ctx_token)
 
-    # Daily reset: next_token with reset_date simulation
-    from datetime import date, timedelta
 
-    tomorrow = date.today() + timedelta(days=1)
-    t1_tomorrow = next_token(branch=branch, service_area=area1, for_date=tomorrow)
-    assert t1_tomorrow == 1
+@pytest.mark.django_db
+def test_token_counter_daily_reset_ist_midnight(venue_test_setup):
+    """Daily reset follows tenant timezone: 18:29 UTC (23:59 IST) and 18:31 UTC (00:01 IST)
+
+    are different service dates, resetting to 1 at IST midnight.
+    """
+    branch = venue_test_setup["branch_a1"]
+    area = venue_test_setup["area_a1"]
+    branch.tenant.timezone = "Asia/Kolkata"
+    branch.tenant.save(update_fields=["timezone"])
+
+    # 1. 23:59 IST (18:29 UTC)
+    with freeze_time("2026-11-03 18:29:00"):
+        t1 = next_token(branch=branch, service_area=area)
+        t2 = next_token(branch=branch, service_area=area)
+        assert t1 == 1
+        assert t2 == 2
+
+    # 2. 00:01 IST (18:31 UTC) - Next calendar day in Asia/Kolkata
+    with freeze_time("2026-11-03 18:31:00"):
+        t_next_day = next_token(branch=branch, service_area=area)
+        assert t_next_day == 1
+
+
+@pytest.mark.django_db
+def test_token_counter_daily_reset_custom_timezone(venue_test_setup):
+    """A tenant in another timezone (e.g. America/New_York, UTC-5) resets at its own midnight."""
+    branch = venue_test_setup["branch_b1"]
+    area = venue_test_setup["area_b1"]
+    branch.tenant.timezone = "America/New_York"
+    branch.tenant.save(update_fields=["timezone"])
+
+    # 23:59 in New York is 04:59 UTC next day
+    with freeze_time("2026-11-04 04:59:00"):
+        t1 = next_token(branch=branch, service_area=area)
+        t2 = next_token(branch=branch, service_area=area)
+        assert t1 == 1
+        assert t2 == 2
+
+    # 00:01 in New York is 05:01 UTC next day
+    with freeze_time("2026-11-04 05:01:00"):
+        t_ny_next_day = next_token(branch=branch, service_area=area)
+        assert t_ny_next_day == 1

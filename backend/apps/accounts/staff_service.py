@@ -43,7 +43,7 @@ def create_staff_member(
     branch_ids: list[Any] | None = None,
     is_active: bool = True,
     request: Any | None = None,
-) -> Membership:
+) -> tuple[Membership, str]:
     """Create or attach a staff member to the tenant with assigned role and branches."""
     validate_role_hierarchy(actor_role, role)
 
@@ -64,9 +64,18 @@ def create_staff_member(
             user.phone = phone
         user.save()
 
-    if password:
-        user.set_password(password)
+    import secrets
+
+    if not password:
+        temp_password = secrets.token_urlsafe(12)
+        user.set_password(temp_password)
+        user.must_change_password = True
         user.save()
+    else:
+        user.set_password(password)
+        user.must_change_password = True
+        user.save()
+        temp_password = password
 
     # Check if membership already exists for this tenant
     membership, mem_created = Membership.objects.get_or_create(
@@ -109,7 +118,7 @@ def create_staff_member(
         request=request,
     )
 
-    return membership
+    return membership, temp_password
 
 
 @transaction.atomic

@@ -35,6 +35,10 @@ class BranchCapabilitiesSerializer(serializers.ModelSerializer[BranchCapabilitie
             "uses_courses",
             "allows_takeaway",
             "allows_room_service",
+            "allows_room_charge",
+            "has_sections",
+            "has_seat_ordering",
+            "allows_table_transfer",
             "allows_qr_ordering",
             "payment_timing",
             "qr_ordering_mode",
@@ -44,6 +48,32 @@ class BranchCapabilitiesSerializer(serializers.ModelSerializer[BranchCapabilitie
             "updated_at",
         ]
         read_only_fields = ["id", "branch", "created_at", "updated_at"]
+
+    def validate(self, attrs: dict[str, Any]) -> dict[str, Any]:
+        combined: dict[str, Any] = {}
+        if isinstance(self.instance, BranchCapabilities):
+            combined = {
+                "uses_tables": self.instance.uses_tables,
+                "uses_token_numbers": self.instance.uses_token_numbers,
+                "uses_kds": self.instance.uses_kds,
+                "uses_courses": self.instance.uses_courses,
+                "allows_takeaway": self.instance.allows_takeaway,
+                "allows_room_service": self.instance.allows_room_service,
+                "allows_room_charge": self.instance.allows_room_charge,
+                "has_sections": self.instance.has_sections,
+                "has_seat_ordering": self.instance.has_seat_ordering,
+                "allows_table_transfer": self.instance.allows_table_transfer,
+                "allows_qr_ordering": self.instance.allows_qr_ordering,
+                "payment_timing": self.instance.payment_timing,
+                "qr_ordering_mode": self.instance.qr_ordering_mode,
+                "qr_session_policy": self.instance.qr_session_policy,
+                "order_workflow": self.instance.order_workflow,
+            }
+        combined.update(attrs)
+        from apps.venues.services import validate_capabilities
+
+        validate_capabilities(combined)
+        return attrs
 
 
 class ServiceAreaSerializer(serializers.ModelSerializer[ServiceArea]):
@@ -81,6 +111,17 @@ class SectionSerializer(serializers.ModelSerializer[Section]):
         ]
         read_only_fields = ["id", "created_at", "updated_at"]
 
+    def validate(self, attrs: dict[str, Any]) -> dict[str, Any]:
+        inst = self.instance if isinstance(self.instance, Section) else None
+        branch = attrs.get("branch") or (inst.branch if inst else None)
+        service_area = attrs.get("service_area") or (inst.service_area if inst else None)
+        if branch and service_area and service_area.branch_id != branch.id:
+            raise serializers.ValidationError(
+                {"service_area": ["Invalid reference - object does not exist."]},
+                code="does_not_exist",
+            )
+        return attrs
+
 
 class DiningTableSerializer(serializers.ModelSerializer[DiningTable]):
     active_session_code = serializers.SerializerMethodField()
@@ -111,6 +152,17 @@ class DiningTableSerializer(serializers.ModelSerializer[DiningTable]):
             "updated_at",
         ]
         read_only_fields = ["id", "status", "group", "created_at", "updated_at"]
+
+    def validate(self, attrs: dict[str, Any]) -> dict[str, Any]:
+        inst = self.instance if isinstance(self.instance, DiningTable) else None
+        branch = attrs.get("branch") or (inst.branch if inst else None)
+        section = attrs.get("section") or (inst.section if inst else None)
+        if branch and section and section.branch_id != branch.id:
+            raise serializers.ValidationError(
+                {"section": ["Invalid reference - object does not exist."]},
+                code="does_not_exist",
+            )
+        return attrs
 
     def get_active_session_code(self, obj: DiningTable) -> str | None:
         session = obj.sessions.filter(status=SessionStatus.OPEN).first()

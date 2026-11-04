@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   # Notice: In a production deployment, do NOT publish PostgreSQL or Redis ports to the host (internal docker network only)
   postgres:
@@ -9,8 +7,6 @@ services:
       POSTGRES_DB: ${DB_NAME:-fusion_saas}
       POSTGRES_USER: ${DB_USER:-postgres}
       POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres}
-    ports:
-      - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
@@ -109,7 +105,7 @@ services:
       context: ./backend
       dockerfile: Dockerfile
     container_name: fusion_celery_beat
-    command: celery -A config beat -l info --pidfile=/tmp/celerybeat.pid
+    command: sh -c "rm -f /tmp/celerybeat.pid && celery -A config beat -l info --pidfile=/tmp/celerybeat.pid"
     volumes:
       - ./backend:/app
     environment:

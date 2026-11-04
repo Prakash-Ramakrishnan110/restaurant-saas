@@ -2,6 +2,7 @@ from django.urls import path
 
 from apps.accounts.views import (
     AuthMeView,
+    ChangePasswordView,
     LoginView,
     LogoutView,
     RefreshTokenView,
@@ -14,6 +15,7 @@ urlpatterns = [
     path("auth/refresh/", RefreshTokenView.as_view(), name="auth-refresh"),
     path("auth/logout/", LogoutView.as_view(), name="auth-logout"),
     path("auth/me/", AuthMeView.as_view(), name="auth-me"),
+    path("auth/change-password/", ChangePasswordView.as_view(), name="auth-change-password"),
     path(
         "staff/",
         StaffViewSet.as_view({"get": "list", "post": "create"}),

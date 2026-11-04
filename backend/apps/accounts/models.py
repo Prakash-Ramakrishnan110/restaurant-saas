@@ -48,6 +48,7 @@ class User(AbstractBaseUser, PermissionsMixin, UUIDModel, TimeStampedModel):
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
     is_platform_admin = models.BooleanField(default=False, db_index=True)
+    must_change_password = models.BooleanField(default=False)
 
     objects = UserManager()
 

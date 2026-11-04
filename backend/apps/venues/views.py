@@ -111,14 +111,19 @@ class BranchCapabilitiesView(APIView):
 
     def patch(self, request: Request, branch_id: str) -> Response:
         branch = self.get_branch(branch_id)
+        capabilities, _ = BranchCapabilities.objects.get_or_create(
+            branch=branch,
+            defaults={"tenant": branch.tenant},
+        )
+        serializer = BranchCapabilitiesSerializer(capabilities, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
         capabilities = update_capabilities(
             branch=branch,
-            capabilities_data=request.data,
+            capabilities_data=serializer.validated_data,
             actor=request.user,
             request=request,
         )
-        serializer = BranchCapabilitiesSerializer(capabilities)
-        return Response(serializer.data)
+        return Response(BranchCapabilitiesSerializer(capabilities).data)
 
 
 class ServiceAreaViewSet(viewsets.ModelViewSet):
@@ -281,7 +286,10 @@ class DiningTableViewSet(viewsets.ModelViewSet):
         for tid in table_ids:
             table_obj = DiningTable.objects.filter(id=tid).first()
             if not table_obj:
-                raise Http404("Table not found.")
+                raise ValidationError(
+                    {"table_ids": ["Invalid reference - object does not exist."]},
+                    code="INVALID_REFERENCE",
+                )
             verify_tenant_and_branch_access(request.user, table_obj)
             if first_table is None:
                 first_table = table_obj
@@ -305,7 +313,10 @@ class DiningTableViewSet(viewsets.ModelViewSet):
         try:
             group = TableGroup.objects.get(id=group_id)
         except TableGroup.DoesNotExist:
-            raise Http404("Table group not found.") from None
+            raise ValidationError(
+                {"group_id": ["Invalid reference - object does not exist."]},
+                code="INVALID_REFERENCE",
+            ) from None
         verify_tenant_and_branch_access(request.user, group)
 
         split_tables(group=group, actor=request.user, request=request)
@@ -319,8 +330,11 @@ class DiningTableViewSet(viewsets.ModelViewSet):
         data = serializer.validated_data
         try:
             section = Section.objects.get(id=data["section_id"])
-        except Section.DoesNotExist:
-            raise Http404("Section not found.") from None
+        except (Section.DoesNotExist, ValueError):
+            raise ValidationError(
+                {"section_id": ["Invalid reference - object does not exist."]},
+                code="INVALID_REFERENCE",
+            ) from None
         verify_tenant_and_branch_access(request.user, section)
 
         tables = bulk_create_tables(
@@ -353,8 +367,11 @@ class DiningTableViewSet(viewsets.ModelViewSet):
             table_id = item["id"]
             try:
                 table = DiningTable.objects.get(id=table_id)
-            except DiningTable.DoesNotExist:
-                raise Http404("Table not found.") from None
+            except (DiningTable.DoesNotExist, ValueError):
+                raise ValidationError(
+                    {"tables": ["Invalid reference - object does not exist."]},
+                    code="INVALID_REFERENCE",
+                ) from None
             verify_tenant_and_branch_access(request.user, table)
 
             fields_to_update = []
@@ -420,14 +437,20 @@ class TableSessionViewSet(viewsets.ModelViewSet):
             try:
                 table = DiningTable.objects.get(id=data["table_id"])
             except DiningTable.DoesNotExist:
-                raise Http404("Table not found.") from None
+                raise ValidationError(
+                    {"table_id": ["Invalid reference - object does not exist."]},
+                    code="INVALID_REFERENCE",
+                ) from None
             verify_tenant_and_branch_access(request.user, table)
             branch = table.branch
         elif data.get("table_group_id"):
             try:
                 group = TableGroup.objects.get(id=data["table_group_id"])
             except TableGroup.DoesNotExist:
-                raise Http404("Table group not found.") from None
+                raise ValidationError(
+                    {"table_group_id": ["Invalid reference - object does not exist."]},
+                    code="INVALID_REFERENCE",
+                ) from None
             verify_tenant_and_branch_access(request.user, group)
             branch = group.branch
         else:
@@ -476,7 +499,10 @@ class StaffSectionAssignmentViewSet(viewsets.ModelViewSet):
         if branch:
             verify_tenant_and_branch_access(self.request.user, branch)
         if membership and tenant and membership.tenant_id != tenant.id:
-            raise Http404("Membership not found.")
+            raise ValidationError(
+                {"membership": ["Invalid reference - object does not exist."]},
+                code="does_not_exist",
+            )
 
         serializer.save(tenant=tenant)
 
@@ -528,6 +554,11 @@ class QRCodeViewSet(viewsets.ModelViewSet):
             qs = qs.filter(table_id=table_id)
         return qs
 
+    def destroy(self, request: Request, *args: Any, **kwargs: Any) -> Response:
+        qr = self.get_object()
+        deactivate_qr_code(qr_code=qr, actor=request.user, request=request)
+        return Response({"detail": "QR code deactivated successfully."}, status=status.HTTP_200_OK)
+
     @action(detail=False, methods=["post"], url_path="generate")
     def generate(self, request: Request) -> Response:
         serializer = GenerateQRCodeSerializer(data=request.data)
@@ -536,21 +567,37 @@ class QRCodeViewSet(viewsets.ModelViewSet):
         data = serializer.validated_data
         try:
             branch = Branch.objects.get(id=data["branch_id"])
-        except Branch.DoesNotExist:
-            raise Http404("Branch not found.") from None
+        except (Branch.DoesNotExist, ValueError):
+            raise ValidationError(
+                {"branch_id": ["Invalid reference - object does not exist."]},
+                code="INVALID_REFERENCE",
+            ) from None
         verify_tenant_and_branch_access(request.user, branch)
 
         table = None
         if data.get("table_id"):
             try:
                 table = DiningTable.objects.get(id=data["table_id"])
-            except DiningTable.DoesNotExist:
-                raise Http404("Table not found.") from None
+            except (DiningTable.DoesNotExist, ValueError):
+                raise ValidationError(
+                    {"table_id": ["Invalid reference - object does not exist."]},
+                    code="INVALID_REFERENCE",
+                ) from None
             verify_tenant_and_branch_access(request.user, table)
+
+        target_type = data.get("target_type", "TABLE")
+        existing_qr = QRCode.objects.filter(
+            branch=branch,
+            target_type=target_type,
+            table=table,
+            is_active=True,
+        ).first()
+        if existing_qr:
+            return Response(QRCodeSerializer(existing_qr).data, status=status.HTTP_200_OK)
 
         qr = generate_qr_code(
             branch=branch,
-            target_type=data.get("target_type", "TABLE"),
+            target_type=target_type,
             table=table,
             actor=request.user,
             request=request,
