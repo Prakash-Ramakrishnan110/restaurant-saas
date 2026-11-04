@@ -112,9 +112,10 @@ describe("Brand & UI Components", () => {
   });
 
   it("renders Error UX pages and dialogs", () => {
+    const routerFuture = { v7_startTransition: true, v7_relativeSplatPath: true };
     // SuspendedPage
     const { rerender } = render(
-      <MemoryRouter>
+      <MemoryRouter future={routerFuture}>
         <AuthProvider>
           <SuspendedPage />
         </AuthProvider>
@@ -124,7 +125,7 @@ describe("Brand & UI Components", () => {
 
     // ForbiddenPage
     rerender(
-      <MemoryRouter>
+      <MemoryRouter future={routerFuture}>
         <AuthProvider>
           <ForbiddenPage />
         </AuthProvider>
@@ -134,7 +135,7 @@ describe("Brand & UI Components", () => {
 
     // NotFoundPage
     rerender(
-      <MemoryRouter>
+      <MemoryRouter future={routerFuture}>
         <AuthProvider>
           <NotFoundPage />
         </AuthProvider>
@@ -167,8 +168,9 @@ describe("Brand & UI Components", () => {
   });
 
   it("renders AppShell with responsive navigation and role-based links", () => {
+    const routerFuture = { v7_startTransition: true, v7_relativeSplatPath: true };
     render(
-      <MemoryRouter>
+      <MemoryRouter future={routerFuture}>
         <ThemeProvider>
           <AuthProvider>
             <AppShell>

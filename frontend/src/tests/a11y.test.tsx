@@ -20,7 +20,14 @@ const renderWithProviders = (ui: React.ReactElement) => {
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>
         <AuthProvider>
-          <MemoryRouter>{ui}</MemoryRouter>
+          <MemoryRouter
+            future={{
+              v7_startTransition: true,
+              v7_relativeSplatPath: true,
+            }}
+          >
+            {ui}
+          </MemoryRouter>
         </AuthProvider>
       </ThemeProvider>
     </QueryClientProvider>

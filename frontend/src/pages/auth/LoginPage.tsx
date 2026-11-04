@@ -268,15 +268,37 @@ export const LoginPage: React.FC = () => {
                   <div className="grid grid-cols-2 gap-2">
                     <button
                       type="button"
-                      onClick={() => prefill("owner@alphadine.com")}
+                      onClick={() => prefill("owner@spicegarden.com")}
                       className="p-1.5 rounded border text-left hover:bg-muted text-[11px]"
                     >
-                      <div className="font-semibold text-foreground">Alpha Owner</div>
-                      <div className="text-[10px] text-muted-foreground">Fine Dining / Pro</div>
+                      <div className="font-semibold text-foreground">Spice Garden Owner</div>
+                      <div className="text-[10px] text-muted-foreground">
+                        Casual Dining • Table Service
+                      </div>
                     </button>
                     <button
                       type="button"
-                      onClick={() => prefill("admin@fusionengine.in")}
+                      onClick={() => prefill("owner@foodieplaza.in")}
+                      className="p-1.5 rounded border text-left hover:bg-muted text-[11px]"
+                    >
+                      <div className="font-semibold text-foreground">Food Court Owner</div>
+                      <div className="text-[10px] text-muted-foreground">
+                        Foodie Plaza • Counter Pickup
+                      </div>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => prefill("waiter@spicegarden.com")}
+                      className="p-1.5 rounded border text-left hover:bg-muted text-[11px]"
+                    >
+                      <div className="font-semibold text-foreground">Waiter</div>
+                      <div className="text-[10px] text-muted-foreground">
+                        Spice Garden Floor Staff
+                      </div>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => prefill("admin@fusionengine.in", "AdminPassword123!")}
                       className="p-1.5 rounded border text-left hover:bg-muted text-[11px]"
                     >
                       <div className="font-semibold text-foreground">Platform Admin</div>

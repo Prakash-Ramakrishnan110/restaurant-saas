@@ -85,6 +85,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // Initial silent authentication via refresh cookie
   useEffect(() => {
     const initAuth = async () => {
+      const hasSession = localStorage.getItem("servemyfood_has_session");
+      if (!hasSession) {
+        setIsLoading(false);
+        return;
+      }
+
       try {
         const refreshRes = await apiClient.post<{ access: string }>("/auth/refresh/");
         setAccessToken(refreshRes.data.access);
@@ -92,6 +98,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       } catch {
         // Not logged in or expired refresh token
         setAccessToken(null);
+        localStorage.removeItem("servemyfood_has_session");
       } finally {
         setIsLoading(false);
       }
@@ -111,6 +118,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         password,
       });
       setAccessToken(res.data.access);
+      localStorage.setItem("servemyfood_has_session", "true");
       const profile = await fetchProfile();
       const needsChange = Boolean(
         profile?.must_change_password ??
@@ -138,6 +146,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setPermissions([]);
       setActiveTenantId(null);
       localStorage.removeItem("servemyfood_tenant_id");
+      localStorage.removeItem("servemyfood_has_session");
       setIsLoading(false);
     }
   };
