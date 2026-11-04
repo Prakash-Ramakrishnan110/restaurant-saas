@@ -108,6 +108,7 @@ def test_qr_entropy_and_uniqueness(venue_test_setup):
         # Check URL safe character set
         assert all(c.isalnum() or c in "-_" for c in qr.public_token)
         tokens.add(qr.public_token)
+        deactivate_qr_code(qr)
 
     assert len(tokens) == 30
 
@@ -157,6 +158,7 @@ def test_qr_tenant_isolation(venue_test_setup):
 
 @pytest.mark.django_db
 def test_qr_generate_idempotency_and_deactivation_api(venue_test_setup):
+    from apps.venues.models import QRCode
     from apps.venues.tests.conftest import make_client
 
     branch_a = venue_test_setup["branch_a1"]
@@ -166,7 +168,7 @@ def test_qr_generate_idempotency_and_deactivation_api(venue_test_setup):
 
     client = make_client(owner_a, tenant_a)
 
-    # 1. Generate QR code -> 201 Created
+    # 1. First generate QR code -> 201 Created
     res1 = client.post(
         "/api/v1/qr-codes/generate/",
         {"branch_id": str(branch_a.id), "table_id": str(table_a.id), "target_type": "TABLE"},
@@ -175,8 +177,9 @@ def test_qr_generate_idempotency_and_deactivation_api(venue_test_setup):
     assert res1.status_code == 201
     qr_id = res1.data["id"]
     token = res1.data["public_token"]
+    assert QRCode.unscoped.filter(branch=branch_a, table=table_a, is_active=True).count() == 1
 
-    # 2. Idempotent call with same target -> 200 OK returning same QR code
+    # 2. Idempotent repeat call with same target -> 200 OK returning same QR code, no duplicate row
     res2 = client.post(
         "/api/v1/qr-codes/generate/",
         {"branch_id": str(branch_a.id), "table_id": str(table_a.id), "target_type": "TABLE"},
@@ -185,10 +188,12 @@ def test_qr_generate_idempotency_and_deactivation_api(venue_test_setup):
     assert res2.status_code == 200
     assert res2.data["id"] == qr_id
     assert res2.data["public_token"] == token
+    assert QRCode.unscoped.filter(branch=branch_a, table=table_a, is_active=True).count() == 1
 
-    # 3. Deactivate via DELETE /api/v1/qr-codes/{id}/
+    # 3. Deactivate via DELETE /api/v1/qr-codes/{id}/ -> 204 No Content
     res_del = client.delete(f"/api/v1/qr-codes/{qr_id}/")
-    assert res_del.status_code == 200
+    assert res_del.status_code == 204
+    assert QRCode.unscoped.filter(branch=branch_a, table=table_a, is_active=True).count() == 0
 
     # 4. Generate again after deactivation -> creates fresh active QR code (201 Created)
     res3 = client.post(
@@ -199,7 +204,3 @@ def test_qr_generate_idempotency_and_deactivation_api(venue_test_setup):
     assert res3.status_code == 201
     new_qr_id = res3.data["id"]
     assert new_qr_id != qr_id
-
-    # 5. Deactivate via POST /api/v1/qr-codes/{id}/deactivate/
-    res_deact = client.post(f"/api/v1/qr-codes/{new_qr_id}/deactivate/")
-    assert res_deact.status_code == 200

@@ -170,9 +170,9 @@ def test_qr_code_viewset_actions(venue_test_setup):
     assert res_svg.status_code == 200
     assert res_svg["Content-Type"] == "image/svg+xml"
 
-    # Deactivate
-    res_deact = client.post(f"/api/v1/qr-codes/{qr_id}/deactivate/")
-    assert res_deact.status_code == 200
+    # Deactivate via DELETE
+    res_deact = client.delete(f"/api/v1/qr-codes/{qr_id}/")
+    assert res_deact.status_code == 204
 
 
 @pytest.mark.django_db

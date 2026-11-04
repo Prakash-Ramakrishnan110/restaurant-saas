@@ -35,7 +35,7 @@ def test_starter_plan_entitlement_enforcement(venue_test_setup):
         enforce_limit(tenant, "courses")
 
     with pytest.raises(EntitlementLimitReached):
-        update_capabilities(branch, {"uses_courses": True})
+        update_capabilities(branch, {"supports_courses": True})
 
     # 2. Table merge disabled on Starter plan
     with pytest.raises(EntitlementLimitReached):

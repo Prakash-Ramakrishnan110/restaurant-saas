@@ -83,6 +83,14 @@ class BaseTenantPermission(BasePermission):
         if not user or not user.is_authenticated:
             return False
 
+        if getattr(user, "must_change_password", False):
+            from rest_framework.exceptions import PermissionDenied
+
+            raise PermissionDenied(
+                detail="You must change your temporary password before accessing this resource.",
+                code="PASSWORD_CHANGE_REQUIRED",
+            )
+
         # Platform Admin bypass for platform endpoints
         if getattr(user, "is_platform_admin", False):
             if self.required_permission in (

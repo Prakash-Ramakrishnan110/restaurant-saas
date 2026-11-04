@@ -23,4 +23,37 @@ def test_seed_command():
     assert Tenant.objects.filter(slug="bean-bloom").exists()
     assert Tenant.objects.filter(slug="spice-garden").exists()
     assert Tenant.objects.filter(slug="grand-meridian").exists()
-    assert Tenant.objects.filter(slug="foodie-plaza").exists()
+    t_fc = Tenant.objects.filter(slug="foodie-plaza").first()
+    assert t_fc is not None
+
+    # Verify Foodie Plaza (FOOD_COURT) has 6 counters, 0 dining tables, 6 counter QR codes, and independent tokens per counter
+    from apps.core.context import set_current_tenant
+    from apps.tenants.models import Branch
+    from apps.venues.constants import AreaType, QRTargetType
+    from apps.venues.models import DiningTable, QRCode, ServiceArea
+    from apps.venues.services import next_token
+
+    set_current_tenant(t_fc)
+    fc_branch = Branch.objects.get(tenant=t_fc)
+    fc_counters = list(
+        ServiceArea.objects.filter(
+            tenant=t_fc, branch=fc_branch, area_type=AreaType.FOOD_COURT_COUNTER
+        ).order_by("sort_order")
+    )
+    assert len(fc_counters) == 6
+    assert DiningTable.objects.filter(tenant=t_fc).count() == 0
+    assert (
+        QRCode.objects.filter(
+            tenant=t_fc, branch=fc_branch, target_type=QRTargetType.COUNTER, is_active=True
+        ).count()
+        == 6
+    )
+
+    # Prove tokens are independent per counter (each counter was initialized to 1 during seed)
+    t_c1_a = next_token(fc_branch, fc_counters[0])
+    t_c1_b = next_token(fc_branch, fc_counters[0])
+    t_c2_a = next_token(fc_branch, fc_counters[1])
+    assert t_c1_a == 2
+    assert t_c1_b == 3
+    assert t_c2_a == 2
+    set_current_tenant(None)

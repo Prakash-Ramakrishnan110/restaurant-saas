@@ -6,7 +6,7 @@ This document outlines the API contracts, architectural conventions, authenticat
 
 ## 1. Base URL & Protocol
 - **API Prefix**: `/api/v1/`
-- **Health Checks**: `/health/`
+- **Health Checks**: `/health` and `/health/` (both return `200 OK` without redirect)
 - **Public Endpoints**: `/api/v1/public/qr/...` (no authentication required)
 - **Protected Endpoints**: Require JWT Bearer token authentication and tenant scoping.
 
@@ -17,28 +17,29 @@ This document outlines the API contracts, architectural conventions, authenticat
 ### 2.1 Login (`POST /api/v1/auth/login/`)
 - Accepts `email` and `password`.
 - Returns `access` token (short-lived, 15 min), user details, active tenant ID, and memberships.
-- Sets an `httpOnly`, `Secure`, `SameSite=Lax` refresh cookie (`refresh_token`).
+- Sets an `httpOnly`, `Secure` (env-driven), `SameSite` refresh cookie (`fusion_refresh_token`).
 
 ### 2.2 Token Refresh (`POST /api/v1/auth/refresh/`)
-- Automatically reads the `httpOnly` refresh cookie (or accepts `{ "refresh": "..." }` in request body).
-- Performs token rotation: issues a new access token and a new rotated refresh cookie; old refresh token is blacklisted.
-- Validates origin header against allowed CORS origins.
+- Canonical single refresh endpoint (no duplicate `/token/refresh/` alias).
+- Reads the `httpOnly` refresh cookie (or accepts `{ "refresh": "..." }` in request body).
+- Performs token rotation: issues a new `access` token in the JSON body and sets a rotated `httpOnly` refresh cookie; blacklists the old refresh token.
+- Validates `Origin` header against `CORS_ALLOWED_ORIGINS`.
 
 ### 2.3 Logout (`POST /api/v1/auth/logout/`)
-- Works with refresh cookie or request body; blacklists the refresh token and clears the cookie.
-- Returns HTTP 204 No Content even if token was already invalid.
+- Works with the refresh cookie alone (`AllowAny` + `Origin` allow-list check).
+- Blacklists the refresh token, always clears the cookie, and returns `204 No Content` even if the access token is expired or the refresh token is already invalid.
 
 ### 2.4 Password Change (`POST /api/v1/auth/change-password/`)
-- Authenticated endpoint requiring `old_password` and `new_password`.
-- Validates password complexity via standard rules.
-- Revokes all other active sessions (blacklists all user tokens).
-- Clears `user.must_change_password` flag.
-- Issues fresh access token and refresh cookie in response.
+- Authenticated endpoint requiring `current_password` and `new_password` (rate-limited via `change_password` throttle scope).
+- Validates password complexity via standard Django password validators.
+- Blacklists all outstanding refresh tokens for the user (revoking other active sessions).
+- Clears `user.must_change_password` flag and writes an `auth.password_change` `AuditLog` entry.
+- Returns `{ "message": "Password changed successfully.", "access": "<jwt>" }` in the JSON body (never returns a refresh token in the JSON body) and sets the new refresh token in the `httpOnly` cookie.
 
-### 2.5 First-Time Staff Login Flow
-- When a manager or owner invites a new staff member via `POST /api/v1/staff/`, the response contains `temporary_password` **once**.
-- The staff user is created with `must_change_password: true`.
-- On login, frontend should inspect `user.must_change_password`. If `true`, redirect user immediately to the Change Password screen.
+### 2.5 First-Time Staff Login & Backend `PASSWORD_CHANGE_REQUIRED` Gate
+- When a manager or owner invites a new staff member via `POST /api/v1/staff/`, the response contains `temporary_password` **once** (never written to `AuditLog`, application logs, or subsequent `GET` responses).
+- The staff user is created with `must_change_password = true`.
+- **Backend Gate**: While `user.must_change_password` is `true`, every authenticated endpoint except `/api/v1/auth/me/`, `/api/v1/auth/change-password/`, `/api/v1/auth/logout/`, and `/api/v1/auth/refresh/` returns `403 Forbidden` with error code `PASSWORD_CHANGE_REQUIRED`.
 
 ---
 
@@ -47,12 +48,12 @@ This document outlines the API contracts, architectural conventions, authenticat
 | Header | Description | Required |
 |---|---|---|
 | `Authorization` | `Bearer <access_token>` | For all protected endpoints |
-| `X-Tenant-ID` | Target Tenant UUID | When user has memberships in multiple tenants |
+| `X-Tenant-ID` | Target Tenant UUID | Optional override when user has memberships in multiple tenants |
 | `Content-Type` | `application/json` | For all JSON requests |
 
 ---
 
-## 4. Uniform Error Schema
+## 4. Uniform Error Schema & Complete Error-Code Reference
 
 Every 4xx and 5xx response adheres to this deterministic schema:
 
@@ -66,18 +67,25 @@ Every 4xx and 5xx response adheres to this deterministic schema:
 }
 ```
 
-### Standard Error Codes
-| Code | HTTP Status | Description |
+### Complete Error-Code List
+| Error Code | HTTP Status | When It Occurs |
 |---|---|---|
-| `VALIDATION_ERROR` | 400 | Field-level validation failed (e.g. required field missing). |
-| `INVALID_REFERENCE` | 400 | Foreign or non-existent entity referenced in body (e.g. invalid table ID, section ID). Exactly identical to random non-existent UUIDs. |
-| `INVALID_CAPABILITY_COMBINATION` | 400 | Incompatible branch capability configuration rejected. |
-| `AUTHENTICATION_FAILED` | 401 | Invalid or expired credentials / tokens. |
-| `PERMISSION_DENIED` | 403 | Missing RBAC permission for action. |
-| `ENTITLEMENT_LIMIT_REACHED` | 403 | Tenant plan limit reached (e.g. table count, floor editor disabled). |
-| `NOT_FOUND` | 404 | Resource does not exist or belongs to another tenant. |
-| `TENANT_SUSPENDED` | 403 | Tenant account is suspended. |
-| `RATE_LIMIT_EXCEEDED` | 429 | Request throttled. |
+| `VALIDATION_ERROR` | 400 | Request body or query parameter fails serializer validation (e.g., missing required field, invalid choice, weak password, invalid table status transition). |
+| `INVALID_REFERENCE` | 400 | Request body references a foreign-tenant, cross-branch, or non-existent UUID (e.g., `branch`, `section`, `service_area`, `table`, `group_id`, `membership`). Response is byte-for-byte identical to a random non-existent UUID. |
+| `INVALID_CAPABILITY_COMBINATION` | 400 | `PATCH /api/v1/branches/{id}/capabilities/` violates capability invariant rules R1–R7. `error.details` maps each offending field name to its rule violation message. |
+| `MISSING_TOKEN` | 400 | `POST /api/v1/auth/refresh/` is called without a refresh cookie or `refresh` body field. |
+| `AUTHENTICATION_FAILED` | 401 | Missing, expired, or invalid JWT access/refresh token, or invalid email/password on login. |
+| `PERMISSION_DENIED` | 403 | Authenticated user's role lacks the required RBAC permission for the action, or user has no active membership in the requested `X-Tenant-ID`. |
+| `PASSWORD_CHANGE_REQUIRED` | 403 | Authenticated user has `must_change_password = true` and requests any endpoint other than `auth/me`, `auth/change-password`, `auth/logout`, or `auth/refresh`. |
+| `TENANT_SUSPENDED` | 403 | Active tenant's status is `SUSPENDED` or `ARCHIVED`, or tenant has no active/trialing subscription (`SubscriptionGateMiddleware` / login check). |
+| `ENTITLEMENT_LIMIT_REACHED` | 403 | Operation exceeds the tenant's subscription plan limits (`max_branches`, `max_service_areas`, `max_tables`) or requires a disabled plan feature (`floor_editor`, `table_merge`, `courses`). |
+| `INVALID_ORIGIN` | 403 | `POST /api/v1/auth/refresh/` or `POST /api/v1/auth/logout/` carries an `Origin` header not in `CORS_ALLOWED_ORIGINS`. |
+| `NO_TENANT_CONTEXT` | 403 | Authenticated user has no active tenant context for a tenant-scoped endpoint. |
+| `STAFF_ACTION_REQUIRED` | 403 | Public customer attempts `POST /api/v1/public/qr/{token}/session/` on a table whose branch has `qr_session_policy = STAFF_ONLY` and no open session exists, or when `allows_qr_ordering = false`. |
+| `NOT_FOUND` | 404 | Requested resource UUID does not exist, belongs to another tenant, belongs to an unassigned branch for a branch-scoped role, or public QR token is inactive/rotated/suspended. |
+| `METHOD_NOT_ALLOWED` | 405 | HTTP verb is not supported by the endpoint. |
+| `RATE_LIMITED` | 429 | Request exceeded rate limit on login (`login`), password change (`change_password`), token refresh (`token_refresh`), or public QR (`public_qr`) endpoints. |
+| `INTERNAL_SERVER_ERROR` | 500 | Unhandled server exception. |
 
 ---
 
@@ -86,13 +94,7 @@ Every 4xx and 5xx response adheres to this deterministic schema:
 - **Available Presets**: `GET /api/v1/venues/presets/` returns preset configurations for:
   `QUICK_SERVICE`, `CAFE`, `CASUAL_DINING`, `FINE_DINING`, `HOTEL_RESTAURANT`, `FOOD_COURT`, `BAR_BREWERY`.
 - **Branch Capabilities**: `GET /api/v1/branches/{id}/capabilities/` and `PATCH /api/v1/branches/{id}/capabilities/`.
-- **Capability Rules**:
-  1. `COUNTER_TOKEN` workflow requires `uses_token_numbers=True`
-  2. `TABLE_SERVICE` workflow requires `uses_tables=True`
-  3. `ROOM_SERVICE` workflow requires `allows_room_service=True`
-  4. `uses_courses=True` requires `uses_tables=True`
-  5. `allows_room_charge=True` requires `payment_timing != PAY_FIRST`
-  6. `qr_ordering_mode in ['ORDER_WITH_APPROVAL', 'ORDER_DIRECT']` requires `allows_qr_ordering=True`
+- **15 Capability Fields**: `uses_tables`, `uses_kds`, `uses_token_numbers`, `allows_takeaway`, `allows_room_service`, `allows_room_charge`, `allows_qr_ordering`, `has_sections`, `has_seat_ordering`, `supports_courses`, `allows_table_transfer`, `payment_timing`, `qr_ordering_mode`, `qr_session_policy`, `order_workflow`.
 
 ---
 
@@ -102,36 +104,47 @@ Every 4xx and 5xx response adheres to this deterministic schema:
 - **Sections**: `GET /api/v1/sections/`, `POST /api/v1/sections/`
 - **Dining Tables**: `GET /api/v1/tables/`, `POST /api/v1/tables/`
 - **Bulk Creation**: `POST /api/v1/tables/bulk-create/`
-- **Floor Editor Layout**: `POST /api/v1/tables/layout/` (batch update coordinates and dimensions)
+- **Floor Editor Layout**: `POST /api/v1/tables/layout/` and `PATCH /api/v1/tables/layout/` (batch update coordinates and dimensions)
 - **Table Merge/Join**: `POST /api/v1/tables/join/` (combines 2+ tables into a `TableGroup`)
 - **Table Split**: `POST /api/v1/tables/split/` (releases group back to individual tables)
-- **Status Transitions**: `POST /api/v1/tables/{id}/status/` (`AVAILABLE`, `OCCUPIED`, `RESERVED`, `CLEANING`, `BLOCKED`)
+- **Status Transitions**: `POST /api/v1/tables/{id}/status/` (`AVAILABLE`, `OCCUPIED`, `RESERVED`, `CLEANING`, `OUT_OF_SERVICE`)
 
 ---
 
 ## 7. QR Code Management & Public Diner Ordering
 
 ### Staff Management
-- `POST /api/v1/qr-codes/generate/`: Idempotent endpoint. If an active QR code exists for the table/branch, returns it (200 OK); otherwise creates a new one (201 Created).
+- `POST /api/v1/qr-codes/generate/`: Idempotent endpoint. If an active QR code exists for the target `(branch, target_type, table, service_area)`, returns it (`200 OK`); otherwise creates a new one (`201 Created`).
 - `POST /api/v1/qr-codes/{id}/rotate/`: Cryptographically rotates public token, incrementing version and invalidating old token.
-- `DELETE /api/v1/qr-codes/{id}/` or `POST /api/v1/qr-codes/{id}/deactivate/`: Deactivates QR code.
-- `GET /api/v1/qr-codes/{id}/image/?format=png`: Generates high-res PNG or SVG QR image for physical printing.
+- `DELETE /api/v1/qr-codes/{id}/`: Canonical single deactivation route. Soft-deactivates QR code (`is_active = False`) and returns `204 No Content`.
+- `GET /api/v1/qr-codes/{id}/image/?format=png`: Generates PNG or SVG QR image for physical printing.
 
 ### Public Customer Flow (No Auth Required)
 - `GET /api/v1/public/qr/{token}/`: Resolves scanned QR token. Returns venue name, logo, table label, capabilities, and active session status.
-- `POST /api/v1/public/qr/{token}/session/`: Opens a customer table session (if `qr_session_policy == CUSTOMER_CAN_OPEN`).
+- `POST /api/v1/public/qr/{token}/session/`: Opens or rejoins a customer table session (if `qr_session_policy == CUSTOMER_CAN_OPEN`).
 
 ---
 
 ## 8. Entitlements & Subscription Usage
 
 - `GET /api/v1/entitlements/`: Returns plan name, subscription status, limits (`max_branches`, `max_service_areas`, `max_tables`, `floor_editor`, `table_merge`, `courses`), current usage count, and remaining count.
-- Frontend should query this to show usage warnings (e.g. "45/50 tables used") before hitting `ENTITLEMENT_LIMIT_REACHED`.
 
 ---
 
 ## 9. Business Profile
 
-- `GET /api/v1/business/`: Retrieve active tenant profile and business settings.
-- `PATCH /api/v1/business/`: Owner can update business name, type, phone, email, timezone, and branding (`invoice_prefix`, `logo_url`, `primary_color`, `tax_mode`).
+- `GET /api/v1/business/`: Retrieve active tenant profile and business settings (`business.view` permission: `OWNER`, `BRANCH_MANAGER`).
+- `PATCH /api/v1/business/`: Update business name, type, phone, email, timezone, and branding (`invoice_prefix`, `logo_url`, `primary_color`, `tax_mode`) (`business.manage` permission: `OWNER` only).
 
+---
+
+## 10. Spec Deviations & Clarifications Table
+
+| Area | Spec / Earlier Draft | Final Implementation | Rationale |
+|---|---|---|---|
+| Change-password input field | `old_password` in initial Prompt 2 draft | `current_password` | Standardized on `current_password` per Addendum 3 Item 4; returns new `access` token in JSON body and sets refresh token exclusively in `httpOnly` cookie. |
+| Capability field `supports_courses` | `uses_courses` in Addendum 1 | `supports_courses` | Renamed via data-preserving `RenameField` migration `0006` and removed duplicate property aliases (`has_table_management`, `supports_courses`) so model and OpenAPI schema expose 15 canonical fields. |
+| Food Court model | Mall multi-vendor settlement vs. counter stall | Counter-style stall (`FOOD_COURT_COUNTER` service areas, `uses_tables=False`, `uses_token_numbers=True`, `PAY_FIRST`, `ORDER_DIRECT`, tokens per counter) | Multi-vendor mall operator cart/settlement is deferred to a future milestone (documented in ADR 0005). |
+| Refresh endpoint | `/api/v1/auth/refresh/` + `/api/v1/auth/token/refresh/` | Single `/api/v1/auth/refresh/` | Removed duplicate alias so the API surface has one canonical route per operation. |
+| QR deactivation endpoint | `DELETE /api/v1/qr-codes/{id}/` + `POST /api/v1/qr-codes/{id}/deactivate/` | Single `DELETE /api/v1/qr-codes/{id}/` returning `204 No Content` | Removed duplicate POST action; `DELETE` soft-deactivates the QR code (`is_active=False`) and returns 204. |
+| Host PostgreSQL port | `127.0.0.1:5432:5432` | Configurable `127.0.0.1:${POSTGRES_HOST_PORT:-5435}:5432` | Windows host runs native PostgreSQL 15/17/18 services on ports 5432, 5433, and 5434; configurable `POSTGRES_HOST_PORT` (default 5435) binds Docker's PostgreSQL 16 to loopback without conflicting with host OS services. |

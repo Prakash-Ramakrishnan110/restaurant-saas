@@ -104,10 +104,11 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 # Database configuration
+POSTGRES_HOST_PORT = env.int("POSTGRES_HOST_PORT", default=5435)
 DATABASES = {
     "default": env.db(
         "DATABASE_URL",
-        default=f"postgres://{env.str('DB_USER', 'postgres')}:{env.str('DB_PASSWORD', 'postgres')}@{env.str('DB_HOST', 'localhost')}:{env.int('DB_PORT', 5432)}/{env.str('DB_NAME', 'fusion_saas')}",
+        default=f"postgres://{env.str('DB_USER', 'postgres')}:{env.str('DB_PASSWORD', 'postgres')}@{env.str('DB_HOST', '127.0.0.1')}:{env.int('DB_PORT', POSTGRES_HOST_PORT)}/{env.str('DB_NAME', 'fusion_saas')}",
     )
 }
 
@@ -178,6 +179,7 @@ REST_FRAMEWORK = {
         "user": "1000/minute",
         "login_ip": "10/minute",
         "login_email": "5/minute",
+        "change_password": "5/minute",
     },
 }
 

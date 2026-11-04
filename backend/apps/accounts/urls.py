@@ -11,7 +11,6 @@ from apps.accounts.views import (
 
 urlpatterns = [
     path("auth/login/", LoginView.as_view(), name="auth-login"),
-    path("auth/token/refresh/", RefreshTokenView.as_view(), name="auth-token-refresh"),
     path("auth/refresh/", RefreshTokenView.as_view(), name="auth-refresh"),
     path("auth/logout/", LogoutView.as_view(), name="auth-logout"),
     path("auth/me/", AuthMeView.as_view(), name="auth-me"),

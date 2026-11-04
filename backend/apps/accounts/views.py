@@ -33,7 +33,11 @@ from apps.accounts.staff_service import (
     create_staff_member,
     update_staff_member,
 )
-from apps.accounts.throttling import LoginEmailRateThrottle, LoginIPRateThrottle
+from apps.accounts.throttling import (
+    ChangePasswordRateThrottle,
+    LoginEmailRateThrottle,
+    LoginIPRateThrottle,
+)
 from apps.core.context import get_current_tenant
 from apps.core.pagination import StandardResultsSetPagination
 from apps.rbac.constants import Permission
@@ -130,11 +134,12 @@ class RefreshTokenView(APIView):
     permission_classes = [AllowAny]
 
     @extend_schema(
+        request=None,
         responses={
             200: OpenApiResponse(description="Token refreshed successfully"),
             401: OpenApiResponse(description="Invalid or expired refresh token"),
             403: OpenApiResponse(description="Invalid request origin"),
-        }
+        },
     )
     def post(self, request: Request) -> Response:
         cookie_token = request.COOKIES.get(settings.REFRESH_COOKIE_NAME)
@@ -289,7 +294,12 @@ class ChangePasswordView(APIView):
     """Authenticated endpoint to change password, revoke prior sessions, and issue fresh access token."""
 
     permission_classes = [IsAuthenticated]
+    throttle_classes = [ChangePasswordRateThrottle]
 
+    @extend_schema(
+        request=ChangePasswordSerializer,
+        responses={200: OpenApiResponse(description="Password changed successfully")},
+    )
     def post(self, request: Request) -> Response:
         serializer = ChangePasswordSerializer(data=request.data, context={"request": request})
         serializer.is_valid(raise_exception=True)
@@ -322,14 +332,13 @@ class ChangePasswordView(APIView):
         for tok in OutstandingToken.objects.filter(user=user):
             BlacklistedToken.objects.get_or_create(token=tok)
 
-        # Issue fresh token pair
+        # Issue fresh token pair (access in JSON body, refresh in httpOnly cookie only)
         fresh_refresh = RefreshToken.for_user(user)
         fresh_access = str(fresh_refresh.access_token)
 
         response = Response(
             {
                 "access": fresh_access,
-                "access_token": fresh_access,
                 "message": "Password changed successfully.",
             },
             status=status.HTTP_200_OK,
@@ -349,6 +358,7 @@ class ChangePasswordView(APIView):
 class StaffViewSet(ViewSet):
     """Staff management endpoints scoped to the active tenant."""
 
+    serializer_class = StaffDetailSerializer
     pagination_class = StandardResultsSetPagination
 
     def get_permissions(self):

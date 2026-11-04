@@ -30,16 +30,16 @@ class BranchCapabilitiesSerializer(serializers.ModelSerializer[BranchCapabilitie
             "id",
             "branch",
             "uses_tables",
-            "uses_token_numbers",
             "uses_kds",
-            "uses_courses",
+            "uses_token_numbers",
             "allows_takeaway",
             "allows_room_service",
             "allows_room_charge",
+            "allows_qr_ordering",
             "has_sections",
             "has_seat_ordering",
+            "supports_courses",
             "allows_table_transfer",
-            "allows_qr_ordering",
             "payment_timing",
             "qr_ordering_mode",
             "qr_session_policy",
@@ -54,16 +54,16 @@ class BranchCapabilitiesSerializer(serializers.ModelSerializer[BranchCapabilitie
         if isinstance(self.instance, BranchCapabilities):
             combined = {
                 "uses_tables": self.instance.uses_tables,
-                "uses_token_numbers": self.instance.uses_token_numbers,
                 "uses_kds": self.instance.uses_kds,
-                "uses_courses": self.instance.uses_courses,
+                "uses_token_numbers": self.instance.uses_token_numbers,
                 "allows_takeaway": self.instance.allows_takeaway,
                 "allows_room_service": self.instance.allows_room_service,
                 "allows_room_charge": self.instance.allows_room_charge,
+                "allows_qr_ordering": self.instance.allows_qr_ordering,
                 "has_sections": self.instance.has_sections,
                 "has_seat_ordering": self.instance.has_seat_ordering,
+                "supports_courses": self.instance.supports_courses,
                 "allows_table_transfer": self.instance.allows_table_transfer,
-                "allows_qr_ordering": self.instance.allows_qr_ordering,
                 "payment_timing": self.instance.payment_timing,
                 "qr_ordering_mode": self.instance.qr_ordering_mode,
                 "qr_session_policy": self.instance.qr_session_policy,
@@ -297,6 +297,7 @@ class OpenSessionSerializer(serializers.Serializer):
 
 class QRCodeSerializer(serializers.ModelSerializer[QRCode]):
     table_label = serializers.CharField(source="table.label", read_only=True)
+    service_area_name = serializers.CharField(source="service_area.name", read_only=True)
 
     class Meta:
         model = QRCode
@@ -306,6 +307,8 @@ class QRCodeSerializer(serializers.ModelSerializer[QRCode]):
             "target_type",
             "table",
             "table_label",
+            "service_area",
+            "service_area_name",
             "public_token",
             "is_active",
             "version",
@@ -326,6 +329,7 @@ class QRCodeSerializer(serializers.ModelSerializer[QRCode]):
 class GenerateQRCodeSerializer(serializers.Serializer):
     branch_id = serializers.UUIDField()
     table_id = serializers.UUIDField(required=False, allow_null=True)
+    service_area_id = serializers.UUIDField(required=False, allow_null=True)
     target_type = serializers.ChoiceField(choices=QRTargetType.choices, default=QRTargetType.TABLE)
 
 

@@ -118,6 +118,43 @@ def test_db_unique_open_session_constraint(venue_test_setup):
 
 
 @pytest.mark.django_db
+def test_db_unique_open_session_per_group_constraint(venue_test_setup):
+    from django.db import IntegrityError
+
+    from apps.venues.models import TableGroup
+
+    branch = venue_test_setup["branch_a1"]
+    tenant = venue_test_setup["tenant_a"]
+    set_current_tenant(tenant)
+
+    group = TableGroup.objects.create(
+        tenant=tenant,
+        branch=branch,
+        label="T1 + T2",
+        is_active=True,
+    )
+
+    # Open first session on table_group (table is NULL)
+    open_session(branch=branch, table_group=group)
+
+    # Service-level check raises ValidationError
+    with pytest.raises(ValidationError):
+        open_session(branch=branch, table_group=group)
+
+    # DB-level UniqueConstraint raises IntegrityError when table is NULL and table_group is set
+    with pytest.raises(IntegrityError):
+        TableSession.objects.create(
+            tenant=tenant,
+            branch=branch,
+            table=None,
+            table_group=group,
+            session_code="DUPEGRP",
+            opened_via=OpenedVia.STAFF,
+            status=SessionStatus.OPEN,
+        )
+
+
+@pytest.mark.django_db
 def test_staff_only_table_opening_policy(venue_test_setup):
     from rest_framework.test import APIClient
 

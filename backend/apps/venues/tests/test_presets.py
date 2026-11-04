@@ -1,15 +1,17 @@
 import pytest
+from django.apps import apps as django_apps
 
 from apps.core.context import set_current_tenant
 from apps.tenants.models import Branch
 from apps.venues.constants import (
     OrderWorkflow,
     PaymentTiming,
+    QROrderingMode,
     QRSessionPolicy,
 )
 from apps.venues.models import BranchCapabilities
 from apps.venues.presets import VENUE_CAPABILITY_PRESETS, get_preset_capabilities
-from apps.venues.services import apply_preset
+from apps.venues.services import apply_preset, validate_capabilities
 
 
 @pytest.mark.django_db
@@ -39,7 +41,7 @@ def test_quick_service_preset_values():
 def test_fine_dining_preset_values():
     fd_preset = get_preset_capabilities(Branch.VenueProfile.FINE_DINING)
     assert fd_preset["uses_tables"] is True
-    assert fd_preset["uses_courses"] is True
+    assert fd_preset["supports_courses"] is True
     assert fd_preset["allows_takeaway"] is False
     assert fd_preset["qr_session_policy"] == QRSessionPolicy.STAFF_ONLY
 
@@ -54,75 +56,155 @@ def test_hotel_preset_values():
 
 @pytest.mark.django_db
 def test_all_presets_pass_validation():
-    from apps.venues.services import validate_capabilities
-
     for _profile, preset in VENUE_CAPABILITY_PRESETS.items():
-        # Assert does not raise
+        # Every preset must pass R1-R7 validation without raising
         validate_capabilities(preset)
 
 
 @pytest.mark.django_db
-def test_patch_capabilities_rejects_invalid_combinations(venue_test_setup):
+@pytest.mark.parametrize(
+    "rule_id,invalid_payload,expected_fields",
+    [
+        (
+            "R1",
+            {"order_workflow": OrderWorkflow.COUNTER_TOKEN, "uses_token_numbers": False},
+            {"order_workflow", "uses_token_numbers"},
+        ),
+        (
+            "R2",
+            {
+                "order_workflow": OrderWorkflow.TABLE_SERVICE,
+                "uses_tables": False,
+                "has_sections": False,
+                "has_seat_ordering": False,
+                "supports_courses": False,
+            },
+            {"order_workflow", "uses_tables"},
+        ),
+        (
+            "R3",
+            {"order_workflow": OrderWorkflow.ROOM_SERVICE, "allows_room_service": False},
+            {"order_workflow", "allows_room_service"},
+        ),
+        (
+            "R4",
+            {
+                "order_workflow": OrderWorkflow.BAR_TAB,
+                "supports_courses": True,
+                "uses_tables": False,
+                "has_sections": False,
+                "has_seat_ordering": False,
+            },
+            {"supports_courses", "uses_tables"},
+        ),
+        (
+            "R5_sections",
+            {
+                "order_workflow": OrderWorkflow.BAR_TAB,
+                "has_sections": True,
+                "uses_tables": False,
+                "has_seat_ordering": False,
+                "supports_courses": False,
+            },
+            {"has_sections", "uses_tables"},
+        ),
+        (
+            "R5_seats",
+            {
+                "order_workflow": OrderWorkflow.BAR_TAB,
+                "has_seat_ordering": True,
+                "uses_tables": False,
+                "has_sections": False,
+                "supports_courses": False,
+            },
+            {"has_seat_ordering", "uses_tables"},
+        ),
+        (
+            "R6",
+            {"allows_room_charge": True, "payment_timing": PaymentTiming.PAY_FIRST},
+            {"allows_room_charge", "payment_timing"},
+        ),
+        (
+            "R7_approval",
+            {"qr_ordering_mode": QROrderingMode.ORDER_WITH_APPROVAL, "allows_qr_ordering": False},
+            {"qr_ordering_mode", "allows_qr_ordering"},
+        ),
+        (
+            "R7_direct",
+            {"qr_ordering_mode": QROrderingMode.ORDER_DIRECT, "allows_qr_ordering": False},
+            {"qr_ordering_mode", "allows_qr_ordering"},
+        ),
+    ],
+)
+def test_patch_capabilities_rejects_invalid_combinations(
+    venue_test_setup, rule_id, invalid_payload, expected_fields
+):
     from apps.venues.tests.conftest import make_client
 
     client = make_client(venue_test_setup["owner_a"], venue_test_setup["tenant_a"])
     branch = venue_test_setup["branch_a1"]
 
-    # 1. COUNTER_TOKEN requires uses_token_numbers=True
-    res1 = client.patch(
+    res = client.patch(
         f"/api/v1/branches/{branch.id}/capabilities/",
-        {"order_workflow": OrderWorkflow.COUNTER_TOKEN, "uses_token_numbers": False},
+        invalid_payload,
         format="json",
     )
-    assert res1.status_code == 400
-    assert res1.data["error"]["code"] == "INVALID_CAPABILITY_COMBINATION"
+    assert res.status_code == 400, f"Rule {rule_id} should have failed with 400"
+    assert res.data["error"]["code"] == "INVALID_CAPABILITY_COMBINATION"
+    details = res.data["error"]["details"]
+    for field in expected_fields:
+        assert field in details, f"Rule {rule_id} missing offending field '{field}' in details"
 
-    # 2. TABLE_SERVICE requires uses_tables=True
-    res2 = client.patch(
-        f"/api/v1/branches/{branch.id}/capabilities/",
-        {"order_workflow": OrderWorkflow.TABLE_SERVICE, "uses_tables": False},
-        format="json",
+
+@pytest.mark.django_db
+def test_migration_remaps_legacy_qr_ordering_modes_and_payment_timing(venue_test_setup):
+    """Proves migration 0005 converts legacy qr_ordering_mode and payment_timing values."""
+    import importlib
+
+    mig_0005 = importlib.import_module(
+        "apps.venues.migrations.0005_branchcapabilities_allows_room_charge_and_more"
     )
-    assert res2.status_code == 400
-    assert res2.data["error"]["code"] == "INVALID_CAPABILITY_COMBINATION"
+    remap_capabilities = mig_0005.remap_capabilities
 
-    # 3. ROOM_SERVICE requires allows_room_service=True
-    res3 = client.patch(
-        f"/api/v1/branches/{branch.id}/capabilities/",
-        {"order_workflow": OrderWorkflow.ROOM_SERVICE, "allows_room_service": False},
-        format="json",
+    tenant = venue_test_setup["tenant_a"]
+    set_current_tenant(tenant)
+
+    b_a1 = venue_test_setup["branch_a1"]
+    b_a2 = venue_test_setup["branch_a2"]
+    b_b1 = venue_test_setup["branch_b1"]
+
+    cap1 = BranchCapabilities.unscoped.get(branch=b_a1)
+    cap2 = BranchCapabilities.unscoped.get(branch=b_a2)
+    cap3 = BranchCapabilities.unscoped.get(branch=b_b1)
+
+    # Set legacy values via queryset update (bypassing choice validation)
+    BranchCapabilities.unscoped.filter(pk=cap1.pk).update(
+        payment_timing="ROOM_CHARGE",
+        allows_room_charge=False,
+        qr_ordering_mode="ORDER_PAY_LATER",
     )
-    assert res3.status_code == 400
-    assert res3.data["error"]["code"] == "INVALID_CAPABILITY_COMBINATION"
-
-    # 4. uses_courses=True requires uses_tables=True
-    res4 = client.patch(
-        f"/api/v1/branches/{branch.id}/capabilities/",
-        {"uses_courses": True, "uses_tables": False},
-        format="json",
+    BranchCapabilities.unscoped.filter(pk=cap2.pk).update(
+        payment_timing="TAB",
+        qr_ordering_mode="ORDER_PAY_FIRST",
     )
-    assert res4.status_code == 400
-    assert res4.data["error"]["code"] == "INVALID_CAPABILITY_COMBINATION"
-
-    # 5. allows_room_charge=True requires payment_timing != PAY_FIRST
-    res5 = client.patch(
-        f"/api/v1/branches/{branch.id}/capabilities/",
-        {"allows_room_charge": True, "payment_timing": PaymentTiming.PAY_FIRST},
-        format="json",
+    BranchCapabilities.unscoped.filter(pk=cap3.pk).update(
+        qr_ordering_mode="DIRECT_TO_KITCHEN",
     )
-    assert res5.status_code == 400
-    assert res5.data["error"]["code"] == "INVALID_CAPABILITY_COMBINATION"
 
-    # 6. qr_ordering_mode in ['ORDER_WITH_APPROVAL', 'ORDER_DIRECT'] requires allows_qr_ordering=True
-    from apps.venues.constants import QROrderingMode
+    remap_capabilities(django_apps, None)
 
-    res6 = client.patch(
-        f"/api/v1/branches/{branch.id}/capabilities/",
-        {"qr_ordering_mode": QROrderingMode.ORDER_DIRECT, "allows_qr_ordering": False},
-        format="json",
-    )
-    assert res6.status_code == 400
-    assert res6.data["error"]["code"] == "INVALID_CAPABILITY_COMBINATION"
+    cap1.refresh_from_db()
+    cap2.refresh_from_db()
+    cap3.refresh_from_db()
+
+    assert cap1.payment_timing == PaymentTiming.PAY_LATER
+    assert cap1.allows_room_charge is True
+    assert cap1.qr_ordering_mode == QROrderingMode.ORDER_WITH_APPROVAL
+
+    assert cap2.payment_timing == PaymentTiming.PAY_LATER
+    assert cap2.qr_ordering_mode == QROrderingMode.ORDER_DIRECT
+
+    assert cap3.qr_ordering_mode == QROrderingMode.ORDER_DIRECT
 
 
 @pytest.mark.django_db
@@ -130,12 +212,12 @@ def test_apply_preset_creates_or_updates_capabilities(venue_test_setup):
     set_current_tenant(venue_test_setup["tenant_a"])
     branch = venue_test_setup["branch_a1"]
     capabilities = apply_preset(branch, Branch.VenueProfile.FINE_DINING)
-    assert capabilities.uses_courses is True
+    assert capabilities.supports_courses is True
     assert capabilities.allows_takeaway is False
 
     # Check persistence
     db_caps = BranchCapabilities.objects.get(branch=branch)
-    assert db_caps.uses_courses is True
+    assert db_caps.supports_courses is True
     assert db_caps.allows_takeaway is False
 
 

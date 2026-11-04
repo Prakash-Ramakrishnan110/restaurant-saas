@@ -277,6 +277,7 @@ def get_public_qr_code(token: str) -> Any | None:
             "tenant",
             "branch__capabilities",
             "table__section__service_area",
+            "service_area",
         )
         .filter(public_token=token, is_active=True)
         .first()

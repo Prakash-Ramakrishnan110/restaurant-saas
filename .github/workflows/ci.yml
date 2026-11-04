@@ -73,7 +73,7 @@ jobs:
           DJANGO_SETTINGS_MODULE: config.settings.test
         run: |
           cd backend
-          python manage.py spectacular --file ../docs/openapi.json
+          python manage.py spectacular --format openapi-json --validate --file ../docs/openapi.json
           git diff --exit-code ../docs/openapi.json
 
       - name: Run Pytest with Coverage Gate (>= 90%)

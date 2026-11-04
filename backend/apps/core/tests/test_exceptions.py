@@ -40,11 +40,20 @@ def test_custom_exception_handler():
     assert res is not None
     assert res.data["error"]["code"] == "NOT_FOUND"
 
+    # PermissionDenied with PASSWORD_CHANGE_REQUIRED code
+    pw_exc = exceptions.PermissionDenied(
+        detail="You must change your temporary password before accessing this resource.",
+        code="PASSWORD_CHANGE_REQUIRED",
+    )
+    res_pw = custom_exception_handler(pw_exc, context)
+    assert res_pw is not None
+    assert res_pw.data["error"]["code"] == "PASSWORD_CHANGE_REQUIRED"
+
     # Throttled
     throttle_exc = exceptions.Throttled(wait=60)
     res = custom_exception_handler(throttle_exc, context)
     assert res is not None
-    assert res.data["error"]["code"] == "RATE_LIMIT_EXCEEDED"
+    assert res.data["error"]["code"] == "RATE_LIMITED"
     assert res.data["error"]["details"]["wait_seconds"] == 60
 
     # Unhandled standard exception

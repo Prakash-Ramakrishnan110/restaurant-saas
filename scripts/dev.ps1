@@ -49,6 +49,9 @@ switch ($Command) {
     }
     "test" {
         Write-Host "Running pytest with coverage..." -ForegroundColor Green
+        if (-not $env:POSTGRES_HOST_PORT) { $env:POSTGRES_HOST_PORT = "5435" }
+        if (-not $env:DB_PORT) { $env:DB_PORT = $env:POSTGRES_HOST_PORT }
+        if (-not $env:DB_HOST) { $env:DB_HOST = "127.0.0.1" }
         Push-Location backend
         try {
             pytest apps --cov=apps --cov-report=term-missing --cov-fail-under=90

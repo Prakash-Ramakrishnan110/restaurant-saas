@@ -488,14 +488,31 @@ class Command(BaseCommand):
             },
         )
         apply_preset(b5, Branch.VenueProfile.FOOD_COURT)
-        counters = ["South Indian Express", "Burger Barn", "Chai Shai"]
-        for c_name in counters:
+        counters = [
+            "Counter 1 - South Indian",
+            "Counter 2 - North Indian Tandoor",
+            "Counter 3 - Chinese Wok",
+            "Counter 4 - Burger & Fries",
+            "Counter 5 - Woodfired Pizza",
+            "Counter 6 - Chai & Desserts",
+        ]
+        # Clean up any legacy non-FOOD_COURT_COUNTER areas or tables on re-seed
+        DiningTable.objects.filter(tenant=t5).delete()
+        ServiceArea.objects.filter(tenant=t5, branch=b5).exclude(name__in=counters).delete()
+        for idx, c_name in enumerate(counters, start=1):
             sa_c, _ = ServiceArea.objects.get_or_create(
                 tenant=t5,
                 branch=b5,
                 name=c_name,
-                defaults={"area_type": AreaType.TAKEAWAY},
+                defaults={"area_type": AreaType.FOOD_COURT_COUNTER, "sort_order": idx},
             )
+            if sa_c.area_type != AreaType.FOOD_COURT_COUNTER:
+                sa_c.area_type = AreaType.FOOD_COURT_COUNTER
+                sa_c.save(update_fields=["area_type"])
+            if not QRCode.objects.filter(
+                branch=b5, target_type=QRTargetType.COUNTER, service_area=sa_c, is_active=True
+            ).exists():
+                generate_qr_code(branch=b5, target_type=QRTargetType.COUNTER, service_area=sa_c)
             next_token(b5, sa_c)
 
         u5_owner, _ = User.objects.get_or_create(

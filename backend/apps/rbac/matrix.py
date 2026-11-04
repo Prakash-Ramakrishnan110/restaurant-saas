@@ -68,6 +68,8 @@ ROLE_PERMISSIONS: dict[str, set[str]] = {
         Permission.PRINTER_REPRINT,
     },
     Role.WAITER: {
+        Permission.AREA_VIEW,
+        Permission.STAFF_VIEW,
         Permission.TABLE_VIEW,
         Permission.TABLE_STATUS_UPDATE,
         Permission.TABLE_SESSION_OPEN,

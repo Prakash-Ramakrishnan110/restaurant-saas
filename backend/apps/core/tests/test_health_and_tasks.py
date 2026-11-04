@@ -12,6 +12,24 @@ def test_health_check_endpoint():
     assert response.data["status"] == "ok"
     assert "database" in response.data
 
+    response_slash = client.get("/health/")
+    assert response_slash.status_code == 200
+    assert response_slash.data["status"] == "ok"
+
+
+@pytest.mark.django_db
+def test_postgres_server_version_is_at_least_16():
+    from django.db import connection
+
+    with connection.cursor() as cursor:
+        cursor.execute("SHOW server_version;")
+        row = cursor.fetchone()
+    assert row is not None
+    version_str = str(row[0])
+    print(f"POSTGRES_SERVER_VERSION: {version_str}")
+    major_version = int(version_str.split(".")[0])
+    assert major_version >= 16, f"Expected PostgreSQL >= 16, got {version_str}"
+
 
 def test_celery_health_check_task():
     result = health_check_task.apply().get()

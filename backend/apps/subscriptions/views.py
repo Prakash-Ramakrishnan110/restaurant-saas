@@ -1,3 +1,4 @@
+from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import extend_schema
 from rest_framework import status
 from rest_framework.request import Request
@@ -15,6 +16,7 @@ class EntitlementsView(APIView):
     permission_classes = [BaseTenantPermission]
 
     @extend_schema(
+        responses={200: OpenApiTypes.OBJECT},
         summary="Get tenant subscription entitlements and usage",
         description="Returns plan name, subscription status, numeric limits with remaining headroom, and feature flags.",
     )

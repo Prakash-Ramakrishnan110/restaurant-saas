@@ -1,74 +1,67 @@
 # Venue Presets and Capability Matrix
 
-Fusion Engine Restaurant SaaS provides out-of-the-box configuration profiles for 7 distinct Indian and global food service operational models. Each preset automatically pre-configures 15 strongly typed capability flags on `BranchCapabilities`.
+Fusion Engine Restaurant SaaS provides out-of-the-box configuration profiles for 7 distinct Indian and global food service operational models. Each preset automatically pre-configures 15 strongly typed capability fields (11 booleans and 4 enums) on `BranchCapabilities` with zero duplicate property aliases.
 
 ---
 
-## 1. Complete Capability Matrix (As Implemented)
+## 1. Complete Capability Matrix (Every Venue Profile vs. Every Capability Field & Enum)
 
-| Venue Profile | Representative Venues | Tables | Tokens | KDS | Courses | Takeaway | Room Svc | Room Chg | Sections | Seats | Transfer | QR Ord | Payment Timing | QR Ordering Mode | QR Session Policy | Order Workflow |
-|---|---|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|---|---|---|---|
-| **QUICK_SERVICE** | Chai shops, Darshinis, Bakeries, Food trucks, Sweet counters | ❌ | ✅ | ❌ | ❌ | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ | `PAY_FIRST` | `BROWSE_ONLY` | `CUSTOMER_CAN_OPEN` | `COUNTER_TOKEN` |
-| **CAFE** | Coffee shops, Bistro bakeries, Dessert parlours, Tea rooms | ✅ | ❌ | ✅ | ❌ | ✅ | ❌ | ❌ | ✅ | ❌ | ✅ | ✅ | `EITHER` | `ORDER_DIRECT` | `CUSTOMER_CAN_OPEN` | `TABLE_SERVICE` |
-| **CASUAL_DINING** | Family dining, Biryani houses, Udupi vegetarian, Pizzerias | ✅ | ❌ | ✅ | ❌ | ✅ | ❌ | ❌ | ✅ | ✅ | ✅ | ✅ | `PAY_LATER` | `ORDER_WITH_APPROVAL` | `CUSTOMER_CAN_OPEN` | `TABLE_SERVICE` |
-| **FINE_DINING** | Heritage luxury dining, Speakeasy bars, Chef tasting rooms | ✅ | ❌ | ✅ | ✅ | ❌ | ❌ | ❌ | ✅ | ✅ | ✅ | ✅ | `PAY_LATER` | `BROWSE_ONLY` | `STAFF_ONLY` | `TABLE_SERVICE` |
-| **HOTEL_RESTAURANT** | Resort outlets, 24/7 diners, Room service operations | ✅ | ❌ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | `PAY_LATER` | `ORDER_WITH_APPROVAL` | `STAFF_ONLY` | `TABLE_SERVICE` |
-| **FOOD_COURT** | Mall food court stalls, Tech park cafeterias, Drive-ins | ❌ | ✅ | ✅ | ❌ | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ | `PAY_FIRST` | `ORDER_DIRECT` | `CUSTOMER_CAN_OPEN` | `COUNTER_TOKEN` |
-| **BAR_BREWERY** | Microbreweries, Pubs, Taprooms, Sports lounges | ✅ | ❌ | ✅ | ❌ | ❌ | ❌ | ❌ | ✅ | ✅ | ✅ | ✅ | `PAY_LATER` | `ORDER_WITH_APPROVAL` | `CUSTOMER_CAN_OPEN` | `BAR_TAB` |
-
-> [!NOTE]
-> **Cafe Preset Justification**:
-> Cafés feature seated table service (`uses_tables=True`, `order_workflow=TABLE_SERVICE`) where customers can pay either upfront at counter or at table end (`payment_timing=EITHER`), and orders can be placed directly from the table QR menu (`qr_ordering_mode=ORDER_DIRECT`).
->
-> **Which profiles use `ORDER_WITH_APPROVAL`?**
-> Both **`CASUAL_DINING`**, **`HOTEL_RESTAURANT`**, and **`BAR_BREWERY`** use `ORDER_WITH_APPROVAL`. In these venues, customers can compose orders via table QR on their phones, but orders require waiter/staff confirmation before firing to the kitchen (KOT) or posting to the hotel folio.
+| Venue Profile | `uses_tables` | `uses_kds` | `uses_token_numbers` | `allows_takeaway` | `allows_room_service` | `allows_room_charge` | `allows_qr_ordering` | `has_sections` | `has_seat_ordering` | `supports_courses` | `allows_table_transfer` | `payment_timing` | `qr_ordering_mode` | `qr_session_policy` | `order_workflow` |
+|---|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|---|---|---|---|
+| **QUICK_SERVICE** | `False` | `False` | `True` | `True` | `False` | `False` | `True` | `False` | `False` | `False` | `False` | `PAY_FIRST` | `BROWSE_ONLY` | `CUSTOMER_CAN_OPEN` | `COUNTER_TOKEN` |
+| **CAFE** | `True` | `True` | `False` | `True` | `False` | `False` | `True` | `True` | `False` | `False` | `True` | `EITHER` | `ORDER_DIRECT` | `CUSTOMER_CAN_OPEN` | `TABLE_SERVICE` |
+| **CASUAL_DINING** | `True` | `True` | `False` | `True` | `False` | `False` | `True` | `True` | `True` | `False` | `True` | `PAY_LATER` | `ORDER_WITH_APPROVAL` | `CUSTOMER_CAN_OPEN` | `TABLE_SERVICE` |
+| **FINE_DINING** | `True` | `True` | `False` | `False` | `False` | `False` | `True` | `True` | `True` | `True` | `True` | `PAY_LATER` | `BROWSE_ONLY` | `STAFF_ONLY` | `TABLE_SERVICE` |
+| **HOTEL_RESTAURANT** | `True` | `True` | `False` | `True` | `True` | `True` | `True` | `True` | `True` | `True` | `True` | `PAY_LATER` | `ORDER_WITH_APPROVAL` | `STAFF_ONLY` | `TABLE_SERVICE` |
+| **FOOD_COURT** | `False` | `True` | `True` | `True` | `False` | `False` | `True` | `False` | `False` | `False` | `False` | `PAY_FIRST` | `ORDER_DIRECT` | `CUSTOMER_CAN_OPEN` | `COUNTER_TOKEN` |
+| **BAR_BREWERY** | `True` | `True` | `False` | `False` | `False` | `False` | `True` | `True` | `True` | `False` | `True` | `PAY_LATER` | `ORDER_WITH_APPROVAL` | `CUSTOMER_CAN_OPEN` | `BAR_TAB` |
 
 ---
 
-## 2. Invariant Capability Validation Rules
+## 2. Invariant Capability Validation Rules (R1–R7)
 
-The service layer (`validate_capabilities`) and serializers enforce 6 invariant consistency rules with error code `INVALID_CAPABILITY_COMBINATION`:
-1. `COUNTER_TOKEN` workflow requires `uses_token_numbers=True`
-2. `TABLE_SERVICE` workflow requires `uses_tables=True`
-3. `ROOM_SERVICE` workflow requires `allows_room_service=True`
-4. `uses_courses=True` requires `uses_tables=True`
-5. `allows_room_charge=True` requires `payment_timing != PAY_FIRST` (`PAY_LATER` or `EITHER`)
-6. `qr_ordering_mode in ['ORDER_WITH_APPROVAL', 'ORDER_DIRECT']` requires `allows_qr_ordering=True`
+The service layer (`validate_capabilities`) and `BranchCapabilitiesSerializer` enforce 7 invariant consistency rules with error code `INVALID_CAPABILITY_COMBINATION`, reporting the offending field names in `error.details`:
+
+- **R1**: `order_workflow == COUNTER_TOKEN` requires `uses_token_numbers = true` (offending fields: `order_workflow`, `uses_token_numbers`)
+- **R2**: `order_workflow == TABLE_SERVICE` requires `uses_tables = true` (offending fields: `order_workflow`, `uses_tables`)
+- **R3**: `order_workflow == ROOM_SERVICE` requires `allows_room_service = true` (offending fields: `order_workflow`, `allows_room_service`)
+- **R4**: `supports_courses = true` requires `uses_tables = true` (offending fields: `supports_courses`, `uses_tables`)
+- **R5**: `has_sections = true` and `has_seat_ordering = true` each require `uses_tables = true` (offending fields: `has_sections` / `has_seat_ordering`, `uses_tables`)
+- **R6**: `allows_room_charge = true` requires `payment_timing != PAY_FIRST` (offending fields: `allows_room_charge`, `payment_timing`)
+- **R7**: `qr_ordering_mode` in (`ORDER_WITH_APPROVAL`, `ORDER_DIRECT`) requires `allows_qr_ordering = true` (offending fields: `qr_ordering_mode`, `allows_qr_ordering`)
 
 ---
 
-## 3. Enum Definitions
+## 3. Enum Values and Plain-Language Meanings
 
 ### `payment_timing` (`PaymentTiming`)
-- **`PAY_FIRST`**: Upfront settlement prior to kitchen ticket routing (QSR, food court).
-- **`PAY_LATER`**: Post-meal settlement upon requesting final bill (Casual, fine dining, bar, hotel).
-- **`EITHER`**: Counter or table payment depending on guest workflow (Café).
+- **`PAY_FIRST`**: Guests pay upfront before the order is sent to the kitchen or counter queue (used in `QUICK_SERVICE` and `FOOD_COURT`).
+- **`PAY_LATER`**: Guests settle their bill at the end of the meal after dining (used in `CASUAL_DINING`, `FINE_DINING`, `HOTEL_RESTAURANT`, and `BAR_BREWERY`).
+- **`EITHER`**: Branch accepts both upfront counter payment and end-of-meal table settlement (used in `CAFE`).
 
 ### `qr_ordering_mode` (`QROrderingMode`)
-Defines the permitted ordering behavior when a customer scans a table QR code:
-- **`DISABLED`**: QR ordering is completely turned off. Scans are rejected.
-- **`BROWSE_ONLY`**: View-only digital menu with real-time item availability and allergens. Orders must be placed with physical waitstaff.
-- **`ORDER_WITH_APPROVAL`**: Customer submits order from smartphone; designated waiter or cashier receives real-time notification to review and approve before KOT is dispatched.
-- **`ORDER_DIRECT`**: Customer order dispatches directly to kitchen/bar upon submission.
+- **`DISABLED`**: Public QR scanning and digital menus are completely disabled for the branch.
+- **`BROWSE_ONLY`**: Guests can scan the QR code to view the digital menu and prices, but cannot submit orders from their phone (used in `QUICK_SERVICE` and `FINE_DINING`).
+- **`ORDER_WITH_APPROVAL`**: Guests submit orders via QR on their phone, and staff must review and approve the order before it fires to the kitchen (used in `CASUAL_DINING`, `HOTEL_RESTAURANT`, and `BAR_BREWERY`).
+- **`ORDER_DIRECT`**: Guests submit orders via QR (after payment in `PAY_FIRST` venues or onto an open tab) and tickets route directly to the kitchen/KDS without manual waiter approval (used in `CAFE` and `FOOD_COURT`).
 
 ### `qr_session_policy` (`QRSessionPolicy`)
-Controls session initiation security and table occupancy rights:
-- **`CUSTOMER_CAN_OPEN`**: First customer scan automatically opens a new `TableSession` if table is available.
-- **`STAFF_ONLY`**: Customer scan cannot open a session on an unoccupied table. Waitstaff or host must seat guests and open the session from staff POS before customer QR ordering becomes active.
+- **`CUSTOMER_CAN_OPEN`**: Scanning an available table's QR code allows a customer to automatically start a new `TableSession` (used in `QUICK_SERVICE`, `CAFE`, `CASUAL_DINING`, `FOOD_COURT`, and `BAR_BREWERY`).
+- **`STAFF_ONLY`**: Only authenticated staff can open a `TableSession` on an unoccupied table; customers scanning an unopened table receive `STAFF_ACTION_REQUIRED` until seated by a host (used in `FINE_DINING` and `HOTEL_RESTAURANT`).
 
 ### `order_workflow` (`OrderWorkflow`)
-- **`COUNTER_TOKEN`**: Dispatches with atomic sequential token number for collection display board.
-- **`TABLE_SERVICE`**: Routed to specific table and section with waiter assignment.
-- **`BAR_TAB`**: Routed to bar dispense station under running guest tab.
-- **`ROOM_SERVICE`**: Routed to room service pantry with tray delivery dispatch.
-- **`FAST_FOOD_DISPLAY`**: Routed to order preparation queue with front-of-house pickup display.
-- **`DRIVE_THRU`**: Routed to drive-thru window workflow.
+- **`COUNTER_TOKEN`**: Orders issue an atomic daily token number (`TokenCounter`) for counter pickup without table seating (used in `QUICK_SERVICE` and `FOOD_COURT` presets).
+- **`TABLE_SERVICE`**: Orders are bound to a `DiningTable` or `TableGroup` session and served by waitstaff at the table (used in `CAFE`, `CASUAL_DINING`, `FINE_DINING`, and `HOTEL_RESTAURANT` presets).
+- **`BAR_TAB`**: Orders accumulate on a running bar tab under a guest session with drink-first dispatch (used in `BAR_BREWERY` preset).
+- **`ROOM_SERVICE`**: Orders are routed to hotel in-room dining pantries for guest room delivery (custom branch override for hotel room-service-only outlets when `allows_room_service=True`).
+- **`FAST_FOOD_DISPLAY`**: Orders route to a KDS preparation queue and front-of-house customer collection number screen (custom branch override for high-volume QSR outlets with digital pickup boards).
+- **`DRIVE_THRU`**: Orders route through a vehicle lane order-bay and pickup-window queue (custom branch override for drive-thru lanes in QSR chains).
 
 ---
 
 ## 4. Business Type to Venue Profile Recommendation
 
-When onboarding a new restaurant tenant, `suggest_venue_profile(business_type)` provides intelligent defaults:
+When onboarding a new restaurant tenant, `suggest_venue_profile(business_type)` provides default branch profile mappings:
 
 | Tenant `business_type` | Recommended Branch `venue_profile` |
 |---|---|

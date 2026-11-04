@@ -11,7 +11,7 @@ from django.utils import timezone
 from rest_framework.exceptions import PermissionDenied, ValidationError
 
 from apps.audit.services import log_audit_event
-from apps.core.context import get_current_tenant, set_current_tenant
+from apps.core.context import get_current_tenant, reset_current_tenant, set_current_tenant
 from apps.subscriptions.services import enforce_limit
 from apps.tenants.models import Branch
 from apps.venues.constants import (
@@ -42,62 +42,69 @@ from apps.venues.presets import get_preset_capabilities
 
 
 def validate_capabilities(data: dict[str, Any]) -> None:
-    """Validate 6 invariant capability rules across branch operations.
+    """Validate 7 invariant capability rules across branch operations.
 
-    1. COUNTER_TOKEN requires uses_token_numbers=True
-    2. TABLE_SERVICE requires uses_tables=True
-    3. ROOM_SERVICE requires allows_room_service=True
-    4. uses_courses=True requires uses_tables=True
-    5. allows_room_charge=True requires payment_timing != PAY_FIRST
-    6. qr_ordering_mode in ['ORDER_WITH_APPROVAL', 'ORDER_DIRECT'] requires allows_qr_ordering=True
+    R1 order_workflow COUNTER_TOKEN requires uses_token_numbers = true
+    R2 order_workflow TABLE_SERVICE requires uses_tables = true
+    R3 order_workflow ROOM_SERVICE requires allows_room_service = true
+    R4 supports_courses requires uses_tables = true
+    R5 has_sections and has_seat_ordering each require uses_tables = true
+    R6 allows_room_charge requires payment_timing != PAY_FIRST
+    R7 qr_ordering_mode ORDER_WITH_APPROVAL or ORDER_DIRECT requires allows_qr_ordering = true
     """
     order_workflow = data.get("order_workflow")
     uses_token_numbers = data.get("uses_token_numbers")
     uses_tables = data.get("uses_tables")
     allows_room_service = data.get("allows_room_service")
-    uses_courses = data.get("uses_courses")
+    supports_courses = data.get("supports_courses")
+    has_sections = data.get("has_sections")
+    has_seat_ordering = data.get("has_seat_ordering")
     allows_room_charge = data.get("allows_room_charge")
     payment_timing = data.get("payment_timing")
     qr_ordering_mode = data.get("qr_ordering_mode")
     allows_qr_ordering = data.get("allows_qr_ordering")
 
+    errors: dict[str, str] = {}
+
     if order_workflow == OrderWorkflow.COUNTER_TOKEN and not uses_token_numbers:
-        raise ValidationError(
-            {"order_workflow": "COUNTER_TOKEN workflow requires uses_token_numbers=True."},
-            code="INVALID_CAPABILITY_COMBINATION",
-        )
+        errors["order_workflow"] = "COUNTER_TOKEN workflow requires uses_token_numbers = true."
+        errors["uses_token_numbers"] = "Required when order_workflow is COUNTER_TOKEN."
+
     if order_workflow == OrderWorkflow.TABLE_SERVICE and not uses_tables:
-        raise ValidationError(
-            {"order_workflow": "TABLE_SERVICE workflow requires uses_tables=True."},
-            code="INVALID_CAPABILITY_COMBINATION",
-        )
+        errors["order_workflow"] = "TABLE_SERVICE workflow requires uses_tables = true."
+        errors["uses_tables"] = "Required when order_workflow is TABLE_SERVICE."
+
     if order_workflow == OrderWorkflow.ROOM_SERVICE and not allows_room_service:
-        raise ValidationError(
-            {"order_workflow": "ROOM_SERVICE workflow requires allows_room_service=True."},
-            code="INVALID_CAPABILITY_COMBINATION",
-        )
-    if uses_courses and not uses_tables:
-        raise ValidationError(
-            {"uses_courses": "uses_courses=True requires uses_tables=True."},
-            code="INVALID_CAPABILITY_COMBINATION",
-        )
+        errors["order_workflow"] = "ROOM_SERVICE workflow requires allows_room_service = true."
+        errors["allows_room_service"] = "Required when order_workflow is ROOM_SERVICE."
+
+    if supports_courses and not uses_tables:
+        errors["supports_courses"] = "supports_courses requires uses_tables = true."
+        errors.setdefault("uses_tables", "Required when supports_courses is true.")
+
+    if has_sections and not uses_tables:
+        errors["has_sections"] = "has_sections requires uses_tables = true."
+        errors.setdefault("uses_tables", "Required when has_sections is true.")
+
+    if has_seat_ordering and not uses_tables:
+        errors["has_seat_ordering"] = "has_seat_ordering requires uses_tables = true."
+        errors.setdefault("uses_tables", "Required when has_seat_ordering is true.")
+
     if allows_room_charge and payment_timing == PaymentTiming.PAY_FIRST:
-        raise ValidationError(
-            {
-                "allows_room_charge": (
-                    "allows_room_charge=True requires payment_timing to be PAY_LATER or EITHER (cannot be PAY_FIRST)."
-                )
-            },
-            code="INVALID_CAPABILITY_COMBINATION",
+        errors["allows_room_charge"] = "allows_room_charge requires payment_timing != PAY_FIRST."
+        errors["payment_timing"] = (
+            "payment_timing cannot be PAY_FIRST when allows_room_charge is true."
         )
+
     if (
         qr_ordering_mode in (QROrderingMode.ORDER_WITH_APPROVAL, QROrderingMode.ORDER_DIRECT)
         and not allows_qr_ordering
     ):
-        raise ValidationError(
-            {"qr_ordering_mode": f"{qr_ordering_mode} requires allows_qr_ordering=True."},
-            code="INVALID_CAPABILITY_COMBINATION",
-        )
+        errors["qr_ordering_mode"] = f"{qr_ordering_mode} requires allows_qr_ordering = true."
+        errors["allows_qr_ordering"] = f"Required when qr_ordering_mode is {qr_ordering_mode}."
+
+    if errors:
+        raise ValidationError(errors, code="INVALID_CAPABILITY_COMBINATION")
 
 
 @transaction.atomic
@@ -129,7 +136,7 @@ def apply_preset(
             "uses_tables": capabilities.uses_tables,
             "uses_token_numbers": capabilities.uses_token_numbers,
             "uses_kds": capabilities.uses_kds,
-            "uses_courses": capabilities.uses_courses,
+            "supports_courses": capabilities.supports_courses,
         }
         for key, val in preset_data.items():
             setattr(capabilities, key, val)
@@ -177,7 +184,7 @@ def update_capabilities(
     )
 
     # Entitlement check: verify whether feature flags (e.g. courses) are allowed by tenant's plan
-    if capabilities_data.get("uses_courses") is True:
+    if capabilities_data.get("supports_courses") is True:
         enforce_limit(branch.tenant, "courses")
 
     # Validate merged capability invariant rules
@@ -189,7 +196,7 @@ def update_capabilities(
         "uses_tables": capabilities.uses_tables,
         "uses_token_numbers": capabilities.uses_token_numbers,
         "uses_kds": capabilities.uses_kds,
-        "uses_courses": capabilities.uses_courses,
+        "supports_courses": capabilities.supports_courses,
         "allows_takeaway": capabilities.allows_takeaway,
         "allows_room_service": capabilities.allows_room_service,
         "allows_room_charge": capabilities.allows_room_charge,
@@ -209,7 +216,7 @@ def update_capabilities(
         "uses_tables": capabilities.uses_tables,
         "uses_token_numbers": capabilities.uses_token_numbers,
         "uses_kds": capabilities.uses_kds,
-        "uses_courses": capabilities.uses_courses,
+        "supports_courses": capabilities.supports_courses,
         "allows_takeaway": capabilities.allows_takeaway,
         "allows_room_service": capabilities.allows_room_service,
         "allows_room_charge": capabilities.allows_room_charge,
@@ -442,13 +449,21 @@ def open_session(
                 "This venue requires restaurant staff to open the table session."
             )
 
-    # Check for existing open session on table
+    # Check for existing open session on table or table_group
     if table:
         existing = TableSession.objects.filter(table=table, status=SessionStatus.OPEN).first()
         if existing:
             if opened_via in (OpenedVia.QR, OpenedVia.QR_CUSTOMER):
                 return existing
             raise ValidationError("An active session is already open on this table.")
+    if grp:
+        existing_grp = TableSession.objects.filter(
+            table_group=grp, status=SessionStatus.OPEN
+        ).first()
+        if existing_grp:
+            if opened_via in (OpenedVia.QR, OpenedVia.QR_CUSTOMER):
+                return existing_grp
+            raise ValidationError("An active session is already open on this table group.")
 
     session_code = secrets.token_hex(3).upper()
 
@@ -552,6 +567,7 @@ def generate_qr_code(
     branch: Branch,
     target_type: str = QRTargetType.TABLE,
     table: DiningTable | None = None,
+    service_area: ServiceArea | None = None,
     actor: Any | None = None,
     request: HttpRequest | None = None,
 ) -> QRCode:
@@ -566,6 +582,7 @@ def generate_qr_code(
         branch=branch,
         target_type=target_type,
         table=table,
+        service_area=service_area,
         public_token=public_token,
         is_active=True,
         version=1,
@@ -581,6 +598,7 @@ def generate_qr_code(
         after_state={
             "target_type": target_type,
             "table_id": str(table.id) if table else None,
+            "service_area_id": str(service_area.id) if service_area else None,
             "version": 1,
         },
         request=request,
@@ -649,37 +667,39 @@ def deactivate_qr_code(
 def next_token(
     branch: Branch,
     service_area: ServiceArea | None = None,
-    for_date: Any | None = None,
 ) -> int:
     """Atomically increments and returns the next daily sequential token number.
 
     Resets daily at midnight in the tenant's configured timezone.
     """
-    if get_current_tenant() is None:
-        set_current_tenant(branch.tenant)
+    prev_tenant = get_current_tenant()
+    token = set_current_tenant(branch.tenant) if prev_tenant != branch.tenant else None
+    try:
+        # Lock branch row to serialize concurrent cold-start creations
+        Branch.objects.select_for_update().only("id").get(pk=branch.pk)
 
-    if for_date is None:
         tz_name = branch.tenant.timezone or "Asia/Kolkata"
         tz = zoneinfo.ZoneInfo(tz_name)
-        target_date = timezone.now().astimezone(tz).date()
-    else:
-        target_date = for_date
+        local_date = timezone.now().astimezone(tz).date()
 
-    counter, created = TokenCounter.objects.select_for_update().get_or_create(
-        branch=branch,
-        service_date=target_date,
-        service_area=service_area,
-        defaults={
-            "tenant": branch.tenant,
-            "last_number": 1,
-        },
-    )
+        counter, created = TokenCounter.objects.select_for_update().get_or_create(
+            branch=branch,
+            service_date=local_date,
+            service_area=service_area,
+            defaults={
+                "tenant": branch.tenant,
+                "last_number": 1,
+            },
+        )
 
-    if not created:
-        counter.last_number += 1
-        counter.save(update_fields=["last_number", "updated_at"])
+        if not created:
+            counter.last_number += 1
+            counter.save(update_fields=["last_number", "updated_at"])
 
-    return counter.last_number
+        return counter.last_number
+    finally:
+        if token is not None:
+            reset_current_tenant(token)
 
 
 @transaction.atomic

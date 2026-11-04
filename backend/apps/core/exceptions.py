@@ -78,7 +78,12 @@ def custom_exception_handler(exc: Exception, context: dict[str, Any]) -> Respons
             details = message
             message = "Authentication failed."
     elif isinstance(exc, PermissionDenied):
-        code = "PERMISSION_DENIED"
+        raw_codes = _extract_codes(exc.get_codes()) if hasattr(exc, "get_codes") else []
+        codes = [c.upper() for c in raw_codes]
+        if "PASSWORD_CHANGE_REQUIRED" in codes:
+            code = "PASSWORD_CHANGE_REQUIRED"
+        else:
+            code = "PERMISSION_DENIED"
         message = getattr(exc, "detail", "You do not have permission to perform this action.")
         if isinstance(message, dict):
             details = message
@@ -90,7 +95,7 @@ def custom_exception_handler(exc: Exception, context: dict[str, Any]) -> Respons
             details = message
             message = "Resource not found."
     elif isinstance(exc, Throttled):
-        code = "RATE_LIMIT_EXCEEDED"
+        code = "RATE_LIMITED"
         wait_sec = getattr(exc, "wait", None)
         message = f"Request was throttled. Expected available in {wait_sec} seconds."
         details = {"wait_seconds": wait_sec}

@@ -1,45 +1,137 @@
 import concurrent.futures
+from datetime import date
 
 import pytest
-from django.db import connection
+from django.db import IntegrityError, connection
 from freezegun import freeze_time
 
 from apps.core.context import reset_current_tenant, set_current_tenant
+from apps.venues.models import TokenCounter
 from apps.venues.services import next_token
 
 
-@pytest.mark.django_db(transaction=True)
-def test_token_counter_concurrency(venue_test_setup):
-    """Concurrency test: simulate 20 parallel threads calling next_token.
+@pytest.mark.django_db
+def test_token_counter_duplicate_null_service_area_raises_integrity_error(venue_test_setup):
+    """(a) Inserting a duplicate (branch, date, NULL area) row raises IntegrityError."""
+    branch = venue_test_setup["branch_a1"]
+    tenant = venue_test_setup["tenant_a"]
+    ctx_token = set_current_tenant(tenant)
+    try:
+        target_date = date(2026, 11, 4)
+        TokenCounter.objects.create(
+            tenant=tenant,
+            branch=branch,
+            service_date=target_date,
+            service_area=None,
+            last_number=1,
+        )
+        with pytest.raises(IntegrityError):
+            TokenCounter.objects.create(
+                tenant=tenant,
+                branch=branch,
+                service_date=target_date,
+                service_area=None,
+                last_number=2,
+            )
+    finally:
+        reset_current_tenant(ctx_token)
 
-    Assert exactly 20 distinct sequential integers 1..20 without duplicates or gaps.
+
+@pytest.mark.django_db(transaction=True)
+def test_token_counter_cold_start_concurrency_null_area(venue_test_setup):
+    """(b) COLD START concurrency with service_area=None:
+    No pre-existing counter row, 20 threads, repeated in a loop 5 times with fresh dates,
+    always unique numbers 1..20.
+    """
+    branch = venue_test_setup["branch_a1"]
+    num_threads = 20
+
+    for day_offset in range(5):
+        frozen_dt = f"2026-11-{10 + day_offset:02d} 10:00:00"
+        with freeze_time(frozen_dt):
+            assert (
+                TokenCounter.unscoped.filter(
+                    branch=branch,
+                    service_date=date(2026, 11, 10 + day_offset),
+                    service_area__isnull=True,
+                ).count()
+                == 0
+            )
+
+            def get_token():
+                connection.close()
+                try:
+                    set_current_tenant(branch.tenant)
+                    return next_token(branch=branch, service_area=None)
+                finally:
+                    connection.close()
+
+            tokens = []
+            with concurrent.futures.ThreadPoolExecutor(max_workers=num_threads) as executor:
+                futures = [executor.submit(get_token) for _ in range(num_threads)]
+                for f in concurrent.futures.as_completed(futures):
+                    tokens.append(f.result())
+
+            assert len(tokens) == num_threads
+            assert len(set(tokens)) == num_threads
+            assert sorted(tokens) == list(range(1, num_threads + 1))
+            assert (
+                TokenCounter.unscoped.filter(
+                    branch=branch,
+                    service_date=date(2026, 11, 10 + day_offset),
+                    service_area__isnull=True,
+                ).count()
+                == 1
+            )
+
+
+@pytest.mark.django_db(transaction=True)
+def test_token_counter_cold_start_concurrency_with_service_area(venue_test_setup):
+    """(c) COLD START concurrency with non-null service_area:
+    No pre-existing counter row, 20 threads, repeated in a loop 5 times with fresh dates,
+    always unique numbers 1..20.
     """
     branch = venue_test_setup["branch_a1"]
     area = venue_test_setup["area_a1"]
-
     num_threads = 20
 
-    def get_token():
-        # Close connection so each thread gets its own db connection from pool
-        connection.close()
-        try:
-            set_current_tenant(branch.tenant)
-            return next_token(branch=branch, service_area=area)
-        finally:
-            connection.close()
+    for day_offset in range(5):
+        frozen_dt = f"2026-11-{20 + day_offset:02d} 10:00:00"
+        with freeze_time(frozen_dt):
+            assert (
+                TokenCounter.unscoped.filter(
+                    branch=branch,
+                    service_date=date(2026, 11, 20 + day_offset),
+                    service_area=area,
+                ).count()
+                == 0
+            )
 
-    tokens = []
-    with concurrent.futures.ThreadPoolExecutor(max_workers=num_threads) as executor:
-        futures = [executor.submit(get_token) for _ in range(num_threads)]
-        for f in concurrent.futures.as_completed(futures):
-            tokens.append(f.result())
+            def get_token():
+                connection.close()
+                try:
+                    set_current_tenant(branch.tenant)
+                    return next_token(branch=branch, service_area=area)
+                finally:
+                    connection.close()
 
-    # Assert no duplicates
-    assert len(tokens) == num_threads
-    assert len(set(tokens)) == num_threads
+            tokens = []
+            with concurrent.futures.ThreadPoolExecutor(max_workers=num_threads) as executor:
+                futures = [executor.submit(get_token) for _ in range(num_threads)]
+                for f in concurrent.futures.as_completed(futures):
+                    tokens.append(f.result())
 
-    # Assert perfectly sequential from 1 to 20
-    assert sorted(tokens) == list(range(1, num_threads + 1))
+            assert len(tokens) == num_threads
+            assert len(set(tokens)) == num_threads
+            assert sorted(tokens) == list(range(1, num_threads + 1))
+            assert (
+                TokenCounter.unscoped.filter(
+                    branch=branch,
+                    service_date=date(2026, 11, 20 + day_offset),
+                    service_area=area,
+                ).count()
+                == 1
+            )
 
 
 @pytest.mark.django_db
@@ -77,7 +169,6 @@ def test_token_counter_scoping_and_reset(venue_test_setup):
 @pytest.mark.django_db
 def test_token_counter_daily_reset_ist_midnight(venue_test_setup):
     """Daily reset follows tenant timezone: 18:29 UTC (23:59 IST) and 18:31 UTC (00:01 IST)
-
     are different service dates, resetting to 1 at IST midnight.
     """
     branch = venue_test_setup["branch_a1"]

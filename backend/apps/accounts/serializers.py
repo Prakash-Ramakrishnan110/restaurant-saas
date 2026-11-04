@@ -29,10 +29,15 @@ class UserSerializer(serializers.ModelSerializer):
 
 
 class ChangePasswordSerializer(serializers.Serializer):
-    old_password = serializers.CharField(write_only=True, required=True)
+    current_password = serializers.CharField(write_only=True, required=True)
     new_password = serializers.CharField(write_only=True, required=True)
 
-    def validate_old_password(self, value: str) -> str:
+    def to_internal_value(self, data: dict) -> dict:
+        if isinstance(data, dict) and "old_password" in data and "current_password" not in data:
+            data = {**data, "current_password": data["old_password"]}
+        return super().to_internal_value(data)
+
+    def validate_current_password(self, value: str) -> str:
         user = self.context["request"].user
         if not user.check_password(value):
             raise serializers.ValidationError("Current password is incorrect.")

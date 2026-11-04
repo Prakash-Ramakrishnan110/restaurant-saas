@@ -5,7 +5,7 @@ from django.db import migrations, models
 
 def remap_capabilities(apps, schema_editor):
     BranchCapabilities = apps.get_model("venues", "BranchCapabilities")
-    for cap in BranchCapabilities.objects.all():
+    for cap in BranchCapabilities._base_manager.all():
         updated = False
         if cap.payment_timing == "ROOM_CHARGE":
             cap.payment_timing = "PAY_LATER"
@@ -15,10 +15,10 @@ def remap_capabilities(apps, schema_editor):
             cap.payment_timing = "PAY_LATER"
             updated = True
 
-        if cap.qr_ordering_mode == "ORDER_PAY_LATER":
+        if cap.qr_ordering_mode in ("ORDER_PAY_LATER", "OPEN_TAB"):
             cap.qr_ordering_mode = "ORDER_WITH_APPROVAL"
             updated = True
-        elif cap.qr_ordering_mode in ("ORDER_PAY_FIRST", "DIRECT_TO_KITCHEN"):
+        elif cap.qr_ordering_mode in ("ORDER_PAY_FIRST", "DIRECT_TO_KITCHEN", "PAY_AT_TABLE"):
             cap.qr_ordering_mode = "ORDER_DIRECT"
             updated = True
 

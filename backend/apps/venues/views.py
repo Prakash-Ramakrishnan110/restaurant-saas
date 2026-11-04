@@ -4,6 +4,8 @@ from typing import Any
 
 from django.core.signing import TimestampSigner
 from django.http import Http404, HttpResponse
+from drf_spectacular.types import OpenApiTypes
+from drf_spectacular.utils import extend_schema
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.exceptions import ValidationError
@@ -78,6 +80,7 @@ class VenuePresetsView(APIView):
 
     permission_classes = [IsAuthenticated, HasTenantPermission(Permission.BRANCH_VIEW)]
 
+    @extend_schema(responses={200: OpenApiTypes.OBJECT})
     def get(self, request: Request) -> Response:
         return Response(VENUE_CAPABILITY_PRESETS)
 
@@ -85,6 +88,7 @@ class VenuePresetsView(APIView):
 class BranchCapabilitiesView(APIView):
     """Retrieve or update capabilities configuration for a branch."""
 
+    serializer_class = BranchCapabilitiesSerializer
     permission_classes = [IsAuthenticated]
 
     def get_permissions(self) -> list[Any]:
@@ -545,19 +549,22 @@ class QRCodeViewSet(viewsets.ModelViewSet):
         return [IsAuthenticated(), HasTenantPermission(Permission.QR_MANAGE)()]
 
     def get_queryset(self) -> Any:
-        qs = QRCode.objects.all().select_related("branch", "table")
+        qs = QRCode.objects.all().select_related("branch", "table", "service_area")
         branch_id = self.request.query_params.get("branch_id")
         table_id = self.request.query_params.get("table_id")
+        service_area_id = self.request.query_params.get("service_area_id")
         if branch_id:
             qs = qs.filter(branch_id=branch_id)
         if table_id:
             qs = qs.filter(table_id=table_id)
+        if service_area_id:
+            qs = qs.filter(service_area_id=service_area_id)
         return qs
 
     def destroy(self, request: Request, *args: Any, **kwargs: Any) -> Response:
         qr = self.get_object()
         deactivate_qr_code(qr_code=qr, actor=request.user, request=request)
-        return Response({"detail": "QR code deactivated successfully."}, status=status.HTTP_200_OK)
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
     @action(detail=False, methods=["post"], url_path="generate")
     def generate(self, request: Request) -> Response:
@@ -585,11 +592,23 @@ class QRCodeViewSet(viewsets.ModelViewSet):
                 ) from None
             verify_tenant_and_branch_access(request.user, table)
 
+        service_area = None
+        if data.get("service_area_id"):
+            try:
+                service_area = ServiceArea.objects.get(id=data["service_area_id"])
+            except (ServiceArea.DoesNotExist, ValueError):
+                raise ValidationError(
+                    {"service_area_id": ["Invalid reference - object does not exist."]},
+                    code="INVALID_REFERENCE",
+                ) from None
+            verify_tenant_and_branch_access(request.user, service_area)
+
         target_type = data.get("target_type", "TABLE")
         existing_qr = QRCode.objects.filter(
             branch=branch,
             target_type=target_type,
             table=table,
+            service_area=service_area,
             is_active=True,
         ).first()
         if existing_qr:
@@ -599,6 +618,7 @@ class QRCodeViewSet(viewsets.ModelViewSet):
             branch=branch,
             target_type=target_type,
             table=table,
+            service_area=service_area,
             actor=request.user,
             request=request,
         )
@@ -609,12 +629,6 @@ class QRCodeViewSet(viewsets.ModelViewSet):
         qr = self.get_object()
         qr = rotate_qr_code(qr_code=qr, actor=request.user, request=request)
         return Response(QRCodeSerializer(qr).data)
-
-    @action(detail=True, methods=["post"], url_path="deactivate")
-    def deactivate(self, request: Request, pk: str | None = None) -> Response:
-        qr = self.get_object()
-        deactivate_qr_code(qr_code=qr, actor=request.user, request=request)
-        return Response({"detail": "QR code deactivated successfully."})
 
     @action(
         detail=True,
@@ -632,6 +646,7 @@ class QRCodeViewSet(viewsets.ModelViewSet):
 class PublicQRDetailView(APIView):
     """Public unauthenticated endpoint to resolve a scanned QR code token."""
 
+    serializer_class = PublicQRDetailSerializer
     permission_classes = [AllowAny]
     throttle_classes = [AnonRateThrottle]
 
@@ -679,7 +694,7 @@ class PublicQRDetailView(APIView):
             "area_name": (
                 qr.table.section.service_area.name
                 if (qr.table and qr.table.section and qr.table.section.service_area)
-                else ""
+                else (qr.service_area.name if qr.service_area else "")
             ),
             "table_label": qr.table.label if qr.table else "",
             "ordering_mode": ordering_mode,
@@ -693,9 +708,17 @@ class PublicQRDetailView(APIView):
 class PublicQROpenSessionView(APIView):
     """Public unauthenticated endpoint for diner to open or rejoin a table session."""
 
+    serializer_class = PublicQROpenSessionSerializer
     permission_classes = [AllowAny]
     throttle_classes = [AnonRateThrottle]
 
+    @extend_schema(
+        request=PublicQROpenSessionSerializer,
+        responses={
+            200: PublicQROpenSessionResponseSerializer,
+            201: PublicQROpenSessionResponseSerializer,
+        },
+    )
     def post(self, request: Request, token: str) -> Response:
         qr = get_public_qr_code(token)
         if not qr or not qr.table:

@@ -13,6 +13,26 @@
                 "tags": [
                     "auth"
                 ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/ChangePasswordRequest"
+                            }
+                        },
+                        "application/x-www-form-urlencoded": {
+                            "schema": {
+                                "$ref": "#/components/schemas/ChangePasswordRequest"
+                            }
+                        },
+                        "multipart/form-data": {
+                            "schema": {
+                                "$ref": "#/components/schemas/ChangePasswordRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
                 "security": [
                     {
                         "jwtAuth": []
@@ -20,7 +40,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "No response body"
+                        "description": "Password changed successfully"
                     }
                 }
             }
@@ -154,36 +174,30 @@
                 }
             }
         },
-        "/api/v1/auth/token/refresh/": {
-            "post": {
-                "operationId": "auth_token_refresh_create",
-                "description": "Refreshes access token and rotates the httpOnly refresh cookie.",
-                "tags": [
-                    "auth"
-                ],
-                "security": [
-                    {
-                        "jwtAuth": []
-                    },
-                    {}
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Token refreshed successfully"
-                    },
-                    "401": {
-                        "description": "Invalid or expired refresh token"
-                    },
-                    "403": {
-                        "description": "Invalid request origin"
-                    }
-                }
-            }
-        },
         "/api/v1/branches/": {
             "get": {
-                "operationId": "branches_retrieve",
+                "operationId": "branches_list",
                 "description": "Branch management endpoints scoped to the active tenant.",
+                "parameters": [
+                    {
+                        "name": "page",
+                        "required": false,
+                        "in": "query",
+                        "description": "A page number within the paginated result set.",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "page_size",
+                        "required": false,
+                        "in": "query",
+                        "description": "Number of results to return per page.",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
                 "tags": [
                     "branches"
                 ],
@@ -194,7 +208,14 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "No response body"
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/PaginatedBranchList"
+                                }
+                            }
+                        },
+                        "description": ""
                     }
                 }
             },
@@ -204,6 +225,26 @@
                 "tags": [
                     "branches"
                 ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/BranchRequest"
+                            }
+                        },
+                        "application/x-www-form-urlencoded": {
+                            "schema": {
+                                "$ref": "#/components/schemas/BranchRequest"
+                            }
+                        },
+                        "multipart/form-data": {
+                            "schema": {
+                                "$ref": "#/components/schemas/BranchRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
                 "security": [
                     {
                         "jwtAuth": []
@@ -211,7 +252,14 @@
                 ],
                 "responses": {
                     "201": {
-                        "description": "No response body"
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Branch"
+                                }
+                            }
+                        },
+                        "description": ""
                     }
                 }
             }
@@ -241,7 +289,14 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "No response body"
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/BranchCapabilities"
+                                }
+                            }
+                        },
+                        "description": ""
                     }
                 }
             },
@@ -262,6 +317,25 @@
                 "tags": [
                     "branches"
                 ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/PatchedBranchCapabilitiesRequest"
+                            }
+                        },
+                        "application/x-www-form-urlencoded": {
+                            "schema": {
+                                "$ref": "#/components/schemas/PatchedBranchCapabilitiesRequest"
+                            }
+                        },
+                        "multipart/form-data": {
+                            "schema": {
+                                "$ref": "#/components/schemas/PatchedBranchCapabilitiesRequest"
+                            }
+                        }
+                    }
+                },
                 "security": [
                     {
                         "jwtAuth": []
@@ -269,14 +343,21 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "No response body"
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/BranchCapabilities"
+                                }
+                            }
+                        },
+                        "description": ""
                     }
                 }
             }
         },
         "/api/v1/branches/{id}/": {
             "get": {
-                "operationId": "branches_retrieve_2",
+                "operationId": "branches_retrieve",
                 "description": "Branch management endpoints scoped to the active tenant.",
                 "parameters": [
                     {
@@ -299,7 +380,14 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "No response body"
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Branch"
+                                }
+                            }
+                        },
+                        "description": ""
                     }
                 }
             },
@@ -320,6 +408,25 @@
                 "tags": [
                     "branches"
                 ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/PatchedBranchRequest"
+                            }
+                        },
+                        "application/x-www-form-urlencoded": {
+                            "schema": {
+                                "$ref": "#/components/schemas/PatchedBranchRequest"
+                            }
+                        },
+                        "multipart/form-data": {
+                            "schema": {
+                                "$ref": "#/components/schemas/PatchedBranchRequest"
+                            }
+                        }
+                    }
+                },
                 "security": [
                     {
                         "jwtAuth": []
@@ -327,7 +434,14 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "No response body"
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Branch"
+                                }
+                            }
+                        },
+                        "description": ""
                     }
                 }
             },
@@ -446,7 +560,15 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "No response body"
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "additionalProperties": {}
+                                }
+                            }
+                        },
+                        "description": ""
                     }
                 }
             }
@@ -503,7 +625,14 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "No response body"
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/PublicQRDetail"
+                                }
+                            }
+                        },
+                        "description": ""
                     }
                 }
             }
@@ -525,6 +654,25 @@
                 "tags": [
                     "public"
                 ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/PublicQROpenSessionRequest"
+                            }
+                        },
+                        "application/x-www-form-urlencoded": {
+                            "schema": {
+                                "$ref": "#/components/schemas/PublicQROpenSessionRequest"
+                            }
+                        },
+                        "multipart/form-data": {
+                            "schema": {
+                                "$ref": "#/components/schemas/PublicQROpenSessionRequest"
+                            }
+                        }
+                    }
+                },
                 "security": [
                     {
                         "jwtAuth": []
@@ -533,7 +681,24 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "No response body"
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/PublicQROpenSessionResponse"
+                                }
+                            }
+                        },
+                        "description": ""
+                    },
+                    "201": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/PublicQROpenSessionResponse"
+                                }
+                            }
+                        },
+                        "description": ""
                     }
                 }
             }
@@ -802,64 +967,6 @@
                 "responses": {
                     "204": {
                         "description": "No response body"
-                    }
-                }
-            }
-        },
-        "/api/v1/qr-codes/{id}/deactivate/": {
-            "post": {
-                "operationId": "qr_codes_deactivate_create",
-                "description": "Staff management of cryptographic QR tokens.",
-                "parameters": [
-                    {
-                        "in": "path",
-                        "name": "id",
-                        "schema": {
-                            "type": "string",
-                            "format": "uuid"
-                        },
-                        "description": "A UUID string identifying this qr code.",
-                        "required": true
-                    }
-                ],
-                "tags": [
-                    "qr-codes"
-                ],
-                "requestBody": {
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "$ref": "#/components/schemas/QRCodeRequest"
-                            }
-                        },
-                        "application/x-www-form-urlencoded": {
-                            "schema": {
-                                "$ref": "#/components/schemas/QRCodeRequest"
-                            }
-                        },
-                        "multipart/form-data": {
-                            "schema": {
-                                "$ref": "#/components/schemas/QRCodeRequest"
-                            }
-                        }
-                    },
-                    "required": true
-                },
-                "security": [
-                    {
-                        "jwtAuth": []
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/QRCode"
-                                }
-                            }
-                        },
-                        "description": ""
                     }
                 }
             }
@@ -1560,8 +1667,28 @@
         },
         "/api/v1/staff/": {
             "get": {
-                "operationId": "staff_retrieve",
+                "operationId": "staff_list",
                 "description": "Staff management endpoints scoped to the active tenant.",
+                "parameters": [
+                    {
+                        "name": "page",
+                        "required": false,
+                        "in": "query",
+                        "description": "A page number within the paginated result set.",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "page_size",
+                        "required": false,
+                        "in": "query",
+                        "description": "Number of results to return per page.",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
                 "tags": [
                     "staff"
                 ],
@@ -1572,7 +1699,14 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "No response body"
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/PaginatedStaffDetailList"
+                                }
+                            }
+                        },
+                        "description": ""
                     }
                 }
             },
@@ -1582,6 +1716,26 @@
                 "tags": [
                     "staff"
                 ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/StaffDetailRequest"
+                            }
+                        },
+                        "application/x-www-form-urlencoded": {
+                            "schema": {
+                                "$ref": "#/components/schemas/StaffDetailRequest"
+                            }
+                        },
+                        "multipart/form-data": {
+                            "schema": {
+                                "$ref": "#/components/schemas/StaffDetailRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
                 "security": [
                     {
                         "jwtAuth": []
@@ -1589,7 +1743,14 @@
                 ],
                 "responses": {
                     "201": {
-                        "description": "No response body"
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/StaffDetail"
+                                }
+                            }
+                        },
+                        "description": ""
                     }
                 }
             }
@@ -1864,7 +2025,7 @@
         },
         "/api/v1/staff/{id}/": {
             "get": {
-                "operationId": "staff_retrieve_2",
+                "operationId": "staff_retrieve",
                 "description": "Staff management endpoints scoped to the active tenant.",
                 "parameters": [
                     {
@@ -1887,7 +2048,14 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "No response body"
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/StaffDetail"
+                                }
+                            }
+                        },
+                        "description": ""
                     }
                 }
             },
@@ -1908,6 +2076,25 @@
                 "tags": [
                     "staff"
                 ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/PatchedStaffDetailRequest"
+                            }
+                        },
+                        "application/x-www-form-urlencoded": {
+                            "schema": {
+                                "$ref": "#/components/schemas/PatchedStaffDetailRequest"
+                            }
+                        },
+                        "multipart/form-data": {
+                            "schema": {
+                                "$ref": "#/components/schemas/PatchedStaffDetailRequest"
+                            }
+                        }
+                    }
+                },
                 "security": [
                     {
                         "jwtAuth": []
@@ -1915,7 +2102,14 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "No response body"
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/StaffDetail"
+                                }
+                            }
+                        },
+                        "description": ""
                     }
                 }
             },
@@ -2959,8 +3153,28 @@
         },
         "/api/v1/tenants/": {
             "get": {
-                "operationId": "tenants_retrieve",
+                "operationId": "tenants_list",
                 "description": "Platform administrator endpoints to manage tenants and provisioning.",
+                "parameters": [
+                    {
+                        "name": "page",
+                        "required": false,
+                        "in": "query",
+                        "description": "A page number within the paginated result set.",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "page_size",
+                        "required": false,
+                        "in": "query",
+                        "description": "Number of results to return per page.",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
                 "tags": [
                     "tenants"
                 ],
@@ -2971,7 +3185,14 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "No response body"
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/PaginatedTenantList"
+                                }
+                            }
+                        },
+                        "description": ""
                     }
                 }
             },
@@ -2981,6 +3202,26 @@
                 "tags": [
                     "tenants"
                 ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/TenantRequest"
+                            }
+                        },
+                        "application/x-www-form-urlencoded": {
+                            "schema": {
+                                "$ref": "#/components/schemas/TenantRequest"
+                            }
+                        },
+                        "multipart/form-data": {
+                            "schema": {
+                                "$ref": "#/components/schemas/TenantRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
                 "security": [
                     {
                         "jwtAuth": []
@@ -2988,14 +3229,21 @@
                 ],
                 "responses": {
                     "201": {
-                        "description": "No response body"
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Tenant"
+                                }
+                            }
+                        },
+                        "description": ""
                     }
                 }
             }
         },
         "/api/v1/tenants/{id}/": {
             "get": {
-                "operationId": "tenants_retrieve_2",
+                "operationId": "tenants_retrieve",
                 "description": "Platform administrator endpoints to manage tenants and provisioning.",
                 "parameters": [
                     {
@@ -3018,7 +3266,14 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "No response body"
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Tenant"
+                                }
+                            }
+                        },
+                        "description": ""
                     }
                 }
             }
@@ -3041,6 +3296,26 @@
                 "tags": [
                     "tenants"
                 ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/TenantRequest"
+                            }
+                        },
+                        "application/x-www-form-urlencoded": {
+                            "schema": {
+                                "$ref": "#/components/schemas/TenantRequest"
+                            }
+                        },
+                        "multipart/form-data": {
+                            "schema": {
+                                "$ref": "#/components/schemas/TenantRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
                 "security": [
                     {
                         "jwtAuth": []
@@ -3048,7 +3323,14 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "No response body"
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Tenant"
+                                }
+                            }
+                        },
+                        "description": ""
                     }
                 }
             }
@@ -3071,6 +3353,26 @@
                 "tags": [
                     "tenants"
                 ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/TenantRequest"
+                            }
+                        },
+                        "application/x-www-form-urlencoded": {
+                            "schema": {
+                                "$ref": "#/components/schemas/TenantRequest"
+                            }
+                        },
+                        "multipart/form-data": {
+                            "schema": {
+                                "$ref": "#/components/schemas/TenantRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
                 "security": [
                     {
                         "jwtAuth": []
@@ -3078,7 +3380,14 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "No response body"
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Tenant"
+                                }
+                            }
+                        },
+                        "description": ""
                     }
                 }
             }
@@ -3097,7 +3406,15 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "No response body"
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "additionalProperties": {}
+                                }
+                            }
+                        },
+                        "description": ""
                     }
                 }
             }
@@ -3117,7 +3434,15 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "No response body"
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "additionalProperties": {}
+                                }
+                            }
+                        },
+                        "description": ""
                     }
                 }
             }
@@ -3137,7 +3462,15 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "No response body"
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "additionalProperties": {}
+                                }
+                            }
+                        },
+                        "description": ""
                     }
                 }
             }
@@ -3195,6 +3528,153 @@
                     "user"
                 ]
             },
+            "Branch": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "format": "uuid",
+                        "readOnly": true
+                    },
+                    "name": {
+                        "type": "string",
+                        "maxLength": 255
+                    },
+                    "address": {
+                        "type": "string"
+                    },
+                    "phone": {
+                        "type": "string",
+                        "maxLength": 32
+                    },
+                    "venue_profile": {
+                        "$ref": "#/components/schemas/VenueProfileEnum"
+                    },
+                    "is_active": {
+                        "type": "boolean"
+                    },
+                    "operating_hours": {},
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "readOnly": true
+                    },
+                    "updated_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "readOnly": true
+                    }
+                },
+                "required": [
+                    "created_at",
+                    "id",
+                    "name",
+                    "updated_at"
+                ]
+            },
+            "BranchCapabilities": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "format": "uuid",
+                        "readOnly": true
+                    },
+                    "branch": {
+                        "type": "string",
+                        "format": "uuid",
+                        "readOnly": true
+                    },
+                    "uses_tables": {
+                        "type": "boolean"
+                    },
+                    "uses_kds": {
+                        "type": "boolean"
+                    },
+                    "uses_token_numbers": {
+                        "type": "boolean"
+                    },
+                    "allows_takeaway": {
+                        "type": "boolean"
+                    },
+                    "allows_room_service": {
+                        "type": "boolean"
+                    },
+                    "allows_room_charge": {
+                        "type": "boolean"
+                    },
+                    "allows_qr_ordering": {
+                        "type": "boolean"
+                    },
+                    "has_sections": {
+                        "type": "boolean"
+                    },
+                    "has_seat_ordering": {
+                        "type": "boolean"
+                    },
+                    "supports_courses": {
+                        "type": "boolean"
+                    },
+                    "allows_table_transfer": {
+                        "type": "boolean"
+                    },
+                    "payment_timing": {
+                        "$ref": "#/components/schemas/PaymentTimingEnum"
+                    },
+                    "qr_ordering_mode": {
+                        "$ref": "#/components/schemas/QrOrderingModeEnum"
+                    },
+                    "qr_session_policy": {
+                        "$ref": "#/components/schemas/QrSessionPolicyEnum"
+                    },
+                    "order_workflow": {
+                        "$ref": "#/components/schemas/OrderWorkflowEnum"
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "readOnly": true
+                    },
+                    "updated_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "readOnly": true
+                    }
+                },
+                "required": [
+                    "branch",
+                    "created_at",
+                    "id",
+                    "updated_at"
+                ]
+            },
+            "BranchRequest": {
+                "type": "object",
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 255
+                    },
+                    "address": {
+                        "type": "string"
+                    },
+                    "phone": {
+                        "type": "string",
+                        "maxLength": 32
+                    },
+                    "venue_profile": {
+                        "$ref": "#/components/schemas/VenueProfileEnum"
+                    },
+                    "is_active": {
+                        "type": "boolean"
+                    },
+                    "operating_hours": {}
+                },
+                "required": [
+                    "name"
+                ]
+            },
             "BranchSummary": {
                 "type": "object",
                 "properties": {
@@ -3213,6 +3693,22 @@
                 },
                 "required": [
                     "id",
+                    "name"
+                ]
+            },
+            "BranchSummaryRequest": {
+                "type": "object",
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 255
+                    },
+                    "is_active": {
+                        "type": "boolean"
+                    }
+                },
+                "required": [
                     "name"
                 ]
             },
@@ -3239,7 +3735,7 @@
                     "status": {
                         "allOf": [
                             {
-                                "$ref": "#/components/schemas/BusinessProfileStatusEnum"
+                                "$ref": "#/components/schemas/Status2ecEnum"
                             }
                         ],
                         "readOnly": true
@@ -3299,13 +3795,49 @@
                     "updated_at"
                 ]
             },
-            "BusinessProfileStatusEnum": {
-                "enum": [
-                    "ACTIVE",
-                    "SUSPENDED"
-                ],
-                "type": "string",
-                "description": "* `ACTIVE` - Active\n* `SUSPENDED` - Suspended"
+            "BusinessSettings": {
+                "type": "object",
+                "properties": {
+                    "tax_mode": {
+                        "$ref": "#/components/schemas/TaxModeEnum"
+                    },
+                    "invoice_prefix": {
+                        "type": "string",
+                        "maxLength": 20
+                    },
+                    "logo_url": {
+                        "type": "string",
+                        "format": "uri",
+                        "maxLength": 500
+                    },
+                    "primary_color": {
+                        "type": "string",
+                        "maxLength": 16
+                    }
+                }
+            },
+            "BusinessSettingsRequest": {
+                "type": "object",
+                "properties": {
+                    "tax_mode": {
+                        "$ref": "#/components/schemas/TaxModeEnum"
+                    },
+                    "invoice_prefix": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 20
+                    },
+                    "logo_url": {
+                        "type": "string",
+                        "format": "uri",
+                        "maxLength": 500
+                    },
+                    "primary_color": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 16
+                    }
+                }
             },
             "BusinessTypeEnum": {
                 "enum": [
@@ -3320,6 +3852,25 @@
                 ],
                 "type": "string",
                 "description": "* `TEA_SHOP` - Tea Shop\n* `BAKERY` - Bakery\n* `CAFE` - Café\n* `RESTAURANT` - Restaurant\n* `FINE_DINING` - Fine Dining\n* `HOTEL` - Hotel\n* `FOOD_COURT` - Food Court\n* `CHAIN` - Chain"
+            },
+            "ChangePasswordRequest": {
+                "type": "object",
+                "properties": {
+                    "current_password": {
+                        "type": "string",
+                        "writeOnly": true,
+                        "minLength": 1
+                    },
+                    "new_password": {
+                        "type": "string",
+                        "writeOnly": true,
+                        "minLength": 1
+                    }
+                },
+                "required": [
+                    "current_password",
+                    "new_password"
+                ]
             },
             "DiningTable": {
                 "type": "object",
@@ -3641,6 +4192,49 @@
                 "type": "string",
                 "description": "* `STAFF` - Staff Opened\n* `QR` - Customer QR Scan\n* `QR_CUSTOMER` - Customer QR Scan"
             },
+            "OrderWorkflowEnum": {
+                "enum": [
+                    "COUNTER_TOKEN",
+                    "TABLE_SERVICE",
+                    "BAR_TAB",
+                    "ROOM_SERVICE",
+                    "FAST_FOOD_DISPLAY",
+                    "DRIVE_THRU"
+                ],
+                "type": "string",
+                "description": "* `COUNTER_TOKEN` - Counter Token\n* `TABLE_SERVICE` - Table Service\n* `BAR_TAB` - Bar Tab\n* `ROOM_SERVICE` - Room Service\n* `FAST_FOOD_DISPLAY` - Fast Food Display\n* `DRIVE_THRU` - Drive Thru"
+            },
+            "PaginatedBranchList": {
+                "type": "object",
+                "required": [
+                    "count",
+                    "results"
+                ],
+                "properties": {
+                    "count": {
+                        "type": "integer",
+                        "example": 123
+                    },
+                    "next": {
+                        "type": "string",
+                        "nullable": true,
+                        "format": "uri",
+                        "example": "http://api.example.org/accounts/?page=4"
+                    },
+                    "previous": {
+                        "type": "string",
+                        "nullable": true,
+                        "format": "uri",
+                        "example": "http://api.example.org/accounts/?page=2"
+                    },
+                    "results": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/Branch"
+                        }
+                    }
+                }
+            },
             "PaginatedDiningTableList": {
                 "type": "object",
                 "required": [
@@ -3765,6 +4359,37 @@
                     }
                 }
             },
+            "PaginatedStaffDetailList": {
+                "type": "object",
+                "required": [
+                    "count",
+                    "results"
+                ],
+                "properties": {
+                    "count": {
+                        "type": "integer",
+                        "example": 123
+                    },
+                    "next": {
+                        "type": "string",
+                        "nullable": true,
+                        "format": "uri",
+                        "example": "http://api.example.org/accounts/?page=4"
+                    },
+                    "previous": {
+                        "type": "string",
+                        "nullable": true,
+                        "format": "uri",
+                        "example": "http://api.example.org/accounts/?page=2"
+                    },
+                    "results": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/StaffDetail"
+                        }
+                    }
+                }
+            },
             "PaginatedStaffSectionAssignmentList": {
                 "type": "object",
                 "required": [
@@ -3856,6 +4481,111 @@
                             "$ref": "#/components/schemas/TableSession"
                         }
                     }
+                }
+            },
+            "PaginatedTenantList": {
+                "type": "object",
+                "required": [
+                    "count",
+                    "results"
+                ],
+                "properties": {
+                    "count": {
+                        "type": "integer",
+                        "example": 123
+                    },
+                    "next": {
+                        "type": "string",
+                        "nullable": true,
+                        "format": "uri",
+                        "example": "http://api.example.org/accounts/?page=4"
+                    },
+                    "previous": {
+                        "type": "string",
+                        "nullable": true,
+                        "format": "uri",
+                        "example": "http://api.example.org/accounts/?page=2"
+                    },
+                    "results": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/Tenant"
+                        }
+                    }
+                }
+            },
+            "PatchedBranchCapabilitiesRequest": {
+                "type": "object",
+                "properties": {
+                    "uses_tables": {
+                        "type": "boolean"
+                    },
+                    "uses_kds": {
+                        "type": "boolean"
+                    },
+                    "uses_token_numbers": {
+                        "type": "boolean"
+                    },
+                    "allows_takeaway": {
+                        "type": "boolean"
+                    },
+                    "allows_room_service": {
+                        "type": "boolean"
+                    },
+                    "allows_room_charge": {
+                        "type": "boolean"
+                    },
+                    "allows_qr_ordering": {
+                        "type": "boolean"
+                    },
+                    "has_sections": {
+                        "type": "boolean"
+                    },
+                    "has_seat_ordering": {
+                        "type": "boolean"
+                    },
+                    "supports_courses": {
+                        "type": "boolean"
+                    },
+                    "allows_table_transfer": {
+                        "type": "boolean"
+                    },
+                    "payment_timing": {
+                        "$ref": "#/components/schemas/PaymentTimingEnum"
+                    },
+                    "qr_ordering_mode": {
+                        "$ref": "#/components/schemas/QrOrderingModeEnum"
+                    },
+                    "qr_session_policy": {
+                        "$ref": "#/components/schemas/QrSessionPolicyEnum"
+                    },
+                    "order_workflow": {
+                        "$ref": "#/components/schemas/OrderWorkflowEnum"
+                    }
+                }
+            },
+            "PatchedBranchRequest": {
+                "type": "object",
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 255
+                    },
+                    "address": {
+                        "type": "string"
+                    },
+                    "phone": {
+                        "type": "string",
+                        "maxLength": 32
+                    },
+                    "venue_profile": {
+                        "$ref": "#/components/schemas/VenueProfileEnum"
+                    },
+                    "is_active": {
+                        "type": "boolean"
+                    },
+                    "operating_hours": {}
                 }
             },
             "PatchedBusinessProfileRequest": {
@@ -3968,15 +4698,26 @@
                         "format": "uuid"
                     },
                     "target_type": {
-                        "$ref": "#/components/schemas/TargetTypeEnum"
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/TargetTypeEnum"
+                            }
+                        ],
+                        "default": "TABLE"
                     },
                     "table": {
                         "type": "string",
                         "format": "uuid",
                         "nullable": true
                     },
+                    "service_area": {
+                        "type": "string",
+                        "format": "uuid",
+                        "nullable": true
+                    },
                     "is_active": {
-                        "type": "boolean"
+                        "type": "boolean",
+                        "default": true
                     }
                 }
             },
@@ -4053,6 +4794,19 @@
                     }
                 }
             },
+            "PatchedStaffDetailRequest": {
+                "type": "object",
+                "properties": {
+                    "role": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 32
+                    },
+                    "is_active": {
+                        "type": "boolean"
+                    }
+                }
+            },
             "PatchedStaffSectionAssignmentRequest": {
                 "type": "object",
                 "properties": {
@@ -4103,6 +4857,92 @@
                     }
                 }
             },
+            "PaymentTimingEnum": {
+                "enum": [
+                    "PAY_FIRST",
+                    "PAY_LATER",
+                    "EITHER"
+                ],
+                "type": "string",
+                "description": "* `PAY_FIRST` - Pay First\n* `PAY_LATER` - Pay Later\n* `EITHER` - Either"
+            },
+            "PublicQRDetail": {
+                "type": "object",
+                "properties": {
+                    "tenant_name": {
+                        "type": "string"
+                    },
+                    "tenant_logo_url": {
+                        "type": "string"
+                    },
+                    "branch_name": {
+                        "type": "string"
+                    },
+                    "area_name": {
+                        "type": "string"
+                    },
+                    "table_label": {
+                        "type": "string"
+                    },
+                    "ordering_mode": {
+                        "type": "string"
+                    },
+                    "active_session_status": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "can_open_session": {
+                        "type": "boolean"
+                    },
+                    "open_table_requires_staff": {
+                        "type": "boolean"
+                    }
+                },
+                "required": [
+                    "active_session_status",
+                    "area_name",
+                    "branch_name",
+                    "can_open_session",
+                    "open_table_requires_staff",
+                    "ordering_mode",
+                    "table_label",
+                    "tenant_logo_url",
+                    "tenant_name"
+                ]
+            },
+            "PublicQROpenSessionRequest": {
+                "type": "object",
+                "properties": {
+                    "guest_count": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "default": 1
+                    }
+                }
+            },
+            "PublicQROpenSessionResponse": {
+                "type": "object",
+                "properties": {
+                    "session_code": {
+                        "type": "string"
+                    },
+                    "session_token": {
+                        "type": "string"
+                    },
+                    "status": {
+                        "type": "string"
+                    },
+                    "guest_count": {
+                        "type": "integer"
+                    }
+                },
+                "required": [
+                    "guest_count",
+                    "session_code",
+                    "session_token",
+                    "status"
+                ]
+            },
             "QRCode": {
                 "type": "object",
                 "properties": {
@@ -4116,7 +4956,12 @@
                         "format": "uuid"
                     },
                     "target_type": {
-                        "$ref": "#/components/schemas/TargetTypeEnum"
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/TargetTypeEnum"
+                            }
+                        ],
+                        "default": "TABLE"
                     },
                     "table": {
                         "type": "string",
@@ -4127,12 +4972,22 @@
                         "type": "string",
                         "readOnly": true
                     },
+                    "service_area": {
+                        "type": "string",
+                        "format": "uuid",
+                        "nullable": true
+                    },
+                    "service_area_name": {
+                        "type": "string",
+                        "readOnly": true
+                    },
                     "public_token": {
                         "type": "string",
                         "readOnly": true
                     },
                     "is_active": {
-                        "type": "boolean"
+                        "type": "boolean",
+                        "default": true
                     },
                     "version": {
                         "type": "integer",
@@ -4160,6 +5015,7 @@
                     "id",
                     "public_token",
                     "rotated_at",
+                    "service_area_name",
                     "table_label",
                     "updated_at",
                     "version"
@@ -4173,20 +5029,49 @@
                         "format": "uuid"
                     },
                     "target_type": {
-                        "$ref": "#/components/schemas/TargetTypeEnum"
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/TargetTypeEnum"
+                            }
+                        ],
+                        "default": "TABLE"
                     },
                     "table": {
                         "type": "string",
                         "format": "uuid",
                         "nullable": true
                     },
+                    "service_area": {
+                        "type": "string",
+                        "format": "uuid",
+                        "nullable": true
+                    },
                     "is_active": {
-                        "type": "boolean"
+                        "type": "boolean",
+                        "default": true
                     }
                 },
                 "required": [
                     "branch"
                 ]
+            },
+            "QrOrderingModeEnum": {
+                "enum": [
+                    "DISABLED",
+                    "BROWSE_ONLY",
+                    "ORDER_WITH_APPROVAL",
+                    "ORDER_DIRECT"
+                ],
+                "type": "string",
+                "description": "* `DISABLED` - Disabled\n* `BROWSE_ONLY` - Browse Only\n* `ORDER_WITH_APPROVAL` - Order With Approval\n* `ORDER_DIRECT` - Order Direct"
+            },
+            "QrSessionPolicyEnum": {
+                "enum": [
+                    "CUSTOMER_CAN_OPEN",
+                    "STAFF_ONLY"
+                ],
+                "type": "string",
+                "description": "* `CUSTOMER_CAN_OPEN` - Customer Can Open\n* `STAFF_ONLY` - Staff Only"
             },
             "Section": {
                 "type": "object",
@@ -4396,6 +5281,61 @@
                 "type": "string",
                 "description": "* `RECT` - Rectangle\n* `ROUND` - Round\n* `SQUARE` - Square\n* `BOOTH` - Booth\n* `LONG` - Long Table"
             },
+            "StaffDetail": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "format": "uuid",
+                        "readOnly": true
+                    },
+                    "user": {
+                        "$ref": "#/components/schemas/User"
+                    },
+                    "role": {
+                        "type": "string",
+                        "maxLength": 32
+                    },
+                    "branches": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/BranchSummary"
+                        },
+                        "readOnly": true
+                    },
+                    "is_active": {
+                        "type": "boolean"
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "readOnly": true
+                    }
+                },
+                "required": [
+                    "branches",
+                    "created_at",
+                    "id",
+                    "role",
+                    "user"
+                ]
+            },
+            "StaffDetailRequest": {
+                "type": "object",
+                "properties": {
+                    "role": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 32
+                    },
+                    "is_active": {
+                        "type": "boolean"
+                    }
+                },
+                "required": [
+                    "role"
+                ]
+            },
             "StaffSectionAssignment": {
                 "type": "object",
                 "properties": {
@@ -4486,6 +5426,14 @@
                     "membership",
                     "section"
                 ]
+            },
+            "Status2ecEnum": {
+                "enum": [
+                    "ACTIVE",
+                    "SUSPENDED"
+                ],
+                "type": "string",
+                "description": "* `ACTIVE` - Active\n* `SUSPENDED` - Suspended"
             },
             "TableGroup": {
                 "type": "object",
@@ -4713,6 +5661,135 @@
                 "type": "string",
                 "description": "* `INCLUSIVE` - Tax Inclusive\n* `EXCLUSIVE` - Tax Exclusive"
             },
+            "Tenant": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "format": "uuid",
+                        "readOnly": true
+                    },
+                    "name": {
+                        "type": "string",
+                        "maxLength": 255
+                    },
+                    "slug": {
+                        "type": "string",
+                        "maxLength": 255,
+                        "pattern": "^[-a-zA-Z0-9_]+$"
+                    },
+                    "business_type": {
+                        "$ref": "#/components/schemas/BusinessTypeEnum"
+                    },
+                    "suggested_venue_profile": {
+                        "type": "string",
+                        "readOnly": true
+                    },
+                    "status": {
+                        "$ref": "#/components/schemas/Status2ecEnum"
+                    },
+                    "email": {
+                        "type": "string",
+                        "format": "email",
+                        "maxLength": 254
+                    },
+                    "phone": {
+                        "type": "string",
+                        "maxLength": 32
+                    },
+                    "address": {
+                        "type": "string"
+                    },
+                    "timezone": {
+                        "type": "string",
+                        "maxLength": 64
+                    },
+                    "currency": {
+                        "type": "string",
+                        "maxLength": 10
+                    },
+                    "business_settings": {
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/BusinessSettings"
+                            }
+                        ],
+                        "readOnly": true
+                    },
+                    "subscription_status": {
+                        "type": "string",
+                        "readOnly": true
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "readOnly": true
+                    },
+                    "updated_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "readOnly": true
+                    }
+                },
+                "required": [
+                    "business_settings",
+                    "created_at",
+                    "id",
+                    "name",
+                    "slug",
+                    "subscription_status",
+                    "suggested_venue_profile",
+                    "updated_at"
+                ]
+            },
+            "TenantRequest": {
+                "type": "object",
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 255
+                    },
+                    "slug": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 255,
+                        "pattern": "^[-a-zA-Z0-9_]+$"
+                    },
+                    "business_type": {
+                        "$ref": "#/components/schemas/BusinessTypeEnum"
+                    },
+                    "status": {
+                        "$ref": "#/components/schemas/Status2ecEnum"
+                    },
+                    "email": {
+                        "type": "string",
+                        "format": "email",
+                        "maxLength": 254
+                    },
+                    "phone": {
+                        "type": "string",
+                        "maxLength": 32
+                    },
+                    "address": {
+                        "type": "string"
+                    },
+                    "timezone": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 64
+                    },
+                    "currency": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 10
+                    }
+                },
+                "required": [
+                    "name",
+                    "slug"
+                ]
+            },
             "User": {
                 "type": "object",
                 "properties": {
@@ -4757,6 +5834,19 @@
                     "must_change_password",
                     "phone"
                 ]
+            },
+            "VenueProfileEnum": {
+                "enum": [
+                    "QUICK_SERVICE",
+                    "CAFE",
+                    "CASUAL_DINING",
+                    "FINE_DINING",
+                    "HOTEL_RESTAURANT",
+                    "FOOD_COURT",
+                    "BAR_BREWERY"
+                ],
+                "type": "string",
+                "description": "* `QUICK_SERVICE` - Quick Service\n* `CAFE` - Café\n* `CASUAL_DINING` - Casual Dining\n* `FINE_DINING` - Fine Dining\n* `HOTEL_RESTAURANT` - Hotel Restaurant\n* `FOOD_COURT` - Food Court\n* `BAR_BREWERY` - Bar / Brewery"
             }
         },
         "securitySchemes": {

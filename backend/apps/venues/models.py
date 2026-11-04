@@ -28,16 +28,16 @@ class BranchCapabilities(TenantOwnedModel):
         related_name="capabilities",
     )
     uses_tables = models.BooleanField(default=True)
-    uses_token_numbers = models.BooleanField(default=False)
     uses_kds = models.BooleanField(default=True)
-    uses_courses = models.BooleanField(default=False)
+    uses_token_numbers = models.BooleanField(default=False)
     allows_takeaway = models.BooleanField(default=True)
     allows_room_service = models.BooleanField(default=False)
     allows_room_charge = models.BooleanField(default=False)
+    allows_qr_ordering = models.BooleanField(default=True)
     has_sections = models.BooleanField(default=True)
     has_seat_ordering = models.BooleanField(default=False)
+    supports_courses = models.BooleanField(default=False)
     allows_table_transfer = models.BooleanField(default=True)
-    allows_qr_ordering = models.BooleanField(default=True)
 
     payment_timing = models.CharField(
         max_length=20,
@@ -59,22 +59,6 @@ class BranchCapabilities(TenantOwnedModel):
         choices=OrderWorkflow.choices,
         default=OrderWorkflow.TABLE_SERVICE,
     )
-
-    @property
-    def has_table_management(self) -> bool:
-        return self.uses_tables
-
-    @has_table_management.setter
-    def has_table_management(self, value: bool) -> None:
-        self.uses_tables = value
-
-    @property
-    def supports_courses(self) -> bool:
-        return self.uses_courses
-
-    @supports_courses.setter
-    def supports_courses(self, value: bool) -> None:
-        self.uses_courses = value
 
     class Meta:
         verbose_name_plural = "Branch capabilities"
@@ -303,7 +287,12 @@ class TableSession(BranchOwnedModel):
                 fields=["table"],
                 condition=models.Q(status="OPEN", table__isnull=False),
                 name="unique_open_session_per_table",
-            )
+            ),
+            models.UniqueConstraint(
+                fields=["table_group"],
+                condition=models.Q(status="OPEN", table_group__isnull=False),
+                name="unique_open_session_per_group",
+            ),
         ]
 
     def __str__(self) -> str:
@@ -330,6 +319,13 @@ class QRCode(BranchOwnedModel):
         on_delete=models.CASCADE,
         related_name="qr_codes",
     )
+    service_area = models.ForeignKey(
+        ServiceArea,
+        null=True,
+        blank=True,
+        on_delete=models.CASCADE,
+        related_name="qr_codes",
+    )
     public_token = models.CharField(max_length=64, unique=True, db_index=True)
     is_active = models.BooleanField(default=True)
     version = models.IntegerField(default=1)
@@ -337,6 +333,14 @@ class QRCode(BranchOwnedModel):
 
     class Meta:
         ordering = ["-created_at"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["branch", "target_type", "table", "service_area"],
+                condition=models.Q(is_active=True),
+                nulls_distinct=False,
+                name="unique_active_qr_per_target",
+            )
+        ]
 
     def __str__(self) -> str:
         return f"QR [{self.public_token[:8]}...] ({self.target_type})"
@@ -360,6 +364,7 @@ class TokenCounter(BranchOwnedModel):
         constraints = [
             models.UniqueConstraint(
                 fields=["branch", "service_date", "service_area"],
+                nulls_distinct=False,
                 name="unique_branch_date_area_counter",
             )
         ]

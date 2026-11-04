@@ -11,14 +11,16 @@ env = environ.Env()
 # Stated DB engine: django.db.backends.postgresql
 DB_ENGINE = env.str("TEST_DB_ENGINE", default="django.db.backends.postgresql")
 
+POSTGRES_HOST_PORT = env.int("POSTGRES_HOST_PORT", default=5435)
+
 DATABASES = {
     "default": {
         "ENGINE": DB_ENGINE,
         "NAME": env.str("TEST_DB_NAME", default=env.str("DB_NAME", default="fusion_saas")),
         "USER": env.str("TEST_DB_USER", default=env.str("DB_USER", default="postgres")),
         "PASSWORD": env.str("TEST_DB_PASSWORD", default=env.str("DB_PASSWORD", default="postgres")),
-        "HOST": env.str("TEST_DB_HOST", default=env.str("DB_HOST", default="localhost")),
-        "PORT": env.int("TEST_DB_PORT", default=env.int("DB_PORT", default=5432)),
+        "HOST": env.str("TEST_DB_HOST", default=env.str("DB_HOST", default="127.0.0.1")),
+        "PORT": env.int("TEST_DB_PORT", default=env.int("DB_PORT", default=POSTGRES_HOST_PORT)),
         "TEST": {
             "NAME": "fusion_saas_test",
         },
@@ -47,4 +49,5 @@ REST_FRAMEWORK["DEFAULT_THROTTLE_RATES"] = {  # noqa: F405
     "user": "10000/minute",
     "login_ip": "10000/minute",
     "login_email": "10000/minute",
+    "change_password": "10000/minute",
 }

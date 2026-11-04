@@ -39,6 +39,7 @@ from apps.tenants.services import (
 class TenantViewSet(ViewSet):
     """Platform administrator endpoints to manage tenants and provisioning."""
 
+    serializer_class = TenantSerializer
     permission_classes = [IsPlatformAdmin]
     pagination_class = StandardResultsSetPagination
 
@@ -118,6 +119,7 @@ class TenantViewSet(ViewSet):
 class BranchViewSet(ViewSet):
     """Branch management endpoints scoped to the active tenant."""
 
+    serializer_class = BranchSerializer
     pagination_class = StandardResultsSetPagination
 
     def get_permissions(self):
