@@ -1,8 +1,14 @@
 <svg width="36" height="36" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Brand Safety Orange Squircle -->
   <rect width="36" height="36" rx="8" fill="#FF6A00" />
-  <path d="M11 18.5C9.5 18.5 8.5 17 9 15C9.5 13 11.5 13 12.5 14C13 11.5 16 10 18 10C20 10 23 11.5 23.5 14C24.5 13 26.5 13 27 15C27.5 17 26.5 18.5 25 18.5" stroke="#0B1F3B" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
-  <path d="M11.5 19H24.5V22C24.5 22.5 24 23 23.5 23H12.5C12 23 11.5 22.5 11.5 22V19Z" fill="#0B1F3B" />
-  <path d="M14 28L17 23.5M13 27.5L14 26" stroke="#0B1F3B" stroke-width="1.6" stroke-linecap="round" />
-  <path d="M22 28L19 23.5M21.5 27.5C22.3 26.7 22.3 25.5 21.5 24.7" stroke="#0B1F3B" stroke-width="1.6" stroke-linecap="round" />
-  <path d="M7 29C13 32 23 32 29 28" stroke="#FFF3E0" stroke-width="1.8" stroke-linecap="round" />
+  
+  <!-- Modern Food Cloche Dome (Deep Navy #0B1F3B) -->
+  <circle cx="18" cy="11" r="2" fill="#0B1F3B" />
+  <path d="M10 21C10 15.5 13.5 13 18 13C22.5 13 26 15.5 26 21H10Z" fill="#0B1F3B" />
+  
+  <!-- Serving Platter Base -->
+  <rect x="7" y="22" width="22" height="2.5" rx="1.25" fill="#0B1F3B" />
+  
+  <!-- Warm Hospitality Accent -->
+  <path d="M12 26.5C15 28 21 28 24 26.5" stroke="#FFF3E0" stroke-width="2" stroke-linecap="round" />
 </svg>
