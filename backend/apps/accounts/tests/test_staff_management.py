@@ -184,10 +184,12 @@ def test_deactivate_staff_member(staff_fixture):
 @pytest.mark.django_db
 def test_staff_service_edge_cases(staff_fixture):
     import uuid
+
+    from rest_framework.exceptions import ValidationError
+
+    from apps.accounts.staff_service import create_staff_member
     from apps.core.context import reset_current_tenant, set_current_tenant
     from apps.core.exceptions import BusinessRuleError
-    from rest_framework.exceptions import ValidationError
-    from apps.accounts.staff_service import create_staff_member
 
     tenant = staff_fixture["tenant"]
     owner = staff_fixture["owner"]

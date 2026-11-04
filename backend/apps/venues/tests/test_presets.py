@@ -1,3 +1,5 @@
+from typing import Any
+
 import pytest
 from django.apps import apps as django_apps
 
@@ -26,6 +28,156 @@ def test_all_seven_presets_exist():
         Branch.VenueProfile.BAR_BREWERY,
     }
     assert set(VENUE_CAPABILITY_PRESETS.keys()) == expected_profiles
+
+
+@pytest.mark.django_db
+def test_golden_table_all_seven_presets_15_fields():
+    """Asserts that all 7 presets have all 15 capability fields exactly matching the golden specification."""
+    expected_fields = {
+        "uses_tables",
+        "uses_token_numbers",
+        "uses_kds",
+        "supports_courses",
+        "allows_takeaway",
+        "allows_room_service",
+        "allows_room_charge",
+        "has_sections",
+        "has_seat_ordering",
+        "allows_table_transfer",
+        "allows_qr_ordering",
+        "payment_timing",
+        "qr_ordering_mode",
+        "qr_session_policy",
+        "order_workflow",
+    }
+    assert len(expected_fields) == 15
+
+    golden_matrix: dict[str, dict[str, Any]] = {
+        str(Branch.VenueProfile.QUICK_SERVICE): {
+            "uses_tables": False,
+            "uses_token_numbers": True,
+            "uses_kds": False,
+            "supports_courses": False,
+            "allows_takeaway": True,
+            "allows_room_service": False,
+            "allows_room_charge": False,
+            "has_sections": False,
+            "has_seat_ordering": False,
+            "allows_table_transfer": False,
+            "allows_qr_ordering": True,
+            "payment_timing": PaymentTiming.PAY_FIRST,
+            "qr_ordering_mode": QROrderingMode.BROWSE_ONLY,
+            "qr_session_policy": QRSessionPolicy.CUSTOMER_CAN_OPEN,
+            "order_workflow": OrderWorkflow.COUNTER_TOKEN,
+        },
+        str(Branch.VenueProfile.CAFE): {
+            "uses_tables": True,
+            "uses_token_numbers": False,
+            "uses_kds": False,
+            "supports_courses": False,
+            "allows_takeaway": True,
+            "allows_room_service": False,
+            "allows_room_charge": False,
+            "has_sections": False,
+            "has_seat_ordering": False,
+            "allows_table_transfer": True,
+            "allows_qr_ordering": True,
+            "payment_timing": PaymentTiming.EITHER,
+            "qr_ordering_mode": QROrderingMode.ORDER_DIRECT,
+            "qr_session_policy": QRSessionPolicy.CUSTOMER_CAN_OPEN,
+            "order_workflow": OrderWorkflow.TABLE_SERVICE,
+        },
+        str(Branch.VenueProfile.CASUAL_DINING): {
+            "uses_tables": True,
+            "uses_token_numbers": False,
+            "uses_kds": True,
+            "supports_courses": False,
+            "allows_takeaway": True,
+            "allows_room_service": False,
+            "allows_room_charge": False,
+            "has_sections": True,
+            "has_seat_ordering": False,
+            "allows_table_transfer": True,
+            "allows_qr_ordering": True,
+            "payment_timing": PaymentTiming.PAY_LATER,
+            "qr_ordering_mode": QROrderingMode.ORDER_WITH_APPROVAL,
+            "qr_session_policy": QRSessionPolicy.CUSTOMER_CAN_OPEN,
+            "order_workflow": OrderWorkflow.TABLE_SERVICE,
+        },
+        str(Branch.VenueProfile.FINE_DINING): {
+            "uses_tables": True,
+            "uses_token_numbers": False,
+            "uses_kds": True,
+            "supports_courses": True,
+            "allows_takeaway": False,
+            "allows_room_service": False,
+            "allows_room_charge": False,
+            "has_sections": True,
+            "has_seat_ordering": True,
+            "allows_table_transfer": True,
+            "allows_qr_ordering": True,
+            "payment_timing": PaymentTiming.PAY_LATER,
+            "qr_ordering_mode": QROrderingMode.BROWSE_ONLY,
+            "qr_session_policy": QRSessionPolicy.STAFF_ONLY,
+            "order_workflow": OrderWorkflow.TABLE_SERVICE,
+        },
+        str(Branch.VenueProfile.HOTEL_RESTAURANT): {
+            "uses_tables": True,
+            "uses_token_numbers": False,
+            "uses_kds": True,
+            "supports_courses": True,
+            "allows_takeaway": True,
+            "allows_room_service": True,
+            "allows_room_charge": True,
+            "has_sections": True,
+            "has_seat_ordering": True,
+            "allows_table_transfer": True,
+            "allows_qr_ordering": True,
+            "payment_timing": PaymentTiming.PAY_LATER,
+            "qr_ordering_mode": QROrderingMode.ORDER_WITH_APPROVAL,
+            "qr_session_policy": QRSessionPolicy.STAFF_ONLY,
+            "order_workflow": OrderWorkflow.TABLE_SERVICE,
+        },
+        str(Branch.VenueProfile.FOOD_COURT): {
+            "uses_tables": False,
+            "uses_token_numbers": True,
+            "uses_kds": True,
+            "supports_courses": False,
+            "allows_takeaway": True,
+            "allows_room_service": False,
+            "allows_room_charge": False,
+            "has_sections": False,
+            "has_seat_ordering": False,
+            "allows_table_transfer": False,
+            "allows_qr_ordering": True,
+            "payment_timing": PaymentTiming.PAY_FIRST,
+            "qr_ordering_mode": QROrderingMode.ORDER_DIRECT,
+            "qr_session_policy": QRSessionPolicy.CUSTOMER_CAN_OPEN,
+            "order_workflow": OrderWorkflow.COUNTER_TOKEN,
+        },
+        str(Branch.VenueProfile.BAR_BREWERY): {
+            "uses_tables": True,
+            "uses_token_numbers": False,
+            "uses_kds": True,
+            "supports_courses": False,
+            "allows_takeaway": False,
+            "allows_room_service": False,
+            "allows_room_charge": False,
+            "has_sections": True,
+            "has_seat_ordering": False,
+            "allows_table_transfer": True,
+            "allows_qr_ordering": True,
+            "payment_timing": PaymentTiming.PAY_LATER,
+            "qr_ordering_mode": QROrderingMode.ORDER_WITH_APPROVAL,
+            "qr_session_policy": QRSessionPolicy.CUSTOMER_CAN_OPEN,
+            "order_workflow": OrderWorkflow.BAR_TAB,
+        },
+    }
+
+    assert len(VENUE_CAPABILITY_PRESETS) == 7
+    for profile, preset in VENUE_CAPABILITY_PRESETS.items():
+        assert set(preset.keys()) == expected_fields, f"{profile} has incorrect capability fields"
+        assert preset == golden_matrix[profile], f"{profile} does not match golden preset values"
 
 
 @pytest.mark.django_db

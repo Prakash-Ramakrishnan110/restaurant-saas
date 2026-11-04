@@ -1,0 +1,68 @@
+============================= test session starts =============================
+platform win32 -- Python 3.12.10, pytest-9.2.0, pluggy-1.6.0
+django: version: 5.2.18, settings: config.settings.test (from ini)
+rootdir: C:\Users\praka\Desktop\Restaurant_saas\backend
+configfile: pyproject.toml
+plugins: anyio-4.11.0, Faker-40.1.2, asyncio-1.4.0, cov-6.0.0, django-4.9.0
+asyncio: mode=Mode.STRICT, debug=False, asyncio_default_fixture_loop_scope=function, asyncio_default_test_loop_scope=function
+collected 4 items / 2 deselected / 2 selected
+
+apps\accounts\tests\test_password_gate_sweep.py FF                       [100%]
+
+================================== FAILURES ===================================
+_____ test_every_api_route_is_gated_while_password_change_required[owner] _____
+
+gated_users = (<Tenant: Gate Co (gate-co)>, <User: o@gate.com (O)>, <User: admin@gate.com (A)>)
+who = 'owner'
+
+    @pytest.mark.django_db
+    @pytest.mark.parametrize("who", ["owner", "platform_admin"])
+    def test_every_api_route_is_gated_while_password_change_required(gated_users, who):
+        tenant, owner, admin = gated_users
+        user = owner if who == "owner" else admin
+        client = _client_for(user, tenant)
+        paths = [p for p in _api_paths() if not is_password_change_exempt(p)]
+        assert len(paths) >= 40, f"route sweep found suspiciously few routes: {len(paths)}"
+        for path in paths:
+            if path.startswith("/api/v1/public/"):
+                continue  # anonymous diner endpoints; no authenticated user involved
+            for method in ("get", "post"):
+                res = getattr(client, method)(path, {}, format="json")
+>               assert res.status_code == 403, f"{method.upper()} {path} -> {res.status_code}"
+E               AssertionError: GET /api/v1/auth/login/ -> 405
+E               assert 405 == 403
+E                +  where 405 = <Response status_code=405, "application/json">.status_code
+
+apps\accounts\tests\test_password_gate_sweep.py:69: AssertionError
+------------------------------ Captured log call ------------------------------
+WARNING  django.request:log.py:253 Method Not Allowed: /api/v1/auth/login/
+_ test_every_api_route_is_gated_while_password_change_required[platform_admin] _
+
+gated_users = (<Tenant: Gate Co (gate-co)>, <User: o@gate.com (O)>, <User: admin@gate.com (A)>)
+who = 'platform_admin'
+
+    @pytest.mark.django_db
+    @pytest.mark.parametrize("who", ["owner", "platform_admin"])
+    def test_every_api_route_is_gated_while_password_change_required(gated_users, who):
+        tenant, owner, admin = gated_users
+        user = owner if who == "owner" else admin
+        client = _client_for(user, tenant)
+        paths = [p for p in _api_paths() if not is_password_change_exempt(p)]
+        assert len(paths) >= 40, f"route sweep found suspiciously few routes: {len(paths)}"
+        for path in paths:
+            if path.startswith("/api/v1/public/"):
+                continue  # anonymous diner endpoints; no authenticated user involved
+            for method in ("get", "post"):
+                res = getattr(client, method)(path, {}, format="json")
+>               assert res.status_code == 403, f"{method.upper()} {path} -> {res.status_code}"
+E               AssertionError: GET /api/v1/auth/login/ -> 405
+E               assert 405 == 403
+E                +  where 405 = <Response status_code=405, "application/json">.status_code
+
+apps\accounts\tests\test_password_gate_sweep.py:69: AssertionError
+------------------------------ Captured log call ------------------------------
+WARNING  django.request:log.py:253 Method Not Allowed: /api/v1/auth/login/
+=========================== short test summary info ===========================
+FAILED apps/accounts/tests/test_password_gate_sweep.py::test_every_api_route_is_gated_while_password_change_required[owner]
+FAILED apps/accounts/tests/test_password_gate_sweep.py::test_every_api_route_is_gated_while_password_change_required[platform_admin]
+====================== 2 failed, 2 deselected in 13.93s =======================

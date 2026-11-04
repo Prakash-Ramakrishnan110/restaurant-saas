@@ -77,14 +77,14 @@ def test_all_business_error_codes_and_details():
         ),
         (
             BusinessRuleError(
-                "LAST_OWNER_PROTECTED",
-                "Cannot remove or deactivate the last OWNER of a tenant.",
-                status_code=400,
-                details={"reason": "Cannot remove or deactivate the last OWNER of a tenant."},
+                "LAST_OWNER",
+                "This is the only active owner. Make someone else an owner first.",
+                status_code=409,
+                details={"membership_id": "mem-1"},
             ),
-            "LAST_OWNER_PROTECTED",
-            400,
-            {"reason": "Cannot remove or deactivate the last OWNER of a tenant."},
+            "LAST_OWNER",
+            409,
+            {"membership_id": "mem-1"},
         ),
         (
             BusinessRuleError(
@@ -100,13 +100,13 @@ def test_all_business_error_codes_and_details():
         (
             BusinessRuleError(
                 "INVALID_STATUS_TRANSITION",
-                "Cannot transition table from OCCUPIED to AVAILABLE directly.",
+                "Cannot change table status from 'OCCUPIED' to 'AVAILABLE'.",
                 status_code=400,
-                details={"current_status": "OCCUPIED", "target_status": "AVAILABLE"},
+                details={"from": "OCCUPIED", "to": "AVAILABLE", "allowed": ["CLEANING"]},
             ),
             "INVALID_STATUS_TRANSITION",
             400,
-            {"current_status": "OCCUPIED", "target_status": "AVAILABLE"},
+            {"from": "OCCUPIED", "to": "AVAILABLE", "allowed": ["CLEANING"]},
         ),
         (
             BusinessRuleError(
@@ -123,33 +123,33 @@ def test_all_business_error_codes_and_details():
             BusinessRuleError(
                 "TABLE_NOT_AVAILABLE",
                 "Table 'T1' is occupied and cannot be seated right now.",
-                status_code=400,
+                status_code=409,
                 details={"table_id": "tbl-1", "status": "OCCUPIED"},
             ),
             "TABLE_NOT_AVAILABLE",
-            400,
+            409,
             {"table_id": "tbl-1", "status": "OCCUPIED"},
         ),
         (
             BusinessRuleError(
                 "SESSION_ALREADY_OPEN",
                 "An active session is already open on this table.",
-                status_code=400,
+                status_code=409,
                 details={"table_id": "tbl-1"},
             ),
             "SESSION_ALREADY_OPEN",
-            400,
+            409,
             {"table_id": "tbl-1"},
         ),
         (
             BusinessRuleError(
                 "DUPLICATE_LABEL",
                 "A table labelled 'T1' already exists in this branch.",
-                status_code=400,
+                status_code=409,
                 details={"label": "T1"},
             ),
             "DUPLICATE_LABEL",
-            400,
+            409,
             {"label": "T1"},
         ),
     ]

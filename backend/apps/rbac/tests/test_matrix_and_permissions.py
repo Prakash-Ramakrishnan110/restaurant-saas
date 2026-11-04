@@ -84,9 +84,11 @@ def test_verify_tenant_and_branch_access_branch_scope():
 @pytest.mark.django_db
 def test_rbac_permissions_edge_cases():
     from typing import Any, cast
+
     from rest_framework.exceptions import PermissionDenied
     from rest_framework.test import APIRequestFactory
     from rest_framework.views import APIView
+
     from apps.rbac.permissions import BaseTenantPermission, HasTenantPermission, IsPlatformAdmin
     from apps.subscriptions.constants import SubscriptionStatus
     from apps.subscriptions.models import Subscription

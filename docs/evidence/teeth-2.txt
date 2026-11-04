@@ -1,0 +1,32 @@
+============================= test session starts =============================
+platform win32 -- Python 3.12.10, pytest-9.2.0, pluggy-1.6.0
+django: version: 5.2.18, settings: config.settings.test (from ini)
+rootdir: C:\Users\praka\Desktop\Restaurant_saas\backend
+configfile: pyproject.toml
+plugins: anyio-4.11.0, Faker-40.1.2, asyncio-1.4.0, cov-6.0.0, django-4.9.0
+asyncio: mode=Mode.STRICT, debug=False, asyncio_default_fixture_loop_scope=function, asyncio_default_test_loop_scope=function
+collected 12 items / 10 deselected / 2 selected
+
+apps\accounts\tests\test_staff_rules_and_reset.py F.                     [100%]
+
+================================== FAILURES ===================================
+______________ test_last_owner_cannot_be_deactivated_or_demoted _______________
+
+env = {'t': <Tenant: Staff Co (staff-co)>, 'b1': <Branch: B1 - Staff Co>, 'b2': <Branch: B2 - Staff Co>, 'o1': <User: o1@s.com (o1@s.com)>, ...}
+
+    @pytest.mark.django_db
+    def test_last_owner_cannot_be_deactivated_or_demoted(env):
+        c = client_for(env["o1"], env["t"])
+        # With two owners, deactivating the other is fine
+        ok = c.patch(f"/api/v1/staff/{env['m_o2'].id}/", {"is_active": False}, format="json")
+        assert ok.status_code == 200
+        # Now o1 is the only active owner: even a platform-level actor cannot remove them
+        for kwargs in ({"is_active": False}, {"role": Role.WAITER}):
+>           with pytest.raises(BusinessRuleError) as exc:
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E           Failed: DID NOT RAISE BusinessRuleError
+
+apps\accounts\tests\test_staff_rules_and_reset.py:70: Failed
+=========================== short test summary info ===========================
+FAILED apps/accounts/tests/test_staff_rules_and_reset.py::test_last_owner_cannot_be_deactivated_or_demoted
+================= 1 failed, 1 passed, 10 deselected in 8.38s ==================

@@ -27,8 +27,8 @@ def test_seed_command():
     assert t_fc is not None
 
     # Verify Foodie Plaza is seeded on Business plan
-    from apps.subscriptions.models import Subscription
     from apps.subscriptions.constants import SubscriptionStatus
+    from apps.subscriptions.models import Subscription
     fc_sub = Subscription.objects.filter(tenant=t_fc).first()
     assert fc_sub is not None
     assert fc_sub.status == SubscriptionStatus.ACTIVE

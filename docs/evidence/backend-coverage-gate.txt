@@ -1,0 +1,10 @@
+=== Module Coverage Verification ===
+PASS: apps/rbac/permissions.py coverage 100.0% >= 95.0%
+PASS: apps/core/managers.py coverage 100.0% >= 95.0%
+PASS: apps/core/middleware.py coverage 100.0% >= 95.0%
+PASS: apps/accounts/staff_service.py coverage 100.0% >= 95.0%
+PASS: apps/accounts/services.py coverage 100.0% >= 95.0%
+PASS: apps/tenants/views.py coverage 92.4% >= 90.0%
+PASS: apps/venues/views.py coverage 93.5% >= 90.0%
+TOTAL COVERAGE: 94.41%
+ALL COVERAGE GATES PASSED!

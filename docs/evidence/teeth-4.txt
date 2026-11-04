@@ -1,0 +1,44 @@
+============================= test session starts =============================
+platform win32 -- Python 3.12.10, pytest-9.2.0, pluggy-1.6.0
+django: version: 5.2.18, settings: config.settings.test (from ini)
+rootdir: C:\Users\praka\Desktop\Restaurant_saas\backend
+configfile: pyproject.toml
+plugins: anyio-4.11.0, Faker-40.1.2, asyncio-1.4.0, cov-6.0.0, django-4.9.0
+asyncio: mode=Mode.STRICT, debug=False, asyncio_default_fixture_loop_scope=function, asyncio_default_test_loop_scope=function
+collected 10 items / 9 deselected / 1 selected
+
+apps\accounts\tests\test_auth_endpoints.py F                             [100%]
+
+================================== FAILURES ===================================
+____________________ test_refresh_rejects_untrusted_origin ____________________
+
+auth_setup = {'tenant': <Tenant: Auth Tenant (auth-tenant)>, 'user': <User: owner@authtenant.com (Owner User)>, 'membership': <Membership: owner@authtenant.com -> Auth Tenant [OWNER]>}
+
+    @pytest.mark.django_db
+    def test_refresh_rejects_untrusted_origin(auth_setup):
+        client = APIClient()
+        login_resp = client.post(
+            "/api/v1/auth/login/",
+            {"email": "owner@authtenant.com", "password": "SecretPassword123!"},
+            format="json",
+        )
+        refresh = login_resp.cookies[settings.REFRESH_COOKIE_NAME].value
+        client.cookies[settings.REFRESH_COOKIE_NAME] = refresh
+    
+        # Valid origin passes
+        resp_valid = client.post("/api/v1/auth/refresh/", HTTP_ORIGIN="http://localhost:5173")
+        assert resp_valid.status_code == status.HTTP_200_OK
+    
+        # Untrusted origin receives 403 INVALID_ORIGIN
+        new_refresh = resp_valid.cookies[settings.REFRESH_COOKIE_NAME].value
+        client.cookies[settings.REFRESH_COOKIE_NAME] = new_refresh
+        resp_invalid = client.post("/api/v1/auth/refresh/", HTTP_ORIGIN="https://evil-untrusted-site.com")
+>       assert resp_invalid.status_code == status.HTTP_403_FORBIDDEN
+E       assert 200 == 403
+E        +  where 200 = <Response status_code=200, "application/json">.status_code
+E        +  and   403 = status.HTTP_403_FORBIDDEN
+
+apps\accounts\tests\test_auth_endpoints.py:246: AssertionError
+=========================== short test summary info ===========================
+FAILED apps/accounts/tests/test_auth_endpoints.py::test_refresh_rejects_untrusted_origin
+======================= 1 failed, 9 deselected in 9.51s =======================

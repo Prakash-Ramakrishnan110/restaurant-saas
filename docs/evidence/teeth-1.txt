@@ -1,0 +1,71 @@
+============================= test session starts =============================
+platform win32 -- Python 3.12.10, pytest-9.2.0, pluggy-1.6.0
+django: version: 5.2.18, settings: config.settings.test (from ini)
+rootdir: C:\Users\praka\Desktop\Restaurant_saas\backend
+configfile: pyproject.toml
+plugins: anyio-4.11.0, Faker-40.1.2, asyncio-1.4.0, cov-6.0.0, django-4.9.0
+asyncio: mode=Mode.STRICT, debug=False, asyncio_default_fixture_loop_scope=function, asyncio_default_test_loop_scope=function
+collected 16 items / 14 deselected / 2 selected
+
+apps\tenants\tests\test_tenant_isolation.py F                            [ 50%]
+apps\rbac\tests\test_matrix_and_permissions.py F                         [100%]
+
+================================== FAILURES ===================================
+_______ test_branch_scope_isolation_manager_cannot_access_other_branch ________
+
+two_tenants_fixture = {'tenant_a': <Tenant: Tenant Alpha (alpha)>, 'branch_a1': <Branch: Alpha Branch 1 - Tenant Alpha>, 'branch_a2': <Branch: Alpha Branch 2 - Tenant Alpha>, 'user_a': <User: owner@alpha.com (Alpha Owner)>, ...}
+
+    @pytest.mark.django_db
+    def test_branch_scope_isolation_manager_cannot_access_other_branch(two_tenants_fixture):
+        """Branch manager of branch A1 cannot access branch A2 (returns 404)."""
+        client = APIClient()
+        token_mgr = str(RefreshToken.for_user(two_tenants_fixture["user_mgr_a1"]).access_token)
+        client.credentials(
+            HTTP_AUTHORIZATION=f"Bearer {token_mgr}",
+            HTTP_X_TENANT_ID=str(two_tenants_fixture["tenant_a"].id),
+        )
+    
+        # Manager A1 accessing Branch A1 -> Success
+        branch_a1_id = two_tenants_fixture["branch_a1"].id
+        resp1 = client.get(f"/api/v1/branches/{branch_a1_id}/")
+        assert resp1.status_code == status.HTTP_200_OK
+        assert resp1.data["name"] == "Alpha Branch 1"
+    
+        # Manager A1 accessing Branch A2 -> 404 Not Found
+        branch_a2_id = two_tenants_fixture["branch_a2"].id
+        resp2 = client.get(f"/api/v1/branches/{branch_a2_id}/")
+>       assert resp2.status_code == status.HTTP_404_NOT_FOUND
+E       assert 200 == 404
+E        +  where 200 = <Response status_code=200, "application/json">.status_code
+E        +  and   404 = status.HTTP_404_NOT_FOUND
+
+apps\tenants\tests\test_tenant_isolation.py:180: AssertionError
+______________ test_verify_tenant_and_branch_access_branch_scope ______________
+
+    @pytest.mark.django_db
+    def test_verify_tenant_and_branch_access_branch_scope():
+        tenant = Tenant.objects.create(name="T", slug="t")
+        b1 = Branch.unscoped.create(tenant=tenant, name="Branch 1")
+        b2 = Branch.unscoped.create(tenant=tenant, name="Branch 2")
+    
+        user = User.objects.create(email="mgr@t.com")
+        membership = Membership.objects.create(user=user, tenant=tenant, role=Role.BRANCH_MANAGER)
+        # Manager assigned only to Branch 1
+        membership.branches.add(b1)
+    
+        # Accessing Branch 1 should succeed
+        assert (
+            verify_tenant_and_branch_access(user=user, obj=b1, tenant=tenant, membership=membership)
+            is True
+        )
+    
+        # Accessing Branch 2 MUST raise Http404
+>       with pytest.raises(Http404):
+             ^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE Http404
+
+apps\rbac\tests\test_matrix_and_permissions.py:80: Failed
+=========================== short test summary info ===========================
+FAILED apps/tenants/tests/test_tenant_isolation.py::test_branch_scope_isolation_manager_cannot_access_other_branch
+FAILED apps/rbac/tests/test_matrix_and_permissions.py::test_verify_tenant_and_branch_access_branch_scope
+====================== 2 failed, 14 deselected in 9.74s =======================

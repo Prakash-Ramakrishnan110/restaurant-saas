@@ -1,0 +1,70 @@
+........................................................................ [ 24%]
+........................................................................ [ 49%]
+........................................................................ [ 73%]
+........................................................................ [ 98%]
+....                                                                     [100%]
+
+---------- coverage: platform win32, python 3.12.10-final-0 ----------
+Name                                        Stmts   Miss  Cover   Missing
+-------------------------------------------------------------------------
+apps\__init__.py                                0      0   100%
+apps\accounts\__init__.py                       0      0   100%
+apps\accounts\apps.py                           5      0   100%
+apps\accounts\models.py                        55      7    87%   14, 20, 33, 35, 37, 64, 105
+apps\accounts\serializers.py                   76      1    99%   37
+apps\accounts\services.py                      49      0   100%
+apps\accounts\staff_service.py                131      0   100%
+apps\accounts\throttling.py                    28      2    93%   24, 46
+apps\accounts\urls.py                           3      0   100%
+apps\accounts\views.py                        227     21    91%   114-117, 128-129, 163, 226, 240-241, 277-278, 375, 396-397, 407, 450, 469, 510, 516-517, 536
+apps\audit\__init__.py                          0      0   100%
+apps\audit\apps.py                              5      0   100%
+apps\audit\models.py                           34      1    97%   75
+apps\audit\services.py                         19      2    89%   12, 34
+apps\core\__init__.py                           0      0   100%
+apps\core\apps.py                               5      0   100%
+apps\core\context.py                            9      0   100%
+apps\core\exceptions.py                        94     14    85%   92-93, 104-105, 115-116, 121-122, 133-138
+apps\core\management\__init__.py                0      0   100%
+apps\core\management\commands\__init__.py       0      0   100%
+apps\core\management\commands\seed.py         164      2    99%   510-511
+apps\core\managers.py                          25      0   100%
+apps\core\middleware.py                        73      0   100%
+apps\core\models.py                            22      0   100%
+apps\core\money.py                            109      8    93%   23, 67, 103, 112, 114, 121, 131, 146
+apps\core\pagination.py                         9      0   100%
+apps\core\tasks.py                             14      5    64%   18-23
+apps\core\views.py                             42      7    83%   35-37, 43-44, 51-52
+apps\rbac\__init__.py                           0      0   100%
+apps\rbac\apps.py                               5      0   100%
+apps\rbac\constants.py                         38      0   100%
+apps\rbac\matrix.py                             6      0   100%
+apps\rbac\permissions.py                       79      0   100%
+apps\subscriptions\__init__.py                  0      0   100%
+apps\subscriptions\apps.py                      5      0   100%
+apps\subscriptions\constants.py                 9      0   100%
+apps\subscriptions\models.py                   22      2    91%   25, 58
+apps\subscriptions\services.py                 67      6    91%   46, 67, 74, 98, 144, 148
+apps\subscriptions\urls.py                      3      0   100%
+apps\subscriptions\views.py                    18      1    94%   26
+apps\tenants\__init__.py                        0      0   100%
+apps\tenants\apps.py                            5      0   100%
+apps\tenants\models.py                         62      3    95%   50, 86, 116
+apps\tenants\serializers.py                    56      0   100%
+apps\tenants\services.py                      149      2    99%   344, 348
+apps\tenants\urls.py                            3      0   100%
+apps\tenants\views.py                         172     13    92%   94, 105, 116, 128, 152, 168, 182, 211, 230, 258, 289, 321, 343
+apps\venues\__init__.py                         0      0   100%
+apps\venues\apps.py                             5      0   100%
+apps\venues\constants.py                       60      0   100%
+apps\venues\models.py                         139     12    91%   67, 101, 128, 141, 210-211, 215, 238, 299-304, 346, 373
+apps\venues\presets.py                          9      0   100%
+apps\venues\serializers.py                    140      1    99%   303
+apps\venues\services.py                       300     29    90%   179, 262, 266, 271, 318, 324, 330, 369, 404-431, 449, 459, 464, 476, 489, 545, 548, 574, 647, 679, 738, 740, 764, 830, 836
+apps\venues\urls.py                            12      0   100%
+apps\venues\views.py                          428     28    93%   102-103, 192, 238, 242, 431, 433, 455-466, 535, 548, 575, 577, 613-620, 700-701, 741, 745
+-------------------------------------------------------------------------
+TOTAL                                        2990    167    94%
+
+Required test coverage of 90% reached. Total coverage: 94.41%
+292 passed in 76.39s (0:01:16)

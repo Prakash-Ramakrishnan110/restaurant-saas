@@ -157,7 +157,6 @@ def test_entitlements_clamped_remaining_and_over_limit(entitlements_fixture):
     """Verify that when usage exceeds plan limits, remaining is clamped to >= 0 and over_limit is True."""
     fixture = entitlements_fixture
     tenant = fixture["tenant_a"]
-    branch = fixture["branch_a1"]
 
     # Pro plan limit for max_branches is 2. Currently tenant has 1 branch (Alpha Main).
     # Create 2 more branches so current branch count becomes 3 (> limit of 2).

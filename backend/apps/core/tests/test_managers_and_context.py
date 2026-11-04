@@ -115,11 +115,12 @@ def test_tenant_managers_filter_by_current_tenant():
 def test_tenant_middleware_edge_cases():
     from django.http import HttpResponse
     from rest_framework.test import APIRequestFactory
-    from apps.core.middleware import TenantContextMiddleware
+
     from apps.accounts.models import Membership, User
+    from apps.core.middleware import TenantContextMiddleware
+    from apps.rbac.constants import Role
     from apps.subscriptions.constants import SubscriptionStatus
     from apps.subscriptions.models import Subscription
-    from apps.rbac.constants import Role
 
     tenant = Tenant.objects.create(name="Mid Tenant", slug="mid-tenant", status=Tenant.Status.ACTIVE)
     Subscription.objects.create(tenant=tenant, status=SubscriptionStatus.ACTIVE)

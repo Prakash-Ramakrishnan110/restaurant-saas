@@ -1,0 +1,50 @@
+======================================================================
+TEETH CHECK 5: RELOCATED TESTS FROM test_coverage_boost.py
+======================================================================
+
+The synthetic 'test_coverage_boost.py' file was completely retired. Its assertions
+were distributed into dedicated, domain-specific test suites with concrete behavioral
+assertions:
+
+1. Target File: backend/apps/venues/tests/test_presets.py
+   - test_all_seven_presets_exist
+     Behavior Asserted: Asserts that all 7 preset keys (QUICK_SERVICE, CAFE, CASUAL_DINING,
+     FINE_DINING, HOTEL_RESTAURANT, FOOD_COURT, BAR_BREWERY) exist in VENUE_CAPABILITY_PRESETS.
+   - test_golden_table_all_seven_presets_15_fields
+     Behavior Asserted: Asserts that every preset defines all 15 capability fields and matches
+     the exact golden matrix specification.
+   - test_all_presets_pass_validation
+     Behavior Asserted: Asserts that all 7 presets strictly satisfy invariant rules R1 through R7.
+   - test_patch_capabilities_rejects_invalid_combinations
+     Behavior Asserted: Parameterized sweep testing that illegal capability combinations violating
+     R1, R2, R3, R4, R5, R6, R7 return HTTP 400 with code INVALID_CAPABILITY_COMBINATION and details.
+   - test_partial_capability_patch_validated_on_merged_state
+     Behavior Asserted: Asserts that PATCH /branches/{id}/capabilities/ merges existing state before
+     validating invariant rules.
+   - test_migration_remaps_legacy_qr_ordering_modes_and_payment_timing
+     Behavior Asserted: Executes migration 0005 data remap function to verify backward compatibility.
+
+2. Target File: backend/apps/accounts/tests/test_staff_rules_and_reset.py
+   - test_last_owner_cannot_be_deactivated_or_demoted
+     Behavior Asserted: Asserts that BusinessRuleError('LAST_OWNER', status_code=409) is raised when
+     attempting to deactivate or demote the sole active OWNER of a tenant.
+   - test_last_owner_delete_endpoint_returns_409
+     Behavior Asserted: Asserts DELETE /api/v1/staff/{id}/ returns HTTP 409 for the last owner.
+   - test_temporary_password_never_in_audit_log_app_logs_or_later_get
+     Behavior Asserted: Verifies temporary password appears only in initial invite/reset response and
+     is strictly omitted from AuditLog, application logs, and subsequent staff queries.
+
+3. Target File: backend/apps/accounts/tests/test_password_gate_sweep.py
+   - test_every_api_route_is_gated_while_password_change_required
+     Behavior Asserted: Dynamically introspects all OpenAPI endpoints and sweeps every route for
+     both owner and platform_admin users with must_change_password=True, asserting HTTP 403
+     with code PASSWORD_CHANGE_REQUIRED.
+   - test_gate_exempt_routes_still_work
+     Behavior Asserted: Verifies that /auth/me/, /auth/change-password/, /health, and /auth/logout/
+     remain reachable while must_change_password is True.
+
+4. Target File: backend/apps/core/tests/test_exceptions.py
+   - test_all_business_error_codes_and_details
+     Behavior Asserted: Directly asserts error envelope formatting, HTTP status codes (409 for
+     conflict states, 403 for RBAC/entitlements, 400 for state machine), and exact details schemas
+     for all business rule exceptions.

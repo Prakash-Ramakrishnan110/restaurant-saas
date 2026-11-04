@@ -1,0 +1,10 @@
+ollama 0.1.7 has requirement httpx<0.26.0,>=0.25.2, but you have httpx 0.27.0.
+paddlex 3.4.2 has requirement PyYAML==6.0.2, but you have pyyaml 6.0.3.
+python-telegram-bot 20.7 has requirement httpx~=0.25.2, but you have httpx 0.27.0.
+powershell : No known vulnerabilities found
+At line:1 char:1
++ powershell -Command "cd backend; pip check; pip-audit -r requirements ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (No known vulnerabilities found:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 

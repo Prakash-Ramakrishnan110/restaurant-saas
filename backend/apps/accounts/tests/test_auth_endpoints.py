@@ -222,3 +222,27 @@ def test_auth_me_endpoint(auth_setup):
     assert response.data["active_role"] == Role.OWNER
     assert "staff.manage" in response.data["permissions"]
     assert "branch.manage" in response.data["permissions"]
+
+
+@pytest.mark.django_db
+def test_refresh_rejects_untrusted_origin(auth_setup):
+    client = APIClient()
+    login_resp = client.post(
+        "/api/v1/auth/login/",
+        {"email": "owner@authtenant.com", "password": "SecretPassword123!"},
+        format="json",
+    )
+    refresh = login_resp.cookies[settings.REFRESH_COOKIE_NAME].value
+    client.cookies[settings.REFRESH_COOKIE_NAME] = refresh
+
+    # Valid origin passes
+    resp_valid = client.post("/api/v1/auth/refresh/", HTTP_ORIGIN="http://localhost:5173")
+    assert resp_valid.status_code == status.HTTP_200_OK
+
+    # Untrusted origin receives 403 INVALID_ORIGIN
+    new_refresh = resp_valid.cookies[settings.REFRESH_COOKIE_NAME].value
+    client.cookies[settings.REFRESH_COOKIE_NAME] = new_refresh
+    resp_invalid = client.post("/api/v1/auth/refresh/", HTTP_ORIGIN="https://evil-untrusted-site.com")
+    assert resp_invalid.status_code == status.HTTP_403_FORBIDDEN
+    assert resp_invalid.data["error"]["code"] == "INVALID_ORIGIN"
+
