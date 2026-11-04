@@ -230,3 +230,42 @@ def test_presets_api_endpoint(venue_test_setup):
     assert response.status_code == 200
     assert Branch.VenueProfile.CASUAL_DINING in response.data
     assert len(response.data) == 7
+
+
+@pytest.mark.django_db
+def test_partial_capability_patch_validated_on_merged_state(venue_test_setup):
+    """Test that a partial PATCH to branch capabilities validates invariant rules on the MERGED state."""
+    from apps.venues.tests.conftest import make_client
+
+    tenant = venue_test_setup["tenant_a"]
+    owner = venue_test_setup["owner_a"]
+    branch = venue_test_setup["branch_a1"]
+
+    set_current_tenant(tenant)
+    # Apply QUICK_SERVICE: order_workflow=COUNTER_TOKEN, uses_token_numbers=True, uses_tables=False
+    apply_preset(branch, Branch.VenueProfile.QUICK_SERVICE)
+    client = make_client(owner, tenant)
+
+    # 1. Partial PATCH: attempt to turn off uses_token_numbers while order_workflow remains COUNTER_TOKEN
+    # This must fail R1 on merged state
+    res_fail = client.patch(
+        f"/api/v1/branches/{branch.id}/capabilities/",
+        {"uses_token_numbers": False},
+        format="json",
+    )
+    assert res_fail.status_code == 400
+    assert res_fail.data["error"]["code"] == "INVALID_CAPABILITY_COMBINATION"
+    assert "uses_token_numbers" in str(res_fail.data["error"]["details"])
+
+    # 2. Valid partial PATCH: toggle allows_takeaway
+    res_ok = client.patch(
+        f"/api/v1/branches/{branch.id}/capabilities/",
+        {"allows_takeaway": False},
+        format="json",
+    )
+    assert res_ok.status_code == 200
+    assert res_ok.data["allows_takeaway"] is False
+    # Ensure other merged fields remained intact
+    assert res_ok.data["order_workflow"] == OrderWorkflow.COUNTER_TOKEN
+    assert res_ok.data["uses_token_numbers"] is True
+

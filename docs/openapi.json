@@ -2835,7 +2835,7 @@
                         "maxLength": 32
                     },
                     "venue_profile": {
-                        "$ref": "#/components/schemas/VenueProfileEnum"
+                        "$ref": "#/components/schemas/VenueProfile"
                     },
                     "is_active": {
                         "type": "boolean"
@@ -2909,10 +2909,10 @@
                         "$ref": "#/components/schemas/PaymentTiming"
                     },
                     "qr_ordering_mode": {
-                        "$ref": "#/components/schemas/QROrderingMode"
+                        "$ref": "#/components/schemas/QrOrderingMode"
                     },
                     "qr_session_policy": {
-                        "$ref": "#/components/schemas/QRSessionPolicy"
+                        "$ref": "#/components/schemas/QrSessionPolicy"
                     },
                     "order_workflow": {
                         "$ref": "#/components/schemas/OrderWorkflow"
@@ -2951,7 +2951,7 @@
                         "maxLength": 32
                     },
                     "venue_profile": {
-                        "$ref": "#/components/schemas/VenueProfileEnum"
+                        "$ref": "#/components/schemas/VenueProfile"
                     },
                     "is_active": {
                         "type": "boolean"
@@ -3017,7 +3017,7 @@
                         "pattern": "^[-a-zA-Z0-9_]+$"
                     },
                     "business_type": {
-                        "$ref": "#/components/schemas/BusinessTypeEnum"
+                        "$ref": "#/components/schemas/BusinessType"
                     },
                     "status": {
                         "allOf": [
@@ -3058,7 +3058,7 @@
                         "type": "string"
                     },
                     "tax_mode": {
-                        "$ref": "#/components/schemas/TaxModeEnum"
+                        "$ref": "#/components/schemas/TaxMode"
                     },
                     "created_at": {
                         "type": "string",
@@ -3086,7 +3086,7 @@
                 "type": "object",
                 "properties": {
                     "tax_mode": {
-                        "$ref": "#/components/schemas/TaxModeEnum"
+                        "$ref": "#/components/schemas/TaxMode"
                     },
                     "invoice_prefix": {
                         "type": "string",
@@ -3107,7 +3107,7 @@
                 "type": "object",
                 "properties": {
                     "tax_mode": {
-                        "$ref": "#/components/schemas/TaxModeEnum"
+                        "$ref": "#/components/schemas/TaxMode"
                     },
                     "invoice_prefix": {
                         "type": "string",
@@ -3126,7 +3126,7 @@
                     }
                 }
             },
-            "BusinessTypeEnum": {
+            "BusinessType": {
                 "enum": [
                     "TEA_SHOP",
                     "BAKERY",
@@ -3459,7 +3459,7 @@
                     "steps"
                 ]
             },
-            "OpenedViaEnum": {
+            "OpenedVia": {
                 "enum": [
                     "STAFF",
                     "QR",
@@ -3828,10 +3828,10 @@
                         "$ref": "#/components/schemas/PaymentTiming"
                     },
                     "qr_ordering_mode": {
-                        "$ref": "#/components/schemas/QROrderingMode"
+                        "$ref": "#/components/schemas/QrOrderingMode"
                     },
                     "qr_session_policy": {
-                        "$ref": "#/components/schemas/QRSessionPolicy"
+                        "$ref": "#/components/schemas/QrSessionPolicy"
                     },
                     "order_workflow": {
                         "$ref": "#/components/schemas/OrderWorkflow"
@@ -3854,7 +3854,7 @@
                         "maxLength": 32
                     },
                     "venue_profile": {
-                        "$ref": "#/components/schemas/VenueProfileEnum"
+                        "$ref": "#/components/schemas/VenueProfile"
                     },
                     "is_active": {
                         "type": "boolean"
@@ -3871,7 +3871,7 @@
                         "maxLength": 255
                     },
                     "business_type": {
-                        "$ref": "#/components/schemas/BusinessTypeEnum"
+                        "$ref": "#/components/schemas/BusinessType"
                     },
                     "email": {
                         "type": "string",
@@ -3897,7 +3897,7 @@
                         "type": "string"
                     },
                     "tax_mode": {
-                        "$ref": "#/components/schemas/TaxModeEnum"
+                        "$ref": "#/components/schemas/TaxMode"
                     }
                 }
             },
@@ -4152,7 +4152,7 @@
                     "target_type": {
                         "allOf": [
                             {
-                                "$ref": "#/components/schemas/TargetTypeEnum"
+                                "$ref": "#/components/schemas/QRTargetType"
                             }
                         ],
                         "readOnly": true,
@@ -4223,7 +4223,17 @@
                     "version"
                 ]
             },
-            "QROrderingMode": {
+            "QRTargetType": {
+                "enum": [
+                    "TABLE",
+                    "ROOM",
+                    "COUNTER",
+                    "BRANCH_MENU"
+                ],
+                "type": "string",
+                "description": "* `TABLE` - Dining Table\n* `ROOM` - Hotel Room\n* `COUNTER` - Order Counter\n* `BRANCH_MENU` - General Branch Menu"
+            },
+            "QrOrderingMode": {
                 "enum": [
                     "DISABLED",
                     "BROWSE_ONLY",
@@ -4233,7 +4243,7 @@
                 "type": "string",
                 "description": "* `DISABLED` - Disabled\n* `BROWSE_ONLY` - Browse Only\n* `ORDER_WITH_APPROVAL` - Order With Approval\n* `ORDER_DIRECT` - Order Direct"
             },
-            "QRSessionPolicy": {
+            "QrSessionPolicy": {
                 "enum": [
                     "CUSTOMER_CAN_OPEN",
                     "STAFF_ONLY"
@@ -4680,7 +4690,7 @@
                     "opened_via": {
                         "allOf": [
                             {
-                                "$ref": "#/components/schemas/OpenedViaEnum"
+                                "$ref": "#/components/schemas/OpenedVia"
                             }
                         ],
                         "readOnly": true
@@ -4792,17 +4802,7 @@
                 "type": "string",
                 "description": "* `TABLE` - Dining Table\n* `BOOTH` - Booth Seating\n* `BAR_SEAT` - Bar Stool\n* `ROOM` - Hotel Room\n* `COUNTER` - Counter Seat / Token Station\n* `BANQUET_TABLE` - Banquet Round\n* `TAKEAWAY_POINT` - Takeaway Point"
             },
-            "TargetTypeEnum": {
-                "enum": [
-                    "TABLE",
-                    "ROOM",
-                    "COUNTER",
-                    "BRANCH_MENU"
-                ],
-                "type": "string",
-                "description": "* `TABLE` - Dining Table\n* `ROOM` - Hotel Room\n* `COUNTER` - Order Counter\n* `BRANCH_MENU` - General Branch Menu"
-            },
-            "TaxModeEnum": {
+            "TaxMode": {
                 "enum": [
                     "INCLUSIVE",
                     "EXCLUSIVE"
@@ -4828,7 +4828,7 @@
                         "pattern": "^[-a-zA-Z0-9_]+$"
                     },
                     "business_type": {
-                        "$ref": "#/components/schemas/BusinessTypeEnum"
+                        "$ref": "#/components/schemas/BusinessType"
                     },
                     "suggested_venue_profile": {
                         "type": "string",
@@ -4906,7 +4906,7 @@
                         "pattern": "^[-a-zA-Z0-9_]+$"
                     },
                     "business_type": {
-                        "$ref": "#/components/schemas/BusinessTypeEnum"
+                        "$ref": "#/components/schemas/BusinessType"
                     },
                     "status": {
                         "$ref": "#/components/schemas/TenantStatus"
@@ -4992,7 +4992,7 @@
                     "phone"
                 ]
             },
-            "VenueProfileEnum": {
+            "VenueProfile": {
                 "enum": [
                     "QUICK_SERVICE",
                     "CAFE",

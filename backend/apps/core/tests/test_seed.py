@@ -26,6 +26,15 @@ def test_seed_command():
     t_fc = Tenant.objects.filter(slug="foodie-plaza").first()
     assert t_fc is not None
 
+    # Verify Foodie Plaza is seeded on Business plan
+    from apps.subscriptions.models import Subscription
+    from apps.subscriptions.constants import SubscriptionStatus
+    fc_sub = Subscription.objects.filter(tenant=t_fc).first()
+    assert fc_sub is not None
+    assert fc_sub.status == SubscriptionStatus.ACTIVE
+    assert fc_sub.plan is not None
+    assert fc_sub.plan.name == "Business Plan"
+
     # Verify Foodie Plaza (FOOD_COURT) has 6 counters, 0 dining tables, 6 counter QR codes, and independent tokens per counter
     from apps.core.context import set_current_tenant
     from apps.tenants.models import Branch

@@ -7,7 +7,7 @@ from pathlib import Path
 
 def infer_permission(path: str, method: str) -> str:
     # Public endpoints
-    if path.startswith("/api/v1/public/") or path in (
+    if path.startswith("/api/v1/public/") or path.startswith("/health") or path in (
         "/api/v1/auth/login/",
         "/api/v1/auth/refresh/",
         "/api/v1/auth/logout/",
@@ -28,15 +28,19 @@ def infer_permission(path: str, method: str) -> str:
     if path.startswith("/api/v1/business/"):
         return "business.manage" if method in ("PATCH", "PUT") else "business.view"
 
+    # Onboarding
+    if path.startswith("/api/v1/onboarding/"):
+        return "OWNER, BRANCH_MANAGER"
+
     # Entitlements
     if path.startswith("/api/v1/entitlements/"):
         return "Active Tenant Membership"
 
     # Branch & capabilities
     if "capabilities" in path:
-        return "branches.manage" if method in ("PATCH", "PUT") else "branches.view"
+        return "branch.manage" if method in ("PATCH", "PUT") else "branch.view"
     if path.startswith("/api/v1/branches/"):
-        return "branches.manage" if method in ("POST", "PATCH", "PUT", "DELETE") else "branches.view"
+        return "branch.manage" if method in ("POST", "PATCH", "PUT", "DELETE") else "branch.view"
 
     # Staff
     if "reset-password" in path:
@@ -47,28 +51,36 @@ def infer_permission(path: str, method: str) -> str:
     # QR Codes
     if path.startswith("/api/v1/qr-codes/"):
         if method in ("POST", "DELETE"):
-            return "qrcodes.manage"
-        return "qrcodes.view"
+            return "qr.manage"
+        return "qr.view"
 
     # Staff Assignments
     if path.startswith("/api/v1/staff-assignments/"):
-        return "staff.manage" if method in ("POST", "DELETE") else "staff.view"
+        return "table.assign" if method in ("POST", "DELETE") else "table.view"
 
     # Table Sessions
     if path.startswith("/api/v1/table-sessions/"):
-        if "open" in path or "close" in path or method == "POST":
-            return "orders.manage or tables.manage"
-        return "tables.view"
+        if "open" in path:
+            return "table_session.open"
+        if "close" in path:
+            return "table_session.close"
+        return "table.view"
 
     # Tables & Layout
-    if "/layout" in path or "/status" in path:
-        return "tables.manage"
-    if path.startswith("/api/v1/tables/") or path.startswith("/api/v1/table-groups/"):
-        return "tables.manage" if method in ("POST", "PATCH", "PUT", "DELETE") else "tables.view"
+    if "/status" in path:
+        return "table.status_update"
+    if "/join" in path or "/split" in path:
+        return "table.merge"
+    if "/layout" in path:
+        return "floor.manage"
+    if path.startswith("/api/v1/tables/"):
+        return "table.manage" if method in ("POST", "PATCH", "PUT", "DELETE") else "table.view"
+    if path.startswith("/api/v1/table-groups/"):
+        return "table.view"
 
     # Service areas & Sections
     if path.startswith("/api/v1/service-areas/") or path.startswith("/api/v1/sections/"):
-        return "tables.manage" if method in ("POST", "PATCH", "PUT", "DELETE") else "tables.view"
+        return "area.manage" if method in ("POST", "PATCH", "PUT", "DELETE") else "area.view"
 
     return "Authenticated"
 
@@ -85,25 +97,23 @@ def main():
         schema = json.load(f)
 
     paths = schema.get("paths", {})
+    rows = []
 
+    for path, methods in sorted(paths.items()):
+        for method, op in sorted(methods.items()):
+            if method.lower() not in ("get", "post", "put", "patch", "delete"):
+                continue
+
+            summary = op.get("summary") or op.get("operationId") or ""
+            permission = infer_permission(path, method.upper())
+
+            rows.append((method.upper(), path, summary, permission))
+
+    # Print markdown table
     print("| Method | Path | Summary / Operation ID | Permission |")
     print("|:---:|---|---|---|")
-
-    method_order = ["GET", "POST", "PUT", "PATCH", "DELETE"]
-
-    rows = []
-    for path, path_item in sorted(paths.items()):
-        for method, op in path_item.items():
-            method_upper = method.upper()
-            if method_upper not in method_order:
-                continue
-            summary = op.get("summary") or op.get("operationId") or ""
-            permission = infer_permission(path, method_upper)
-            rows.append((path, method_upper, summary, permission))
-
-    # Sort rows by path, then method
-    for path, method, summary, perm in sorted(rows, key=lambda x: (x[0], method_order.index(x[1]))):
-        print(f"| `{method}` | `{path}` | {summary} | `{perm}` |")
+    for method, path, summary, permission in rows:
+        print(f"| `{method}` | `{path}` | {summary} | `{permission}` |")
 
 
 if __name__ == "__main__":

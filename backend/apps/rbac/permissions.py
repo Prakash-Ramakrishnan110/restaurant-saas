@@ -6,7 +6,7 @@ from rest_framework.request import Request
 from rest_framework.views import APIView
 
 from apps.core.context import get_current_tenant
-from apps.rbac.constants import Permission
+from apps.rbac.constants import Permission, Role
 from apps.rbac.matrix import role_has_permission
 from apps.subscriptions.services import is_tenant_allowed
 
@@ -160,3 +160,13 @@ class IsPlatformAdmin(BasePermission):
             and request.user.is_authenticated
             and getattr(request.user, "is_platform_admin", False)
         )
+
+
+class IsOwnerOrBranchManager(BaseTenantPermission):
+    """Allows access only to active tenant members with OWNER or BRANCH_MANAGER roles."""
+
+    def has_permission(self, request: Request, view: APIView) -> bool:
+        if not super().has_permission(request, view):
+            return False
+        membership = getattr(request, "membership", None)
+        return bool(membership and membership.role in (Role.OWNER, Role.BRANCH_MANAGER))

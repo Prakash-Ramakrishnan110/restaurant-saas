@@ -150,3 +150,27 @@ def test_entitlements_isolation_between_tenants(entitlements_fixture):
     assert res_b.data["status"] == "TRIAL"
     assert res_b.data["limits"]["max_branches"]["limit"] == 1
     assert res_b.data["limits"]["floor_editor"]["enabled"] is False
+
+
+@pytest.mark.django_db
+def test_entitlements_clamped_remaining_and_over_limit(entitlements_fixture):
+    """Verify that when usage exceeds plan limits, remaining is clamped to >= 0 and over_limit is True."""
+    fixture = entitlements_fixture
+    tenant = fixture["tenant_a"]
+    branch = fixture["branch_a1"]
+
+    # Pro plan limit for max_branches is 2. Currently tenant has 1 branch (Alpha Main).
+    # Create 2 more branches so current branch count becomes 3 (> limit of 2).
+    Branch.unscoped.create(tenant=tenant, name="Alpha Branch 2")
+    Branch.unscoped.create(tenant=tenant, name="Alpha Branch 3")
+
+    client = make_client(fixture["owner_a"], tenant)
+    res = client.get("/api/v1/entitlements/")
+    assert res.status_code == status.HTTP_200_OK
+
+    branch_info = res.data["limits"]["max_branches"]
+    assert branch_info["limit"] == 2
+    assert branch_info["current"] == 3
+    assert branch_info["remaining"] == 0  # Clamped, never negative
+    assert branch_info["over_limit"] is True
+

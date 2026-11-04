@@ -56,3 +56,23 @@ def test_status_transition_api_endpoint(venue_test_setup):
     # Invalid transition from OCCUPIED to RESERVED returns 400
     res_invalid = client.post(url, {"status": TableStatus.RESERVED})
     assert res_invalid.status_code == 400
+
+
+@pytest.mark.django_db
+def test_patch_table_ignores_status_field(venue_test_setup):
+    from apps.venues.tests.conftest import make_client
+
+    client = make_client(venue_test_setup["owner_a"], venue_test_setup["tenant_a"])
+    table = venue_test_setup["table_a1_1"]
+    assert table.status == TableStatus.AVAILABLE
+
+    # PATCH /tables/{id}/ containing status must be accepted and the status value IGNORED
+    url = f"/api/v1/tables/{table.id}/"
+    res = client.patch(url, {"status": TableStatus.OCCUPIED, "capacity": 8})
+    assert res.status_code == 200
+    assert res.data["capacity"] == 8
+    assert res.data["status"] == TableStatus.AVAILABLE
+
+    table.refresh_from_db()
+    assert table.capacity == 8
+    assert table.status == TableStatus.AVAILABLE

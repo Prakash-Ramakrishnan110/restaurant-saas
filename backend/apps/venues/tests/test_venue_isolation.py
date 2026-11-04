@@ -81,15 +81,16 @@ def test_foreign_id_in_url_returns_404_identical_to_random_uuid(
 
 
 @pytest.mark.django_db
-@pytest.mark.parametrize("role_key", ["manager_a1", "waiter_a1"])
 @pytest.mark.parametrize(
-    "resource_url_template",
+    "role_key, resource_url_template",
     [
-        "/api/v1/sections/{id}/",
-        "/api/v1/tables/{id}/",
-        "/api/v1/table-sessions/{id}/",
-        "/api/v1/qr-codes/{id}/",
-        "/api/v1/staff-assignments/{id}/",
+        ("manager_a1", "/api/v1/sections/{id}/"),
+        ("manager_a1", "/api/v1/tables/{id}/"),
+        ("manager_a1", "/api/v1/table-sessions/{id}/"),
+        ("manager_a1", "/api/v1/qr-codes/{id}/"),
+        ("manager_a1", "/api/v1/staff-assignments/{id}/"),
+        ("waiter_a1", "/api/v1/tables/{id}/"),
+        ("waiter_a1", "/api/v1/table-sessions/{id}/"),
     ],
 )
 def test_branch_scoped_roles_url_isolation_returns_404_identical_to_random_uuid(

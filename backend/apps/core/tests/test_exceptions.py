@@ -60,3 +60,107 @@ def test_custom_exception_handler():
     unhandled = RuntimeError("Unexpected")
     res = custom_exception_handler(unhandled, context)
     assert res is None
+
+
+def test_all_business_error_codes_and_details():
+    from apps.core.exceptions import BusinessRuleError
+    from apps.subscriptions.services import EntitlementLimitReached
+
+    context: dict[str, Any] = {}
+
+    business_errors = [
+        (
+            EntitlementLimitReached(limit_key="max_tables", limit=10, current=10),
+            "ENTITLEMENT_LIMIT_REACHED",
+            403,
+            {"limit_key": "max_tables", "limit": 10, "current": 10},
+        ),
+        (
+            BusinessRuleError(
+                "LAST_OWNER_PROTECTED",
+                "Cannot remove or deactivate the last OWNER of a tenant.",
+                status_code=400,
+                details={"reason": "Cannot remove or deactivate the last OWNER of a tenant."},
+            ),
+            "LAST_OWNER_PROTECTED",
+            400,
+            {"reason": "Cannot remove or deactivate the last OWNER of a tenant."},
+        ),
+        (
+            BusinessRuleError(
+                "ROLE_NOT_ALLOWED",
+                "BRANCH_MANAGER cannot assign or manage OWNER role.",
+                status_code=403,
+                details={"target_role": "OWNER"},
+            ),
+            "ROLE_NOT_ALLOWED",
+            403,
+            {"target_role": "OWNER"},
+        ),
+        (
+            BusinessRuleError(
+                "INVALID_STATUS_TRANSITION",
+                "Cannot transition table from OCCUPIED to AVAILABLE directly.",
+                status_code=400,
+                details={"current_status": "OCCUPIED", "target_status": "AVAILABLE"},
+            ),
+            "INVALID_STATUS_TRANSITION",
+            400,
+            {"current_status": "OCCUPIED", "target_status": "AVAILABLE"},
+        ),
+        (
+            BusinessRuleError(
+                "TABLES_NOT_COMBINABLE",
+                "At least two tables are required to form a table group.",
+                status_code=400,
+                details={"table_ids": ["tbl-1"]},
+            ),
+            "TABLES_NOT_COMBINABLE",
+            400,
+            {"table_ids": ["tbl-1"]},
+        ),
+        (
+            BusinessRuleError(
+                "TABLE_NOT_AVAILABLE",
+                "Table 'T1' is occupied and cannot be seated right now.",
+                status_code=400,
+                details={"table_id": "tbl-1", "status": "OCCUPIED"},
+            ),
+            "TABLE_NOT_AVAILABLE",
+            400,
+            {"table_id": "tbl-1", "status": "OCCUPIED"},
+        ),
+        (
+            BusinessRuleError(
+                "SESSION_ALREADY_OPEN",
+                "An active session is already open on this table.",
+                status_code=400,
+                details={"table_id": "tbl-1"},
+            ),
+            "SESSION_ALREADY_OPEN",
+            400,
+            {"table_id": "tbl-1"},
+        ),
+        (
+            BusinessRuleError(
+                "DUPLICATE_LABEL",
+                "A table labelled 'T1' already exists in this branch.",
+                status_code=400,
+                details={"label": "T1"},
+            ),
+            "DUPLICATE_LABEL",
+            400,
+            {"label": "T1"},
+        ),
+    ]
+
+    assert len(business_errors) == 8
+
+    for exc, expected_code, expected_status, expected_details in business_errors:
+        res = custom_exception_handler(exc, context)
+        assert res is not None
+        assert res.status_code == expected_status
+        assert res.data["error"]["code"] == expected_code
+        assert res.data["error"]["details"] == expected_details
+        assert len(res.data["error"]["message"]) > 0
+

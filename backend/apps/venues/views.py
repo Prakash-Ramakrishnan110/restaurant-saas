@@ -180,7 +180,7 @@ class SectionViewSet(viewsets.ModelViewSet):
     def get_permissions(self) -> list[Any]:
         if self.action in ("list", "retrieve"):
             return [IsAuthenticated(), HasTenantPermission(Permission.AREA_VIEW)()]
-        return [IsAuthenticated(), HasTenantPermission(Permission.FLOOR_MANAGE)()]
+        return [IsAuthenticated(), HasTenantPermission(Permission.AREA_MANAGE)()]
 
     def get_queryset(self) -> Any:
         qs = Section.objects.all().select_related("service_area", "branch")

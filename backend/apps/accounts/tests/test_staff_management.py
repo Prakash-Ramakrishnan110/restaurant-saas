@@ -179,3 +179,97 @@ def test_deactivate_staff_member(staff_fixture):
 
     manager_membership.refresh_from_db()
     assert manager_membership.is_active is False
+
+
+@pytest.mark.django_db
+def test_staff_service_edge_cases(staff_fixture):
+    import uuid
+    from apps.core.context import reset_current_tenant, set_current_tenant
+    from apps.core.exceptions import BusinessRuleError
+    from rest_framework.exceptions import ValidationError
+    from apps.accounts.staff_service import create_staff_member
+
+    tenant = staff_fixture["tenant"]
+    owner = staff_fixture["owner"]
+    owner_mem = owner.memberships.first()
+    branch = staff_fixture["branch1"]
+
+    # 1. Nonexistent branch ID
+    with pytest.raises((ValidationError, BusinessRuleError)):
+        create_staff_member(
+            tenant=tenant,
+            actor=owner,
+            actor_role=Role.OWNER,
+            email="staffnonexist@example.com",
+            full_name="Staff Nonexist",
+            role=Role.WAITER,
+            branch_ids=[uuid.uuid4()],
+            actor_membership=owner_mem,
+        )
+
+    # 2. Inviting user who is platform admin
+    admin = User.objects.create_user(
+        email="adminstaff@example.com",
+        password="Password123!",
+        full_name="Admin Staff",
+        is_platform_admin=True,
+    )
+    with pytest.raises(BusinessRuleError):
+        create_staff_member(
+            tenant=tenant,
+            actor=owner,
+            actor_role=Role.OWNER,
+            email=admin.email,
+            full_name="Admin Staff",
+            role=Role.WAITER,
+            actor_membership=owner_mem,
+        )
+
+    # 3. Inviting with explicit password
+    mem, pw = create_staff_member(
+        tenant=tenant,
+        actor=owner,
+        actor_role=Role.OWNER,
+        email="explicitpw@example.com",
+        full_name="Explicit PW",
+        role=Role.WAITER,
+        password="CustomPassword123!",
+        actor_membership=owner_mem,
+    )
+    assert pw == "CustomPassword123!"
+
+    # 4. Inviting existing member (updating role)
+    mem_updated, _ = create_staff_member(
+        tenant=tenant,
+        actor=owner,
+        actor_role=Role.OWNER,
+        email="explicitpw@example.com",
+        full_name="Explicit PW",
+        role=Role.CASHIER,
+        actor_membership=owner_mem,
+    )
+    assert mem_updated.role == Role.CASHIER
+
+    # 5. Branch manager without branch_ids
+    token = set_current_tenant(tenant)
+    try:
+        bm_user = User.objects.create_user(
+            email="bm2@example.com", password="Password123!", full_name="BM 2"
+        )
+        bm_mem = Membership.objects.create(
+            user=bm_user, tenant=tenant, role=Role.BRANCH_MANAGER, is_active=True
+        )
+        bm_mem.branches.add(branch)
+        with pytest.raises(BusinessRuleError):
+            create_staff_member(
+                tenant=tenant,
+                actor=bm_user,
+                actor_role=Role.BRANCH_MANAGER,
+                email="bmstaff@example.com",
+                full_name="BM Staff",
+                role=Role.WAITER,
+                branch_ids=None,
+                actor_membership=bm_mem,
+            )
+    finally:
+        reset_current_tenant(token)

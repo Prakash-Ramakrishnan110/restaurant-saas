@@ -57,34 +57,27 @@ ROLE_PERMISSIONS: dict[str, set[str]] = {
         Permission.PRINTER_REPRINT,
     },
     Role.CASHIER: {
-        Permission.BRANCH_VIEW,
         Permission.TABLE_VIEW,
         Permission.TABLE_STATUS_UPDATE,
-        Permission.TABLE_SESSION_OPEN,
         Permission.TABLE_SESSION_CLOSE,
-        Permission.QR_VIEW,
         Permission.ORDER_CREATE,
         Permission.ORDER_CANCEL,
         Permission.PRINTER_REPRINT,
     },
     Role.WAITER: {
-        Permission.AREA_VIEW,
-        Permission.STAFF_VIEW,
         Permission.TABLE_VIEW,
         Permission.TABLE_STATUS_UPDATE,
         Permission.TABLE_SESSION_OPEN,
         Permission.TABLE_SESSION_CLOSE,
-        Permission.QR_VIEW,
+        Permission.TABLE_MERGE,
         Permission.ORDER_CREATE,
         Permission.PRINTER_REPRINT,
     },
     Role.KITCHEN: {
-        Permission.TABLE_VIEW,
         Permission.PRINTER_REPRINT,
     },
     Role.INVENTORY_MANAGER: {
         Permission.MENU_MANAGE,
-        Permission.BRANCH_VIEW,
     },
 }
 

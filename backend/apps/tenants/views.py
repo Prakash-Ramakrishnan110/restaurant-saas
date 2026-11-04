@@ -13,6 +13,7 @@ from apps.core.pagination import StandardResultsSetPagination
 from apps.rbac.constants import Permission
 from apps.rbac.permissions import (
     HasTenantPermission,
+    IsOwnerOrBranchManager,
     IsPlatformAdmin,
     verify_tenant_and_branch_access,
 )
@@ -275,7 +276,7 @@ class BranchViewSet(ViewSet):
 class OnboardingStatusView(APIView):
     """Retrieve onboarding checklist and completion status for active tenant."""
 
-    permission_classes = [HasTenantPermission(Permission.BRANCH_VIEW)]
+    permission_classes = [IsOwnerOrBranchManager]
 
     @extend_schema(
         responses={200: OnboardingStatusSerializer},
