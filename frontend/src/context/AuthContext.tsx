@@ -26,7 +26,7 @@ export interface AuthContextType {
   permissions: string[];
   mustChangePassword: boolean;
   isLoading: boolean;
-  login: (email: string, password: string) => Promise<void>;
+  login: (email: string, password: string) => Promise<{ mustChangePassword: boolean }>;
   logout: () => Promise<void>;
   changePassword: (oldPassword: string, newPassword: string) => Promise<void>;
   selectTenant: (tenantId: string) => void;
@@ -114,8 +114,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const profile = await fetchProfile();
       const needsChange = Boolean(
         profile?.must_change_password ??
-          profile?.user?.must_change_password ??
-          res.data?.user?.must_change_password
+        profile?.user?.must_change_password ??
+        res.data?.user?.must_change_password
       );
       return { mustChangePassword: needsChange };
     } finally {

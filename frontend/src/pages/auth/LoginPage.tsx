@@ -18,7 +18,7 @@ import { RateLimitCountdown } from "../../components/app/RateLimitCountdown";
 
 export const LoginPage: React.FC = () => {
   const { t, i18n } = useTranslation();
-  const { login, mustChangePassword } = useAuth();
+  const { login } = useAuth();
   const { theme, setTheme } = useTheme();
   const navigate = useNavigate();
   const location = useLocation();
