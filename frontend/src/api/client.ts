@@ -97,6 +97,10 @@ apiClient.interceptors.response.use(
       if (newAccess) {
         originalRequest.headers.set("Authorization", `Bearer ${newAccess}`);
         return apiClient(originalRequest);
+      } else {
+        if (typeof window !== "undefined" && !window.location.pathname.startsWith("/login")) {
+          window.location.href = "/login?reason=session_expired";
+        }
       }
     }
 

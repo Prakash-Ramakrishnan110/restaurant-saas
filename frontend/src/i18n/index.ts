@@ -19,7 +19,8 @@ export const defaultResources = {
         forgotPassword: "Forgot password?",
         signingIn: "Signing in...",
         mustChangePassword: "Password Change Required",
-        mustChangePasswordDesc: "You must change your temporary password to continue securing your account.",
+        mustChangePasswordDesc:
+          "You must change your temporary password to continue securing your account.",
         currentPassword: "Current / Temporary Password",
         newPassword: "New Password",
         confirmPassword: "Confirm New Password",
@@ -76,7 +77,8 @@ export const defaultResources = {
         forgotPassword: "கடவுச்சொல் மறந்துவிட்டதா?",
         signingIn: "உள்நுழைகிறது...",
         mustChangePassword: "கடவுச்சொல் மாற்றம் அவசியம்",
-        mustChangePasswordDesc: "உங்கள் தற்காலிக கடவுச்சொல்லை மாற்றி புதிய கடவுச்சொல்லை அமைக்கவும்.",
+        mustChangePasswordDesc:
+          "உங்கள் தற்காலிக கடவுச்சொல்லை மாற்றி புதிய கடவுச்சொல்லை அமைக்கவும்.",
         currentPassword: "தற்போதைய / தற்காலிக கடவுச்சொல்",
         newPassword: "புதிய கடவுச்சொல்",
         confirmPassword: "புதிய கடவுச்சொல்லை உறுதிசெய்க",

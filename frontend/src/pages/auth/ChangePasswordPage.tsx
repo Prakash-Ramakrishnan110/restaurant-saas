@@ -5,7 +5,13 @@ import { ShieldAlert, CheckCircle2 } from "lucide-react";
 import { BrandLogo } from "../../components/brand/BrandLogo";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "../../components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "../../components/ui/card";
 import { useAuth } from "../../context/AuthContext";
 
 export const ChangePasswordPage: React.FC = () => {

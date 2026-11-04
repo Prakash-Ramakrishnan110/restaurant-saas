@@ -3,35 +3,35 @@
 @tailwind utilities;
 
 @font-face {
-  font-family: 'Poppins';
+  font-family: "Poppins";
   font-style: normal;
   font-weight: 600;
   font-display: swap;
-  src: url('/fonts/poppins-600.woff2') format('woff2');
+  src: url("/fonts/poppins-600.woff2") format("woff2");
 }
 
 @font-face {
-  font-family: 'Poppins';
+  font-family: "Poppins";
   font-style: normal;
   font-weight: 700;
   font-display: swap;
-  src: url('/fonts/poppins-700.woff2') format('woff2');
+  src: url("/fonts/poppins-700.woff2") format("woff2");
 }
 
 @font-face {
-  font-family: 'Inter';
+  font-family: "Inter";
   font-style: normal;
   font-weight: 400 700;
   font-display: swap;
-  src: url('/fonts/inter.woff2') format('woff2');
+  src: url("/fonts/inter.woff2") format("woff2");
 }
 
 @font-face {
-  font-family: 'Noto Sans Tamil';
+  font-family: "Noto Sans Tamil";
   font-style: normal;
   font-weight: 400 700;
   font-display: swap;
-  src: url('/fonts/noto-sans-tamil.woff2') format('woff2');
+  src: url("/fonts/noto-sans-tamil.woff2") format("woff2");
 }
 
 @layer base {
@@ -117,9 +117,17 @@
   }
   body {
     @apply bg-background text-foreground font-sans antialiased;
-    font-feature-settings: "rlig" 1, "calt" 1, "tnum" 1;
+    font-feature-settings:
+      "rlig" 1,
+      "calt" 1,
+      "tnum" 1;
   }
-  h1, h2, h3, h4, h5, h6 {
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
     @apply font-display tracking-tight;
   }
 }

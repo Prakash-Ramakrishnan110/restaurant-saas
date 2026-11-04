@@ -1,0 +1,333 @@
+
+[1m[46m RUN [49m[22m [36mv3.2.7 [39m[90mC:/Users/praka/Desktop/Restaurant_saas/frontend[39m
+      [2mCoverage enabled with [22m[33mv8[39m
+
+ [32mΓ£ô[39m src/tests/error-mapper.test.ts [2m([22m[2m6 tests[22m[2m)[22m[32m 11[2mms[22m[39m
+ [32mΓ£ô[39m src/tests/auth.test.tsx [2m([22m[2m4 tests[22m[2m)[22m[33m 470[2mms[22m[39m
+   [33m[2mΓ£ô[22m[39m Frontend Authentication & Security Invariants[2m > [22mRBAC Permission Helpers: useCan and <Can> correctly evaluate permissions [33m 396[2mms[22m[39m
+ [32mΓ£ô[39m src/tests/contrast.test.ts [2m([22m[2m8 tests[22m[2m)[22m[32m 18[2mms[22m[39m
+node.exe : [90mstderr[2m | src/tests/components.test.tsx[2m > [22m[2mBrand & UI Components[2m > [22m[2mrenders 
+Error UX pages and dialogs
+At line:1 char:1
++ & "C:\Program Files\nodejs/node.exe" "C:\Program Files\nodejs/node_mo ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: ([90mstderr[2m...ges and dialogs:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+[22m[39mΓÜá∩╕Å React Router Future Flag Warning: React Router will begin wrapping state updates in 
+`React.startTransition` in v7. You can use the `v7_startTransition` future flag to opt-in early. For more information, 
+see https://reactrouter.com/v6/upgrading/future#v7_starttransition.
+ΓÜá∩╕Å React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use 
+the `v7_relativeSplatPath` future flag to opt-in early. For more information, see 
+https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath.
+
+[90mstderr[2m | src/tests/a11y.test.tsx[2m > [22m[2mAutomated Accessibility Audits (vitest-axe)[2m > 
+[22m[2mLoginPage has zero serious or critical accessibility violations
+[22m[39mΓÜá∩╕Å React Router Future Flag Warning: React Router will begin wrapping state updates in 
+`React.startTransition` in v7. You can use the `v7_startTransition` future flag to opt-in early. For more information, 
+see https://reactrouter.com/v6/upgrading/future#v7_starttransition.
+ΓÜá∩╕Å React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use 
+the `v7_relativeSplatPath` future flag to opt-in early. For more information, see 
+https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath.
+
+[90mstderr[2m | src/tests/components.test.tsx
+[22m[39mError: AggregateError
+    at Object.dispatchError 
+(C:\Users\praka\Desktop\Restaurant_saas\frontend\node_modules\jsdom\lib\jsdom\living\xhr\xhr-utils.js:62:19)
+    at Request.<anonymous> 
+(C:\Users\praka\Desktop\Restaurant_saas\frontend\node_modules\jsdom\lib\jsdom\living\xhr\XMLHttpRequest-impl.js:655:18)
+    at Request.emit (node:events:531:35)
+    at ClientRequest.<anonymous> 
+(C:\Users\praka\Desktop\Restaurant_saas\frontend\node_modules\jsdom\lib\jsdom\living\helpers\http-request.js:127:14)
+    at ClientRequest.emit (node:events:519:28)
+    at emitErrorEvent (node:_http_client:108:11)
+    at Socket.socketErrorListener (node:_http_client:575:5)
+    at Socket.emit (node:events:519:28)
+    at emitErrorNT (node:internal/streams/destroy:170:8)
+    at emitErrorCloseNT (node:internal/streams/destroy:129:3) [90mundefined[39m
+
+[90mstderr[2m | src/tests/components.test.tsx
+[22m[39mError: AggregateError
+    at Object.dispatchError 
+(C:\Users\praka\Desktop\Restaurant_saas\frontend\node_modules\jsdom\lib\jsdom\living\xhr\xhr-utils.js:62:19)
+    at Request.<anonymous> 
+(C:\Users\praka\Desktop\Restaurant_saas\frontend\node_modules\jsdom\lib\jsdom\living\xhr\XMLHttpRequest-impl.js:655:18)
+    at Request.emit (node:events:531:35)
+    at ClientRequest.<anonymous> 
+(C:\Users\praka\Desktop\Restaurant_saas\frontend\node_modules\jsdom\lib\jsdom\living\helpers\http-request.js:127:14)
+    at ClientRequest.emit (node:events:519:28)
+    at emitErrorEvent (node:_http_client:108:11)
+    at Socket.socketErrorListener (node:_http_client:575:5)
+    at Socket.emit (node:events:519:28)
+    at emitErrorNT (node:internal/streams/destroy:170:8)
+    at emitErrorCloseNT (node:internal/streams/destroy:129:3) [90mundefined[39m
+
+ [32mΓ£ô[39m src/tests/components.test.tsx [2m([22m[2m11 tests[22m[2m)[22m[33m 1219[2mms[22m[39m
+   [33m[2mΓ£ô[22m[39m Brand & UI Components[2m > [22mrenders Error UX pages and dialogs [33m 387[2mms[22m[39m
+[90mstderr[2m | src/tests/a11y.test.tsx[2m > [22m[2mAutomated Accessibility Audits (vitest-axe)[2m > 
+[22m[2mLoginPage has zero serious or critical accessibility violations
+[22m[39mError: Not implemented: HTMLCanvasElement.prototype.getContext (without installing the canvas npm package)
+    at module.exports 
+(C:\Users\praka\Desktop\Restaurant_saas\frontend\node_modules\jsdom\lib\jsdom\browser\not-implemented.js:9:17)
+    at HTMLCanvasElementImpl.getContext (C:\Users\praka\Desktop\Restaurant_saas\frontend\node_modules\jsdom\lib\jsdom\l
+iving\nodes\HTMLCanvasElement-impl.js:42:5)
+    at HTMLCanvasElement.getContext (C:\Users\praka\Desktop\Restaurant_saas\frontend\node_modules\jsdom\lib\jsdom\livin
+g\generated\HTMLCanvasElement.js:131:58)
+    at C:\Users\praka\Desktop\Restaurant_saas\frontend\node_modules\axe-core\axe.js:21249:49
+    at Object.get (C:\Users\praka\Desktop\Restaurant_saas\frontend\node_modules\axe-core\axe.js:15329:23)
+    at _isIconLigature (C:\Users\praka\Desktop\Restaurant_saas\frontend\node_modules\axe-core\axe.js:21248:41)
+    at C:\Users\praka\Desktop\Restaurant_saas\frontend\node_modules\axe-core\axe.js:33168:54
+    at Array.some (<anonymous>)
+    at hasRealTextChildren (C:\Users\praka\Desktop\Restaurant_saas\frontend\node_modules\axe-core\axe.js:33167:35)
+    at Rule.colorContrastMatches [as matches] 
+(C:\Users\praka\Desktop\Restaurant_saas\frontend\node_modules\axe-core\axe.js:33129:12) [90mundefined[39m
+
+[90mstderr[2m | src/tests/a11y.test.tsx[2m > [22m[2mAutomated Accessibility Audits (vitest-axe)[2m > 
+[22m[2mChangePasswordPage has zero serious or critical accessibility violations
+[22m[39mError: Not implemented: HTMLCanvasElement.prototype.getContext (without installing the canvas npm package)
+    at module.exports 
+(C:\Users\praka\Desktop\Restaurant_saas\frontend\node_modules\jsdom\lib\jsdom\browser\not-implemented.js:9:17)
+    at HTMLCanvasElementImpl.getContext (C:\Users\praka\Desktop\Restaurant_saas\frontend\node_modules\jsdom\lib\jsdom\l
+iving\nodes\HTMLCanvasElement-impl.js:42:5)
+    at HTMLCanvasElement.getContext (C:\Users\praka\Desktop\Restaurant_saas\frontend\node_modules\jsdom\lib\jsdom\livin
+g\generated\HTMLCanvasElement.js:131:58)
+    at C:\Users\praka\Desktop\Restaurant_saas\frontend\node_modules\axe-core\axe.js:21249:49
+    at Object.get (C:\Users\praka\Desktop\Restaurant_saas\frontend\node_modules\axe-core\axe.js:15329:23)
+    at _isIconLigature (C:\Users\praka\Desktop\Restaurant_saas\frontend\node_modules\axe-core\axe.js:21248:41)
+    at C:\Users\praka\Desktop\Restaurant_saas\frontend\node_modules\axe-core\axe.js:33168:54
+    at Array.some (<anonymous>)
+    at hasRealTextChildren (C:\Users\praka\Desktop\Restaurant_saas\frontend\node_modules\axe-core\axe.js:33167:35)
+    at Rule.colorContrastMatches [as matches] 
+(C:\Users\praka\Desktop\Restaurant_saas\frontend\node_modules\axe-core\axe.js:33129:12) [90mundefined[39m
+
+[90mstderr[2m | src/tests/a11y.test.tsx[2m > [22m[2mAutomated Accessibility Audits (vitest-axe)[2m > 
+[22m[2mChangePasswordPage has zero serious or critical accessibility violations
+[22m[39mError: AggregateError
+    at Object.dispatchError 
+(C:\Users\praka\Desktop\Restaurant_saas\frontend\node_modules\jsdom\lib\jsdom\living\xhr\xhr-utils.js:62:19)
+    at Request.<anonymous> 
+(C:\Users\praka\Desktop\Restaurant_saas\frontend\node_modules\jsdom\lib\jsdom\living\xhr\XMLHttpRequest-impl.js:655:18)
+    at Request.emit (node:events:531:35)
+    at ClientRequest.<anonymous> 
+(C:\Users\praka\Desktop\Restaurant_saas\frontend\node_modules\jsdom\lib\jsdom\living\helpers\http-request.js:127:14)
+    at ClientRequest.emit (node:events:519:28)
+    at emitErrorEvent (node:_http_client:108:11)
+    at Socket.socketErrorListener (node:_http_client:575:5)
+    at Socket.emit (node:events:519:28)
+    at emitErrorNT (node:internal/streams/destroy:170:8)
+    at emitErrorCloseNT (node:internal/streams/destroy:129:3) [90mundefined[39m
+
+[90mstderr[2m | src/tests/a11y.test.tsx[2m > [22m[2mAutomated Accessibility Audits (vitest-axe)[2m > 
+[22m[2mDashboardPage has zero serious or critical accessibility violations
+[22m[39mError: Not implemented: HTMLCanvasElement.prototype.getContext (without installing the canvas npm package)
+    at module.exports 
+(C:\Users\praka\Desktop\Restaurant_saas\frontend\node_modules\jsdom\lib\jsdom\browser\not-implemented.js:9:17)
+    at HTMLCanvasElementImpl.getContext (C:\Users\praka\Desktop\Restaurant_saas\frontend\node_modules\jsdom\lib\jsdom\l
+iving\nodes\HTMLCanvasElement-impl.js:42:5)
+    at HTMLCanvasElement.getContext (C:\Users\praka\Desktop\Restaurant_saas\frontend\node_modules\jsdom\lib\jsdom\livin
+g\generated\HTMLCanvasElement.js:131:58)
+    at C:\Users\praka\Desktop\Restaurant_saas\frontend\node_modules\axe-core\axe.js:21249:49
+    at Object.get (C:\Users\praka\Desktop\Restaurant_saas\frontend\node_modules\axe-core\axe.js:15329:23)
+    at _isIconLigature (C:\Users\praka\Desktop\Restaurant_saas\frontend\node_modules\axe-core\axe.js:21248:41)
+    at C:\Users\praka\Desktop\Restaurant_saas\frontend\node_modules\axe-core\axe.js:33168:54
+    at Array.some (<anonymous>)
+    at hasRealTextChildren (C:\Users\praka\Desktop\Restaurant_saas\frontend\node_modules\axe-core\axe.js:33167:35)
+    at Rule.colorContrastMatches [as matches] 
+(C:\Users\praka\Desktop\Restaurant_saas\frontend\node_modules\axe-core\axe.js:33129:12) [90mundefined[39m
+
+[90mstderr[2m | src/tests/a11y.test.tsx[2m > [22m[2mAutomated Accessibility Audits (vitest-axe)[2m > 
+[22m[2mDashboardPage has zero serious or critical accessibility violations
+[22m[39mError: AggregateError
+    at Object.dispatchError 
+(C:\Users\praka\Desktop\Restaurant_saas\frontend\node_modules\jsdom\lib\jsdom\living\xhr\xhr-utils.js:62:19)
+    at Request.<anonymous> 
+(C:\Users\praka\Desktop\Restaurant_saas\frontend\node_modules\jsdom\lib\jsdom\living\xhr\XMLHttpRequest-impl.js:655:18)
+    at Request.emit (node:events:531:35)
+    at ClientRequest.<anonymous> 
+(C:\Users\praka\Desktop\Restaurant_saas\frontend\node_modules\jsdom\lib\jsdom\living\helpers\http-request.js:127:14)
+    at ClientRequest.emit (node:events:519:28)
+    at emitErrorEvent (node:_http_client:108:11)
+    at Socket.socketErrorListener (node:_http_client:575:5)
+    at Socket.emit (node:events:519:28)
+    at emitErrorNT (node:internal/streams/destroy:170:8)
+    at emitErrorCloseNT (node:internal/streams/destroy:129:3) [90mundefined[39m
+
+[90mstderr[2m | src/tests/a11y.test.tsx[2m > [22m[2mAutomated Accessibility Audits (vitest-axe)[2m > 
+[22m[2mDevDesignSystemPage has zero serious or critical accessibility violations
+[22m[39mError: Not implemented: HTMLCanvasElement.prototype.getContext (without installing the canvas npm package)
+    at module.exports 
+(C:\Users\praka\Desktop\Restaurant_saas\frontend\node_modules\jsdom\lib\jsdom\browser\not-implemented.js:9:17)
+    at HTMLCanvasElementImpl.getContext (C:\Users\praka\Desktop\Restaurant_saas\frontend\node_modules\jsdom\lib\jsdom\l
+iving\nodes\HTMLCanvasElement-impl.js:42:5)
+    at HTMLCanvasElement.getContext (C:\Users\praka\Desktop\Restaurant_saas\frontend\node_modules\jsdom\lib\jsdom\livin
+g\generated\HTMLCanvasElement.js:131:58)
+    at C:\Users\praka\Desktop\Restaurant_saas\frontend\node_modules\axe-core\axe.js:21249:49
+    at Object.get (C:\Users\praka\Desktop\Restaurant_saas\frontend\node_modules\axe-core\axe.js:15329:23)
+    at _isIconLigature (C:\Users\praka\Desktop\Restaurant_saas\frontend\node_modules\axe-core\axe.js:21248:41)
+    at C:\Users\praka\Desktop\Restaurant_saas\frontend\node_modules\axe-core\axe.js:33168:54
+    at Array.some (<anonymous>)
+    at hasRealTextChildren (C:\Users\praka\Desktop\Restaurant_saas\frontend\node_modules\axe-core\axe.js:33167:35)
+    at Rule.colorContrastMatches [as matches] 
+(C:\Users\praka\Desktop\Restaurant_saas\frontend\node_modules\axe-core\axe.js:33129:12) [90mundefined[39m
+
+[90mstderr[2m | src/tests/a11y.test.tsx[2m > [22m[2mAutomated Accessibility Audits (vitest-axe)[2m > 
+[22m[2mDevDesignSystemPage has zero serious or critical accessibility violations
+[22m[39mError: AggregateError
+    at Object.dispatchError 
+(C:\Users\praka\Desktop\Restaurant_saas\frontend\node_modules\jsdom\lib\jsdom\living\xhr\xhr-utils.js:62:19)
+    at Request.<anonymous> 
+(C:\Users\praka\Desktop\Restaurant_saas\frontend\node_modules\jsdom\lib\jsdom\living\xhr\XMLHttpRequest-impl.js:655:18)
+    at Request.emit (node:events:531:35)
+    at ClientRequest.<anonymous> 
+(C:\Users\praka\Desktop\Restaurant_saas\frontend\node_modules\jsdom\lib\jsdom\living\helpers\http-request.js:127:14)
+    at ClientRequest.emit (node:events:519:28)
+    at emitErrorEvent (node:_http_client:108:11)
+    at Socket.socketErrorListener (node:_http_client:575:5)
+    at Socket.emit (node:events:519:28)
+    at emitErrorNT (node:internal/streams/destroy:170:8)
+    at emitErrorCloseNT (node:internal/streams/destroy:129:3) [90mundefined[39m
+
+[90mstderr[2m | src/tests/a11y.test.tsx[2m > [22m[2mAutomated Accessibility Audits (vitest-axe)[2m > 
+[22m[2mDevDesignSystemPage has zero serious or critical accessibility violations
+[22m[39mError: AggregateError
+    at Object.dispatchError 
+(C:\Users\praka\Desktop\Restaurant_saas\frontend\node_modules\jsdom\lib\jsdom\living\xhr\xhr-utils.js:62:19)
+    at Request.<anonymous> 
+(C:\Users\praka\Desktop\Restaurant_saas\frontend\node_modules\jsdom\lib\jsdom\living\xhr\XMLHttpRequest-impl.js:655:18)
+    at Request.emit (node:events:531:35)
+    at ClientRequest.<anonymous> 
+(C:\Users\praka\Desktop\Restaurant_saas\frontend\node_modules\jsdom\lib\jsdom\living\helpers\http-request.js:127:14)
+    at ClientRequest.emit (node:events:519:28)
+    at emitErrorEvent (node:_http_client:108:11)
+    at Socket.socketErrorListener (node:_http_client:575:5)
+    at Socket.emit (node:events:519:28)
+    at emitErrorNT (node:internal/streams/destroy:170:8)
+    at emitErrorCloseNT (node:internal/streams/destroy:129:3) [90mundefined[39m
+
+[90mstderr[2m | src/tests/a11y.test.tsx[2m > [22m[2mAutomated Accessibility Audits (vitest-axe)[2m > 
+[22m[2mDevDesignSystemPage has zero serious or critical accessibility violations
+[22m[39mError: AggregateError
+    at Object.dispatchError 
+(C:\Users\praka\Desktop\Restaurant_saas\frontend\node_modules\jsdom\lib\jsdom\living\xhr\xhr-utils.js:62:19)
+    at Request.<anonymous> 
+(C:\Users\praka\Desktop\Restaurant_saas\frontend\node_modules\jsdom\lib\jsdom\living\xhr\XMLHttpRequest-impl.js:655:18)
+    at Request.emit (node:events:531:35)
+    at ClientRequest.<anonymous> 
+(C:\Users\praka\Desktop\Restaurant_saas\frontend\node_modules\jsdom\lib\jsdom\living\helpers\http-request.js:127:14)
+    at ClientRequest.emit (node:events:519:28)
+    at emitErrorEvent (node:_http_client:108:11)
+    at Socket.socketErrorListener (node:_http_client:575:5)
+    at Socket.emit (node:events:519:28)
+    at emitErrorNT (node:internal/streams/destroy:170:8)
+    at emitErrorCloseNT (node:internal/streams/destroy:129:3) [90mundefined[39m
+
+[90mstderr[2m | src/tests/a11y.test.tsx
+[22m[39mError: AggregateError
+    at Object.dispatchError 
+(C:\Users\praka\Desktop\Restaurant_saas\frontend\node_modules\jsdom\lib\jsdom\living\xhr\xhr-utils.js:62:19)
+    at Request.<anonymous> 
+(C:\Users\praka\Desktop\Restaurant_saas\frontend\node_modules\jsdom\lib\jsdom\living\xhr\XMLHttpRequest-impl.js:655:18)
+    at Request.emit (node:events:531:35)
+    at ClientRequest.<anonymous> 
+(C:\Users\praka\Desktop\Restaurant_saas\frontend\node_modules\jsdom\lib\jsdom\living\helpers\http-request.js:127:14)
+    at ClientRequest.emit (node:events:519:28)
+    at emitErrorEvent (node:_http_client:108:11)
+    at Socket.socketErrorListener (node:_http_client:575:5)
+    at Socket.emit (node:events:519:28)
+    at emitErrorNT (node:internal/streams/destroy:170:8)
+    at emitErrorCloseNT (node:internal/streams/destroy:129:3) [90mundefined[39m
+
+ [32mΓ£ô[39m src/tests/a11y.test.tsx [2m([22m[2m4 tests[22m[2m)[22m[33m 6148[2mms[22m[39m
+   [33m[2mΓ£ô[22m[39m Automated Accessibility Audits (vitest-axe)[2m > [22mLoginPage has zero serious or critical accessibility violations [33m 1363[2mms[22m[39m
+   [33m[2mΓ£ô[22m[39m Automated Accessibility Audits (vitest-axe)[2m > [22mDashboardPage has zero serious or critical accessibility violations [33m 588[2mms[22m[39m
+   [33m[2mΓ£ô[22m[39m Automated Accessibility Audits (vitest-axe)[2m > [22mDevDesignSystemPage has zero serious or critical accessibility violations [33m 3932[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m5 passed[39m[22m[90m (5)[39m
+[2m      Tests [22m [1m[32m33 passed[39m[22m[90m (33)[39m
+[2m   Start at [22m 19:33:01
+[2m   Duration [22m 32.18s[2m (transform 15.87s, setup 4.86s, collect 53.59s, tests 7.87s, environment 21.43s, prepare 2.10s)[22m
+
+[34m % [39m[2mCoverage report from [22m[33mv8[39m
+-------------------|---------|----------|---------|---------|-------------------
+File               | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s 
+-------------------|---------|----------|---------|---------|-------------------
+All files          |   65.35 |    60.97 |      45 |   65.35 |                   
+ frontend          |       0 |        0 |       0 |       0 |                   
+  ...ght.config.ts |       0 |        0 |       0 |       0 | 1-30              
+  ...css.config.js |       0 |        0 |       0 |       0 | 1-6               
+  ...ind.config.js |       0 |        0 |       0 |       0 | 1-98              
+ frontend/src      |       0 |       50 |      50 |       0 |                   
+  App.tsx          |       0 |      100 |     100 |       0 | 2-162             
+  main.tsx         |       0 |        0 |       0 |       0 | 1-10              
+ frontend/src/api  |   90.62 |    78.78 |     100 |   90.62 |                   
+  client.ts        |   90.62 |    78.78 |     100 |   90.62 | ...86,101-104,123 
+ ...components/app |   87.15 |       64 |   63.63 |   87.15 |                   
+  EmptyState.tsx   |     100 |      100 |     100 |     100 |                   
+  ...ineBanner.tsx |      68 |       60 |   33.33 |      68 | 24-33             
+  PageHeader.tsx   |     100 |    83.33 |     100 |     100 | 58                
+  ...Countdown.tsx |   71.79 |       80 |     100 |   71.79 | 23-25,28-35       
+  ...Indicator.tsx |   67.74 |       20 |     100 |   67.74 | 24-27,31-34,45-48 
+  StatusBadge.tsx  |   98.07 |       50 |     100 |   98.07 | 52                
+  UpgradeModal.tsx |    92.5 |      100 |   33.33 |    92.5 | 43-45             
+ ...mponents/brand |     100 |     37.5 |     100 |     100 |                   
+  BrandLogo.tsx    |     100 |     37.5 |     100 |     100 | 19-22             
+ ...ponents/layout |   90.49 |    29.62 |    9.09 |   90.49 |                   
+  AppShell.tsx     |   90.49 |    29.62 |    9.09 |   90.49 | ...32,143,216,243 
+ .../components/ui |   71.08 |    77.89 |   39.28 |   71.08 |                   
+  badge.tsx        |   88.57 |      100 |       0 |   88.57 | 40-44             
+  button.tsx       |     100 |       50 |     100 |     100 | 48                
+  card.tsx         |   89.65 |      100 |     100 |   89.65 | 70-75             
+  checkbox.tsx     |     100 |      100 |     100 |     100 |                   
+  combobox.tsx     |   48.83 |     62.5 |      25 |   48.83 | 42-45,67-109      
+  ...rm-dialog.tsx |   93.18 |    33.33 |   33.33 |   93.18 | 57-59             
+  data-table.tsx   |   71.77 |    71.42 |      20 |   71.77 | ...02-106,108-112 
+  dialog.tsx       |     100 |      100 |     100 |     100 |                   
+  ...down-menu.tsx |       0 |        0 |       0 |       0 | 1-95              
+  form-field.tsx   |     100 |    88.88 |     100 |     100 | 29                
+  icon-button.tsx  |     100 |      100 |     100 |     100 |                   
+  input.tsx        |     100 |      100 |     100 |     100 |                   
+  ...ord-input.tsx |     100 |       20 |       0 |     100 | 16-32             
+  radio-card.tsx   |     100 |       75 |      50 |     100 | 39-55             
+  select.tsx       |     100 |      100 |     100 |     100 |                   
+  sheet.tsx        |   63.95 |      100 |       0 |   63.95 | ...,89-94,101-106 
+  skeleton.tsx     |     100 |      100 |     100 |     100 |                   
+  stepper.tsx      |     100 |      100 |      50 |     100 |                   
+  switch.tsx       |     100 |      100 |     100 |     100 |                   
+  table.tsx        |       0 |        0 |       0 |       0 | 1-93              
+  tabs.tsx         |       0 |        0 |       0 |       0 | 1-50              
+  toast.tsx        |   45.61 |    66.66 |     100 |   45.61 | ...34,45-69,79-80 
+  tooltip.tsx      |     100 |      100 |     100 |     100 |                   
+ ...nd/src/context |   59.42 |       56 |   53.84 |   59.42 |                   
+  AuthContext.tsx  |   48.59 |    58.33 |   55.55 |   48.59 | ...49-155,190-191 
+  ThemeContext.tsx |   83.07 |    53.84 |      50 |   83.07 | ...48,58,69,94-95 
+ frontend/src/i18n |     100 |      100 |     100 |     100 |                   
+  index.ts         |     100 |      100 |     100 |     100 |                   
+ frontend/src/lib  |     100 |      100 |     100 |     100 |                   
+  utils.ts         |     100 |      100 |     100 |     100 |                   
+ ...src/pages/auth |   83.02 |    18.18 |    12.5 |   83.02 |                   
+  ...swordPage.tsx |    80.4 |    33.33 |   16.66 |    80.4 | 23-48,72-77       
+  LoginPage.tsx    |   84.71 |     12.5 |      10 |   84.71 | ...57-162,197-199 
+ ...ages/dashboard |   52.94 |    20.83 |   42.85 |   52.94 |                   
+  ...boardPage.tsx |   52.94 |    20.83 |   42.85 |   52.94 | ...06-317,370-386 
+ .../src/pages/dev |   60.77 |       65 |      40 |   60.77 |                   
+  DevBrandPage.tsx |   10.03 |    85.71 |      75 |   10.03 | 22-23,41-343      
+  ...ystemPage.tsx |   99.47 |    53.84 |   33.33 |   99.47 | 358-359           
+ ...rc/pages/error |     100 |       75 |      50 |     100 |                   
+  ...iddenPage.tsx |     100 |      100 |      50 |     100 |                   
+  NotFoundPage.tsx |     100 |      100 |      50 |     100 |                   
+  ...endedPage.tsx |     100 |       50 |      50 |     100 | 26                
+ ...ges/onboarding |       0 |      100 |     100 |       0 |                   
+  ...rdingPage.tsx |       0 |      100 |     100 |       0 | 2-26              
+ ...pages/settings |       0 |      100 |     100 |       0 |                   
+  ...tingsPage.tsx |       0 |      100 |     100 |       0 | 2-26              
+ ...rc/pages/staff |       0 |      100 |     100 |       0 |                   
+  StaffPage.tsx    |       0 |      100 |     100 |       0 | 2-26              
+ ...rc/pages/venue |       0 |      100 |     100 |       0 |                   
+  AreasPage.tsx    |       0 |      100 |     100 |       0 | 2-26              
+  BranchesPage.tsx |       0 |      100 |     100 |       0 | 2-26              
+  ...rPlanPage.tsx |       0 |      100 |     100 |       0 | 2-26              
+  QRCodesPage.tsx  |       0 |      100 |     100 |       0 | 2-26              
+  TablesPage.tsx   |       0 |      100 |     100 |       0 | 2-26              
+ ...tend/src/types |       0 |        0 |       0 |       0 |                   
+  api.ts           |       0 |        0 |       0 |       0 |                   
+-------------------|---------|----------|---------|---------|-------------------

@@ -19,7 +19,10 @@ export function calculateContrastRatio(hex1: string, hex2: string): number {
   const parseHex = (hex: string) => {
     hex = hex.replace("#", "");
     if (hex.length === 3) {
-      hex = hex.split("").map((c) => c + c).join("");
+      hex = hex
+        .split("")
+        .map((c) => c + c)
+        .join("");
     }
     const num = parseInt(hex, 16);
     return [num >> 16, (num >> 8) & 255, num & 255];
@@ -144,15 +147,12 @@ export const DevBrandPage: React.FC = () => {
                 ServeMyFood Brand & Token System
               </h1>
               <p className="mt-1 text-sm text-muted-foreground">
-                Automated WCAG contrast compliance ratios, typographic hierarchy, and SVG logo variants.
+                Automated WCAG contrast compliance ratios, typographic hierarchy, and SVG logo
+                variants.
               </p>
             </div>
             <div className="flex items-center gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => navigate("/dev/design-system")}
-              >
+              <Button variant="outline" size="sm" onClick={() => navigate("/dev/design-system")}>
                 View Component Showcase
               </Button>
             </div>
@@ -164,7 +164,9 @@ export const DevBrandPage: React.FC = () => {
           <h2 className="text-xl font-bold font-display">1. Logo Variants & Clear Space</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <Card className="p-6 flex flex-col items-center justify-center space-y-4 bg-white border">
-              <span className="text-xs font-semibold text-muted-foreground uppercase">Full Logo (Light Theme)</span>
+              <span className="text-xs font-semibold text-muted-foreground uppercase">
+                Full Logo (Light Theme)
+              </span>
               <BrandLogo variant="full" theme="light" size={40} />
               <div className="text-[11px] text-muted-foreground text-center">
                 Wordmark: Navy (#0B1F3B) + Vibrant Orange (#FF6A00)
@@ -172,7 +174,9 @@ export const DevBrandPage: React.FC = () => {
             </Card>
 
             <Card className="p-6 flex flex-col items-center justify-center space-y-4 bg-[#0B1F3B] border border-slate-800 text-white">
-              <span className="text-xs font-semibold text-gray-400 uppercase">Full Logo (Dark Theme)</span>
+              <span className="text-xs font-semibold text-gray-400 uppercase">
+                Full Logo (Dark Theme)
+              </span>
               <BrandLogo variant="full" theme="dark" size={40} />
               <div className="text-[11px] text-gray-400 text-center">
                 Wordmark: White (#FFFFFF) + Vibrant Orange (#FF6A00)
@@ -180,7 +184,9 @@ export const DevBrandPage: React.FC = () => {
             </Card>
 
             <Card className="p-6 flex flex-col items-center justify-center space-y-4 bg-gray-100 border">
-              <span className="text-xs font-semibold text-muted-foreground uppercase">Icon Only & Favicon</span>
+              <span className="text-xs font-semibold text-muted-foreground uppercase">
+                Icon Only & Favicon
+              </span>
               <div className="flex items-center gap-4">
                 <BrandLogo variant="icon" theme="light" size={48} />
                 <BrandLogo variant="icon" theme="light" size={32} />
@@ -197,7 +203,9 @@ export const DevBrandPage: React.FC = () => {
         <section className="space-y-4">
           <div className="flex items-center justify-between">
             <h2 className="text-xl font-bold font-display">2. Automated WCAG Contrast Matrix</h2>
-            <span className="text-xs text-muted-foreground">Thresholds: AA &gt;= 4.5:1 • AAA &gt;= 7.0:1</span>
+            <span className="text-xs text-muted-foreground">
+              Thresholds: AA &gt;= 4.5:1 • AAA &gt;= 7.0:1
+            </span>
           </div>
 
           <div className="overflow-x-auto rounded-lg border">
@@ -220,7 +228,9 @@ export const DevBrandPage: React.FC = () => {
                   return (
                     <tr
                       key={idx}
-                      className={pair.forbidden ? "bg-red-50/70 dark:bg-red-950/20" : "hover:bg-muted/50"}
+                      className={
+                        pair.forbidden ? "bg-red-50/70 dark:bg-red-950/20" : "hover:bg-muted/50"
+                      }
                     >
                       <td className="p-4 font-semibold text-foreground">
                         <div className="flex items-center gap-2">
@@ -248,7 +258,11 @@ export const DevBrandPage: React.FC = () => {
                         </div>
                       </td>
                       <td className="p-4 font-mono font-bold text-base">
-                        <span className={pair.forbidden ? "text-red-600" : "text-green-600 dark:text-green-400"}>
+                        <span
+                          className={
+                            pair.forbidden ? "text-red-600" : "text-green-600 dark:text-green-400"
+                          }
+                        >
                           {ratio}:1
                         </span>
                       </td>
@@ -280,7 +294,9 @@ export const DevBrandPage: React.FC = () => {
 
         {/* Section 3: Typographic Hierarchy */}
         <section className="space-y-4">
-          <h2 className="text-xl font-bold font-display">3. Typography Scale & Multilingual Support</h2>
+          <h2 className="text-xl font-bold font-display">
+            3. Typography Scale & Multilingual Support
+          </h2>
           <Card className="p-6 space-y-6">
             <div className="space-y-2">
               <span className="text-xs font-semibold text-muted-foreground uppercase">
@@ -304,7 +320,8 @@ export const DevBrandPage: React.FC = () => {
                 Body & Numeric Font: Inter (Regular 400, Medium 500, Semi-Bold 600)
               </span>
               <p className="text-base text-foreground font-sans">
-                ServeMyFood handles high-throughput hospitality transactions with sub-millisecond response latency and strict row-level tenant boundary isolation.
+                ServeMyFood handles high-throughput hospitality transactions with sub-millisecond
+                response latency and strict row-level tenant boundary isolation.
               </p>
               <div className="text-sm font-mono bg-muted p-3 rounded font-semibold">
                 Tabular Numerals: ₹4,999.00 • 1,280 Orders • Table T12 • Token #042
@@ -326,7 +343,8 @@ export const DevBrandPage: React.FC = () => {
                   data-testid="tamil-body"
                   className="text-sm text-gray-700 dark:text-gray-300 font-sans"
                 >
-                  மேஜைகள், தள வரைபடம், சமையலறை ஆர்டர்கள் மற்றும் பணியாளர் மேலாண்மை ஆகியவற்றை ஒரே தளத்தில் திறம்பட கையாளுங்கள்.
+                  மேஜைகள், தள வரைபடம், சமையலறை ஆர்டர்கள் மற்றும் பணியாளர் மேலாண்மை ஆகியவற்றை ஒரே
+                  தளத்தில் திறம்பட கையாளுங்கள்.
                 </div>
                 <div className="flex gap-2 pt-2">
                   <Badge variant="available">கிடைக்கக்கூடியது (AVAILABLE)</Badge>

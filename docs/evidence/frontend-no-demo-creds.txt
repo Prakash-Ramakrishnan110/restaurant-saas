@@ -1,0 +1,1 @@
+PASS: Zero demo credentials, test passwords, or prefill routines found in production dist/ bundle.

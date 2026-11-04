@@ -9,9 +9,10 @@
 
 - **Brand Name**: ServeMyFood
 - **Wordmark Styling**: "ServeMy" in Deep Navy (`#0B1F3B`), "Food" in Vibrant Orange (`#FF6A00`)
-- **Icon**: Modern geometric cloche & fork glyph in Vibrant Orange
+- **Icon**: Chef hat (toque) outline with crossed fork, spoon, and dynamic service swoosh in Vibrant Orange (`#FF6A00`)
 - **Tagline**: *"One Platform. Every Food Business."*
 - **Company**: Fusion Engine Technology (`fusionengine.in`)
+- **Note**: The vector artwork embedded in code serves as an SVG placeholder; final production vector branding and assets will be prepared by a professional brand designer.
 
 ---
 

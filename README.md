@@ -1,41 +1,48 @@
-# Fusion Engine Restaurant SaaS - Foundation & Venue Model Backend
+# ServeMyFood - Multi-Tenant Restaurant SaaS Platform
 
-A production-grade, multi-tenant Restaurant Management SaaS backend built with Python 3.12, Django 5, Django REST Framework, PostgreSQL 16, Redis 7, Celery, Channels, SimpleJWT, and drf-spectacular.
+A production-grade, multi-tenant Restaurant Management SaaS platform built with Python 3.12, Django 5, PostgreSQL 16, Redis 7, Celery, React 18, Vite, TypeScript, and Tailwind CSS. Developed by **Fusion Engine Technology**.
 
 ---
 
-## Quickstart (Under 5 Commands)
+## 6-Command Windows PowerShell Quickstart
 
-```bash
-# 1. Copy environment variables
-cp .env.example .env
+```powershell
+# 1. Copy environment configuration
+Copy-Item .env.example .env
 
-# 2. Build and launch services (Postgres, Redis, Backend, Celery Worker, Celery Beat)
+# 2. Build and launch services (PostgreSQL on loopback 5435, Redis, Backend, Celery Worker, Beat)
 docker compose up -d --build
 
 # 3. Apply database migrations
 docker compose exec backend python manage.py migrate
 
-# 4. Seed database with platform admin, 4 plans, and 5 diverse demo venue tenants
+# 4. Seed database with platform admin, subscription plans, and 5 diverse venue tenants
 docker compose exec backend python manage.py seed
 
-# 5. Verify system health
-curl http://localhost:8000/health
+# 5. Install frontend dependencies
+cd frontend; npm install; cd ..
+
+# 6. Launch frontend development server
+.\scripts\dev.ps1 web
 ```
 
-The OpenAPI documentation is immediately available at [http://localhost:8000/api/docs/](http://localhost:8000/api/docs/).
+Open [http://localhost:5173](http://localhost:5173) to access the ServeMyFood application.
+Interactive OpenAPI 3.0 docs are live at [http://localhost:8000/api/docs/](http://localhost:8000/api/docs/).
 
-### Windows PowerShell Equivalent (`scripts/dev.ps1`)
-For Windows environments without `make`, use the unified PowerShell CLI:
+### Windows PowerShell Development CLI (`scripts/dev.ps1`)
 ```powershell
 .\scripts\dev.ps1 help       # Show all commands
 .\scripts\dev.ps1 up         # Launch Docker Compose stack
-.\scripts\dev.ps1 migrate    # Apply migrations
+.\scripts\dev.ps1 migrate    # Apply backend migrations
 .\scripts\dev.ps1 seed       # Seed demo venue tenants
-.\scripts\dev.ps1 test       # Run pytest with >=90% coverage
-.\scripts\dev.ps1 lint       # Run ruff check and format check
-.\scripts\dev.ps1 typecheck  # Run mypy
-.\scripts\dev.ps1 health     # Query /health endpoint
+.\scripts\dev.ps1 test       # Run backend pytest with >=90% coverage
+.\scripts\dev.ps1 lint       # Run backend ruff + frontend ESLint
+.\scripts\dev.ps1 typecheck  # Run mypy static type analysis
+.\scripts\dev.ps1 web        # Start frontend dev server
+.\scripts\dev.ps1 web-test   # Run Vitest unit & component test suite
+.\scripts\dev.ps1 e2e        # Run Playwright E2E integration test suite
+.\scripts\dev.ps1 gen-api    # Regenerate TypeScript types from backend OpenAPI
+.\scripts\dev.ps1 health     # Query backend /health endpoint
 ```
 
 ---

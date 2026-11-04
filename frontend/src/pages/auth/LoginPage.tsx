@@ -5,9 +5,16 @@ import { Utensils, ShieldCheck, Zap, Globe, Sparkles } from "lucide-react";
 import { BrandLogo } from "../../components/brand/BrandLogo";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "../../components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "../../components/ui/card";
 import { useAuth } from "../../context/AuthContext";
 import { useTheme } from "../../context/ThemeContext";
+import { RateLimitCountdown } from "../../components/app/RateLimitCountdown";
 
 export const LoginPage: React.FC = () => {
   const { t, i18n } = useTranslation();
@@ -19,6 +26,7 @@ export const LoginPage: React.FC = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [rateLimitSeconds, setRateLimitSeconds] = useState<number | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -27,14 +35,18 @@ export const LoginPage: React.FC = () => {
     setIsSubmitting(true);
 
     try {
-      await login(email, password);
-      if (mustChangePassword) {
+      const res = await login(email, password);
+      if (res?.mustChangePassword) {
         navigate("/change-password");
       } else {
         const from = (location.state as any)?.from?.pathname || "/dashboard";
         navigate(from, { replace: true });
       }
     } catch (err: any) {
+      if (err?.error?.code === "RATE_LIMITED") {
+        const retryAfter = Number(err?.error?.details?.retry_after) || 60;
+        setRateLimitSeconds(retryAfter);
+      }
       const msg =
         err?.error?.message ||
         err?.message ||
@@ -46,7 +58,7 @@ export const LoginPage: React.FC = () => {
   };
 
   const handleLanguageToggle = () => {
-    const nextLang = i18n.language.startsWith("ta") ? "en" : "ta";
+    const nextLang = (i18n.language || "en").startsWith("ta") ? "en" : "ta";
     i18n.changeLanguage(nextLang);
   };
 
@@ -70,7 +82,8 @@ export const LoginPage: React.FC = () => {
               {t("brand.tagline")}
             </h1>
             <p className="mt-4 text-base text-gray-700 dark:text-gray-300 leading-relaxed font-sans">
-              Streamline floor plans, table sessions, QR ordering, and kitchen workflows from a single unified operating platform.
+              Streamline floor plans, table sessions, QR ordering, and kitchen workflows from a
+              single unified operating platform.
             </p>
           </div>
         </div>
@@ -82,8 +95,12 @@ export const LoginPage: React.FC = () => {
               <Utensils className="w-5 h-5" />
             </div>
             <div>
-              <div className="font-semibold text-sm text-[#0B1F3B] dark:text-white">Floor & Table Management</div>
-              <div className="text-xs text-gray-600 dark:text-gray-400">Dynamic table grouping, join/split, and real-time status tracking.</div>
+              <div className="font-semibold text-sm text-[#0B1F3B] dark:text-white">
+                Floor & Table Management
+              </div>
+              <div className="text-xs text-gray-600 dark:text-gray-400">
+                Dynamic table grouping, join/split, and real-time status tracking.
+              </div>
             </div>
           </div>
 
@@ -92,8 +109,12 @@ export const LoginPage: React.FC = () => {
               <Zap className="w-5 h-5" />
             </div>
             <div>
-              <div className="font-semibold text-sm text-[#0B1F3B] dark:text-white">QR Ordering & Tokens</div>
-              <div className="text-xs text-gray-600 dark:text-gray-400">Customer contactless ordering and race-free daily token counters.</div>
+              <div className="font-semibold text-sm text-[#0B1F3B] dark:text-white">
+                QR Ordering & Tokens
+              </div>
+              <div className="text-xs text-gray-600 dark:text-gray-400">
+                Customer contactless ordering and race-free daily token counters.
+              </div>
             </div>
           </div>
 
@@ -102,8 +123,12 @@ export const LoginPage: React.FC = () => {
               <ShieldCheck className="w-5 h-5" />
             </div>
             <div>
-              <div className="font-semibold text-sm text-[#0B1F3B] dark:text-white">Strict Multi-Tenant Security</div>
-              <div className="text-xs text-gray-600 dark:text-gray-400">Row-level database tenant isolation with audited RBAC permissions.</div>
+              <div className="font-semibold text-sm text-[#0B1F3B] dark:text-white">
+                Strict Multi-Tenant Security
+              </div>
+              <div className="text-xs text-gray-600 dark:text-gray-400">
+                Row-level database tenant isolation with audited RBAC permissions.
+              </div>
             </div>
           </div>
         </div>
@@ -130,7 +155,7 @@ export const LoginPage: React.FC = () => {
               title="Switch language (EN / Tamil)"
             >
               <Globe className="w-3.5 h-3.5" />
-              <span>{i18n.language.startsWith("ta") ? "English" : "தமிழ்"}</span>
+              <span>{(i18n.language || "en").startsWith("ta") ? "English" : "தமிழ்"}</span>
             </button>
             <button
               type="button"
@@ -153,7 +178,16 @@ export const LoginPage: React.FC = () => {
               <CardDescription>{t("auth.signInDescription")}</CardDescription>
             </CardHeader>
             <CardContent>
-              {errorMsg && (
+              {rateLimitSeconds && (
+                <div className="mb-4">
+                  <RateLimitCountdown
+                    initialWaitSeconds={rateLimitSeconds}
+                    onFinished={() => setRateLimitSeconds(null)}
+                  />
+                </div>
+              )}
+
+              {errorMsg && !rateLimitSeconds && (
                 <div
                   role="alert"
                   className="mb-4 p-3 rounded-md bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900 text-xs text-red-700 dark:text-red-400 font-medium"
@@ -224,31 +258,33 @@ export const LoginPage: React.FC = () => {
                 </Button>
               </form>
 
-              {/* Demo Quick-Fill Bar */}
-              <div className="mt-6 pt-4 border-t text-xs text-muted-foreground">
-                <div className="flex items-center gap-1.5 font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                  <Sparkles className="w-3.5 h-3.5 text-[#FF6A00]" />
-                  <span>Demo Quick-Fill:</span>
+              {/* Demo Quick-Fill Bar: DEV ONLY (tree-shaken in production) */}
+              {import.meta.env.DEV && (
+                <div className="mt-6 pt-4 border-t text-xs text-muted-foreground">
+                  <div className="flex items-center gap-1.5 font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                    <Sparkles className="w-3.5 h-3.5 text-[#FF6A00]" />
+                    <span>Demo Quick-Fill:</span>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      type="button"
+                      onClick={() => prefill("owner@alphadine.com")}
+                      className="p-1.5 rounded border text-left hover:bg-muted text-[11px]"
+                    >
+                      <div className="font-semibold text-foreground">Alpha Owner</div>
+                      <div className="text-[10px] text-muted-foreground">Fine Dining / Pro</div>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => prefill("admin@fusionengine.in")}
+                      className="p-1.5 rounded border text-left hover:bg-muted text-[11px]"
+                    >
+                      <div className="font-semibold text-foreground">Platform Admin</div>
+                      <div className="text-[10px] text-muted-foreground">Global Console</div>
+                    </button>
+                  </div>
                 </div>
-                <div className="grid grid-cols-2 gap-2">
-                  <button
-                    type="button"
-                    onClick={() => prefill("owner@alphadine.com")}
-                    className="p-1.5 rounded border text-left hover:bg-muted text-[11px]"
-                  >
-                    <div className="font-semibold text-foreground">Alpha Owner</div>
-                    <div className="text-[10px] text-muted-foreground">Fine Dining / Pro</div>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => prefill("admin@fusionengine.in")}
-                    className="p-1.5 rounded border text-left hover:bg-muted text-[11px]"
-                  >
-                    <div className="font-semibold text-foreground">Platform Admin</div>
-                    <div className="text-[10px] text-muted-foreground">Global Console</div>
-                  </button>
-                </div>
-              </div>
+              )}
             </CardContent>
           </Card>
         </div>

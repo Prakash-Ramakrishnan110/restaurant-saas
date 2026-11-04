@@ -1,0 +1,15 @@
+
+Running 10 tests using 1 worker
+
+  ok  1 [chromium] ΓÇ║ e2e\flows.spec.ts:5:3 ΓÇ║ ServeMyFood 8 Core E2E Flows ΓÇ║ Flow 1: successful login redirects to dashboard and logout returns to login (3.6s)
+  ok  2 [chromium] ΓÇ║ e2e\flows.spec.ts:96:3 ΓÇ║ ServeMyFood 8 Core E2E Flows ΓÇ║ Flow 2: wrong credentials shows error alert (1.2s)
+  ok  3 [chromium] ΓÇ║ e2e\flows.spec.ts:120:3 ΓÇ║ ServeMyFood 8 Core E2E Flows ΓÇ║ Flow 3: 429 response displays active rate-limit countdown timer (2.5s)
+  ok  4 [chromium] ΓÇ║ e2e\flows.spec.ts:146:3 ΓÇ║ ServeMyFood 8 Core E2E Flows ΓÇ║ Flow 4: user with must_change_password=true is forced to /change-password (1.9s)
+  ok  5 [chromium] ΓÇ║ e2e\flows.spec.ts:238:3 ΓÇ║ ServeMyFood 8 Core E2E Flows ΓÇ║ Flow 5: suspended tenant displays /suspended page with support email (1.6s)
+  ok  6 [chromium] ΓÇ║ e2e\flows.spec.ts:245:3 ΓÇ║ ServeMyFood 8 Core E2E Flows ΓÇ║ Flow 6: outgoing API requests attach active X-Tenant-ID header (3.4s)
+  ok  7 [chromium] ΓÇ║ e2e\flows.spec.ts:322:3 ΓÇ║ ServeMyFood 8 Core E2E Flows ΓÇ║ Flow 7: Tamil language toggle switches UI strings and preserves typography (3.5s)
+  ok  8 [chromium] ΓÇ║ e2e\flows.spec.ts:339:3 ΓÇ║ ServeMyFood 8 Core E2E Flows ΓÇ║ Flow 8: Dark Mode and Touch Mode toggles apply design tokens correctly (2.8s)
+  ok  9 [chromium] ΓÇ║ e2e\tamil-rendering.spec.ts:4:3 ΓÇ║ Tamil Localization and Typography Rendering ΓÇ║ renders Tamil heading and body text on /dev/brand without missing glyphs (2.4s)
+  ok 10 [chromium] ΓÇ║ e2e\tamil-rendering.spec.ts:22:3 ΓÇ║ Tamil Localization and Typography Rendering ΓÇ║ toggles language between English and Tamil on login screen (3.8s)
+
+  10 passed (1.1m)

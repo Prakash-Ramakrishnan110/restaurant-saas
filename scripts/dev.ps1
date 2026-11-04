@@ -8,7 +8,7 @@
 
 param(
     [Parameter(Position=0)]
-    [ValidateSet("up", "down", "build", "migrate", "seed", "test", "lint", "typecheck", "health", "help")]
+    [ValidateSet("up", "down", "build", "migrate", "seed", "test", "lint", "typecheck", "health", "web", "web-test", "e2e", "gen-api", "help")]
     [string]$Command = "help"
 )
 
@@ -19,10 +19,14 @@ function Show-Help {
     Write-Host "  .\scripts\dev.ps1 build      - Build docker container images"
     Write-Host "  .\scripts\dev.ps1 migrate    - Run database migrations inside backend container"
     Write-Host "  .\scripts\dev.ps1 seed       - Seed database with demo tenants and users"
-    Write-Host "  .\scripts\dev.ps1 test       - Run pytest test suite with coverage gate"
-    Write-Host "  .\scripts\dev.ps1 lint       - Run ruff linter and formatting checks"
+    Write-Host "  .\scripts\dev.ps1 test       - Run backend pytest test suite with coverage gate"
+    Write-Host "  .\scripts\dev.ps1 lint       - Run ruff linter and frontend ESLint"
     Write-Host "  .\scripts\dev.ps1 typecheck  - Run mypy static type checking"
     Write-Host "  .\scripts\dev.ps1 health     - Check system health endpoint"
+    Write-Host "  .\scripts\dev.ps1 web        - Start frontend Vite development server"
+    Write-Host "  .\scripts\dev.ps1 web-test   - Run frontend Vitest test suite with coverage"
+    Write-Host "  .\scripts\dev.ps1 e2e        - Run Playwright end-to-end integration tests"
+    Write-Host "  .\scripts\dev.ps1 gen-api    - Regenerate TypeScript types from backend OpenAPI schema"
 }
 
 switch ($Command) {
@@ -60,15 +64,21 @@ switch ($Command) {
         }
     }
     "lint" {
-        Write-Host "Running ruff checks..." -ForegroundColor Green
-        ruff check backend
-        ruff format --check backend
+        Write-Host "Running backend ruff checks..." -ForegroundColor Green
+        ruff check backend/apps
+        Write-Host "Running frontend lint checks..." -ForegroundColor Green
+        Push-Location frontend
+        try {
+            npm run lint
+        } finally {
+            Pop-Location
+        }
     }
     "typecheck" {
         Write-Host "Running mypy type check..." -ForegroundColor Green
         Push-Location backend
         try {
-            mypy apps config
+            mypy apps
         } finally {
             Pop-Location
         }
@@ -80,6 +90,48 @@ switch ($Command) {
             $resp | ConvertTo-Json
         } catch {
             Write-Error "Health check failed: $_"
+        }
+    }
+    "web" {
+        Write-Host "Starting frontend dev server..." -ForegroundColor Green
+        Push-Location frontend
+        try {
+            npm run dev
+        } finally {
+            Pop-Location
+        }
+    }
+    "web-test" {
+        Write-Host "Running frontend unit and component tests..." -ForegroundColor Green
+        Push-Location frontend
+        try {
+            npm run test:run
+        } finally {
+            Pop-Location
+        }
+    }
+    "e2e" {
+        Write-Host "Running Playwright E2E tests..." -ForegroundColor Green
+        Push-Location frontend
+        try {
+            npx playwright test
+        } finally {
+            Pop-Location
+        }
+    }
+    "gen-api" {
+        Write-Host "Regenerating OpenAPI schema and TypeScript definitions..." -ForegroundColor Green
+        Push-Location backend
+        try {
+            python manage.py spectacular --format openapi-json --validate --file ../docs/openapi.json
+        } finally {
+            Pop-Location
+        }
+        Push-Location frontend
+        try {
+            npm run gen:api
+        } finally {
+            Pop-Location
         }
     }
     Default {

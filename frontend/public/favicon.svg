@@ -1,11 +1,8 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="none">
-  <rect width="32" height="32" rx="8" fill="#FF6A00"/>
-  <!-- Cloche dome -->
-  <path d="M7 21h18c-0.6-5.5-4.5-9.8-10-9.8S7.6 15.5 7 21z" fill="#0B1F3B"/>
-  <!-- Cloche handle -->
-  <circle cx="15" cy="9.2" r="1.8" fill="#0B1F3B"/>
-  <!-- Tray base line -->
-  <rect x="5" y="22.5" width="20" height="2" rx="1" fill="#0B1F3B"/>
-  <!-- Food steam / sparkle -->
-  <path d="M19 8c1-1 2 0 3-1" stroke="#FFF3E0" stroke-width="1.2" stroke-linecap="round"/>
+<svg width="36" height="36" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="36" height="36" rx="8" fill="#FF6A00" />
+  <path d="M11 18.5C9.5 18.5 8.5 17 9 15C9.5 13 11.5 13 12.5 14C13 11.5 16 10 18 10C20 10 23 11.5 23.5 14C24.5 13 26.5 13 27 15C27.5 17 26.5 18.5 25 18.5" stroke="#0B1F3B" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
+  <path d="M11.5 19H24.5V22C24.5 22.5 24 23 23.5 23H12.5C12 23 11.5 22.5 11.5 22V19Z" fill="#0B1F3B" />
+  <path d="M14 28L17 23.5M13 27.5L14 26" stroke="#0B1F3B" stroke-width="1.6" stroke-linecap="round" />
+  <path d="M22 28L19 23.5M21.5 27.5C22.3 26.7 22.3 25.5 21.5 24.7" stroke="#0B1F3B" stroke-width="1.6" stroke-linecap="round" />
+  <path d="M7 29C13 32 23 32 29 28" stroke="#FFF3E0" stroke-width="1.8" stroke-linecap="round" />
 </svg>

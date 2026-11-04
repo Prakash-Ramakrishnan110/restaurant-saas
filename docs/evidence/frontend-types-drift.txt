@@ -1,0 +1,1 @@
+PASS: Zero API types drift detected. src/types/api.ts matches docs/openapi.json perfectly with 0 changes.
