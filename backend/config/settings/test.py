@@ -4,6 +4,7 @@ from .base import *  # noqa: F403
 
 DEBUG = False
 TESTING = True
+ALLOWED_HOSTS = ["*"]
 
 env = environ.Env()
 

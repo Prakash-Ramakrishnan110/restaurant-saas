@@ -1,14 +1,26 @@
 from typing import Any
 
-from rest_framework.exceptions import APIException
-
+from apps.core.exceptions import BusinessRuleError
 from apps.subscriptions.constants import ALLOWED_SUBSCRIPTION_STATUSES
 
 
-class EntitlementLimitReached(APIException):
-    status_code = 403
-    default_detail = "Entitlement limit reached for your current subscription plan."
-    default_code = "ENTITLEMENT_LIMIT_REACHED"
+class EntitlementLimitReached(BusinessRuleError):
+    """Raised when a plan limit is hit; details = {limit_key, limit, current}."""
+
+    def __init__(
+        self,
+        message: str = "Entitlement limit reached for your current subscription plan.",
+        *,
+        limit_key: str = "",
+        limit: Any = None,
+        current: int | None = None,
+    ) -> None:
+        super().__init__(
+            "ENTITLEMENT_LIMIT_REACHED",
+            message,
+            status_code=403,
+            details={"limit_key": limit_key, "limit": limit, "current": current},
+        )
 
 
 def is_tenant_allowed(tenant: Any) -> bool:
@@ -49,7 +61,11 @@ def get_entitlement(tenant: Any, key: str, default: Any = None) -> Any:
         return default_limits.get(key, default)
 
     entitlements = getattr(subscription.plan, "entitlements", {}) or {}
-    return entitlements.get(key, default)
+    value = entitlements.get(key, default)
+    # A negative numeric limit (e.g. -1) means "unlimited".
+    if isinstance(value, int) and not isinstance(value, bool) and value < 0:
+        return None
+    return value
 
 
 def get_tenant_entitlements_summary(tenant: Any) -> dict[str, Any]:
@@ -82,6 +98,9 @@ def get_tenant_entitlements_summary(tenant: Any) -> dict[str, Any]:
             return None
         return max(0, limit_val - current_val)
 
+    def is_over(limit_val: int | None, current_val: int) -> bool:
+        return limit_val is not None and current_val > limit_val
+
     return {
         "plan_name": plan_name,
         "status": status_str,
@@ -90,16 +109,19 @@ def get_tenant_entitlements_summary(tenant: Any) -> dict[str, Any]:
                 "limit": max_branches,
                 "current": branch_count,
                 "remaining": calc_remaining(max_branches, branch_count),
+                "over_limit": is_over(max_branches, branch_count),
             },
             "max_service_areas": {
                 "limit": max_service_areas,
                 "current": sa_count,
                 "remaining": calc_remaining(max_service_areas, sa_count),
+                "over_limit": is_over(max_service_areas, sa_count),
             },
             "max_tables": {
                 "limit": max_tables,
                 "current": table_count,
                 "remaining": calc_remaining(max_tables, table_count),
+                "over_limit": is_over(max_tables, table_count),
             },
             "floor_editor": {"enabled": floor_editor},
             "table_merge": {"enabled": table_merge},
@@ -129,7 +151,10 @@ def enforce_limit(tenant: Any, key: str, current_count: int | None = None) -> No
     if isinstance(limit, bool):
         if not limit:
             raise EntitlementLimitReached(
-                f"Feature '{key}' is not available on your current subscription plan."
+                f"Feature '{key}' is not available on your current subscription plan.",
+                limit_key=key,
+                limit=False,
+                current=None,
             )
         return
 
@@ -137,5 +162,8 @@ def enforce_limit(tenant: Any, key: str, current_count: int | None = None) -> No
     if isinstance(limit, int | float) and current_count is not None:
         if current_count >= limit:
             raise EntitlementLimitReached(
-                f"Entitlement limit reached for '{key}' (Current: {current_count}, Max: {limit})."
+                f"Entitlement limit reached for '{key}' (Current: {current_count}, Max: {limit}).",
+                limit_key=key,
+                limit=limit,
+                current=current_count,
             )

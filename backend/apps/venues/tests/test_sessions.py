@@ -5,6 +5,7 @@ from django.utils import timezone
 from rest_framework.exceptions import ValidationError
 
 from apps.core.context import set_current_tenant
+from apps.core.exceptions import BusinessRuleError
 from apps.venues.constants import OpenedVia, SessionStatus, TableStatus
 from apps.venues.models import TableSession
 from apps.venues.services import close_session, expire_idle_sessions, open_session, touch_session
@@ -31,7 +32,7 @@ def test_open_and_close_session_lifecycle(venue_test_setup):
     assert table.status == TableStatus.OCCUPIED
 
     # Attempting to open another session on the same occupied table fails
-    with pytest.raises(ValidationError):
+    with pytest.raises((ValidationError, BusinessRuleError)):
         open_session(
             branch=branch,
             table=table,
@@ -137,8 +138,8 @@ def test_db_unique_open_session_per_group_constraint(venue_test_setup):
     # Open first session on table_group (table is NULL)
     open_session(branch=branch, table_group=group)
 
-    # Service-level check raises ValidationError
-    with pytest.raises(ValidationError):
+    # Service-level check raises ValidationError or BusinessRuleError
+    with pytest.raises((ValidationError, BusinessRuleError)):
         open_session(branch=branch, table_group=group)
 
     # DB-level UniqueConstraint raises IntegrityError when table is NULL and table_group is set

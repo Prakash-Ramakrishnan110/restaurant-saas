@@ -1,4 +1,5 @@
 from django.http import Http404
+from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import extend_schema
 from rest_framework import status
 from rest_framework.decorators import action
@@ -30,6 +31,7 @@ from apps.tenants.services import (
     create_tenant_with_defaults,
     delete_branch,
     get_onboarding_status,
+    reset_owner_passwords,
     suspend_tenant,
     update_branch,
     update_business_profile,
@@ -62,7 +64,7 @@ class TenantViewSet(ViewSet):
         serializer = TenantCreateSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
-        tenant, _, _ = create_tenant_with_defaults(
+        tenant, owner_user, _ = create_tenant_with_defaults(
             name=serializer.validated_data["name"],
             slug=serializer.validated_data.get("slug"),
             business_type=serializer.validated_data.get(
@@ -80,7 +82,11 @@ class TenantViewSet(ViewSet):
             request=request,
         )
 
-        return Response(TenantSerializer(tenant).data, status=status.HTTP_201_CREATED)
+        data = dict(TenantSerializer(tenant).data)
+        temp_password = getattr(owner_user, "temporary_password", "")
+        if temp_password:
+            data["owner_temporary_password"] = temp_password
+        return Response(data, status=status.HTTP_201_CREATED)
 
     def retrieve(self, request: Request, pk: str | None = None) -> Response:
         if not pk:
@@ -90,6 +96,18 @@ class TenantViewSet(ViewSet):
         except Tenant.DoesNotExist:
             raise Http404("Tenant not found.") from None
         return Response(TenantSerializer(tenant).data)
+
+    @extend_schema(request=None, responses={200: OpenApiTypes.OBJECT})
+    @action(detail=True, methods=["post"], url_path="reset-owner-password")
+    def reset_owner_password(self, request: Request, pk: str | None = None) -> Response:
+        if not pk:
+            raise Http404("Tenant not found.")
+        try:
+            tenant = Tenant.objects.get(pk=pk)
+        except Tenant.DoesNotExist:
+            raise Http404("Tenant not found.") from None
+        owners = reset_owner_passwords(tenant, actor=request.user, request=request)
+        return Response({"owners": owners})
 
     @action(detail=True, methods=["post"])
     def suspend(self, request: Request, pk: str | None = None) -> Response:

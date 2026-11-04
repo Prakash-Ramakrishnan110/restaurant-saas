@@ -2,6 +2,7 @@ import pytest
 from rest_framework.exceptions import ValidationError
 
 from apps.core.context import set_current_tenant
+from apps.core.exceptions import BusinessRuleError
 from apps.venues.constants import TableStatus
 from apps.venues.services import transition_table_status
 
@@ -32,9 +33,12 @@ def test_disallowed_status_transition_raises_validation_error(venue_test_setup):
     actor = venue_test_setup["owner_a"]
 
     # AVAILABLE cannot transition directly to CLEANING
-    with pytest.raises(ValidationError) as exc:
+    with pytest.raises((ValidationError, BusinessRuleError)) as exc:
         transition_table_status(table, TableStatus.CLEANING, actor=actor)
-    assert "Invalid table status transition" in str(exc.value)
+    assert (
+        "CLEANING" in str(exc.value)
+        or getattr(exc.value, "error_code", "") == "INVALID_STATUS_TRANSITION"
+    )
 
 
 @pytest.mark.django_db

@@ -50,3 +50,21 @@ warn_unused_configs = true
 
 [tool.django-stubs]
 django_settings_module = "config.settings.test"
+
+[tool.coverage.run]
+source = ["apps"]
+omit = [
+    "*/tests/*",
+    "*/migrations/*",
+    "*conftest.py",
+]
+
+[tool.coverage.report]
+fail_under = 90
+show_missing = true
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "raise NotImplementedError",
+    "if TYPE_CHECKING:",
+]

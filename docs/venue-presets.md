@@ -9,12 +9,12 @@ Fusion Engine Restaurant SaaS provides out-of-the-box configuration profiles for
 | Venue Profile | `uses_tables` | `uses_kds` | `uses_token_numbers` | `allows_takeaway` | `allows_room_service` | `allows_room_charge` | `allows_qr_ordering` | `has_sections` | `has_seat_ordering` | `supports_courses` | `allows_table_transfer` | `payment_timing` | `qr_ordering_mode` | `qr_session_policy` | `order_workflow` |
 |---|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|---|---|---|---|
 | **QUICK_SERVICE** | `False` | `False` | `True` | `True` | `False` | `False` | `True` | `False` | `False` | `False` | `False` | `PAY_FIRST` | `BROWSE_ONLY` | `CUSTOMER_CAN_OPEN` | `COUNTER_TOKEN` |
-| **CAFE** | `True` | `True` | `False` | `True` | `False` | `False` | `True` | `True` | `False` | `False` | `True` | `EITHER` | `ORDER_DIRECT` | `CUSTOMER_CAN_OPEN` | `TABLE_SERVICE` |
-| **CASUAL_DINING** | `True` | `True` | `False` | `True` | `False` | `False` | `True` | `True` | `True` | `False` | `True` | `PAY_LATER` | `ORDER_WITH_APPROVAL` | `CUSTOMER_CAN_OPEN` | `TABLE_SERVICE` |
+| **CAFE** | `True` | `False` | `False` | `True` | `False` | `False` | `True` | `False` | `False` | `False` | `True` | `EITHER` | `ORDER_DIRECT` | `CUSTOMER_CAN_OPEN` | `TABLE_SERVICE` |
+| **CASUAL_DINING** | `True` | `True` | `False` | `True` | `False` | `False` | `True` | `True` | `False` | `False` | `True` | `PAY_LATER` | `ORDER_WITH_APPROVAL` | `CUSTOMER_CAN_OPEN` | `TABLE_SERVICE` |
 | **FINE_DINING** | `True` | `True` | `False` | `False` | `False` | `False` | `True` | `True` | `True` | `True` | `True` | `PAY_LATER` | `BROWSE_ONLY` | `STAFF_ONLY` | `TABLE_SERVICE` |
 | **HOTEL_RESTAURANT** | `True` | `True` | `False` | `True` | `True` | `True` | `True` | `True` | `True` | `True` | `True` | `PAY_LATER` | `ORDER_WITH_APPROVAL` | `STAFF_ONLY` | `TABLE_SERVICE` |
 | **FOOD_COURT** | `False` | `True` | `True` | `True` | `False` | `False` | `True` | `False` | `False` | `False` | `False` | `PAY_FIRST` | `ORDER_DIRECT` | `CUSTOMER_CAN_OPEN` | `COUNTER_TOKEN` |
-| **BAR_BREWERY** | `True` | `True` | `False` | `False` | `False` | `False` | `True` | `True` | `True` | `False` | `True` | `PAY_LATER` | `ORDER_WITH_APPROVAL` | `CUSTOMER_CAN_OPEN` | `BAR_TAB` |
+| **BAR_BREWERY** | `True` | `True` | `False` | `False` | `False` | `False` | `True` | `True` | `False` | `False` | `True` | `PAY_LATER` | `ORDER_WITH_APPROVAL` | `CUSTOMER_CAN_OPEN` | `BAR_TAB` |
 
 ---
 
@@ -54,8 +54,6 @@ The service layer (`validate_capabilities`) and `BranchCapabilitiesSerializer` e
 - **`TABLE_SERVICE`**: Orders are bound to a `DiningTable` or `TableGroup` session and served by waitstaff at the table (used in `CAFE`, `CASUAL_DINING`, `FINE_DINING`, and `HOTEL_RESTAURANT` presets).
 - **`BAR_TAB`**: Orders accumulate on a running bar tab under a guest session with drink-first dispatch (used in `BAR_BREWERY` preset).
 - **`ROOM_SERVICE`**: Orders are routed to hotel in-room dining pantries for guest room delivery (custom branch override for hotel room-service-only outlets when `allows_room_service=True`).
-- **`FAST_FOOD_DISPLAY`**: Orders route to a KDS preparation queue and front-of-house customer collection number screen (custom branch override for high-volume QSR outlets with digital pickup boards).
-- **`DRIVE_THRU`**: Orders route through a vehicle lane order-bay and pickup-window queue (custom branch override for drive-thru lanes in QSR chains).
 
 ---
 

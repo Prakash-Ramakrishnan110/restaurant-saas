@@ -68,24 +68,31 @@ Every 4xx and 5xx response adheres to this deterministic schema:
 ```
 
 ### Complete Error-Code List
-| Error Code | HTTP Status | When It Occurs |
-|---|---|---|
-| `VALIDATION_ERROR` | 400 | Request body or query parameter fails serializer validation (e.g., missing required field, invalid choice, weak password, invalid table status transition). |
-| `INVALID_REFERENCE` | 400 | Request body references a foreign-tenant, cross-branch, or non-existent UUID (e.g., `branch`, `section`, `service_area`, `table`, `group_id`, `membership`). Response is byte-for-byte identical to a random non-existent UUID. |
-| `INVALID_CAPABILITY_COMBINATION` | 400 | `PATCH /api/v1/branches/{id}/capabilities/` violates capability invariant rules R1–R7. `error.details` maps each offending field name to its rule violation message. |
-| `MISSING_TOKEN` | 400 | `POST /api/v1/auth/refresh/` is called without a refresh cookie or `refresh` body field. |
-| `AUTHENTICATION_FAILED` | 401 | Missing, expired, or invalid JWT access/refresh token, or invalid email/password on login. |
-| `PERMISSION_DENIED` | 403 | Authenticated user's role lacks the required RBAC permission for the action, or user has no active membership in the requested `X-Tenant-ID`. |
-| `PASSWORD_CHANGE_REQUIRED` | 403 | Authenticated user has `must_change_password = true` and requests any endpoint other than `auth/me`, `auth/change-password`, `auth/logout`, or `auth/refresh`. |
-| `TENANT_SUSPENDED` | 403 | Active tenant's status is `SUSPENDED` or `ARCHIVED`, or tenant has no active/trialing subscription (`SubscriptionGateMiddleware` / login check). |
-| `ENTITLEMENT_LIMIT_REACHED` | 403 | Operation exceeds the tenant's subscription plan limits (`max_branches`, `max_service_areas`, `max_tables`) or requires a disabled plan feature (`floor_editor`, `table_merge`, `courses`). |
-| `INVALID_ORIGIN` | 403 | `POST /api/v1/auth/refresh/` or `POST /api/v1/auth/logout/` carries an `Origin` header not in `CORS_ALLOWED_ORIGINS`. |
-| `NO_TENANT_CONTEXT` | 403 | Authenticated user has no active tenant context for a tenant-scoped endpoint. |
-| `STAFF_ACTION_REQUIRED` | 403 | Public customer attempts `POST /api/v1/public/qr/{token}/session/` on a table whose branch has `qr_session_policy = STAFF_ONLY` and no open session exists, or when `allows_qr_ordering = false`. |
-| `NOT_FOUND` | 404 | Requested resource UUID does not exist, belongs to another tenant, belongs to an unassigned branch for a branch-scoped role, or public QR token is inactive/rotated/suspended. |
-| `METHOD_NOT_ALLOWED` | 405 | HTTP verb is not supported by the endpoint. |
-| `RATE_LIMITED` | 429 | Request exceeded rate limit on login (`login`), password change (`change_password`), token refresh (`token_refresh`), or public QR (`public_qr`) endpoints. |
-| `INTERNAL_SERVER_ERROR` | 500 | Unhandled server exception. |
+| Error Code | HTTP Status | Structured Details Schema | When It Occurs |
+|---|:---:|---|---|
+| `VALIDATION_ERROR` | 400 | `{ "<field>": ["<message>"] }` | Request body or query parameter fails serializer validation (missing field, invalid choice, weak password). |
+| `INVALID_REFERENCE` | 400 | `{ "detail": "Invalid reference..." }` | Request references foreign-tenant, cross-branch, or non-existent UUID. |
+| `INVALID_STATUS_TRANSITION` | 400 | `{ "from": "<status>", "to": "<status>", "allowed": ["<status>"] }` | Attempted table status transition is not permitted by state machine. |
+| `TABLES_NOT_COMBINABLE` | 400 | `{ "reason": "<explanation>" }` | Tables cannot be joined (e.g. cross-branch, cross-service-area, already occupied, inactive). |
+| `INVALID_CAPABILITY_COMBINATION` | 400 | `{ "<field>": "<rule violation>" }` | `PATCH /branches/{id}/capabilities/` violates invariant rules R1–R7. |
+| `MISSING_TOKEN` | 400 | `{}` | `POST /api/v1/auth/refresh/` called without refresh cookie or body field. |
+| `AUTHENTICATION_FAILED` | 401 | `{}` | Missing, expired, or invalid JWT access/refresh token, or invalid login credentials. |
+| `PERMISSION_DENIED` | 403 | `{}` | User lacks required RBAC permission or active membership in target tenant. |
+| `ROLE_NOT_ALLOWED` | 403 | `{ "attempted_role": "<role>", "user_role": "<role>" }` | Actor lacks authority to assign or edit a role equal to or higher than their own. |
+| `PASSWORD_CHANGE_REQUIRED` | 403 | `{}` | User has `must_change_password = true` and calls non-exempt endpoint. |
+| `TENANT_SUSPENDED` | 403 | `{}` | Active tenant status is `SUSPENDED` or `ARCHIVED`, or has no active subscription. |
+| `ENTITLEMENT_LIMIT_REACHED` | 403 | `{ "limit_key": "<key>", "limit": <int>, "current": <int> }` | Operation exceeds subscription limits (`max_branches`, `max_tables`, etc.). |
+| `INVALID_ORIGIN` | 403 | `{}` | Refresh or logout request has origin not in CORS allow-list. |
+| `NO_TENANT_CONTEXT` | 403 | `{}` | Authenticated user lacks active tenant context for tenant-scoped endpoint. |
+| `STAFF_ACTION_REQUIRED` | 403 | `{}` | Customer scans table with `STAFF_ONLY` session policy when no session is open. |
+| `NOT_FOUND` | 404 | `{}` | Requested resource does not exist or belongs to another tenant. |
+| `METHOD_NOT_ALLOWED` | 405 | `{}` | HTTP verb is not supported by the endpoint. |
+| `SESSION_ALREADY_OPEN` | 409 | `{ "session_code": "<code-or-null>" }` | Attempting to open a session on a table or group that already has an active session. |
+| `TABLE_NOT_AVAILABLE` | 409 | `{ "table_id": "<uuid>", "status": "<status>" }` | Attempting to seat or open session on a table that is BLOCKED or CLEANING. |
+| `DUPLICATE_LABEL` | 409 | `{ "label": "<label>", "service_area_id": "<uuid>" }` | Creating or updating table with a label already in use within the service area. |
+| `LAST_OWNER` | 409 | `{ "message": "Cannot demote or deactivate the last active owner." }` | Attempting to deactivate or demote the last remaining active owner of a tenant. |
+| `RATE_LIMITED` | 429 | `{}` | Request exceeded rate limit on sensitive endpoints. |
+| `INTERNAL_SERVER_ERROR` | 500 | `{}` | Unhandled server exception. |
 
 ---
 

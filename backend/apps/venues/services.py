@@ -12,6 +12,7 @@ from rest_framework.exceptions import PermissionDenied, ValidationError
 
 from apps.audit.services import log_audit_event
 from apps.core.context import get_current_tenant, reset_current_tenant, set_current_tenant
+from apps.core.exceptions import BusinessRuleError
 from apps.subscriptions.services import enforce_limit
 from apps.tenants.models import Branch
 from apps.venues.constants import (
@@ -271,9 +272,11 @@ def transition_table_status(
 
     allowed_targets = ALLOWED_TABLE_STATUS_TRANSITIONS.get(current_status, set())
     if target not in allowed_targets:
-        raise ValidationError(
-            f"Invalid table status transition from '{current_status}' to '{target}'. "
-            f"Allowed transitions: {sorted(allowed_targets)}"
+        raise BusinessRuleError(
+            "INVALID_STATUS_TRANSITION",
+            f"Cannot change table status from '{current_status}' to '{target}'.",
+            status_code=400,
+            details={"from": current_status, "to": target, "allowed": sorted(allowed_targets)},
         )
 
     table.status = target
@@ -312,14 +315,22 @@ def join_tables(
         raise ValidationError("One or more table IDs are invalid or belong to another branch.")
 
     if len(tables) < 2:
-        raise ValidationError("At least two tables are required to form a table group.")
+        raise BusinessRuleError(
+            "TABLES_NOT_COMBINABLE", "At least two tables are required to form a table group."
+        )
 
     for t in tables:
         if not t.is_combinable:
-            raise ValidationError(f"Table '{t.label}' is marked as non-combinable.")
+            raise BusinessRuleError(
+                "TABLES_NOT_COMBINABLE",
+                f"Table '{t.label}' is marked as non-combinable.",
+                details={"table": t.label},
+            )
         if t.status not in (TableStatus.AVAILABLE, TableStatus.OCCUPIED):
-            raise ValidationError(
-                f"Table '{t.label}' cannot be joined while in status '{t.status}'."
+            raise BusinessRuleError(
+                "TABLES_NOT_COMBINABLE",
+                f"Table '{t.label}' cannot be joined while in status '{t.status}'.",
+                details={"table": t.label, "status": t.status},
             )
 
     group_label = label or " + ".join(sorted([t.label for t in tables]))
@@ -449,13 +460,26 @@ def open_session(
                 "This venue requires restaurant staff to open the table session."
             )
 
+    if table and table.status in (TableStatus.BLOCKED, TableStatus.CLEANING):
+        raise BusinessRuleError(
+            "TABLE_NOT_AVAILABLE",
+            f"Table '{table.label}' is {table.status.lower()} and cannot be seated right now.",
+            status_code=409,
+            details={"table": table.label, "status": table.status},
+        )
+
     # Check for existing open session on table or table_group
     if table:
         existing = TableSession.objects.filter(table=table, status=SessionStatus.OPEN).first()
         if existing:
             if opened_via in (OpenedVia.QR, OpenedVia.QR_CUSTOMER):
                 return existing
-            raise ValidationError("An active session is already open on this table.")
+            raise BusinessRuleError(
+                "SESSION_ALREADY_OPEN",
+                "An active session is already open on this table.",
+                status_code=409,
+                details={"session_code": existing.session_code},
+            )
     if grp:
         existing_grp = TableSession.objects.filter(
             table_group=grp, status=SessionStatus.OPEN
@@ -463,7 +487,12 @@ def open_session(
         if existing_grp:
             if opened_via in (OpenedVia.QR, OpenedVia.QR_CUSTOMER):
                 return existing_grp
-            raise ValidationError("An active session is already open on this table group.")
+            raise BusinessRuleError(
+                "SESSION_ALREADY_OPEN",
+                "An active session is already open on this table group.",
+                status_code=409,
+                details={"session_code": existing_grp.session_code},
+            )
 
     session_code = secrets.token_hex(3).upper()
 
@@ -702,6 +731,20 @@ def next_token(
             reset_current_tenant(token)
 
 
+def assert_table_label_free(branch: Branch, label: str, exclude_id: Any | None = None) -> None:
+    """Raise DUPLICATE_LABEL (409) when an active table in the branch already uses the label."""
+    qs = DiningTable.objects.filter(branch=branch, label=label, is_active=True)
+    if exclude_id is not None:
+        qs = qs.exclude(pk=exclude_id)
+    if qs.exists():
+        raise BusinessRuleError(
+            "DUPLICATE_LABEL",
+            f"A table labelled '{label}' already exists in this branch.",
+            status_code=409,
+            details={"label": label},
+        )
+
+
 @transaction.atomic
 def bulk_create_tables(
     section: Section,
@@ -722,6 +765,9 @@ def bulk_create_tables(
 
     current_tables = DiningTable.objects.filter(tenant=section.tenant, is_active=True).count()
     enforce_limit(section.tenant, "max_tables", current_tables + count - 1)
+
+    for i in range(count):
+        assert_table_label_free(section.branch, f"{prefix}{start + i}")
 
     created_tables: list[DiningTable] = []
 

@@ -147,7 +147,7 @@ class Command(BaseCommand):
             tenant=t1,
             defaults={"tax_mode": BusinessSettings.TaxMode.INCLUSIVE, "invoice_prefix": "CC-"},
         )
-        Subscription.objects.get_or_create(
+        Subscription.objects.update_or_create(
             tenant=t1,
             defaults={"plan": plans["starter"], "status": SubscriptionStatus.ACTIVE},
         )
@@ -205,7 +205,7 @@ class Command(BaseCommand):
             tenant=t2,
             defaults={"tax_mode": BusinessSettings.TaxMode.INCLUSIVE, "invoice_prefix": "BB-"},
         )
-        Subscription.objects.get_or_create(
+        Subscription.objects.update_or_create(
             tenant=t2,
             defaults={"plan": plans["starter"], "status": SubscriptionStatus.ACTIVE},
         )
@@ -283,7 +283,7 @@ class Command(BaseCommand):
             tenant=t3,
             defaults={"tax_mode": BusinessSettings.TaxMode.INCLUSIVE, "invoice_prefix": "SG-"},
         )
-        Subscription.objects.get_or_create(
+        Subscription.objects.update_or_create(
             tenant=t3,
             defaults={"plan": plans["professional"], "status": SubscriptionStatus.ACTIVE},
         )
@@ -391,7 +391,7 @@ class Command(BaseCommand):
             tenant=t4,
             defaults={"tax_mode": BusinessSettings.TaxMode.EXCLUSIVE, "invoice_prefix": "GM-"},
         )
-        Subscription.objects.get_or_create(
+        Subscription.objects.update_or_create(
             tenant=t4,
             defaults={"plan": plans["enterprise"], "status": SubscriptionStatus.ACTIVE},
         )
@@ -473,7 +473,7 @@ class Command(BaseCommand):
             tenant=t5,
             defaults={"tax_mode": BusinessSettings.TaxMode.INCLUSIVE, "invoice_prefix": "FP-"},
         )
-        Subscription.objects.get_or_create(
+        Subscription.objects.update_or_create(
             tenant=t5,
             defaults={"plan": plans["business"], "status": SubscriptionStatus.ACTIVE},
         )

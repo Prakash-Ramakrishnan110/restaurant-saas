@@ -162,6 +162,11 @@ class DiningTableSerializer(serializers.ModelSerializer[DiningTable]):
                 {"section": ["Invalid reference - object does not exist."]},
                 code="does_not_exist",
             )
+        label = attrs.get("label")
+        if branch and label and (inst is None or label != inst.label):
+            from apps.venues.services import assert_table_label_free
+
+            assert_table_label_free(branch, label, exclude_id=inst.pk if inst else None)
         return attrs
 
     def get_active_session_code(self, obj: DiningTable) -> str | None:
@@ -271,6 +276,10 @@ class TableSessionSerializer(serializers.ModelSerializer[TableSession]):
         ]
         read_only_fields = [
             "id",
+            "branch",
+            "table",
+            "table_group",
+            "guest_count",
             "session_code",
             "status",
             "opened_via",
@@ -318,7 +327,12 @@ class QRCodeSerializer(serializers.ModelSerializer[QRCode]):
         ]
         read_only_fields = [
             "id",
+            "branch",
+            "target_type",
+            "table",
+            "service_area",
             "public_token",
+            "is_active",
             "version",
             "rotated_at",
             "created_at",

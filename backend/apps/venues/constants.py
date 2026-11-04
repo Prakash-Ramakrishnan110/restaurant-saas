@@ -24,8 +24,6 @@ class OrderWorkflow(models.TextChoices):
     TABLE_SERVICE = "TABLE_SERVICE", "Table Service"
     BAR_TAB = "BAR_TAB", "Bar Tab"
     ROOM_SERVICE = "ROOM_SERVICE", "Room Service"
-    FAST_FOOD_DISPLAY = "FAST_FOOD_DISPLAY", "Fast Food Display"
-    DRIVE_THRU = "DRIVE_THRU", "Drive Thru"
 
 
 class AreaType(models.TextChoices):

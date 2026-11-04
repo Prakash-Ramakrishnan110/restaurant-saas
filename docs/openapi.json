@@ -747,50 +747,6 @@
                         "description": ""
                     }
                 }
-            },
-            "post": {
-                "operationId": "qr_codes_create",
-                "description": "Staff management of cryptographic QR tokens.",
-                "tags": [
-                    "qr-codes"
-                ],
-                "requestBody": {
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "$ref": "#/components/schemas/QRCodeRequest"
-                            }
-                        },
-                        "application/x-www-form-urlencoded": {
-                            "schema": {
-                                "$ref": "#/components/schemas/QRCodeRequest"
-                            }
-                        },
-                        "multipart/form-data": {
-                            "schema": {
-                                "$ref": "#/components/schemas/QRCodeRequest"
-                            }
-                        }
-                    },
-                    "required": true
-                },
-                "security": [
-                    {
-                        "jwtAuth": []
-                    }
-                ],
-                "responses": {
-                    "201": {
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/QRCode"
-                                }
-                            }
-                        },
-                        "description": ""
-                    }
-                }
             }
         },
         "/api/v1/qr-codes/{id}/": {
@@ -812,117 +768,6 @@
                 "tags": [
                     "qr-codes"
                 ],
-                "security": [
-                    {
-                        "jwtAuth": []
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/QRCode"
-                                }
-                            }
-                        },
-                        "description": ""
-                    }
-                }
-            },
-            "put": {
-                "operationId": "qr_codes_update",
-                "description": "Staff management of cryptographic QR tokens.",
-                "parameters": [
-                    {
-                        "in": "path",
-                        "name": "id",
-                        "schema": {
-                            "type": "string",
-                            "format": "uuid"
-                        },
-                        "description": "A UUID string identifying this qr code.",
-                        "required": true
-                    }
-                ],
-                "tags": [
-                    "qr-codes"
-                ],
-                "requestBody": {
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "$ref": "#/components/schemas/QRCodeRequest"
-                            }
-                        },
-                        "application/x-www-form-urlencoded": {
-                            "schema": {
-                                "$ref": "#/components/schemas/QRCodeRequest"
-                            }
-                        },
-                        "multipart/form-data": {
-                            "schema": {
-                                "$ref": "#/components/schemas/QRCodeRequest"
-                            }
-                        }
-                    },
-                    "required": true
-                },
-                "security": [
-                    {
-                        "jwtAuth": []
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/QRCode"
-                                }
-                            }
-                        },
-                        "description": ""
-                    }
-                }
-            },
-            "patch": {
-                "operationId": "qr_codes_partial_update",
-                "description": "Staff management of cryptographic QR tokens.",
-                "parameters": [
-                    {
-                        "in": "path",
-                        "name": "id",
-                        "schema": {
-                            "type": "string",
-                            "format": "uuid"
-                        },
-                        "description": "A UUID string identifying this qr code.",
-                        "required": true
-                    }
-                ],
-                "tags": [
-                    "qr-codes"
-                ],
-                "requestBody": {
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "$ref": "#/components/schemas/PatchedQRCodeRequest"
-                            }
-                        },
-                        "application/x-www-form-urlencoded": {
-                            "schema": {
-                                "$ref": "#/components/schemas/PatchedQRCodeRequest"
-                            }
-                        },
-                        "multipart/form-data": {
-                            "schema": {
-                                "$ref": "#/components/schemas/PatchedQRCodeRequest"
-                            }
-                        }
-                    }
-                },
                 "security": [
                     {
                         "jwtAuth": []
@@ -1044,26 +889,6 @@
                 "tags": [
                     "qr-codes"
                 ],
-                "requestBody": {
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "$ref": "#/components/schemas/QRCodeRequest"
-                            }
-                        },
-                        "application/x-www-form-urlencoded": {
-                            "schema": {
-                                "$ref": "#/components/schemas/QRCodeRequest"
-                            }
-                        },
-                        "multipart/form-data": {
-                            "schema": {
-                                "$ref": "#/components/schemas/QRCodeRequest"
-                            }
-                        }
-                    },
-                    "required": true
-                },
                 "security": [
                     {
                         "jwtAuth": []
@@ -1090,26 +915,6 @@
                 "tags": [
                     "qr-codes"
                 ],
-                "requestBody": {
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "$ref": "#/components/schemas/QRCodeRequest"
-                            }
-                        },
-                        "application/x-www-form-urlencoded": {
-                            "schema": {
-                                "$ref": "#/components/schemas/QRCodeRequest"
-                            }
-                        },
-                        "multipart/form-data": {
-                            "schema": {
-                                "$ref": "#/components/schemas/QRCodeRequest"
-                            }
-                        }
-                    },
-                    "required": true
-                },
                 "security": [
                     {
                         "jwtAuth": []
@@ -1132,7 +937,6 @@
         "/api/v1/sections/": {
             "get": {
                 "operationId": "sections_list",
-                "description": "CRUD for floor/area sections.",
                 "parameters": [
                     {
                         "name": "page",
@@ -1176,7 +980,6 @@
             },
             "post": {
                 "operationId": "sections_create",
-                "description": "CRUD for floor/area sections.",
                 "tags": [
                     "sections"
                 ],
@@ -1222,7 +1025,6 @@
         "/api/v1/sections/{id}/": {
             "get": {
                 "operationId": "sections_retrieve",
-                "description": "CRUD for floor/area sections.",
                 "parameters": [
                     {
                         "in": "path",
@@ -1238,62 +1040,6 @@
                 "tags": [
                     "sections"
                 ],
-                "security": [
-                    {
-                        "jwtAuth": []
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/Section"
-                                }
-                            }
-                        },
-                        "description": ""
-                    }
-                }
-            },
-            "put": {
-                "operationId": "sections_update",
-                "description": "CRUD for floor/area sections.",
-                "parameters": [
-                    {
-                        "in": "path",
-                        "name": "id",
-                        "schema": {
-                            "type": "string",
-                            "format": "uuid"
-                        },
-                        "description": "A UUID string identifying this section.",
-                        "required": true
-                    }
-                ],
-                "tags": [
-                    "sections"
-                ],
-                "requestBody": {
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "$ref": "#/components/schemas/SectionRequest"
-                            }
-                        },
-                        "application/x-www-form-urlencoded": {
-                            "schema": {
-                                "$ref": "#/components/schemas/SectionRequest"
-                            }
-                        },
-                        "multipart/form-data": {
-                            "schema": {
-                                "$ref": "#/components/schemas/SectionRequest"
-                            }
-                        }
-                    },
-                    "required": true
-                },
                 "security": [
                     {
                         "jwtAuth": []
@@ -1314,7 +1060,6 @@
             },
             "patch": {
                 "operationId": "sections_partial_update",
-                "description": "CRUD for floor/area sections.",
                 "parameters": [
                     {
                         "in": "path",
@@ -1369,7 +1114,6 @@
             },
             "delete": {
                 "operationId": "sections_destroy",
-                "description": "CRUD for floor/area sections.",
                 "parameters": [
                     {
                         "in": "path",
@@ -1400,7 +1144,6 @@
         "/api/v1/service-areas/": {
             "get": {
                 "operationId": "service_areas_list",
-                "description": "CRUD for branch service areas.",
                 "parameters": [
                     {
                         "name": "page",
@@ -1444,7 +1187,6 @@
             },
             "post": {
                 "operationId": "service_areas_create",
-                "description": "CRUD for branch service areas.",
                 "tags": [
                     "service-areas"
                 ],
@@ -1490,7 +1232,6 @@
         "/api/v1/service-areas/{id}/": {
             "get": {
                 "operationId": "service_areas_retrieve",
-                "description": "CRUD for branch service areas.",
                 "parameters": [
                     {
                         "in": "path",
@@ -1506,62 +1247,6 @@
                 "tags": [
                     "service-areas"
                 ],
-                "security": [
-                    {
-                        "jwtAuth": []
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/ServiceArea"
-                                }
-                            }
-                        },
-                        "description": ""
-                    }
-                }
-            },
-            "put": {
-                "operationId": "service_areas_update",
-                "description": "CRUD for branch service areas.",
-                "parameters": [
-                    {
-                        "in": "path",
-                        "name": "id",
-                        "schema": {
-                            "type": "string",
-                            "format": "uuid"
-                        },
-                        "description": "A UUID string identifying this service area.",
-                        "required": true
-                    }
-                ],
-                "tags": [
-                    "service-areas"
-                ],
-                "requestBody": {
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "$ref": "#/components/schemas/ServiceAreaRequest"
-                            }
-                        },
-                        "application/x-www-form-urlencoded": {
-                            "schema": {
-                                "$ref": "#/components/schemas/ServiceAreaRequest"
-                            }
-                        },
-                        "multipart/form-data": {
-                            "schema": {
-                                "$ref": "#/components/schemas/ServiceAreaRequest"
-                            }
-                        }
-                    },
-                    "required": true
-                },
                 "security": [
                     {
                         "jwtAuth": []
@@ -1582,7 +1267,6 @@
             },
             "patch": {
                 "operationId": "service_areas_partial_update",
-                "description": "CRUD for branch service areas.",
                 "parameters": [
                     {
                         "in": "path",
@@ -1637,7 +1321,6 @@
             },
             "delete": {
                 "operationId": "service_areas_destroy",
-                "description": "CRUD for branch service areas.",
                 "parameters": [
                     {
                         "in": "path",
@@ -1882,117 +1565,6 @@
                     }
                 }
             },
-            "put": {
-                "operationId": "staff_assignments_update",
-                "description": "Assign staff members to sections.",
-                "parameters": [
-                    {
-                        "in": "path",
-                        "name": "id",
-                        "schema": {
-                            "type": "string",
-                            "format": "uuid"
-                        },
-                        "description": "A UUID string identifying this staff section assignment.",
-                        "required": true
-                    }
-                ],
-                "tags": [
-                    "staff-assignments"
-                ],
-                "requestBody": {
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "$ref": "#/components/schemas/StaffSectionAssignmentRequest"
-                            }
-                        },
-                        "application/x-www-form-urlencoded": {
-                            "schema": {
-                                "$ref": "#/components/schemas/StaffSectionAssignmentRequest"
-                            }
-                        },
-                        "multipart/form-data": {
-                            "schema": {
-                                "$ref": "#/components/schemas/StaffSectionAssignmentRequest"
-                            }
-                        }
-                    },
-                    "required": true
-                },
-                "security": [
-                    {
-                        "jwtAuth": []
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/StaffSectionAssignment"
-                                }
-                            }
-                        },
-                        "description": ""
-                    }
-                }
-            },
-            "patch": {
-                "operationId": "staff_assignments_partial_update",
-                "description": "Assign staff members to sections.",
-                "parameters": [
-                    {
-                        "in": "path",
-                        "name": "id",
-                        "schema": {
-                            "type": "string",
-                            "format": "uuid"
-                        },
-                        "description": "A UUID string identifying this staff section assignment.",
-                        "required": true
-                    }
-                ],
-                "tags": [
-                    "staff-assignments"
-                ],
-                "requestBody": {
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "$ref": "#/components/schemas/PatchedStaffSectionAssignmentRequest"
-                            }
-                        },
-                        "application/x-www-form-urlencoded": {
-                            "schema": {
-                                "$ref": "#/components/schemas/PatchedStaffSectionAssignmentRequest"
-                            }
-                        },
-                        "multipart/form-data": {
-                            "schema": {
-                                "$ref": "#/components/schemas/PatchedStaffSectionAssignmentRequest"
-                            }
-                        }
-                    }
-                },
-                "security": [
-                    {
-                        "jwtAuth": []
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/StaffSectionAssignment"
-                                }
-                            }
-                        },
-                        "description": ""
-                    }
-                }
-            },
             "delete": {
                 "operationId": "staff_assignments_destroy",
                 "description": "Assign staff members to sections.",
@@ -2142,6 +1714,44 @@
                 }
             }
         },
+        "/api/v1/staff/{id}/reset-password/": {
+            "post": {
+                "operationId": "staff_reset_password_create",
+                "description": "Staff management endpoints scoped to the active tenant.",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        },
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "staff"
+                ],
+                "security": [
+                    {
+                        "jwtAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "additionalProperties": {}
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
         "/api/v1/table-groups/": {
             "get": {
                 "operationId": "table_groups_list",
@@ -2270,50 +1880,6 @@
                         "description": ""
                     }
                 }
-            },
-            "post": {
-                "operationId": "table_sessions_create",
-                "description": "Manage table dining sessions.",
-                "tags": [
-                    "table-sessions"
-                ],
-                "requestBody": {
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "$ref": "#/components/schemas/TableSessionRequest"
-                            }
-                        },
-                        "application/x-www-form-urlencoded": {
-                            "schema": {
-                                "$ref": "#/components/schemas/TableSessionRequest"
-                            }
-                        },
-                        "multipart/form-data": {
-                            "schema": {
-                                "$ref": "#/components/schemas/TableSessionRequest"
-                            }
-                        }
-                    },
-                    "required": true
-                },
-                "security": [
-                    {
-                        "jwtAuth": []
-                    }
-                ],
-                "responses": {
-                    "201": {
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/TableSession"
-                                }
-                            }
-                        },
-                        "description": ""
-                    }
-                }
             }
         },
         "/api/v1/table-sessions/{id}/": {
@@ -2352,146 +1918,6 @@
                         "description": ""
                     }
                 }
-            },
-            "put": {
-                "operationId": "table_sessions_update",
-                "description": "Manage table dining sessions.",
-                "parameters": [
-                    {
-                        "in": "path",
-                        "name": "id",
-                        "schema": {
-                            "type": "string",
-                            "format": "uuid"
-                        },
-                        "description": "A UUID string identifying this table session.",
-                        "required": true
-                    }
-                ],
-                "tags": [
-                    "table-sessions"
-                ],
-                "requestBody": {
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "$ref": "#/components/schemas/TableSessionRequest"
-                            }
-                        },
-                        "application/x-www-form-urlencoded": {
-                            "schema": {
-                                "$ref": "#/components/schemas/TableSessionRequest"
-                            }
-                        },
-                        "multipart/form-data": {
-                            "schema": {
-                                "$ref": "#/components/schemas/TableSessionRequest"
-                            }
-                        }
-                    },
-                    "required": true
-                },
-                "security": [
-                    {
-                        "jwtAuth": []
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/TableSession"
-                                }
-                            }
-                        },
-                        "description": ""
-                    }
-                }
-            },
-            "patch": {
-                "operationId": "table_sessions_partial_update",
-                "description": "Manage table dining sessions.",
-                "parameters": [
-                    {
-                        "in": "path",
-                        "name": "id",
-                        "schema": {
-                            "type": "string",
-                            "format": "uuid"
-                        },
-                        "description": "A UUID string identifying this table session.",
-                        "required": true
-                    }
-                ],
-                "tags": [
-                    "table-sessions"
-                ],
-                "requestBody": {
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "$ref": "#/components/schemas/PatchedTableSessionRequest"
-                            }
-                        },
-                        "application/x-www-form-urlencoded": {
-                            "schema": {
-                                "$ref": "#/components/schemas/PatchedTableSessionRequest"
-                            }
-                        },
-                        "multipart/form-data": {
-                            "schema": {
-                                "$ref": "#/components/schemas/PatchedTableSessionRequest"
-                            }
-                        }
-                    }
-                },
-                "security": [
-                    {
-                        "jwtAuth": []
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/TableSession"
-                                }
-                            }
-                        },
-                        "description": ""
-                    }
-                }
-            },
-            "delete": {
-                "operationId": "table_sessions_destroy",
-                "description": "Manage table dining sessions.",
-                "parameters": [
-                    {
-                        "in": "path",
-                        "name": "id",
-                        "schema": {
-                            "type": "string",
-                            "format": "uuid"
-                        },
-                        "description": "A UUID string identifying this table session.",
-                        "required": true
-                    }
-                ],
-                "tags": [
-                    "table-sessions"
-                ],
-                "security": [
-                    {
-                        "jwtAuth": []
-                    }
-                ],
-                "responses": {
-                    "204": {
-                        "description": "No response body"
-                    }
-                }
             }
         },
         "/api/v1/table-sessions/{id}/close/": {
@@ -2513,26 +1939,6 @@
                 "tags": [
                     "table-sessions"
                 ],
-                "requestBody": {
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "$ref": "#/components/schemas/TableSessionRequest"
-                            }
-                        },
-                        "application/x-www-form-urlencoded": {
-                            "schema": {
-                                "$ref": "#/components/schemas/TableSessionRequest"
-                            }
-                        },
-                        "multipart/form-data": {
-                            "schema": {
-                                "$ref": "#/components/schemas/TableSessionRequest"
-                            }
-                        }
-                    },
-                    "required": true
-                },
                 "security": [
                     {
                         "jwtAuth": []
@@ -2559,26 +1965,6 @@
                 "tags": [
                     "table-sessions"
                 ],
-                "requestBody": {
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "$ref": "#/components/schemas/TableSessionRequest"
-                            }
-                        },
-                        "application/x-www-form-urlencoded": {
-                            "schema": {
-                                "$ref": "#/components/schemas/TableSessionRequest"
-                            }
-                        },
-                        "multipart/form-data": {
-                            "schema": {
-                                "$ref": "#/components/schemas/TableSessionRequest"
-                            }
-                        }
-                    },
-                    "required": true
-                },
                 "security": [
                     {
                         "jwtAuth": []
@@ -2601,7 +1987,6 @@
         "/api/v1/tables/": {
             "get": {
                 "operationId": "tables_list",
-                "description": "CRUD and lifecycle operations for dining tables.",
                 "parameters": [
                     {
                         "name": "page",
@@ -2645,7 +2030,6 @@
             },
             "post": {
                 "operationId": "tables_create",
-                "description": "CRUD and lifecycle operations for dining tables.",
                 "tags": [
                     "tables"
                 ],
@@ -2691,7 +2075,6 @@
         "/api/v1/tables/{id}/": {
             "get": {
                 "operationId": "tables_retrieve",
-                "description": "CRUD and lifecycle operations for dining tables.",
                 "parameters": [
                     {
                         "in": "path",
@@ -2707,62 +2090,6 @@
                 "tags": [
                     "tables"
                 ],
-                "security": [
-                    {
-                        "jwtAuth": []
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/DiningTable"
-                                }
-                            }
-                        },
-                        "description": ""
-                    }
-                }
-            },
-            "put": {
-                "operationId": "tables_update",
-                "description": "CRUD and lifecycle operations for dining tables.",
-                "parameters": [
-                    {
-                        "in": "path",
-                        "name": "id",
-                        "schema": {
-                            "type": "string",
-                            "format": "uuid"
-                        },
-                        "description": "A UUID string identifying this dining table.",
-                        "required": true
-                    }
-                ],
-                "tags": [
-                    "tables"
-                ],
-                "requestBody": {
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "$ref": "#/components/schemas/DiningTableRequest"
-                            }
-                        },
-                        "application/x-www-form-urlencoded": {
-                            "schema": {
-                                "$ref": "#/components/schemas/DiningTableRequest"
-                            }
-                        },
-                        "multipart/form-data": {
-                            "schema": {
-                                "$ref": "#/components/schemas/DiningTableRequest"
-                            }
-                        }
-                    },
-                    "required": true
-                },
                 "security": [
                     {
                         "jwtAuth": []
@@ -2783,7 +2110,6 @@
             },
             "patch": {
                 "operationId": "tables_partial_update",
-                "description": "CRUD and lifecycle operations for dining tables.",
                 "parameters": [
                     {
                         "in": "path",
@@ -2838,7 +2164,6 @@
             },
             "delete": {
                 "operationId": "tables_destroy",
-                "description": "CRUD and lifecycle operations for dining tables.",
                 "parameters": [
                     {
                         "in": "path",
@@ -2869,7 +2194,6 @@
         "/api/v1/tables/{id}/status/": {
             "post": {
                 "operationId": "tables_status_create",
-                "description": "CRUD and lifecycle operations for dining tables.",
                 "parameters": [
                     {
                         "in": "path",
@@ -2927,7 +2251,6 @@
         "/api/v1/tables/bulk-create/": {
             "post": {
                 "operationId": "tables_bulk_create_create",
-                "description": "CRUD and lifecycle operations for dining tables.",
                 "tags": [
                     "tables"
                 ],
@@ -2973,7 +2296,6 @@
         "/api/v1/tables/join/": {
             "post": {
                 "operationId": "tables_join_create",
-                "description": "CRUD and lifecycle operations for dining tables.",
                 "tags": [
                     "tables"
                 ],
@@ -3019,7 +2341,6 @@
         "/api/v1/tables/layout/": {
             "post": {
                 "operationId": "tables_layout_create",
-                "description": "CRUD and lifecycle operations for dining tables.",
                 "tags": [
                     "tables"
                 ],
@@ -3060,55 +2381,11 @@
                         "description": ""
                     }
                 }
-            },
-            "patch": {
-                "operationId": "tables_layout_partial_update",
-                "description": "CRUD and lifecycle operations for dining tables.",
-                "tags": [
-                    "tables"
-                ],
-                "requestBody": {
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "$ref": "#/components/schemas/PatchedDiningTableRequest"
-                            }
-                        },
-                        "application/x-www-form-urlencoded": {
-                            "schema": {
-                                "$ref": "#/components/schemas/PatchedDiningTableRequest"
-                            }
-                        },
-                        "multipart/form-data": {
-                            "schema": {
-                                "$ref": "#/components/schemas/PatchedDiningTableRequest"
-                            }
-                        }
-                    }
-                },
-                "security": [
-                    {
-                        "jwtAuth": []
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/DiningTable"
-                                }
-                            }
-                        },
-                        "description": ""
-                    }
-                }
             }
         },
         "/api/v1/tables/split/": {
             "post": {
                 "operationId": "tables_split_create",
-                "description": "CRUD and lifecycle operations for dining tables.",
                 "tags": [
                     "tables"
                 ],
@@ -3335,6 +2612,44 @@
                 }
             }
         },
+        "/api/v1/tenants/{id}/reset-owner-password/": {
+            "post": {
+                "operationId": "tenants_reset_owner_password_create",
+                "description": "Platform administrator endpoints to manage tenants and provisioning.",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        },
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "tenants"
+                ],
+                "security": [
+                    {
+                        "jwtAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "additionalProperties": {}
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
         "/api/v1/tenants/{id}/suspend/": {
             "post": {
                 "operationId": "tenants_suspend_create",
@@ -3419,37 +2734,9 @@
                 }
             }
         },
-        "/health": {
-            "get": {
-                "operationId": "health_retrieve",
-                "description": "System health check endpoint verifying database and Redis connectivity.",
-                "tags": [
-                    "health"
-                ],
-                "security": [
-                    {
-                        "jwtAuth": []
-                    },
-                    {}
-                ],
-                "responses": {
-                    "200": {
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object",
-                                    "additionalProperties": {}
-                                }
-                            }
-                        },
-                        "description": ""
-                    }
-                }
-            }
-        },
         "/health/": {
             "get": {
-                "operationId": "health_retrieve_2",
+                "operationId": "health_retrieve",
                 "description": "System health check endpoint verifying database and Redis connectivity.",
                 "tags": [
                     "health"
@@ -3478,7 +2765,7 @@
     },
     "components": {
         "schemas": {
-            "AreaTypeEnum": {
+            "AreaType": {
                 "enum": [
                     "DINING",
                     "BAR",
@@ -3619,16 +2906,16 @@
                         "type": "boolean"
                     },
                     "payment_timing": {
-                        "$ref": "#/components/schemas/PaymentTimingEnum"
+                        "$ref": "#/components/schemas/PaymentTiming"
                     },
                     "qr_ordering_mode": {
-                        "$ref": "#/components/schemas/QrOrderingModeEnum"
+                        "$ref": "#/components/schemas/QROrderingMode"
                     },
                     "qr_session_policy": {
-                        "$ref": "#/components/schemas/QrSessionPolicyEnum"
+                        "$ref": "#/components/schemas/QRSessionPolicy"
                     },
                     "order_workflow": {
-                        "$ref": "#/components/schemas/OrderWorkflowEnum"
+                        "$ref": "#/components/schemas/OrderWorkflow"
                     },
                     "created_at": {
                         "type": "string",
@@ -3735,7 +3022,7 @@
                     "status": {
                         "allOf": [
                             {
-                                "$ref": "#/components/schemas/Status2ecEnum"
+                                "$ref": "#/components/schemas/TenantStatus"
                             }
                         ],
                         "readOnly": true
@@ -3894,7 +3181,7 @@
                         "maxLength": 50
                     },
                     "table_type": {
-                        "$ref": "#/components/schemas/TableTypeEnum"
+                        "$ref": "#/components/schemas/TableType"
                     },
                     "min_capacity": {
                         "type": "integer",
@@ -3909,7 +3196,7 @@
                     "status": {
                         "allOf": [
                             {
-                                "$ref": "#/components/schemas/DiningTableStatusEnum"
+                                "$ref": "#/components/schemas/TableStatus"
                             }
                         ],
                         "readOnly": true
@@ -3943,7 +3230,7 @@
                         "minimum": -2147483648
                     },
                     "shape": {
-                        "$ref": "#/components/schemas/ShapeEnum"
+                        "$ref": "#/components/schemas/TableShape"
                     },
                     "group": {
                         "type": "string",
@@ -3997,7 +3284,7 @@
                         "maxLength": 50
                     },
                     "table_type": {
-                        "$ref": "#/components/schemas/TableTypeEnum"
+                        "$ref": "#/components/schemas/TableType"
                     },
                     "min_capacity": {
                         "type": "integer",
@@ -4038,7 +3325,7 @@
                         "minimum": -2147483648
                     },
                     "shape": {
-                        "$ref": "#/components/schemas/ShapeEnum"
+                        "$ref": "#/components/schemas/TableShape"
                     }
                 },
                 "required": [
@@ -4046,17 +3333,6 @@
                     "label",
                     "section"
                 ]
-            },
-            "DiningTableStatusEnum": {
-                "enum": [
-                    "AVAILABLE",
-                    "OCCUPIED",
-                    "RESERVED",
-                    "CLEANING",
-                    "BLOCKED"
-                ],
-                "type": "string",
-                "description": "* `AVAILABLE` - Available\n* `OCCUPIED` - Occupied\n* `RESERVED` - Reserved\n* `CLEANING` - Cleaning / Busing\n* `BLOCKED` - Blocked / Maintenance"
             },
             "LoginRequestRequest": {
                 "type": "object",
@@ -4192,17 +3468,15 @@
                 "type": "string",
                 "description": "* `STAFF` - Staff Opened\n* `QR` - Customer QR Scan\n* `QR_CUSTOMER` - Customer QR Scan"
             },
-            "OrderWorkflowEnum": {
+            "OrderWorkflow": {
                 "enum": [
                     "COUNTER_TOKEN",
                     "TABLE_SERVICE",
                     "BAR_TAB",
-                    "ROOM_SERVICE",
-                    "FAST_FOOD_DISPLAY",
-                    "DRIVE_THRU"
+                    "ROOM_SERVICE"
                 ],
                 "type": "string",
-                "description": "* `COUNTER_TOKEN` - Counter Token\n* `TABLE_SERVICE` - Table Service\n* `BAR_TAB` - Bar Tab\n* `ROOM_SERVICE` - Room Service\n* `FAST_FOOD_DISPLAY` - Fast Food Display\n* `DRIVE_THRU` - Drive Thru"
+                "description": "* `COUNTER_TOKEN` - Counter Token\n* `TABLE_SERVICE` - Table Service\n* `BAR_TAB` - Bar Tab\n* `ROOM_SERVICE` - Room Service"
             },
             "PaginatedBranchList": {
                 "type": "object",
@@ -4551,16 +3825,16 @@
                         "type": "boolean"
                     },
                     "payment_timing": {
-                        "$ref": "#/components/schemas/PaymentTimingEnum"
+                        "$ref": "#/components/schemas/PaymentTiming"
                     },
                     "qr_ordering_mode": {
-                        "$ref": "#/components/schemas/QrOrderingModeEnum"
+                        "$ref": "#/components/schemas/QROrderingMode"
                     },
                     "qr_session_policy": {
-                        "$ref": "#/components/schemas/QrSessionPolicyEnum"
+                        "$ref": "#/components/schemas/QRSessionPolicy"
                     },
                     "order_workflow": {
-                        "$ref": "#/components/schemas/OrderWorkflowEnum"
+                        "$ref": "#/components/schemas/OrderWorkflow"
                     }
                 }
             },
@@ -4645,7 +3919,7 @@
                         "maxLength": 50
                     },
                     "table_type": {
-                        "$ref": "#/components/schemas/TableTypeEnum"
+                        "$ref": "#/components/schemas/TableType"
                     },
                     "min_capacity": {
                         "type": "integer",
@@ -4686,38 +3960,7 @@
                         "minimum": -2147483648
                     },
                     "shape": {
-                        "$ref": "#/components/schemas/ShapeEnum"
-                    }
-                }
-            },
-            "PatchedQRCodeRequest": {
-                "type": "object",
-                "properties": {
-                    "branch": {
-                        "type": "string",
-                        "format": "uuid"
-                    },
-                    "target_type": {
-                        "allOf": [
-                            {
-                                "$ref": "#/components/schemas/TargetTypeEnum"
-                            }
-                        ],
-                        "default": "TABLE"
-                    },
-                    "table": {
-                        "type": "string",
-                        "format": "uuid",
-                        "nullable": true
-                    },
-                    "service_area": {
-                        "type": "string",
-                        "format": "uuid",
-                        "nullable": true
-                    },
-                    "is_active": {
-                        "type": "boolean",
-                        "default": true
+                        "$ref": "#/components/schemas/TableShape"
                     }
                 }
             },
@@ -4772,7 +4015,7 @@
                         "maxLength": 100
                     },
                     "area_type": {
-                        "$ref": "#/components/schemas/AreaTypeEnum"
+                        "$ref": "#/components/schemas/AreaType"
                     },
                     "service_charge_bps": {
                         "type": "integer",
@@ -4807,57 +4050,7 @@
                     }
                 }
             },
-            "PatchedStaffSectionAssignmentRequest": {
-                "type": "object",
-                "properties": {
-                    "branch": {
-                        "type": "string",
-                        "format": "uuid"
-                    },
-                    "membership": {
-                        "type": "string",
-                        "format": "uuid"
-                    },
-                    "section": {
-                        "type": "string",
-                        "format": "uuid"
-                    },
-                    "valid_from": {
-                        "type": "string",
-                        "format": "date-time"
-                    },
-                    "valid_to": {
-                        "type": "string",
-                        "format": "date-time",
-                        "nullable": true
-                    }
-                }
-            },
-            "PatchedTableSessionRequest": {
-                "type": "object",
-                "properties": {
-                    "branch": {
-                        "type": "string",
-                        "format": "uuid"
-                    },
-                    "table": {
-                        "type": "string",
-                        "format": "uuid",
-                        "nullable": true
-                    },
-                    "table_group": {
-                        "type": "string",
-                        "format": "uuid",
-                        "nullable": true
-                    },
-                    "guest_count": {
-                        "type": "integer",
-                        "maximum": 2147483647,
-                        "minimum": -2147483648
-                    }
-                }
-            },
-            "PaymentTimingEnum": {
+            "PaymentTiming": {
                 "enum": [
                     "PAY_FIRST",
                     "PAY_LATER",
@@ -4953,7 +4146,8 @@
                     },
                     "branch": {
                         "type": "string",
-                        "format": "uuid"
+                        "format": "uuid",
+                        "readOnly": true
                     },
                     "target_type": {
                         "allOf": [
@@ -4961,11 +4155,13 @@
                                 "$ref": "#/components/schemas/TargetTypeEnum"
                             }
                         ],
+                        "readOnly": true,
                         "default": "TABLE"
                     },
                     "table": {
                         "type": "string",
                         "format": "uuid",
+                        "readOnly": true,
                         "nullable": true
                     },
                     "table_label": {
@@ -4975,6 +4171,7 @@
                     "service_area": {
                         "type": "string",
                         "format": "uuid",
+                        "readOnly": true,
                         "nullable": true
                     },
                     "service_area_name": {
@@ -4987,6 +4184,7 @@
                     },
                     "is_active": {
                         "type": "boolean",
+                        "readOnly": true,
                         "default": true
                     },
                     "version": {
@@ -5013,49 +4211,19 @@
                     "branch",
                     "created_at",
                     "id",
+                    "is_active",
                     "public_token",
                     "rotated_at",
+                    "service_area",
                     "service_area_name",
+                    "table",
                     "table_label",
+                    "target_type",
                     "updated_at",
                     "version"
                 ]
             },
-            "QRCodeRequest": {
-                "type": "object",
-                "properties": {
-                    "branch": {
-                        "type": "string",
-                        "format": "uuid"
-                    },
-                    "target_type": {
-                        "allOf": [
-                            {
-                                "$ref": "#/components/schemas/TargetTypeEnum"
-                            }
-                        ],
-                        "default": "TABLE"
-                    },
-                    "table": {
-                        "type": "string",
-                        "format": "uuid",
-                        "nullable": true
-                    },
-                    "service_area": {
-                        "type": "string",
-                        "format": "uuid",
-                        "nullable": true
-                    },
-                    "is_active": {
-                        "type": "boolean",
-                        "default": true
-                    }
-                },
-                "required": [
-                    "branch"
-                ]
-            },
-            "QrOrderingModeEnum": {
+            "QROrderingMode": {
                 "enum": [
                     "DISABLED",
                     "BROWSE_ONLY",
@@ -5065,7 +4233,7 @@
                 "type": "string",
                 "description": "* `DISABLED` - Disabled\n* `BROWSE_ONLY` - Browse Only\n* `ORDER_WITH_APPROVAL` - Order With Approval\n* `ORDER_DIRECT` - Order Direct"
             },
-            "QrSessionPolicyEnum": {
+            "QRSessionPolicy": {
                 "enum": [
                     "CUSTOMER_CAN_OPEN",
                     "STAFF_ONLY"
@@ -5192,7 +4360,7 @@
                         "maxLength": 100
                     },
                     "area_type": {
-                        "$ref": "#/components/schemas/AreaTypeEnum"
+                        "$ref": "#/components/schemas/AreaType"
                     },
                     "service_charge_bps": {
                         "type": "integer",
@@ -5244,7 +4412,7 @@
                         "maxLength": 100
                     },
                     "area_type": {
-                        "$ref": "#/components/schemas/AreaTypeEnum"
+                        "$ref": "#/components/schemas/AreaType"
                     },
                     "service_charge_bps": {
                         "type": "integer",
@@ -5270,16 +4438,13 @@
                     "name"
                 ]
             },
-            "ShapeEnum": {
+            "SessionStatus": {
                 "enum": [
-                    "RECT",
-                    "ROUND",
-                    "SQUARE",
-                    "BOOTH",
-                    "LONG"
+                    "OPEN",
+                    "CLOSED"
                 ],
                 "type": "string",
-                "description": "* `RECT` - Rectangle\n* `ROUND` - Round\n* `SQUARE` - Square\n* `BOOTH` - Booth\n* `LONG` - Long Table"
+                "description": "* `OPEN` - Open\n* `CLOSED` - Closed"
             },
             "StaffDetail": {
                 "type": "object",
@@ -5427,14 +4592,6 @@
                     "section"
                 ]
             },
-            "Status2ecEnum": {
-                "enum": [
-                    "ACTIVE",
-                    "SUSPENDED"
-                ],
-                "type": "string",
-                "description": "* `ACTIVE` - Active\n* `SUSPENDED` - Suspended"
-            },
             "TableGroup": {
                 "type": "object",
                 "properties": {
@@ -5492,16 +4649,19 @@
                     },
                     "branch": {
                         "type": "string",
-                        "format": "uuid"
+                        "format": "uuid",
+                        "readOnly": true
                     },
                     "table": {
                         "type": "string",
                         "format": "uuid",
+                        "readOnly": true,
                         "nullable": true
                     },
                     "table_group": {
                         "type": "string",
                         "format": "uuid",
+                        "readOnly": true,
                         "nullable": true
                     },
                     "table_label": {
@@ -5511,7 +4671,7 @@
                     "status": {
                         "allOf": [
                             {
-                                "$ref": "#/components/schemas/TableSessionStatusEnum"
+                                "$ref": "#/components/schemas/SessionStatus"
                             }
                         ],
                         "readOnly": true,
@@ -5538,8 +4698,7 @@
                     },
                     "guest_count": {
                         "type": "integer",
-                        "maximum": 2147483647,
-                        "minimum": -2147483648
+                        "readOnly": true
                     },
                     "session_code": {
                         "type": "string",
@@ -5583,6 +4742,7 @@
                     "closed_at",
                     "created_at",
                     "expires_at",
+                    "guest_count",
                     "id",
                     "last_activity_at",
                     "opened_at",
@@ -5591,46 +4751,35 @@
                     "opened_via",
                     "session_code",
                     "status",
+                    "table",
+                    "table_group",
                     "table_label",
                     "updated_at"
                 ]
             },
-            "TableSessionRequest": {
-                "type": "object",
-                "properties": {
-                    "branch": {
-                        "type": "string",
-                        "format": "uuid"
-                    },
-                    "table": {
-                        "type": "string",
-                        "format": "uuid",
-                        "nullable": true
-                    },
-                    "table_group": {
-                        "type": "string",
-                        "format": "uuid",
-                        "nullable": true
-                    },
-                    "guest_count": {
-                        "type": "integer",
-                        "maximum": 2147483647,
-                        "minimum": -2147483648
-                    }
-                },
-                "required": [
-                    "branch"
-                ]
-            },
-            "TableSessionStatusEnum": {
+            "TableShape": {
                 "enum": [
-                    "OPEN",
-                    "CLOSED"
+                    "RECT",
+                    "ROUND",
+                    "SQUARE",
+                    "BOOTH",
+                    "LONG"
                 ],
                 "type": "string",
-                "description": "* `OPEN` - Open\n* `CLOSED` - Closed"
+                "description": "* `RECT` - Rectangle\n* `ROUND` - Round\n* `SQUARE` - Square\n* `BOOTH` - Booth\n* `LONG` - Long Table"
             },
-            "TableTypeEnum": {
+            "TableStatus": {
+                "enum": [
+                    "AVAILABLE",
+                    "OCCUPIED",
+                    "RESERVED",
+                    "CLEANING",
+                    "BLOCKED"
+                ],
+                "type": "string",
+                "description": "* `AVAILABLE` - Available\n* `OCCUPIED` - Occupied\n* `RESERVED` - Reserved\n* `CLEANING` - Cleaning / Busing\n* `BLOCKED` - Blocked / Maintenance"
+            },
+            "TableType": {
                 "enum": [
                     "TABLE",
                     "BOOTH",
@@ -5686,7 +4835,7 @@
                         "readOnly": true
                     },
                     "status": {
-                        "$ref": "#/components/schemas/Status2ecEnum"
+                        "$ref": "#/components/schemas/TenantStatus"
                     },
                     "email": {
                         "type": "string",
@@ -5760,7 +4909,7 @@
                         "$ref": "#/components/schemas/BusinessTypeEnum"
                     },
                     "status": {
-                        "$ref": "#/components/schemas/Status2ecEnum"
+                        "$ref": "#/components/schemas/TenantStatus"
                     },
                     "email": {
                         "type": "string",
@@ -5789,6 +4938,14 @@
                     "name",
                     "slug"
                 ]
+            },
+            "TenantStatus": {
+                "enum": [
+                    "ACTIVE",
+                    "SUSPENDED"
+                ],
+                "type": "string",
+                "description": "* `ACTIVE` - Active\n* `SUSPENDED` - Suspended"
             },
             "User": {
                 "type": "object",

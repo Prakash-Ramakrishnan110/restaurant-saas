@@ -21,6 +21,11 @@ urlpatterns = [
         name="staff-list-create",
     ),
     path(
+        "staff/<uuid:pk>/reset-password/",
+        StaffViewSet.as_view({"post": "reset_password"}),
+        name="staff-reset-password",
+    ),
+    path(
         "staff/<uuid:pk>/",
         StaffViewSet.as_view({"get": "retrieve", "patch": "partial_update", "delete": "destroy"}),
         name="staff-detail",

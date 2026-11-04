@@ -7,6 +7,25 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 
 from apps.core.context import reset_current_tenant, set_current_tenant
 
+PASSWORD_CHANGE_EXEMPT_PATHS = frozenset(
+    {
+        "/api/v1/auth/me",
+        "/api/v1/auth/change-password",
+        "/api/v1/auth/logout",
+        "/api/v1/auth/refresh",
+        "/health",
+        "/api/schema",
+    }
+)
+PASSWORD_CHANGE_EXEMPT_PREFIXES = ("/api/docs", "/static/")
+
+
+def is_password_change_exempt(path: str) -> bool:
+    """Routes a user with a temporary password may still call."""
+    return path.rstrip("/") in PASSWORD_CHANGE_EXEMPT_PATHS or path.startswith(
+        PASSWORD_CHANGE_EXEMPT_PREFIXES
+    )
+
 
 class TenantContextMiddleware:
     """Middleware to set and reset request-scoped tenant context.
@@ -34,35 +53,24 @@ class TenantContextMiddleware:
                 # Invalid token will be handled by DRF permission/auth classes
                 pass
 
-        # 1b. Enforce must_change_password gate for authenticated users
-        allowed_password_change_paths = {
-            "/api/v1/auth/me",
-            "/api/v1/auth/me/",
-            "/api/v1/auth/change-password",
-            "/api/v1/auth/change-password/",
-            "/api/v1/auth/logout",
-            "/api/v1/auth/logout/",
-            "/api/v1/auth/refresh",
-            "/api/v1/auth/refresh/",
-            "/health",
-            "/health/",
-        }
-        if getattr(request.user, "is_authenticated", False) and getattr(
-            request.user, "must_change_password", False
+        # 1b. Enforce must_change_password gate for authenticated users (single, global place)
+        if (
+            getattr(request.user, "is_authenticated", False)
+            and getattr(request.user, "must_change_password", False)
+            and not is_password_change_exempt(request.path)
         ):
-            if request.path not in allowed_password_change_paths:
-                from django.http import JsonResponse
+            from django.http import JsonResponse
 
-                return JsonResponse(
-                    {
-                        "error": {
-                            "code": "PASSWORD_CHANGE_REQUIRED",
-                            "message": "You must change your temporary password before accessing this resource.",
-                            "details": {},
-                        }
-                    },
-                    status=403,
-                )
+            return JsonResponse(
+                {
+                    "error": {
+                        "code": "PASSWORD_CHANGE_REQUIRED",
+                        "message": "You must change your temporary password before accessing this resource.",
+                        "details": {},
+                    }
+                },
+                status=403,
+            )
 
         # 2. Resolve active tenant and enforce per-request subscription/status standing
         tenant = self._resolve_tenant(request)

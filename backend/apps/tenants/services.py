@@ -69,16 +69,27 @@ def create_tenant_with_defaults(
 
     # 4. First Owner User and Membership
     normalized_owner_email = owner_email.strip().lower()
-    owner_user, _ = User.objects.get_or_create(
+    owner_user, owner_created = User.objects.get_or_create(
         email=normalized_owner_email,
         defaults={
             "full_name": owner_full_name or f"{name} Owner",
             "is_active": True,
         },
     )
-    if owner_password:
-        owner_user.set_password(owner_password)
-        owner_user.save()
+    # A brand-new owner always gets a password that must be changed on first login.
+    # An existing account (owner of another business) is never touched.
+    # The plain password lives only on this transient attribute so the API can show it once.
+    owner_user.temporary_password = ""  # type: ignore[attr-defined]
+    if owner_created:
+        if owner_password:
+            owner_user.set_password(owner_password)
+            owner_user.must_change_password = True
+            owner_user.save()
+            owner_user.temporary_password = owner_password  # type: ignore[attr-defined]
+        else:
+            from apps.accounts.staff_service import issue_temporary_password
+
+            owner_user.temporary_password = issue_temporary_password(owner_user)  # type: ignore[attr-defined]
 
     membership = Membership.objects.create(
         user=owner_user,
@@ -454,3 +465,30 @@ def get_onboarding_status(tenant: Tenant) -> dict[str, Any]:
             "staff_count": staff_count,
         },
     }
+
+
+@transaction.atomic
+def reset_owner_passwords(
+    tenant: Tenant, actor: Any | None = None, request: Any | None = None
+) -> list[dict[str, str]]:
+    """Platform support: issue new one-time passwords for every active OWNER of a tenant."""
+    from apps.accounts.staff_service import issue_temporary_password, revoke_all_sessions
+
+    results: list[dict[str, str]] = []
+    owners = Membership.objects.filter(
+        tenant=tenant, role=Role.OWNER, is_active=True
+    ).select_related("user")
+    for membership in owners:
+        temp_password = issue_temporary_password(membership.user)
+        revoke_all_sessions(membership.user)
+        results.append({"email": membership.user.email, "temporary_password": temp_password})
+        log_audit_event(
+            action="tenant.reset_owner_password",
+            entity_type="Membership",
+            entity_id=str(membership.id),
+            actor=actor,
+            tenant=tenant,
+            after_state={"user_id": str(membership.user_id), "must_change_password": True},
+            request=request,
+        )
+    return results

@@ -6,7 +6,7 @@ from django.core.signing import TimestampSigner
 from django.http import Http404, HttpResponse
 from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import extend_schema
-from rest_framework import status, viewsets
+from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.exceptions import ValidationError
 from rest_framework.permissions import AllowAny, IsAuthenticated
@@ -131,6 +131,7 @@ class BranchCapabilitiesView(APIView):
 
 
 class ServiceAreaViewSet(viewsets.ModelViewSet):
+    http_method_names = ["get", "post", "patch", "delete", "head", "options"]
     """CRUD for branch service areas."""
 
     serializer_class = ServiceAreaSerializer
@@ -170,6 +171,7 @@ class ServiceAreaViewSet(viewsets.ModelViewSet):
 
 
 class SectionViewSet(viewsets.ModelViewSet):
+    http_method_names = ["get", "post", "patch", "delete", "head", "options"]
     """CRUD for floor/area sections."""
 
     serializer_class = SectionSerializer
@@ -210,6 +212,7 @@ class SectionViewSet(viewsets.ModelViewSet):
 
 
 class DiningTableViewSet(viewsets.ModelViewSet):
+    http_method_names = ["get", "post", "patch", "delete", "head", "options"]
     """CRUD and lifecycle operations for dining tables."""
 
     serializer_class = DiningTableSerializer
@@ -356,7 +359,7 @@ class DiningTableViewSet(viewsets.ModelViewSet):
             DiningTableSerializer(tables, many=True).data, status=status.HTTP_201_CREATED
         )
 
-    @action(detail=False, methods=["post", "patch"], url_path="layout")
+    @action(detail=False, methods=["post"], url_path="layout")
     def layout(self, request: Request) -> Response:
         tenant = getattr(request, "tenant", None)
         enforce_limit(tenant, "floor_editor")
@@ -400,7 +403,9 @@ class TableGroupViewSet(viewsets.ReadOnlyModelViewSet):
         return TableGroup.objects.filter(is_active=True).prefetch_related("tables")
 
 
-class TableSessionViewSet(viewsets.ModelViewSet):
+class TableSessionViewSet(
+    mixins.ListModelMixin, mixins.RetrieveModelMixin, viewsets.GenericViewSet
+):
     """Manage table dining sessions."""
 
     serializer_class = TableSessionSerializer
@@ -480,7 +485,13 @@ class TableSessionViewSet(viewsets.ModelViewSet):
         return Response(TableSessionSerializer(session).data)
 
 
-class StaffSectionAssignmentViewSet(viewsets.ModelViewSet):
+class StaffSectionAssignmentViewSet(
+    mixins.ListModelMixin,
+    mixins.RetrieveModelMixin,
+    mixins.CreateModelMixin,
+    mixins.DestroyModelMixin,
+    viewsets.GenericViewSet,
+):
     """Assign staff members to sections."""
 
     serializer_class = StaffSectionAssignmentSerializer
@@ -537,7 +548,12 @@ class SVGRenderer(BaseRenderer):
         return data
 
 
-class QRCodeViewSet(viewsets.ModelViewSet):
+class QRCodeViewSet(
+    mixins.ListModelMixin,
+    mixins.RetrieveModelMixin,
+    mixins.DestroyModelMixin,
+    viewsets.GenericViewSet,
+):
     """Staff management of cryptographic QR tokens."""
 
     serializer_class = QRCodeSerializer

@@ -217,4 +217,18 @@ SPECTACULAR_SETTINGS = {
     "SERVE_INCLUDE_SCHEMA": False,
     "COMPONENT_SPLIT_REQUEST": True,
     "SCHEMA_PATH_PREFIX": r"/api/v[0-9]+",
+    "ENUM_NAME_OVERRIDES": {
+        "TenantStatus": "apps.tenants.models.Tenant.Status",
+        "TableStatus": "apps.venues.constants.TableStatus",
+        "SessionStatus": "apps.venues.constants.SessionStatus",
+        "SubscriptionStatus": "apps.subscriptions.models.SubscriptionStatus",
+        "MembershipRole": "apps.rbac.constants.Role.CHOICES",
+        "AreaType": "apps.venues.constants.AreaType",
+        "TableType": "apps.venues.constants.TableType",
+        "TableShape": "apps.venues.constants.TableShape",
+        "PaymentTiming": "apps.venues.constants.PaymentTiming",
+        "QROrderingMode": "apps.venues.constants.QROrderingMode",
+        "QRSessionPolicy": "apps.venues.constants.QRSessionPolicy",
+        "OrderWorkflow": "apps.venues.constants.OrderWorkflow",
+    },
 }

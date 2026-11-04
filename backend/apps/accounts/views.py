@@ -3,6 +3,7 @@ from typing import Any
 from django.conf import settings
 from django.http import Http404
 from drf_spectacular.extensions import OpenApiAuthenticationExtension
+from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import OpenApiResponse, extend_schema
 from rest_framework import status
 from rest_framework.permissions import AllowAny, IsAuthenticated
@@ -30,7 +31,9 @@ from apps.accounts.services import (
     refresh_user_tokens,
 )
 from apps.accounts.staff_service import (
+    assert_target_in_actor_scope,
     create_staff_member,
+    reset_staff_password,
     update_staff_member,
 )
 from apps.accounts.throttling import (
@@ -434,6 +437,7 @@ class StaffViewSet(ViewSet):
             branch_ids=serializer.validated_data.get("branch_ids"),
             is_active=serializer.validated_data.get("is_active", True),
             request=request,
+            actor_membership=user_membership,
         )
 
         response_data = StaffDetailSerializer(membership).data
@@ -457,6 +461,7 @@ class StaffViewSet(ViewSet):
         verify_tenant_and_branch_access(
             request.user, membership, tenant=tenant, membership=getattr(request, "membership", None)
         )
+        assert_target_in_actor_scope(getattr(request, "membership", None), membership)
         return Response(StaffDetailSerializer(membership).data)
 
     def partial_update(self, request: Request, pk: str | None = None) -> Response:
@@ -494,9 +499,37 @@ class StaffViewSet(ViewSet):
             branch_ids=serializer.validated_data.get("branch_ids"),
             is_active=serializer.validated_data.get("is_active"),
             request=request,
+            actor_membership=user_membership,
         )
 
         return Response(StaffDetailSerializer(updated_membership).data)
+
+    @extend_schema(request=None, responses={200: OpenApiTypes.OBJECT})
+    def reset_password(self, request: Request, pk: str | None = None) -> Response:
+        if not pk:
+            raise Http404("Staff member not found.")
+        tenant = getattr(request, "tenant", None) or get_current_tenant()
+        try:
+            membership = Membership.objects.select_related("user", "tenant").get(
+                pk=pk, tenant=tenant
+            )
+        except Membership.DoesNotExist:
+            raise Http404("Staff member not found.") from None
+
+        user_membership = getattr(request, "membership", None)
+        caller_role = (
+            "PLATFORM_ADMIN"
+            if getattr(request.user, "is_platform_admin", False)
+            else (user_membership.role if user_membership else "STAFF")
+        )
+        temp_password = reset_staff_password(
+            membership=membership,
+            actor=request.user,
+            actor_role=caller_role,
+            request=request,
+            actor_membership=user_membership,
+        )
+        return Response({"id": str(membership.id), "temporary_password": temp_password})
 
     def destroy(self, request: Request, pk: str | None = None) -> Response:
         if not pk:
@@ -526,6 +559,7 @@ class StaffViewSet(ViewSet):
             actor_role=caller_role,
             is_active=False,
             request=request,
+            actor_membership=user_membership,
         )
 
         return Response(

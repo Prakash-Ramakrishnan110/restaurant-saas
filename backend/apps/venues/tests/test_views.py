@@ -117,7 +117,7 @@ def test_dining_table_bulk_create_and_layout(venue_test_setup):
     t1_id = res_bulk.data[0]["id"]
 
     # Floor layout update
-    res_layout = client.patch(
+    res_layout = client.post(
         "/api/v1/tables/layout/",
         {
             "tables": [

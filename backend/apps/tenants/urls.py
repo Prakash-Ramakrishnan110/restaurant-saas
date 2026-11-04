@@ -37,6 +37,11 @@ urlpatterns = [
         name="tenant-suspend",
     ),
     path(
+        "tenants/<uuid:pk>/reset-owner-password/",
+        TenantViewSet.as_view({"post": "reset_owner_password"}),
+        name="tenant-reset-owner-password",
+    ),
+    path(
         "tenants/<uuid:pk>/activate/",
         TenantViewSet.as_view({"post": "activate"}),
         name="tenant-activate",

@@ -20,6 +20,28 @@ serializers.PrimaryKeyRelatedField.default_error_messages["does_not_exist"] = (
 )
 
 
+class BusinessRuleError(APIException):
+    """A domain rule violation with a specific machine-readable code and structured details."""
+
+    status_code = 400
+    default_detail = "A business rule was violated."
+    default_code = "BUSINESS_RULE_VIOLATION"
+
+    def __init__(
+        self,
+        error_code: str,
+        message: str | None = None,
+        *,
+        status_code: int | None = None,
+        details: dict[str, Any] | None = None,
+    ) -> None:
+        super().__init__(detail=message or self.default_detail, code=error_code)
+        self.error_code = error_code
+        self.details: dict[str, Any] = details or {}
+        if status_code is not None:
+            self.status_code = status_code
+
+
 def _extract_codes(codes_obj: Any) -> list[str]:
     extracted: list[str] = []
     if isinstance(codes_obj, str):
@@ -53,7 +75,11 @@ def custom_exception_handler(exc: Exception, context: dict[str, Any]) -> Respons
     message = "An error occurred."
     details: Any = {}
 
-    if isinstance(exc, ValidationError):
+    if isinstance(exc, BusinessRuleError):
+        code = exc.error_code
+        message = str(exc.detail)
+        details = exc.details
+    elif isinstance(exc, ValidationError):
         raw_codes = _extract_codes(exc.get_codes()) if hasattr(exc, "get_codes") else []
         codes = [c.upper() for c in raw_codes]
         if "INVALID_CAPABILITY_COMBINATION" in codes:
