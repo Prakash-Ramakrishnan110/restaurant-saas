@@ -57,6 +57,8 @@ celerybeat-schedule*
 node_modules/
 dist/
 .eslintcache
+playwright-report/
+test-results/
 
 # Environment & Secrets
 .env

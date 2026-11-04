@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="none">
+  <rect width="32" height="32" rx="8" fill="#FF6A00"/>
+  <!-- Cloche dome -->
+  <path d="M7 21h18c-0.6-5.5-4.5-9.8-10-9.8S7.6 15.5 7 21z" fill="#0B1F3B"/>
+  <!-- Cloche handle -->
+  <circle cx="15" cy="9.2" r="1.8" fill="#0B1F3B"/>
+  <!-- Tray base line -->
+  <rect x="5" y="22.5" width="20" height="2" rx="1" fill="#0B1F3B"/>
+  <!-- Food steam / sparkle -->
+  <path d="M19 8c1-1 2 0 3-1" stroke="#FFF3E0" stroke-width="1.2" stroke-linecap="round"/>
+</svg>
