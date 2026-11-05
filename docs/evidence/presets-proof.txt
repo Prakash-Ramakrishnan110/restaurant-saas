@@ -1,0 +1,17 @@
+﻿=== GIT DIFF v0.2.6 HEAD -- backend/apps/venues/presets.py ===
+(Empty diff: final preset values CAFE qr_ordering_mode=ORDER_DIRECT and HOTEL_RESTAURANT qr_session_policy=STAFF_ONLY were already locked in v0.2.6)
+
+=== GOLDEN PRESET TEST (apps/venues/tests/test_presets.py) ===
+============================= test session starts =============================
+platform win32 -- Python 3.12.10, pytest-9.2.0, pluggy-1.6.0 -- C:\Users\praka\AppData\Local\Microsoft\WindowsApps\PythonSoftwareFoundation.Python.3.12_qbz5n2kfra8p0\python.exe
+cachedir: .pytest_cache
+django: version: 5.2.18, settings: config.settings.test (from ini)
+rootdir: C:\Users\praka\Desktop\Restaurant_saas\backend
+configfile: pyproject.toml
+plugins: anyio-4.11.0, Faker-40.1.2, asyncio-1.4.0, cov-6.0.0, django-4.9.0
+asyncio: mode=Mode.STRICT, debug=False, asyncio_default_fixture_loop_scope=function, asyncio_default_test_loop_scope=function
+collecting ... collected 19 items / 18 deselected / 1 selected
+
+apps/venues/tests/test_presets.py::test_golden_table_all_seven_presets_15_fields PASSED [100%]
+
+====================== 1 passed, 18 deselected in 5.14s =======================

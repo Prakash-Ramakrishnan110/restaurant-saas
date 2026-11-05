@@ -1,4 +1,5 @@
-﻿============================= test session starts =============================
+TEETH-CHECK 1: Disabled branch-scope check in verify_tenant_and_branch_access (branch scope bypass)
+============================= test session starts =============================
 platform win32 -- Python 3.12.10, pytest-9.2.0, pluggy-1.6.0 -- C:\Users\praka\AppData\Local\Microsoft\WindowsApps\PythonSoftwareFoundation.Python.3.12_qbz5n2kfra8p0\python.exe
 cachedir: .pytest_cache
 django: version: 5.2.18, settings: config.settings.test (from ini)

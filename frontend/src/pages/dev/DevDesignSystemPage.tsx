@@ -331,7 +331,7 @@ const InnerDesignSystemPage: React.FC = () => {
                   checked={radioPreset === "cafe"}
                   onChange={setRadioPreset}
                   title="Café / Bistro"
-                  description="Table seating with direct customer QR ordering."
+                  description="Table service with direct QR ordering (ORDER_DIRECT) and customer session opening."
                   badge="Popular"
                 />
                 <RadioCard
