@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
+import QRCode from "qrcode";
 import {
   Printer,
   RotateCw,
@@ -15,6 +16,7 @@ import { Button } from "../../components/ui/button";
 import { ConfirmDialog } from "../../components/ui/confirm-dialog";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "../../components/ui/dialog";
 import { apiClient } from "../../api/client";
+import { evaluateBrandColor } from "../../lib/colorUtils";
 import { useTranslation } from "react-i18next";
 
 interface QRCodeItem {
@@ -51,6 +53,62 @@ interface SheetDataItem {
   qr_png_url: string;
 }
 
+// Client-side QR renderer guaranteeing error correction H, dark color, and logo overlay
+export const ClientQRCodeCanvas: React.FC<{
+  value: string;
+  size: number;
+  logoUrl?: string | null;
+  className?: string;
+  darkColor?: string;
+}> = ({ value, size, logoUrl, className, darkColor = "#0B1F3B" }) => {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+
+  useEffect(() => {
+    if (!canvasRef.current || !value) return;
+    const canvas = canvasRef.current;
+
+    // Requirement B3: Dark color only (at least 7:1 against white)
+    QRCode.toCanvas(canvas, value, {
+      width: size,
+      margin: 1,
+      errorCorrectionLevel: "H",
+      color: {
+        dark: darkColor,
+        light: "#FFFFFF",
+      },
+    }).then(() => {
+      if (logoUrl) {
+        const ctx = canvas.getContext("2d");
+        if (!ctx) return;
+        const img = new Image();
+        img.crossOrigin = "anonymous";
+        img.src = logoUrl;
+        img.onload = () => {
+          // B1: Logo overlay 20% max width
+          const logoSize = Math.floor(size * 0.2);
+          const center = Math.floor((size - logoSize) / 2);
+          const pad = 3;
+          ctx.fillStyle = "#FFFFFF";
+          ctx.beginPath();
+          ctx.arc(center + logoSize / 2, center + logoSize / 2, logoSize / 2 + pad, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.drawImage(img, center, center, logoSize, logoSize);
+        };
+      }
+    });
+  }, [value, size, logoUrl, darkColor]);
+
+  return (
+    <canvas
+      ref={canvasRef}
+      width={size}
+      height={size}
+      className={className}
+      data-testid="client-qr-canvas"
+    />
+  );
+};
+
 export const QRCodesPage: React.FC = () => {
   const { t } = useTranslation();
 
@@ -76,7 +134,6 @@ export const QRCodesPage: React.FC = () => {
   const [cardsPerPage, setCardsPerPage] = useState<6 | 12>(6);
   const [sheetLanguage, setSheetLanguage] = useState<"EN" | "EN_TA">("EN");
   const [includeLogo, setIncludeLogo] = useState(true);
-  const [useBrandColor, setUseBrandColor] = useState(true);
 
   const fetchQrCodes = async () => {
     setLoading(true);
@@ -134,11 +191,31 @@ export const QRCodesPage: React.FC = () => {
     }
   };
 
+  // Requirement B1: downloads fetch the image as a blob through API client with auth
+  const handleDownload = async (qr: QRCodeItem, format: "svg" | "png") => {
+    try {
+      const res = await apiClient.get(`/qr-codes/${qr.id}/image/?format=${format}&branded=true`, {
+        responseType: "blob",
+      });
+      const url = window.URL.createObjectURL(new Blob([res.data]));
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", `qr-${qr.table?.name || "standee"}.${format}`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+    } catch {
+      setErrorMessage("Failed to download QR code image.");
+    }
+  };
+
   const handlePrint = () => {
     window.print();
   };
 
-  const activeColor = useBrandColor ? brandColor : "#0B1F3B";
+  // Requirement B4: choose navy or white by contrast (never white on #FF6A00)
+  const badgeTextColor = evaluateBrandColor(brandColor).recommendedTextHex;
 
   return (
     <div className="space-y-6">
@@ -212,7 +289,6 @@ export const QRCodesPage: React.FC = () => {
                     <tr className="border-b border-border text-xs uppercase font-semibold text-muted-foreground">
                       <th className="py-3 px-4">Location / Target</th>
                       <th className="py-3 px-4">Area</th>
-                      <th className="py-3 px-4">Token</th>
                       <th className="py-3 px-4">Status</th>
                       <th className="py-3 px-4 text-right">Actions</th>
                     </tr>
@@ -228,9 +304,6 @@ export const QRCodesPage: React.FC = () => {
                             <span>{label}</span>
                           </td>
                           <td className="py-3.5 px-4 text-muted-foreground text-xs">{areaName}</td>
-                          <td className="py-3.5 px-4 font-mono text-xs text-slate-500">
-                            {qr.token.slice(0, 10)}...
-                          </td>
                           <td className="py-3.5 px-4">
                             {qr.is_active ? (
                               <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-emerald-50 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300">
@@ -244,15 +317,15 @@ export const QRCodesPage: React.FC = () => {
                           </td>
                           <td className="py-3.5 px-4 text-right">
                             <div className="flex items-center justify-end gap-1.5">
-                              {/* Download SVG */}
-                              <a
-                                href={`/api/v1/qr-codes/${qr.id}/image/?format=svg&branded=true`}
-                                download={`qr-${label}.svg`}
+                              {/* Authenticated Download SVG */}
+                              <button
+                                type="button"
+                                onClick={() => handleDownload(qr, "svg")}
                                 className="p-2 rounded-lg hover:bg-muted text-muted-foreground hover:text-foreground inline-flex items-center justify-center min-w-[36px] min-h-[36px]"
                                 title="Download SVG"
                               >
                                 <Download className="w-4 h-4" />
-                              </a>
+                              </button>
 
                               {/* Rotate Token */}
                               <Button
@@ -324,10 +397,11 @@ export const QRCodesPage: React.FC = () => {
           </DialogHeader>
 
           {/* Controls Bar (Hidden during Print) */}
-          <div className="no-print p-4 rounded-xl bg-muted/40 border border-border grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 text-xs">
+          <div className="no-print p-4 rounded-xl bg-muted/40 border border-border grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
             <div>
               <label className="font-semibold block mb-1.5">{t("qr.cardsPerPage")}</label>
               <select
+                aria-label="Cards per sheet layout"
                 value={cardsPerPage}
                 onChange={(e) => setCardsPerPage(Number(e.target.value) as 6 | 12)}
                 className="w-full rounded-md border border-input bg-card p-2 min-h-[36px]"
@@ -340,6 +414,7 @@ export const QRCodesPage: React.FC = () => {
             <div>
               <label className="font-semibold block mb-1.5">{t("onboarding.docLanguage")}</label>
               <select
+                aria-label="Sheet language"
                 value={sheetLanguage}
                 onChange={(e) => setSheetLanguage(e.target.value as "EN" | "EN_TA")}
                 className="w-full rounded-md border border-input bg-card p-2 min-h-[36px]"
@@ -360,18 +435,6 @@ export const QRCodesPage: React.FC = () => {
                 <span className="font-medium">{t("qr.includeLogo")}</span>
               </label>
             </div>
-
-            <div className="flex flex-col justify-center">
-              <label className="inline-flex items-center gap-2 cursor-pointer mt-3">
-                <input
-                  type="checkbox"
-                  checked={useBrandColor}
-                  onChange={(e) => setUseBrandColor(e.target.checked)}
-                  className="rounded border-border text-[#FF6A00] focus:ring-[#FF6A00]"
-                />
-                <span className="font-medium">{t("qr.includeColor")}</span>
-              </label>
-            </div>
           </div>
 
           {/* Printable A4 Sheet Container */}
@@ -381,25 +444,37 @@ export const QRCodesPage: React.FC = () => {
                 cardsPerPage === 6 ? "grid-cols-2" : "grid-cols-3"
               }`}
             >
-              {sheetData.map((item) => (
+              {sheetData.map((item, idx) => (
                 <div
                   key={item.id}
+                  data-testid="print-qr-card"
                   className="break-inside-avoid relative border-2 border-dashed border-slate-300 rounded-xl p-4 bg-white text-slate-900 text-center flex flex-col items-center justify-between shadow-sm"
                   style={{
                     minHeight: cardsPerPage === 6 ? "280px" : "190px",
-                    borderTop: `6px solid ${activeColor}`,
+                    // B3: Brand color appears only in top strip and initials badge
+                    borderTop: `6px solid ${brandColor}`,
                   }}
                 >
                   {/* Cut icon indicator in corner */}
-                  <div className="absolute top-1.5 right-1.5 text-slate-400 no-print">
+                  <div className="absolute top-1.5 right-1.5 text-slate-400 no-print flex items-center gap-1">
                     <Scissors className="w-3 h-3" />
                   </div>
 
-                  {/* Header: Logo & Restaurant Name */}
+                  {/* Header: Logo / Badge & Restaurant Name */}
                   <div className="w-full flex flex-col items-center">
-                    {includeLogo && logoUrl && (
+                    {includeLogo && logoUrl ? (
                       <div className="w-8 h-8 rounded mb-1 bg-white p-0.5 flex items-center justify-center">
                         <img src={logoUrl} alt="Logo" className="max-w-full max-h-full object-contain" />
+                      </div>
+                    ) : (
+                      <div
+                        className="w-7 h-7 rounded-lg flex items-center justify-center font-bold text-xs mb-1 shadow-sm"
+                        style={{
+                          backgroundColor: brandColor,
+                          color: badgeTextColor, // B4: Never white on #FF6A00
+                        }}
+                      >
+                        {businessName.slice(0, 2).toUpperCase()}
                       </div>
                     )}
                     <h5 className="font-extrabold text-xs tracking-tight text-slate-900 uppercase truncate max-w-full">
@@ -416,18 +491,17 @@ export const QRCodesPage: React.FC = () => {
                     )}
                   </div>
 
-                  {/* QR Code graphic */}
+                  {/* B1: Client-Side Rendered QR Code (Dark only, EC Level H, Logo overlay) */}
                   <div className="my-2 p-1.5 bg-white border border-slate-200 rounded-lg shadow-inner">
-                    <img
-                      src={`/api/v1/qr-codes/${item.id}/image/?format=svg&size=${
-                        cardsPerPage === 6 ? "160" : "110"
-                      }&branded=${includeLogo}&color=${encodeURIComponent(activeColor)}`}
-                      alt={`QR code for ${item.label}`}
-                      className={cardsPerPage === 6 ? "w-28 h-28" : "w-20 h-20"}
+                    <ClientQRCodeCanvas
+                      value={item.public_url}
+                      size={cardsPerPage === 6 ? 120 : 85}
+                      logoUrl={includeLogo ? logoUrl : null}
+                      darkColor="#0B1F3B" // B3: Dark only (>= 7:1)
                     />
                   </div>
 
-                  {/* Scan CTA */}
+                  {/* B6: Scan CTA wording: "Scan to see our menu", never "Scan to View Menu & Order" */}
                   <div className="w-full">
                     <p className="text-[10px] font-bold text-slate-900 tracking-tight">
                       {t("qr.scanToOrder")}
@@ -437,8 +511,9 @@ export const QRCodesPage: React.FC = () => {
                         மெனுவை பார்க்க ஸ்கேன் செய்யவும்
                       </p>
                     )}
+                    {/* B2: Never print secret token prefix. Use short non-secret card reference */}
                     <p className="text-[8px] text-slate-400 mt-1 font-mono">
-                      Ref: {item.token.slice(0, 8)}
+                      Ref: #{item.label || idx + 1}
                     </p>
                   </div>
                 </div>
@@ -463,3 +538,5 @@ export const QRCodesPage: React.FC = () => {
     </div>
   );
 };
+
+export default QRCodesPage;

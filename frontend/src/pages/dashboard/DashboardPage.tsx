@@ -165,7 +165,7 @@ export const DashboardPage: React.FC = () => {
           </Button>
           <Button variant="default" size="sm" onClick={() => navigate("/qr")}>
             <QrCode className="h-4 w-4 mr-1.5" />
-            Digital Menu QR
+            Print QR codes
           </Button>
         </div>
       </div>
@@ -206,7 +206,9 @@ export const DashboardPage: React.FC = () => {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Sparkles className="h-5 w-5 text-[#FF6A00]" />
-              <CardTitle className="text-lg font-heading">Onboarding Checklist</CardTitle>
+              <CardTitle className="text-lg font-heading">
+                {completedStepsCount === 7 ? "Setup complete" : "Onboarding Checklist"}
+              </CardTitle>
             </div>
             {onboarding && (
               <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-[#FF6A00]/10 text-[#FF6A00]">
@@ -265,7 +267,7 @@ export const DashboardPage: React.FC = () => {
             </div>
             <div className="flex flex-wrap items-center gap-2">
               <span className="text-xs font-bold text-foreground bg-muted px-2.5 py-1 rounded-md">
-                Plan: {entitlements?.plan_name || "Professional"}
+                {entitlements?.plan_name || "Professional"} plan
               </span>
               <span className="text-xs font-bold text-emerald-700 dark:text-emerald-300 bg-emerald-100 dark:bg-emerald-950 px-2 py-1 rounded-md">
                 {entitlements?.status || "ACTIVE"}
@@ -273,7 +275,7 @@ export const DashboardPage: React.FC = () => {
             </div>
           </div>
           <CardDescription>
-            Clamped usage meters tracked across your subscription boundaries.
+            How much of your plan you have used.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6 pt-2">

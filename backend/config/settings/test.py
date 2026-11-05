@@ -12,7 +12,7 @@ env = environ.Env()
 # Stated DB engine: django.db.backends.postgresql
 DB_ENGINE = env.str("TEST_DB_ENGINE", default="django.db.backends.postgresql")
 
-POSTGRES_HOST_PORT = env.int("POSTGRES_HOST_PORT", default=5435)
+POSTGRES_HOST_PORT = env.int("POSTGRES_HOST_PORT", default=5436)
 
 DATABASES = {
     "default": {

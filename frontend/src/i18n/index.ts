@@ -19,7 +19,7 @@ export const defaultResources = {
         forgotPassword: "Forgot password?",
         forgotPasswordHelp: "Ask your owner or manager to reset your password.",
         introParagraph:
-          "Streamline floor plans, table sessions, QR ordering, and kitchen workflows from a single unified operating platform.",
+          "Streamline floor plans, QR ordering, and kitchen workflows from a single unified operating platform.",
         demoQuickFill: "Demo Quick-Fill:",
         benefit1Title: "Orders go straight to the kitchen",
         benefit1Desc: "Instant kitchen tickets and display screens prevent order delays.",
@@ -159,7 +159,7 @@ export const defaultResources = {
         includeLogo: "Include Brand Logo",
         includeColor: "Use Restaurant Brand Color",
         cutGuides: "Cut along dashed lines",
-        scanToOrder: "Scan to View Menu & Order",
+        scanToOrder: "Scan to see our menu",
         tableLabel: "Table",
         counterLabel: "Counter",
         areaLabel: "Section",
@@ -193,7 +193,7 @@ export const defaultResources = {
         forgotPasswordHelp:
           "உங்கள் கடவுச்சொல்லை மீட்டமைக்க உங்கள் உரிமையாளர் அல்லது மேலாளரை அணுகவும்.",
         introParagraph:
-          "தள வரைபடங்கள், மேஜை அமர்வுகள், QR ஆர்டர்கள் மற்றும் சமையலறை செயல்பாடுகளை ஒரே தளத்தில் எளிதாக நிர்வகியுங்கள்.",
+          "தள வரைபடங்கள், QR ஆர்டர்கள் மற்றும் சமையலறை செயல்பாடுகளை ஒரே தளத்தில் எளிதாக நிர்வகியுங்கள்.",
         demoQuickFill: "மாதிரி விரைவு நிரப்பல்:",
         benefit1Title: "ஆர்டர்கள் நேரடியாக சமையலறைக்குச் செல்லும்",
         benefit1Desc: "உடனடி சமையலறை சீட்டுகள் மூலம் ஆர்டர் தாமதங்கள் தவிர்க்கப்படுகின்றன.",

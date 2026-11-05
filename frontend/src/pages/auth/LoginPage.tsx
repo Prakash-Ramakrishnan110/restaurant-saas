@@ -136,8 +136,8 @@ export const LoginPage: React.FC = () => {
         {/* Footer Meta */}
         <div className="relative z-10 flex items-center justify-between text-xs text-gray-600 dark:text-gray-400 font-sans">
           <span>
-            ServeMyFood v{typeof __APP_VERSION__ !== "undefined" ? __APP_VERSION__ : "0.3.4"} (
-            {typeof __GIT_HASH__ !== "undefined" ? __GIT_HASH__ : "6caba5a"})
+            ServeMyFood v{typeof __APP_VERSION__ !== "undefined" ? __APP_VERSION__ : "0.4.1"} (
+            {typeof __GIT_HASH__ !== "undefined" ? __GIT_HASH__ : "e0387e9"})
           </span>
           <span>© 2026 {t("brand.company")}</span>
         </div>

@@ -104,7 +104,7 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 # Database configuration
-POSTGRES_HOST_PORT = env.int("POSTGRES_HOST_PORT", default=5435)
+POSTGRES_HOST_PORT = env.int("POSTGRES_HOST_PORT", default=5436)
 DATABASES = {
     "default": env.db(
         "DATABASE_URL",

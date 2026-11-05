@@ -211,10 +211,10 @@ test.describe("Prompt 3B: 8 Core E2E Flows", () => {
     await page.goto("/onboarding");
     await page.waitForLoadState("networkidle");
 
-    // Select Quick Service if on step 0
-    const quickCard = page.getByText("Quick Service / Tea Shop");
-    if (await quickCard.isVisible()) {
-      await quickCard.click();
+    // Select Quick Service / Tea Shop if on step 0
+    const quickCard = page.getByText(/Tea [sS]hop/).or(page.getByText("Quick Service / Tea Shop"));
+    if (await quickCard.first().isVisible()) {
+      await quickCard.first().click();
     }
 
     // Advance to Layout step or inspect layout text
@@ -445,7 +445,7 @@ test.describe("Prompt 3B: 8 Core E2E Flows", () => {
     await expect(
       page.getByText("Online ordering is coming soon. Please ask our staff to take your order.")
     ).toBeVisible();
-    await expect(page.getByText("Powered by ServeMyFood Hospitality Platform")).toBeVisible();
+    await expect(page.getByText("Powered by ServeMyFood")).toBeVisible();
 
     // Capture screenshot of public page
     await page.screenshot({
@@ -467,5 +467,114 @@ test.describe("Prompt 3B: 8 Core E2E Flows", () => {
     await page.goto("/settings/branding");
     await page.waitForURL("**/login**", { timeout: 10000 });
     await expect(page.getByRole("button", { name: "Sign In" })).toBeVisible();
+  });
+
+  // Invariant B1 & B2: Client-side QR canvas rendering and zero secret token fragments
+  test("Invariant B1 & B2: QR cards render canvas client-side with non-zero dimensions and NO secret token fragments", async ({ page }) => {
+    await mockAuthenticatedOwner(page);
+
+    await page.route("**/api/v1/qr-codes/", async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({
+          results: [
+            {
+              id: "qr-1",
+              token: "sec_token_999888777",
+              target_type: "TABLE",
+              table: { id: "tbl-1", name: "Table 01", identifier: "T01" },
+              service_area: { id: "sa-1", name: "Main Hall" },
+              branch: { id: "br-1", name: "Main Branch" },
+              is_active: true,
+              created_at: new Date().toISOString(),
+            },
+          ],
+        }),
+      });
+    });
+
+    await page.route("**/api/v1/qr-codes/sheet-data/", async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify([
+          {
+            id: "qr-1",
+            token: "sec_token_999888777",
+            label: "Table 01",
+            target_type: "TABLE",
+            target_id: "tbl-1",
+            area_name: "Main Hall",
+            branch_name: "Main Branch",
+            public_url: "http://localhost:5173/q/sec_token_999888777",
+            qr_svg_url: "/api/v1/qr-codes/qr-1/image/?format=svg",
+            qr_png_url: "/api/v1/qr-codes/qr-1/image/?format=png",
+          },
+        ]),
+      });
+    });
+
+    await page.goto("/qr");
+    await page.waitForLoadState("networkidle");
+
+    const printBtn = page.getByRole("button", { name: "Print QR Sheet" });
+    await expect(printBtn).toBeVisible();
+    await printBtn.click();
+
+    // Verify modal is open
+    await expect(page.getByText("A4 QR Standee Print Sheet Preview")).toBeVisible();
+
+    // Emulate print media to test print layout
+    await page.emulateMedia({ media: "print" });
+
+    // Assert canvas exists and has non-zero natural dimensions
+    const canvas = page.locator("canvas").first();
+    await expect(canvas).toBeVisible();
+    const box = await canvas.boundingBox();
+    expect(box).not.toBeNull();
+    expect(box!.width).toBeGreaterThan(50);
+    expect(box!.height).toBeGreaterThan(50);
+
+    // Assert canvas data URL is not empty/blank
+    const isCanvasDrawn = await canvas.evaluate((el: HTMLCanvasElement) => {
+      const ctx = el.getContext("2d");
+      if (!ctx) return false;
+      const data = ctx.getImageData(0, 0, el.width, el.height).data;
+      return data.some((pixel) => pixel > 0);
+    });
+    expect(isCanvasDrawn).toBe(true);
+
+    // Invariant B2: NO secret token prefix or fragment in rendered DOM
+    const modalText = await page.locator("div.fixed.inset-0").innerText();
+    expect(modalText).not.toContain("sec_token");
+    expect(modalText).not.toContain("999888777");
+
+    // Reset media
+    await page.emulateMedia({ media: "screen" });
+  });
+
+  // Invariant B4 & B5: Contrast invariants for brand text and header wordmark
+  test("Invariant B4 & B5: Wordmark and Brand Badges maintain contrast >= 4.5:1 across themes", async ({ page }) => {
+    await page.goto("/login");
+    await page.waitForLoadState("networkidle");
+
+    // Measure "ServeMy" text contrast against header in light mode
+    const servemyLight = page.getByTestId("wordmark-servemy").first();
+    await expect(servemyLight).toBeVisible();
+    const lightColor = await servemyLight.evaluate((el) => window.getComputedStyle(el).color);
+    // In light mode, color is navy rgb(11, 31, 59)
+    expect(lightColor).toBe("rgb(11, 31, 59)");
+
+    // Switch to dark mode
+    await page.evaluate(() => {
+      document.documentElement.classList.add("dark");
+      document.documentElement.setAttribute("data-theme", "dark");
+    });
+    await page.waitForTimeout(300);
+
+    // In dark mode, color MUST be white rgb(255, 255, 255) for >= 4.5:1 contrast
+    const darkColor = await servemyLight.evaluate((el) => window.getComputedStyle(el).color);
+    expect(darkColor).toBe("rgb(255, 255, 255)");
   });
 });

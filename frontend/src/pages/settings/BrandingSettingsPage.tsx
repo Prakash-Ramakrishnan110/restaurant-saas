@@ -495,8 +495,11 @@ export const BrandingSettingsPage: React.FC = () => {
                       </div>
                     ) : (
                       <div
-                        className="w-10 h-10 rounded-lg flex items-center justify-center text-white font-bold text-sm mb-2 shadow"
-                        style={{ backgroundColor: contrastCheck.isValidHex ? brandColor : "#FF6A00" }}
+                        className="w-10 h-10 rounded-lg flex items-center justify-center font-bold text-sm mb-2 shadow"
+                        style={{
+                          backgroundColor: contrastCheck.isValidHex ? brandColor : "#FF6A00",
+                          color: contrastCheck.recommendedTextHex, // Requirement B4: contrast >= 4.5:1, navy on #FF6A00
+                        }}
                       >
                         {(displayName || tenantName).slice(0, 2).toUpperCase()}
                       </div>
@@ -515,13 +518,13 @@ export const BrandingSettingsPage: React.FC = () => {
                     )}
                   </div>
 
-                  {/* QR Box */}
+                  {/* QR Box - Requirement B3: dark QR only (>= 7:1) labelled Sample */}
                   <div className="p-5 flex flex-col items-center">
+                    <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-200 text-slate-700 uppercase tracking-wider mb-2">
+                      Sample
+                    </span>
                     <div className="w-32 h-32 bg-slate-50 border-2 border-slate-200 rounded-lg flex items-center justify-center relative p-2 shadow-inner">
-                      <QrCode
-                        className="w-24 h-24"
-                        style={{ color: contrastCheck.isValidHex ? brandColor : "#FF6A00" }}
-                      />
+                      <QrCode className="w-24 h-24 text-[#0B1F3B]" />
                     </div>
 
                     <p className="mt-3 text-[11px] font-bold text-slate-800">

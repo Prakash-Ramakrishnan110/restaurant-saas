@@ -48,3 +48,4 @@ When the venue profile is `QUICK_SERVICE` or the `counters` layout template is s
 - **Positive**: Subscription limits are strictly enforced at the database and API boundary before any rows are written.
 - **Positive**: Tea shops and quick service venues get a tailored counter workflow without confusing restaurant table terminology.
 - **Positive**: Onboarding state is durable, resumable, and safe against browser refreshes.
+

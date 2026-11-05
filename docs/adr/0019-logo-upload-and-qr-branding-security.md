@@ -51,3 +51,4 @@ When a customer scans a table or counter QR standee:
 - **Positive**: Guaranteed readability and WCAG AA contrast compliance across light and dark backgrounds.
 - **Positive**: QR standees scan rapidly and reliably on customer mobile devices.
 - **Positive**: Inexpensive in-house printing without requiring specialized thermal standee software.
+

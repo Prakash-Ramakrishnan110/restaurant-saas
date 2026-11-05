@@ -6,7 +6,8 @@ import {
   Sparkles,
   Hotel,
   Zap,
-  Truck,
+  Croissant,
+  Store,
   ArrowRight,
   ArrowLeft,
   CheckCircle2,
@@ -41,6 +42,76 @@ export const WIZARD_STEPS: StepItem[] = [
   { id: "done", title: "Ready" },
 ];
 
+export interface BusinessTypeItem {
+  id: string;
+  businessType: string;
+  profile: string;
+  title: string;
+  description: string;
+  badge?: string;
+  icon: React.ReactNode;
+}
+
+export const BUSINESS_TYPES: BusinessTypeItem[] = [
+  {
+    id: "vp-quick",
+    businessType: "TEA_SHOP",
+    profile: "QUICK_SERVICE",
+    title: "Tea shop",
+    description: "Express takeaway, token counters, zero dining furniture.",
+    icon: <Zap className="w-5 h-5" />,
+  },
+  {
+    id: "vp-bakery",
+    businessType: "BAKERY",
+    profile: "QUICK_SERVICE",
+    title: "Bakery",
+    description: "Fresh bakes, coffee counter, takeaway & quick seating.",
+    icon: <Croissant className="w-5 h-5" />,
+  },
+  {
+    id: "vp-cafe",
+    businessType: "CAFE",
+    profile: "CAFE",
+    title: "Café",
+    description: "Counter ordering, cozy dine-in, coffee & bakery.",
+    badge: "Default",
+    icon: <Coffee className="w-5 h-5" />,
+  },
+  {
+    id: "vp-rest",
+    businessType: "RESTAURANT",
+    profile: "CASUAL_DINING",
+    title: "Restaurant",
+    description: "Multi-section dining, AC hall, family dining.",
+    icon: <UtensilsCrossed className="w-5 h-5" />,
+  },
+  {
+    id: "vp-fine",
+    businessType: "FINE_DINING",
+    profile: "FINE_DINING",
+    title: "Fine dining",
+    description: "Captain-assisted courses, table sessions, bar stools.",
+    icon: <Sparkles className="w-5 h-5" />,
+  },
+  {
+    id: "vp-hotel",
+    businessType: "HOTEL",
+    profile: "HOTEL_RESTAURANT",
+    title: "Hotel",
+    description: "Room service, lobby lounge, banquet halls.",
+    icon: <Hotel className="w-5 h-5" />,
+  },
+  {
+    id: "vp-foodcourt",
+    businessType: "FOOD_COURT",
+    profile: "FOOD_COURT",
+    title: "Food court",
+    description: "Shared seating area, multi-counter ordering and tokens.",
+    icon: <Store className="w-5 h-5" />,
+  },
+];
+
 export const OnboardingWizardPage: React.FC = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -52,6 +123,7 @@ export const OnboardingWizardPage: React.FC = () => {
 
   // Tenant / Business State
   const [businessName, setBusinessName] = useState("");
+  const [businessType, setBusinessType] = useState("CAFE");
   const [venueProfile, setVenueProfile] = useState("CAFE"); // Café default highlighted
   const [contactEmail, setContactEmail] = useState("");
   const [contactPhone, setContactPhone] = useState("");
@@ -119,7 +191,15 @@ export const OnboardingWizardPage: React.FC = () => {
         const bList = branchRes.data.results || [];
 
         setBusinessName(biz.name || "");
-        setVenueProfile(biz.venue_profile || "CAFE");
+        if (biz.business_type) {
+          setBusinessType(biz.business_type);
+          const found = BUSINESS_TYPES.find((b) => b.businessType === biz.business_type);
+          if (found) setVenueProfile(found.profile);
+        } else if (biz.venue_profile) {
+          setVenueProfile(biz.venue_profile);
+          const found = BUSINESS_TYPES.find((b) => b.profile === biz.venue_profile);
+          if (found) setBusinessType(found.businessType);
+        }
         setContactEmail(biz.contact_email || "");
         setContactPhone(biz.contact_phone || "");
         setTimezone(biz.timezone || "Asia/Kolkata");
@@ -223,6 +303,7 @@ export const OnboardingWizardPage: React.FC = () => {
     try {
       await apiClient.patch("/business/", {
         name: businessName,
+        business_type: businessType,
         venue_profile: venueProfile,
         contact_email: contactEmail,
         contact_phone: contactPhone,
@@ -248,6 +329,7 @@ export const OnboardingWizardPage: React.FC = () => {
           address: branchAddress,
           phone: branchPhone,
           operating_hours: { days: operatingHours },
+          venue_profile: venueProfile,
         });
       } else {
         const res = await apiClient.post<{ id: string }>("/branches/", {
@@ -255,6 +337,7 @@ export const OnboardingWizardPage: React.FC = () => {
           address: branchAddress,
           phone: branchPhone,
           operating_hours: { days: operatingHours },
+          venue_profile: venueProfile,
         });
         setBranchId(res.data.id);
       }
@@ -354,7 +437,9 @@ export const OnboardingWizardPage: React.FC = () => {
   };
 
   const isCounterMode =
-    venueProfile === "QUICK_SERVICE" || selectedTemplateKey === "counters";
+    venueProfile === "QUICK_SERVICE" ||
+    businessType === "TEA_SHOP" ||
+    selectedTemplateKey === "counters";
 
   if (loading) {
     return (
@@ -430,67 +515,27 @@ export const OnboardingWizardPage: React.FC = () => {
                 {t("onboarding.businessType")}
               </label>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                <RadioCard
-                  id="vp-cafe"
-                  name="venue_profile"
-                  value="CAFE"
-                  checked={venueProfile === "CAFE"}
-                  onChange={setVenueProfile}
-                  title="Café"
-                  description="Counter ordering, cozy dine-in, coffee & bakery."
-                  badge="Default"
-                  icon={<Coffee className="w-5 h-5" />}
-                />
-                <RadioCard
-                  id="vp-rest"
-                  name="venue_profile"
-                  value="RESTAURANT"
-                  checked={venueProfile === "RESTAURANT"}
-                  onChange={setVenueProfile}
-                  title="Restaurant"
-                  description="Multi-section dining, AC hall, family dining."
-                  icon={<UtensilsCrossed className="w-5 h-5" />}
-                />
-                <RadioCard
-                  id="vp-fine"
-                  name="venue_profile"
-                  value="FINE_DINING"
-                  checked={venueProfile === "FINE_DINING"}
-                  onChange={setVenueProfile}
-                  title="Fine Dining"
-                  description="Captain-assisted courses, table sessions, bar stools."
-                  icon={<Sparkles className="w-5 h-5" />}
-                />
-                <RadioCard
-                  id="vp-hotel"
-                  name="venue_profile"
-                  value="HOTEL_RESTAURANT"
-                  checked={venueProfile === "HOTEL_RESTAURANT"}
-                  onChange={setVenueProfile}
-                  title="Hotel Dining"
-                  description="Room service, lobby lounge, banquet halls."
-                  icon={<Hotel className="w-5 h-5" />}
-                />
-                <RadioCard
-                  id="vp-quick"
-                  name="venue_profile"
-                  value="QUICK_SERVICE"
-                  checked={venueProfile === "QUICK_SERVICE"}
-                  onChange={setVenueProfile}
-                  title="Quick Service / Tea Shop"
-                  description="Express takeaway, token counters, zero dining furniture."
-                  icon={<Zap className="w-5 h-5" />}
-                />
-                <RadioCard
-                  id="vp-truck"
-                  name="venue_profile"
-                  value="FOOD_TRUCK"
-                  checked={venueProfile === "FOOD_TRUCK"}
-                  onChange={setVenueProfile}
-                  title="Food Truck / Pop-Up"
-                  description="Fast counter service, single pickup station."
-                  icon={<Truck className="w-5 h-5" />}
-                />
+                {BUSINESS_TYPES.map((bt) => {
+                  const isChecked = businessType === bt.businessType;
+                  return (
+                    <RadioCard
+                      key={bt.id}
+                      id={bt.id}
+                      name="business_type"
+                      value={bt.businessType}
+                      checked={isChecked}
+                      onChange={(val) => {
+                        setBusinessType(val);
+                        const match = BUSINESS_TYPES.find((b) => b.businessType === val);
+                        if (match) setVenueProfile(match.profile);
+                      }}
+                      title={bt.title}
+                      description={bt.description}
+                      badge={bt.badge}
+                      icon={bt.icon}
+                    />
+                  );
+                })}
               </div>
             </div>
 

@@ -66,3 +66,11 @@ Phase 2: Payment Gateways (Razorpay/Stripe), Push Real-Time SSE, and Multi-Branc
 - **STORY-REP-02**: Z-Report Generation
   - As an owner or accountant, I want an end-of-day Z-Report summarizing net sales, SGST/CGST tax liabilities, and voided item audit trails.
 
+---
+
+## 3. Future & Deferred Venue Types
+
+### Food Truck / Pop-Up Venue Support (Deferred from Onboarding Wizard)
+- **STORY-TRUCK-01**: Mobile / Pop-Up Operations Preset
+  - As a food truck or pop-up vendor owner, I want a single pickup window counter workflow with battery-optimized mobile POS, GPS/location-based customer ordering, and dynamic temporary menu items. Deferred from initial onboarding wizard in favor of the core 7 hospitality presets (Tea shop, Bakery, Cafe, Restaurant, Fine dining, Hotel, Food court).
+

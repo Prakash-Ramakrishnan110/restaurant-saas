@@ -163,7 +163,7 @@ describe("Prompt 3B Frontend: Public QR Landing Page", () => {
 
     // Check powered by footer
     expect(
-      screen.getByText("Powered by ServeMyFood Hospitality Platform")
+      screen.getByText("Powered by ServeMyFood")
     ).toBeDefined();
   });
 

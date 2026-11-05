@@ -3,6 +3,7 @@ import { useParams } from "react-router-dom";
 import { Utensils, AlertCircle, Clock } from "lucide-react";
 import { BrandLogo } from "../../components/brand/BrandLogo";
 import { apiClient } from "../../api/client";
+import { evaluateBrandColor } from "../../lib/colorUtils";
 import { useTranslation } from "react-i18next";
 
 interface PublicQRResponse {
@@ -62,6 +63,7 @@ export const PublicQRPage: React.FC = () => {
     );
   }
 
+  // Requirement B2: Never display token prefix or secret fragments
   if (notFound || !data) {
     return (
       <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col items-center justify-between p-6">
@@ -76,22 +78,21 @@ export const PublicQRPage: React.FC = () => {
           <h1 className="text-xl font-bold text-slate-900 dark:text-white mb-2">
             {t("publicQr.notFoundTitle")}
           </h1>
-          <p className="text-sm text-slate-600 dark:text-slate-400 mb-6 leading-relaxed">
+          <p className="text-sm text-slate-600 dark:text-slate-400 mb-2 leading-relaxed">
             {t("publicQr.notFoundMessage")}
           </p>
-          <div className="text-xs text-slate-400 border-t border-slate-100 dark:border-slate-800 pt-4">
-            Token reference: <span className="font-mono text-slate-500">{token || "none"}</span>
-          </div>
         </main>
 
         <footer className="pb-6 text-center text-xs text-slate-400">
-          {t("publicQr.poweredBy")}
+          Powered by ServeMyFood
         </footer>
       </div>
     );
   }
 
   const brandColor = data.brand_primary_color || "#FF6A00";
+  // Requirement B4: Choose navy or white by contrast (never white on #FF6A00)
+  const badgeTextColor = evaluateBrandColor(brandColor).recommendedTextHex;
   const venueTitle = data.display_name || data.tenant_name;
   const locationLabel = [data.branch_name, data.area_name, data.table_identifier]
     .filter(Boolean)
@@ -99,12 +100,9 @@ export const PublicQRPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col items-center justify-between p-4 sm:p-6">
-      {/* Top Header */}
+      {/* Top Header - B6: Removed unexplained 'Digital Dining' chip */}
       <header className="w-full max-w-lg pt-4 pb-2 flex items-center justify-between">
         <BrandLogo size={28} />
-        <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
-          Digital Dining
-        </span>
       </header>
 
       {/* Main Dining Card */}
@@ -125,8 +123,8 @@ export const PublicQRPage: React.FC = () => {
               </div>
             ) : (
               <div
-                className="mx-auto mb-4 w-20 h-20 rounded-2xl flex items-center justify-center text-2xl font-black text-white shadow-md"
-                style={{ backgroundColor: brandColor }}
+                className="mx-auto mb-4 w-20 h-20 rounded-2xl flex items-center justify-center text-2xl font-black shadow-md"
+                style={{ backgroundColor: brandColor, color: badgeTextColor }}
               >
                 {venueTitle.slice(0, 2).toUpperCase()}
               </div>
@@ -144,7 +142,7 @@ export const PublicQRPage: React.FC = () => {
             )}
           </div>
 
-          {/* Coming Soon Notice Body */}
+          {/* B6: One clear message, no duplicated heading and paragraph */}
           <div className="p-6 sm:p-8 text-center space-y-4">
             <div className="w-14 h-14 rounded-full bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-400 mx-auto flex items-center justify-center">
               <Clock className="w-7 h-7" />
@@ -158,25 +156,18 @@ export const PublicQRPage: React.FC = () => {
                 {t("publicQr.comingSoonMessage")}
               </p>
             </div>
-
-            <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/80 text-left">
-              <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">
-                Guest Notice
-              </div>
-              <p className="text-xs text-slate-600 dark:text-slate-400">
-                Our contactless digital ordering experience is launching shortly for this venue. Table service and takeaway ordering remain available with on-duty staff.
-              </p>
-            </div>
           </div>
         </div>
       </main>
 
-      {/* Footer */}
+      {/* Footer - B6: Exact string */}
       <footer className="w-full max-w-lg py-4 text-center">
         <p className="text-xs text-slate-400">
-          {t("publicQr.poweredBy")}
+          Powered by ServeMyFood
         </p>
       </footer>
     </div>
   );
 };
+
+export default PublicQRPage;
