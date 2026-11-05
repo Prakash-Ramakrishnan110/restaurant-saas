@@ -111,3 +111,4 @@ CREATE TABLE billing_payment (
 - All foreign keys enforce `ON DELETE CASCADE` for parent-tenant cascades and `ON DELETE PROTECT` or `SET NULL` for transactional records.
 - Migrations will be executed in separate atomic batches with zero table locking downtime.
 - Reverse migrations (`migrate <app> <prev_num>`) are verified in local CI before release.
+

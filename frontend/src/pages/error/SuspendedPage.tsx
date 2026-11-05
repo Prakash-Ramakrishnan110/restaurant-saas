@@ -23,7 +23,7 @@ export const SuspendedPage: React.FC = () => {
           <p className="mt-2 text-sm text-muted-foreground leading-relaxed">
             The workspace for{" "}
             <strong className="text-foreground">
-              {activeTenant?.tenant_name || "this tenant"}
+              {activeTenant?.tenant_name || "this restaurant"}
             </strong>{" "}
             is currently suspended due to subscription lapse or administrative action.
           </p>

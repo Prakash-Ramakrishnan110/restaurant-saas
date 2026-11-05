@@ -34,3 +34,4 @@ ServeMyFood is a resilient, multi-tenant restaurant management and digital floor
 - **Customer QR Ordering App**: Designed to follow Pilot 1 staff-entered dining to validate core kitchen and billing lifecycles under controlled conditions first.
 - **Automated Payment Gateways (Razorpay/Stripe)**: Scheduled for Phase 2; Pilot 1 supports manual cash and external UPI QR reconciliation.
 - **Voice AI Ordering**: Formally excluded per ADR 0011.
+

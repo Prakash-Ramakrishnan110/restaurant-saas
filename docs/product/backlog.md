@@ -65,3 +65,4 @@ Phase 2: Payment Gateways (Razorpay/Stripe), Push Real-Time SSE, and Multi-Branc
   - As a restaurant owner, I want a real-time dashboard displaying gross revenue, average order value (AOV), top-selling items, and payment method breakdown (Cash vs UPI).
 - **STORY-REP-02**: Z-Report Generation
   - As an owner or accountant, I want an end-of-day Z-Report summarizing net sales, SGST/CGST tax liabilities, and voided item audit trails.
+

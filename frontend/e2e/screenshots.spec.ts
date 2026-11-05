@@ -23,11 +23,17 @@ async function loginAsSeededOwner(page: any) {
   // Hard assertion: Login form elements must NOT be visible on the authenticated dashboard
   await expect(page.locator("#email-input")).not.toBeVisible();
   await expect(page.locator('button[type="submit"]')).not.toBeVisible();
+  await expect(page.getByText("Sign In")).not.toBeVisible();
 
   // Assert Dashboard content is rendered
   await expect(page.locator("h1")).toBeVisible();
   await expect(page.getByRole("main").getByText("Spice Garden")).toBeVisible();
   await expect(page.getByText("Manage Tables")).toBeVisible();
+  await expect(page.getByText("Onboarding Checklist")).toBeVisible();
+  await expect(page.getByText("Your plan")).toBeVisible();
+
+  // Invariant C7: Wait until data loaded, no skeleton (.animate-pulse) or empty state
+  await expect(page.locator(".animate-pulse")).toHaveCount(0, { timeout: 10000 });
 }
 
 test.describe("ServeMyFood Visual Artifacts & Screenshots Suite", () => {
@@ -74,10 +80,16 @@ test.describe("ServeMyFood Visual Artifacts & Screenshots Suite", () => {
       document.documentElement.classList.add("dark", "touch-mode");
     });
     await page.waitForTimeout(400);
-    // Assert dashboard is still active and login form is NOT visible
+    // Assert dashboard is still active and login form / skeletons are NOT visible
     await expect(page.locator("#email-input")).not.toBeVisible();
+    await expect(page.getByText("Sign In")).not.toBeVisible();
     await expect(page.locator("h1")).toBeVisible();
     await expect(page.getByRole("main").getByText("Spice Garden")).toBeVisible();
+    await expect(page.getByText("Your plan")).toBeVisible();
+    await expect(page.locator(".animate-pulse")).toHaveCount(0);
+    // Ensure wordmark is clearly visible in 06
+    await expect(page.getByTestId("wordmark-servemy")).toBeVisible();
+    await expect(page.getByTestId("wordmark-food")).toBeVisible();
     await page.screenshot({
       path: path.join(screenshotsDir, "06-dashboard-dark-touch.png"),
       fullPage: true,
@@ -135,6 +147,10 @@ test.describe("ServeMyFood Visual Artifacts & Screenshots Suite", () => {
       document.documentElement.classList.add("touch-mode");
     });
     await page.waitForTimeout(400);
+    await expect(page.locator("#email-input")).not.toBeVisible();
+    await expect(page.getByText("Sign In")).not.toBeVisible();
+    await expect(page.locator("h1")).toBeVisible();
+    await expect(page.locator(".animate-pulse")).toHaveCount(0);
     await page.screenshot({
       path: path.join(screenshotsDir, "10-dashboard-touch-overlay.png"),
       fullPage: true,
@@ -173,8 +189,11 @@ test.describe("ServeMyFood Visual Artifacts & Screenshots Suite", () => {
     // 05. Authenticated Mobile Dashboard
     await loginAsSeededOwner(page);
     await expect(page.locator("#email-input")).not.toBeVisible();
+    await expect(page.getByText("Sign In")).not.toBeVisible();
     await expect(page.locator("h1")).toBeVisible();
     await expect(page.getByRole("main").getByText("Spice Garden")).toBeVisible();
+    await expect(page.getByText("Your plan")).toBeVisible();
+    await expect(page.locator(".animate-pulse")).toHaveCount(0);
     await page.screenshot({
       path: path.join(screenshotsDir, "05-dashboard-mobile.png"),
       fullPage: true,

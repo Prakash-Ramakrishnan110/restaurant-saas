@@ -37,3 +37,4 @@ Orders support course categorization (`STARTER`, `MAIN`, `DESSERT`, `BEVERAGE`):
 ## Consequences
 - Clean separation between overall order state and individual kitchen preparation progress.
 - Prevents items from different preparation stations from blocking each other's status progression.
+

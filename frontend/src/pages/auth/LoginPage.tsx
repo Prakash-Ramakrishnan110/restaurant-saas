@@ -72,19 +72,18 @@ export const LoginPage: React.FC = () => {
     <div className="min-h-screen flex flex-col lg:flex-row bg-background">
       {/* Desktop Left Brand Hero Panel (Warm Cream #FFF3E0) */}
       <div className="hidden lg:flex lg:w-1/2 bg-[#FFF3E0] dark:bg-[#0B1F3B] p-12 flex-col justify-between border-r border-orange-200 dark:border-navy-800 relative overflow-hidden">
-        {/* Subtle decorative cloche background glow */}
+        {/* Subtle decorative chef's hat background glow */}
         <div className="absolute -right-24 -bottom-24 w-96 h-96 rounded-full bg-[#FF6A00]/10 blur-3xl pointer-events-none" />
         <div className="absolute -left-20 -top-20 w-80 h-80 rounded-full bg-[#FF6A00]/5 blur-2xl pointer-events-none" />
 
         <div className="relative z-10">
           <BrandLogo size={44} theme={theme === "dark" ? "dark" : "light"} />
           <div className="mt-16 max-w-md">
-            <h1 className="text-4xl font-extrabold tracking-tight text-[#0B1F3B] dark:text-white leading-tight font-display">
+            <h1 className="text-4xl font-extrabold tracking-tight text-[#0B1F3B] dark:text-white leading-tight font-display [text-wrap:balance]">
               {t("brand.tagline")}
             </h1>
             <p className="mt-4 text-base text-gray-700 dark:text-gray-300 leading-relaxed font-sans">
-              Streamline floor plans, table sessions, QR ordering, and kitchen workflows from a
-              single unified operating platform.
+              {t("auth.introParagraph")}
             </p>
           </div>
         </div>
@@ -137,7 +136,7 @@ export const LoginPage: React.FC = () => {
         {/* Footer Meta */}
         <div className="relative z-10 flex items-center justify-between text-xs text-gray-600 dark:text-gray-400 font-sans">
           <span>
-            ServeMyFood v{typeof __APP_VERSION__ !== "undefined" ? __APP_VERSION__ : "0.3.3"} (
+            ServeMyFood v{typeof __APP_VERSION__ !== "undefined" ? __APP_VERSION__ : "0.3.4"} (
             {typeof __GIT_HASH__ !== "undefined" ? __GIT_HASH__ : "6caba5a"})
           </span>
           <span>© 2026 {t("brand.company")}</span>
@@ -281,7 +280,7 @@ export const LoginPage: React.FC = () => {
                 <div className="mt-6 pt-4 border-t text-xs text-muted-foreground">
                   <div className="flex items-center gap-1.5 font-semibold text-gray-700 dark:text-gray-300 mb-2">
                     <Sparkles className="w-3.5 h-3.5 text-[#FF6A00]" />
-                    <span>Demo Quick-Fill:</span>
+                    <span>{t("auth.demoQuickFill")}</span>
                   </div>
                   <div className="grid grid-cols-2 gap-2">
                     <button

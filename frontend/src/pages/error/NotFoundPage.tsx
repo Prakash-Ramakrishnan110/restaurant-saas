@@ -16,7 +16,7 @@ export const NotFoundPage: React.FC = () => {
         <div>
           <h1 className="text-2xl font-bold font-heading text-foreground">404 - Page Not Found</h1>
           <p className="mt-2 text-sm text-muted-foreground leading-relaxed">
-            The requested page or venue resource could not be found or belongs to another tenant.
+            We couldn't find that page.
           </p>
         </div>
 

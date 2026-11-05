@@ -8,11 +8,19 @@
 ## 1. Brand Identity
 
 - **Brand Name**: ServeMyFood
-- **Wordmark Styling**: "ServeMy" in Deep Navy (`#0B1F3B`), "Food" in Vibrant Orange (`#FF6A00`)
-- **Icon**: Chef hat (toque) outline with crossed fork, spoon, and dynamic service swoosh in Vibrant Orange (`#FF6A00`)
+- **Wordmark Styling**: "ServeMy" in Deep Navy (`#0B1F3B`) on light surfaces / Pure White (`#FFFFFF`) on dark surfaces, followed by "Food" in Vibrant Orange (`#FF6A00`) in Poppins Bold.
+- **Icon / Mark**: Simple chef's hat mark with fork and spoon.
+  - Light backgrounds: `mark-orange.svg` (`#FF6A00` chef's hat mark).
+  - Dark backgrounds: `mark-white.svg` (`#FFFFFF` chef's hat mark).
+  - Favicon (16/32px): `favicon-simple.svg`.
+  - App icon (180/192/512px): `app-icon.svg` (orange tile with white chef's hat mark).
+- **Clear Space**: Clear space of half the hat width on all sides.
+- **Minimum Dimensions**:
+  - Mark: Minimum width `24 px`.
+  - Full Logo: Minimum width `120 px`.
+- **Artwork Finalization**: A designer must finalise the master artwork before launch.
 - **Tagline**: *"One Platform. Every Food Business."*
 - **Company**: Fusion Engine Technology (`fusionengine.in`)
-- **Note**: The vector artwork embedded in code serves as an SVG placeholder; final production vector branding and assets will be prepared by a professional brand designer.
 
 ---
 
@@ -25,6 +33,7 @@
 | **Deep Navy** | `#0B1F3B` | `11, 31, 59` | Text on primary orange, headings, dark mode surfaces | Provides **14.2:1** contrast against white backgrounds. |
 | **Darker Orange** | `#C2410C` | `194, 65, 12` | Orange text, badges, borders on light backgrounds | Provides **4.8:1** contrast on white (WCAG AA compliant). |
 | **Danger Red** | `#DC2626` | `220, 38, 38` | Destructive buttons, error alerts, deactivations | Provides **4.6:1** contrast on white (WCAG AA compliant). |
+| **Amber Warning** | `#D97706` | `217, 119, 6` | Warning meters (80%–99%), caution notices | Never use brand orange for warning states. |
 | **Warm Cream** | `#FFF3E0` | `255, 243, 224` | Auth desktop side panel, empty state backgrounds | Warm, welcoming hospitality visual tone. |
 
 ### Operational Status Colors (Tables & Orders)
@@ -53,11 +62,12 @@ All fonts are self-hosted in WOFF2 format under `/frontend/public/fonts/`.
 ## 4. Logo Clear Space and Minimum Sizes
 
 - **Full Wordmark**:
-  - Minimum width: `120px` (desktop), `100px` (mobile).
-  - Clear space: Minimum padding equal to the height of the capital letter "S" on all sides.
-- **Icon / Glyph**:
-  - Minimum size: `24x24px`.
+  - Minimum width: `120 px`.
+  - Clear space: Minimum padding equal to half the chef's hat width on all sides.
+- **Icon / Mark**:
+  - Minimum width: `24 px`.
   - Favicon formats: `16x16px`, `32x32px`, `180x180px` (Apple touch), `192x192px` (PWA), `512x512px` (PWA).
+- **Master Artwork**: A designer must finalise the master artwork before launch.
 
 ---
 
@@ -67,5 +77,5 @@ All fonts are self-hosted in WOFF2 format under `/frontend/public/fonts/`.
 - [x] Primary Orange button text is strictly Navy (`#0B1F3B`), yielding 5.7:1 (WCAG AAA compliant).
 - [x] Form inputs include explicit `<label>` tags with `for` associations.
 - [x] All interactive elements have focus indicators (`focus-visible:ring-2 focus-visible:ring-[#FF6A00]`).
-- [x] Minimum touch target size is 44x44px across mobile and tablet breakpoints.
+- [x] Minimum touch target size is 56px in touch mode and across waiter/kitchen tablet interfaces.
 - [x] Automated WCAG contrast ratio test suite in Vitest.

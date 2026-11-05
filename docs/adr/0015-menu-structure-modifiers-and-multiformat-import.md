@@ -30,6 +30,14 @@ To eliminate manual item entry during onboarding (Prompt 3B), the system provide
   $$\text{Item Total} = \left(\text{Base Price} + \sum \text{Modifier Prices}\right) \times \text{Quantity}$$
 - Frontends never compute or submit monetary subtotals.
 
+### 4. Menu Image & PDF Reference Invariant (No Direct Auto-Conversion)
+- Uploaded menu photographs (JPEG/PNG) and printed menu PDFs are strictly stored as **reference documents** attached to the venue.
+- They are **never directly auto-converted** into published menu items without human verification.
+- When an OCR or AI-assisted extraction engine is introduced in future iterations, it must produce an **editable staging / review screen**.
+- Nothing is published to the live menu or digital QR catalog until a manager or owner explicitly confirms, edits, and authorizes the imported items.
+
 ## Consequences
 - Fast onboarding for restaurants with existing spreadsheets.
 - Prevents price tampering through authoritative server-side calculation.
+- Guarantees catalog integrity by enforcing human review on unstructured image/PDF inputs.
+

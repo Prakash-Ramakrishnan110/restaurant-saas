@@ -68,6 +68,19 @@ interface OnboardingResponse {
   };
 }
 
+export function getUsageMeterColor(
+  percentage: number,
+  isOverLimit?: boolean
+): { className: string; hex: string } {
+  if (isOverLimit || percentage >= 100) {
+    return { className: "bg-destructive", hex: "#DC2626" };
+  }
+  if (percentage >= 80) {
+    return { className: "bg-amber-500", hex: "#D97706" };
+  }
+  return { className: "bg-primary", hex: "#FF6A00" };
+}
+
 export const DashboardPage: React.FC = () => {
   const { user, activeTenant } = useAuth();
   const navigate = useNavigate();
@@ -107,6 +120,17 @@ export const DashboardPage: React.FC = () => {
       isMounted = false;
     };
   }, [activeTenant?.tenant_id]);
+
+  const ONBOARDING_STEPS = [
+    { key: "business_profile", label: "Business Profile", path: "/settings/venue" },
+    { key: "first_branch", label: "Branch Configured", path: "/branches" },
+    { key: "venue_profile_chosen", label: "Venue Preset", path: "/settings/venue" },
+    { key: "service_areas", label: "Service Areas", path: "/venue/areas" },
+    { key: "tables_or_counters", label: "Tables / Counters", path: "/venue/tables" },
+    { key: "qr_codes", label: "QR codes printed", path: "/qr" },
+    { key: "staff_invited", label: "Staff Invited", path: "/staff" },
+  ];
+  const completedStepsCount = ONBOARDING_STEPS.filter((s) => onboarding?.steps?.[s.key]).length;
 
   const getTimeGreeting = () => {
     const hour = new Date().getHours();
@@ -186,7 +210,7 @@ export const DashboardPage: React.FC = () => {
             </div>
             {onboarding && (
               <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-[#FF6A00]/10 text-[#FF6A00]">
-                {onboarding.completion_percentage}% Completed
+                {completedStepsCount} of 7 steps done
               </span>
             )}
           </div>
@@ -204,15 +228,7 @@ export const DashboardPage: React.FC = () => {
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 pt-2">
-              {[
-                { key: "business_profile", label: "Business Profile", path: "/settings/venue" },
-                { key: "first_branch", label: "Branch Configured", path: "/branches" },
-                { key: "venue_profile_chosen", label: "Venue Preset", path: "/settings/venue" },
-                { key: "service_areas", label: "Service Areas", path: "/venue/areas" },
-                { key: "tables_or_counters", label: "Tables / Counters", path: "/venue/tables" },
-                { key: "qr_codes", label: "QR Standees", path: "/qr" },
-                { key: "staff_invited", label: "Staff Invited", path: "/staff" },
-              ].map((step) => {
+              {ONBOARDING_STEPS.map((step) => {
                 const isDone = onboarding?.steps?.[step.key];
                 return (
                   <Link
@@ -226,9 +242,7 @@ export const DashboardPage: React.FC = () => {
                       ) : (
                         <Circle className="h-4 w-4 text-muted-foreground shrink-0" />
                       )}
-                      <span
-                        className={`text-xs font-semibold ${isDone ? "text-foreground line-through opacity-70" : "text-foreground"}`}
-                      >
+                      <span className="text-xs font-semibold text-foreground">
                         {step.label}
                       </span>
                     </div>
@@ -244,12 +258,12 @@ export const DashboardPage: React.FC = () => {
       {/* 3. Subscription Entitlements & Usage Bars */}
       <Card className="border border-border">
         <CardHeader className="pb-3">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div className="flex items-center gap-2">
               <TrendingUp className="h-5 w-5 text-[#FF6A00]" />
-              <CardTitle className="text-lg font-heading">Plan Entitlements & Scale</CardTitle>
+              <CardTitle className="text-lg font-heading">Your plan</CardTitle>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <span className="text-xs font-bold text-foreground bg-muted px-2.5 py-1 rounded-md">
                 Plan: {entitlements?.plan_name || "Professional"}
               </span>
@@ -316,11 +330,7 @@ export const DashboardPage: React.FC = () => {
                     <div className="w-full bg-muted rounded-full h-2 overflow-hidden">
                       <div
                         className={`h-full rounded-full transition-all ${
-                          overLimit
-                            ? "bg-destructive"
-                            : percentage >= 85
-                              ? "bg-amber-500"
-                              : "bg-[#FF6A00]"
+                          getUsageMeterColor(percentage, overLimit).className
                         }`}
                         style={{ width: `${percentage}%` }}
                       />

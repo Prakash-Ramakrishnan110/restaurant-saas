@@ -72,32 +72,33 @@
   }
 
   .dark {
-    --background: 222.2 84% 4.9%;
+    /* Navy base #0B1F3B-family: HSL(215, 69%, 14%) */
+    --background: 215 69% 14%;
     --foreground: 210 40% 98%;
 
-    --card: 222.2 84% 4.9%;
+    --card: 215 60% 17%;
     --card-foreground: 210 40% 98%;
 
-    --popover: 222.2 84% 4.9%;
+    --popover: 215 60% 17%;
     --popover-foreground: 210 40% 98%;
 
     --primary: 25 100% 50%;
     --primary-foreground: 215 69% 14%;
 
-    --secondary: 217.2 32.6% 17.5%;
+    --secondary: 215 50% 22%;
     --secondary-foreground: 210 40% 98%;
 
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
+    --muted: 215 50% 20%;
+    --muted-foreground: 215 25% 72%;
 
-    --accent: 217.2 32.6% 17.5%;
+    --accent: 215 50% 22%;
     --accent-foreground: 210 40% 98%;
 
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: 0 72% 50%;
+    --destructive-foreground: 0 0% 100%;
 
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
+    --border: 215 45% 24%;
+    --input: 215 45% 24%;
     --ring: 25 100% 50%;
   }
 

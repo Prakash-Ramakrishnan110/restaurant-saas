@@ -32,3 +32,4 @@ Restaurant owners, managers, and accountants require bulletproof financial visib
 ## Consequences
 - Guarantees complete auditability for chartered accountants and tax authorities.
 - Prevents cashier discrepancies through systematic X/Z close-out controls.
+

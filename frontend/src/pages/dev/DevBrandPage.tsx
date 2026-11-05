@@ -193,7 +193,7 @@ export const DevBrandPage: React.FC = () => {
                 <BrandLogo variant="icon" theme="light" size={24} />
               </div>
               <div className="text-[11px] text-muted-foreground text-center">
-                Geometric cloche glyph at 48px, 32px, 24px
+                Chef's hat mark with fork and spoon at 48px, 32px, 24px
               </div>
             </Card>
           </div>

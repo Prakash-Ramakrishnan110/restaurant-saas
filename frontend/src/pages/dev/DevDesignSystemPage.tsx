@@ -109,7 +109,7 @@ const InnerDesignSystemPage: React.FC = () => {
       <div className="max-w-6xl mx-auto space-y-12">
         {/* Navigation & Controls */}
         <div className="space-y-4">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-wrap items-center justify-between gap-3">
             <Button
               variant="ghost"
               size="sm"
@@ -119,7 +119,7 @@ const InnerDesignSystemPage: React.FC = () => {
               <ArrowLeft className="w-4 h-4 mr-1" />
               Back to Dashboard
             </Button>
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <Button
                 variant="outline"
                 size="sm"

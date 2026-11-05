@@ -31,3 +31,4 @@ Restaurant staff operate in fast-paced shifts where terminal devices (waiter tab
 ## Consequences
 - Fast terminal switching prevents waiter queueing at peak dinner hours.
 - Strict cash shift reconciliation eliminates end-of-day drawer discrepancies and internal theft risks.
+

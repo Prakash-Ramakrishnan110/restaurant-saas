@@ -18,6 +18,9 @@ export const defaultResources = {
         password: "Password",
         forgotPassword: "Forgot password?",
         forgotPasswordHelp: "Ask your owner or manager to reset your password.",
+        introParagraph:
+          "Streamline floor plans, table sessions, QR ordering, and kitchen workflows from a single unified operating platform.",
+        demoQuickFill: "Demo Quick-Fill:",
         benefit1Title: "Orders go straight to the kitchen",
         benefit1Desc: "Instant kitchen tickets and display screens prevent order delays.",
         benefit2Title: "See today's sales at a glance",
@@ -72,7 +75,7 @@ export const defaultResources = {
     translation: {
       brand: {
         name: "ServeMyFood",
-        tagline: "ஒரே தளம். அனைத்து உணவு வணிகங்களுக்கும்.",
+        tagline: "ஒரே தளம். அனைத்து உணவு\u00A0வணிகங்களுக்கும்.",
         company: "ஃப்யூஷன் என்ஜின் டெக்னாலஜி",
         taglineShort: "உணவக மேலாண்மை தளம்",
       },
@@ -84,6 +87,9 @@ export const defaultResources = {
         forgotPassword: "கடவுச்சொல் மறந்துவிட்டதா?",
         forgotPasswordHelp:
           "உங்கள் கடவுச்சொல்லை மீட்டமைக்க உங்கள் உரிமையாளர் அல்லது மேலாளரை அணுகவும்.",
+        introParagraph:
+          "தள வரைபடங்கள், மேஜை அமர்வுகள், QR ஆர்டர்கள் மற்றும் சமையலறை செயல்பாடுகளை ஒரே தளத்தில் எளிதாக நிர்வகியுங்கள்.",
+        demoQuickFill: "மாதிரி விரைவு நிரப்பல்:",
         benefit1Title: "ஆர்டர்கள் நேரடியாக சமையலறைக்குச் செல்லும்",
         benefit1Desc: "உடனடி சமையலறை சீட்டுகள் மூலம் ஆர்டர் தாமதங்கள் தவிர்க்கப்படுகின்றன.",
         benefit2Title: "இன்றைய விற்பனையை உடனடியாகப் பாருங்கள்",

@@ -31,3 +31,4 @@ Quick-service restaurants, tea stalls, and fast-casual takeaway counters do not 
 ## Consequences
 - Single unified order architecture supports both seated table dining and rapid counter takeaway.
 - Eliminates queue bottlenecks at quick-service and takeaway counters.
+

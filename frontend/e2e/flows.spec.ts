@@ -342,11 +342,13 @@ test.describe("ServeMyFood 8 Core E2E Flows", () => {
     // Check Comfortable Mode vs Touch Mode
     const touchBtn = page.getByRole("button", { name: /Toggle Touch Mode/i });
     await touchBtn.click();
+    await page.waitForTimeout(300);
     await expect(page.locator(".touch-mode")).toBeVisible();
 
     // Check Dark Mode
     const darkBtn = page.getByRole("button", { name: /Toggle Dark Mode/i });
     await darkBtn.click();
+    await page.waitForTimeout(300);
     const isDark = await page.evaluate(() => document.documentElement.classList.contains("dark"));
     expect(isDark).toBe(true);
 
