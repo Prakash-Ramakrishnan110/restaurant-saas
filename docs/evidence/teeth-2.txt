@@ -1,4 +1,4 @@
-TEETH-CHECK 2: Disabled LAST_OWNER check in staff mutation services (last owner demotion/deactivation)
+TEETH-CHECK 2: Single change made: disabled LAST_OWNER check in staff mutation services. True result when enabled: attempting to deactivate or demote the last active owner returns LAST_OWNER (HTTP 409 Conflict).
 ============================= test session starts =============================
 platform win32 -- Python 3.12.10, pytest-9.2.0, pluggy-1.6.0 -- C:\Users\praka\AppData\Local\Microsoft\WindowsApps\PythonSoftwareFoundation.Python.3.12_qbz5n2kfra8p0\python.exe
 cachedir: .pytest_cache

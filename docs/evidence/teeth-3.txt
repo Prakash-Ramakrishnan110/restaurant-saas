@@ -1,4 +1,4 @@
-TEETH-CHECK 3: Disabled password gate middleware check (first-login forced password change bypass)
+TEETH-CHECK 3: Single change made: disabled enforce_password_change_middleware. True result when enabled: users with password_change_required=True receive HTTP 403 PASSWORD_CHANGE_REQUIRED on all non-exempt endpoints.
 ============================= test session starts =============================
 platform win32 -- Python 3.12.10, pytest-9.2.0, pluggy-1.6.0 -- C:\Users\praka\AppData\Local\Microsoft\WindowsApps\PythonSoftwareFoundation.Python.3.12_qbz5n2kfra8p0\python.exe
 cachedir: .pytest_cache

@@ -1,4 +1,4 @@
-TEETH-CHECK 1: Disabled branch-scope check in verify_tenant_and_branch_access (branch scope bypass)
+TEETH-CHECK 1: Single change made: disabled branch-scope and cross-tenant check in verify_tenant_and_branch_access. True result when enabled: branch-scope and cross-tenant access returns 404 Not Found (not 403).
 ============================= test session starts =============================
 platform win32 -- Python 3.12.10, pytest-9.2.0, pluggy-1.6.0 -- C:\Users\praka\AppData\Local\Microsoft\WindowsApps\PythonSoftwareFoundation.Python.3.12_qbz5n2kfra8p0\python.exe
 cachedir: .pytest_cache

@@ -1,4 +1,4 @@
-TEETH-CHECK 4: Disabled Origin and Referer validation on refresh cookie endpoint (cross-origin refresh bypass)
+TEETH-CHECK 4: Single change made: disabled Origin and Referer header validation in cookie refresh endpoint. True result when enabled: untrusted origin or referer returns HTTP 403 Forbidden.
 ============================= test session starts =============================
 platform win32 -- Python 3.12.10, pytest-9.2.0, pluggy-1.6.0 -- C:\Users\praka\AppData\Local\Microsoft\WindowsApps\PythonSoftwareFoundation.Python.3.12_qbz5n2kfra8p0\python.exe
 cachedir: .pytest_cache

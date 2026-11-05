@@ -1,5 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { render, screen } from "@testing-library/react";
+import fs from "node:fs";
+import path from "node:path";
 import { calculateContrastRatio } from "../pages/dev/DevBrandPage";
 import { BrandLogo } from "../components/brand/BrandLogo";
 import { getUsageMeterColor } from "../pages/dashboard/DashboardPage";
@@ -220,6 +222,7 @@ describe("Exhaustive UI Token Contrast Matrix across Light and Dark Themes (Requ
     { name: "Muted Foreground on Card", fg: "#475569", bg: "#FFFFFF", min: 4.5 },
     { name: "Destructive Foreground (White) on Destructive (Red)", fg: "#FFFFFF", bg: "#DC2626", min: 4.5 },
     { name: "Warning Text (Amber) on Light Amber BG", fg: "#B45309", bg: "#FEF3C7", min: 4.5 },
+    { name: "Amber Text (#B45309) on White Background", fg: "#B45309", bg: "#FFFFFF", min: 4.5 },
     { name: "Table Available (Green 700 on Green 100)", fg: "#15803D", bg: "#DCFCE7", min: 4.5 },
     { name: "Table Occupied (Blue 700 on Blue 100)", fg: "#1D4ED8", bg: "#DBEAFE", min: 4.5 },
     { name: "Table Reserved (Purple 700 on Purple 100)", fg: "#7E22CE", bg: "#F3E8FF", min: 4.5 },
@@ -243,6 +246,7 @@ describe("Exhaustive UI Token Contrast Matrix across Light and Dark Themes (Requ
     { name: "Primary Orange on Dark Card", fg: "#FF6A00", bg: darkNavyCard, min: 4.5 },
     { name: "Destructive Foreground on Destructive Red", fg: "#FFFFFF", bg: "#DC2626", min: 4.5 },
     { name: "Warning Text (Amber 400) on Dark Amber BG", fg: "#FBBF24", bg: "#78350F", min: 4.5 },
+    { name: "Amber Text (#FBBF24) on Dark Navy Base", fg: "#FBBF24", bg: darkNavyBase, min: 4.5 },
     { name: "Table Available Dark (Green 400 on Green 900)", fg: "#4ADE80", bg: "#14532D", min: 4.5 },
     { name: "Table Occupied Dark (Blue 300 on Blue 900)", fg: "#93C5FD", bg: "#1E3A8A", min: 4.5 },
     { name: "Table Reserved Dark (Purple 200 on Purple 900)", fg: "#E9D5FF", bg: "#581C87", min: 4.5 },
@@ -277,7 +281,7 @@ describe("Exhaustive UI Token Contrast Matrix across Light and Dark Themes (Requ
 
   it("verifies all Dark Theme UI token pairs and logs pair count", () => {
     console.log(`[WCAG Audit] Dark theme UI token pairs tested: ${darkPairs.length}`);
-    expect(darkPairs.length).toBeGreaterThanOrEqual(15);
+    expect(darkPairs.length).toBeGreaterThanOrEqual(16);
 
     darkPairs.forEach((pair) => {
       const ratio = calculateContrastRatio(pair.fg, pair.bg);
@@ -287,4 +291,58 @@ describe("Exhaustive UI Token Contrast Matrix across Light and Dark Themes (Requ
       ).toBeGreaterThanOrEqual(pair.min);
     });
   });
+
+  it("AMBER TEXT INVARIANT: #D97706 on white is ~3.2:1 and strictly disallowed for text; #B45309 is >= 4.5:1", () => {
+    const d9Ratio = calculateContrastRatio("#D97706", "#FFFFFF");
+    // #D97706 on white is ~3.2:1, failing WCAG AA (4.5:1) for text, permitted ONLY for bar fills/borders
+    expect(d9Ratio).toBeLessThan(4.5);
+    expect(d9Ratio).toBeCloseTo(3.2, 1);
+
+    // Darker amber #B45309 on white meets WCAG AA text contrast
+    const b4Ratio = calculateContrastRatio("#B45309", "#FFFFFF");
+    expect(b4Ratio).toBeGreaterThanOrEqual(4.5);
+    expect(b4Ratio).toBeGreaterThanOrEqual(5.0);
+
+    // In dark theme, amber text #FBBF24 on dark navy #0B1F3B meets WCAG AA
+    const darkAmberRatio = calculateContrastRatio("#FBBF24", "#0B1F3B");
+    expect(darkAmberRatio).toBeGreaterThanOrEqual(4.5);
+  });
+
+  it("STATIC SCAN: #D97706 or text-amber-500 is NEVER used as a text color in frontend/src", () => {
+    const srcDir = path.resolve(__dirname, "..");
+    const forbiddenPatterns = [
+      /text-amber-500/i,
+      /text-\[\#D97706\]/i,
+      /color\s*:\s*["']\#D97706["']/i,
+    ];
+
+    function scanDirectory(dir: string): string[] {
+      const violations: string[] = [];
+      const entries = fs.readdirSync(dir, { withFileTypes: true });
+
+      for (const entry of entries) {
+        const fullPath = path.join(dir, entry.name);
+        if (entry.isDirectory()) {
+          if (entry.name !== "node_modules" && entry.name !== "dist" && entry.name !== ".git") {
+            violations.push(...scanDirectory(fullPath));
+          }
+        } else if (/\.(tsx|ts|css|html)$/.test(entry.name)) {
+          // Do not scan this test file itself for the forbidden regex literals
+          if (entry.name === "contrast.test.tsx") continue;
+
+          const content = fs.readFileSync(fullPath, "utf-8");
+          for (const pattern of forbiddenPatterns) {
+            if (pattern.test(content)) {
+              violations.push(`${fullPath} matches forbidden text pattern ${pattern}`);
+            }
+          }
+        }
+      }
+      return violations;
+    }
+
+    const violations = scanDirectory(srcDir);
+    expect(violations, `Found forbidden #D97706 text color usage:\n${violations.join("\n")}`).toEqual([]);
+  });
 });
+
