@@ -37,7 +37,7 @@ ServeMyFood is a comprehensive multi-tenant restaurant and food service operatin
 - **Rationale**: Friction at the dining table causes customer abandonment. Sessions are anchored directly to the table session or ephemeral token.
 
 ### 8. Multi-Tenancy & Data Isolation
-- **Decision**: Shared PostgreSQL database with Row-Level Security (RLS) and strict tenant-scoped querysets (`TenantModel.objects` vs `TenantModel.unscoped`).
+- **Decision**: Shared PostgreSQL database with application-level fail-closed tenant scoping (`TenantModel.objects` vs `TenantModel.unscoped`), with native database RLS reserved as a future defense-in-depth option.
 - **Rule**: Every tenant request carries an authoritative JWT and optional `X-Tenant-ID` header. Cross-tenant access attempts immediately return HTTP 404 to avoid disclosing entity existence.
 
 ### 9. Offline Resilience & Degraded State Handling

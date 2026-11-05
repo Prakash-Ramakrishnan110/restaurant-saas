@@ -144,4 +144,168 @@ describe("Frontend Authentication & Security Invariants", () => {
     expect(screen.getByText("No Branch Access")).toBeInTheDocument();
     expect(screen.getByText("No Staff Access")).toBeInTheDocument();
   });
+
+  it("AuthContext: login, selectTenant, changePassword, and logout operate correctly", async () => {
+    // Mock apiClient endpoints
+    const meResponse = {
+      data: {
+        user: {
+          id: "u-1",
+          email: "owner@spicegarden.com",
+          full_name: "Owner Test",
+          is_platform_admin: false,
+          must_change_password: false,
+        },
+        memberships: [
+          {
+            tenant_id: "t-1",
+            tenant_name: "Spice Garden",
+            tenant_slug: "spice-garden",
+            role: "OWNER",
+            is_active: true,
+            permissions: ["branch.manage", "staff.manage"],
+          },
+          {
+            tenant_id: "t-2",
+            tenant_name: "Spice Garden Branch 2",
+            tenant_slug: "spice-garden-2",
+            role: "MANAGER",
+            is_active: true,
+            permissions: ["order.view"],
+          },
+        ],
+        active_role: "OWNER",
+        permissions: ["branch.manage", "staff.manage"],
+      },
+      status: 200,
+      statusText: "OK",
+      headers: {},
+      config: {} as any,
+    };
+
+    apiClient.defaults.adapter = async (config) => {
+      const url = config.url || "";
+      if (url.includes("/auth/login/")) {
+        return {
+          data: { access: "access-token-abc", user: { must_change_password: false } },
+          status: 200,
+          statusText: "OK",
+          headers: {},
+          config,
+        };
+      }
+      if (url.includes("/auth/me/")) {
+        return meResponse;
+      }
+      if (url.includes("/auth/change-password/")) {
+        return {
+          data: { access: "new-access-token-xyz" },
+          status: 200,
+          statusText: "OK",
+          headers: {},
+          config,
+        };
+      }
+      if (url.includes("/auth/logout/")) {
+        return {
+          data: { success: true },
+          status: 200,
+          statusText: "OK",
+          headers: {},
+          config,
+        };
+      }
+      if (url.includes("/auth/refresh/")) {
+        return {
+          data: { access: "refreshed-access-token" },
+          status: 200,
+          statusText: "OK",
+          headers: {},
+          config,
+        };
+      }
+      return { data: {}, status: 200, statusText: "OK", headers: {}, config };
+    };
+
+    let authRef: any = null;
+    const Harness = () => {
+      const auth = (window as any).useAuthHook();
+      authRef = auth;
+      return (
+        <div>
+          <span data-testid="user-email">{auth.user?.email || "none"}</span>
+          <span data-testid="active-tenant">{auth.activeTenant?.tenant_name || "none"}</span>
+          <span data-testid="active-role">{auth.activeRole || "none"}</span>
+          <button
+            data-testid="btn-login"
+            onClick={() => auth.login("owner@spicegarden.com", "Password123!")}
+          >
+            Login
+          </button>
+          <button data-testid="btn-tenant2" onClick={() => auth.selectTenant("t-2")}>
+            Select T2
+          </button>
+          <button
+            data-testid="btn-change-pw"
+            onClick={() => auth.changePassword("OldPassword123!", "NewPassword123!")}
+          >
+            Change PW
+          </button>
+          <button data-testid="btn-logout" onClick={() => auth.logout()}>
+            Logout
+          </button>
+        </div>
+      );
+    };
+
+    // Dynamically wire useAuth into Harness
+    const { useAuth } = await import("../context/AuthContext");
+    (window as any).useAuthHook = useAuth;
+
+    const { getByTestId } = render(
+      <AuthProvider>
+        <Harness />
+      </AuthProvider>
+    );
+
+    // Initial state
+    expect(getByTestId("user-email").textContent).toBe("none");
+
+    // Perform Login
+    await (
+      await import("@testing-library/react")
+    ).act(async () => {
+      getByTestId("btn-login").click();
+    });
+
+    expect(authRef.user?.email).toBe("owner@spicegarden.com");
+    expect(authRef.activeTenant?.tenant_id).toBe("t-1");
+    expect(authRef.can("branch.manage")).toBe(true);
+    expect(authRef.can("unknown.perm")).toBe(false);
+
+    // Switch tenant
+    (await import("@testing-library/react")).act(() => {
+      getByTestId("btn-tenant2").click();
+    });
+    expect(authRef.activeTenant?.tenant_id).toBe("t-2");
+    expect(localStorage.getItem("servemyfood_tenant_id")).toBe("t-2");
+
+    // Change password
+    await (
+      await import("@testing-library/react")
+    ).act(async () => {
+      getByTestId("btn-change-pw").click();
+    });
+    expect(getAccessToken()).toBe("new-access-token-xyz");
+
+    // Logout
+    await (
+      await import("@testing-library/react")
+    ).act(async () => {
+      getByTestId("btn-logout").click();
+    });
+    expect(authRef.user).toBeNull();
+    expect(authRef.activeTenant).toBeNull();
+    expect(getAccessToken()).toBeNull();
+  });
 });

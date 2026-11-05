@@ -94,6 +94,9 @@ Run `python manage.py seed` or `make seed` to provision:
 | **Grand Meridian** | HOTEL_RESTAURANT | Enterprise | `owner@grandmeridian.in` | `Password123!` | OWNER |
 | **Foodie Plaza** | FOOD_COURT | Business | `owner@foodieplaza.in` | `Password123!` | OWNER |
 
+> [!NOTE]
+> **Demo Quick-Fill Buttons (DEV-Only)**: The quick-fill account buttons on the `/login` screen are guarded by `import.meta.env.DEV`. They only render in local development environments and are automatically omitted from production builds.
+
 ---
 
 ## Quality Gates & Verification

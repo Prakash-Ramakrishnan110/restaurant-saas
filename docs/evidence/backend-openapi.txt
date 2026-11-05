@@ -1,0 +1,1 @@
+﻿PASS: docs/openapi.json is strictly validated and in sync with backend code (zero drift).

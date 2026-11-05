@@ -101,13 +101,26 @@
     --ring: 25 100% 50%;
   }
 
-  /* Touch mode spacing preset for tablet / POS interfaces */
+  /* Touch mode spacing preset for tablet / POS interfaces (minimum 56px touch targets) */
   .touch-mode button,
   .touch-mode a,
   .touch-mode input,
-  .touch-mode select {
-    min-height: 48px;
+  .touch-mode select,
+  .touch-mode [role="tab"],
+  .touch-mode [data-touch-target="true"],
+  [data-density="touch"] button,
+  [data-density="touch"] a,
+  [data-density="touch"] input,
+  [data-density="touch"] select,
+  [data-density="touch"] [role="tab"],
+  [data-density="touch"] [data-touch-target="true"] {
+    min-height: 56px;
     font-size: 1.05rem;
+  }
+
+  .touch-mode .touch-row,
+  [data-density="touch"] .touch-row {
+    min-height: 56px;
   }
 }
 

@@ -1,0 +1,112 @@
+﻿commit 94ce6610fae3b8cc208e783ff0b5e3fba2a99d24
+Author: Fusion Engine <dev@fusionengine.in>
+Date:   Wed Nov 4 17:33:07 2026 +0530
+
+    fix(backend): align error codes, golden presets matrix, teeth checks, and evidence
+
+ backend/apps/accounts/tests/test_auth_endpoints.py |  24 ++
+ .../apps/accounts/tests/test_staff_management.py   |   6 +-
+ backend/apps/core/tests/test_exceptions.py         |  32 +--
+ .../apps/core/tests/test_managers_and_context.py   |   5 +-
+ backend/apps/core/tests/test_seed.py               |   2 +-
+ .../apps/rbac/tests/test_matrix_and_permissions.py |   2 +
+ .../tests/test_entitlements_endpoint.py            |   1 -
+ backend/apps/venues/tests/test_presets.py          | 152 +++++++++++
+ docs/deviations.md                                 |  14 +
+ docs/evidence/backend-collect.txt                  | 294 +++++++++++++++++++++
+ docs/evidence/backend-coverage-gate.txt            |  10 +
+ docs/evidence/backend-migrations.txt               |   1 +
+ docs/evidence/backend-mypy.txt                     |   1 +
+ docs/evidence/backend-pip.txt                      |  10 +
+ docs/evidence/backend-pytest.txt                   |  70 +++++
+ docs/evidence/backend-ruff.txt                     |   1 +
+ docs/evidence/teeth-1.txt                          |  71 +++++
+ docs/evidence/teeth-2.txt                          |  32 +++
+ docs/evidence/teeth-3.txt                          |  68 +++++
+ docs/evidence/teeth-4.txt                          |  44 +++
+ docs/evidence/teeth-5.txt                          |  50 ++++
+ docs/venue-presets.md                              | 106 +++-----
+ 22 files changed, 901 insertions(+), 95 deletions(-)
+ .gitignore                                         |    2 +
+ backend/apps/accounts/tests/test_auth_endpoints.py |   24 +
+ .../apps/accounts/tests/test_staff_management.py   |    6 +-
+ backend/apps/core/tests/test_exceptions.py         |   32 +-
+ .../apps/core/tests/test_managers_and_context.py   |    5 +-
+ backend/apps/core/tests/test_seed.py               |    2 +-
+ .../apps/rbac/tests/test_matrix_and_permissions.py |    2 +
+ .../tests/test_entitlements_endpoint.py            |    1 -
+ backend/apps/venues/tests/test_presets.py          |  152 +
+ docs/adr/0011-servemyfood-scope-and-phases.md      |   75 +
+ docs/brand.md                                      |   70 +
+ docs/deviations.md                                 |   14 +
+ docs/evidence/backend-collect.txt                  |  294 +
+ docs/evidence/backend-coverage-gate.txt            |   10 +
+ docs/evidence/backend-migrations.txt               |    1 +
+ docs/evidence/backend-mypy.txt                     |    1 +
+ docs/evidence/backend-pip.txt                      |   10 +
+ docs/evidence/backend-pytest.txt                   |   70 +
+ docs/evidence/backend-ruff.txt                     |    1 +
+ docs/evidence/teeth-1.txt                          |   71 +
+ docs/evidence/teeth-2.txt                          |   32 +
+ docs/evidence/teeth-3.txt                          |   68 +
+ docs/evidence/teeth-4.txt                          |   44 +
+ docs/evidence/teeth-5.txt                          |   50 +
+ docs/screenshots/01-login-desktop.png              |  Bin 0 -> 111386 bytes
+ docs/screenshots/02-login-mobile.png               |  Bin 0 -> 32770 bytes
+ docs/screenshots/03-change-password.png            |  Bin 0 -> 43947 bytes
+ docs/screenshots/04-dashboard-desktop.png          |  Bin 0 -> 111386 bytes
+ docs/screenshots/05-dashboard-mobile.png           |  Bin 0 -> 32770 bytes
+ docs/screenshots/06-dashboard-dark-touch.png       |  Bin 0 -> 111386 bytes
+ docs/screenshots/07-dev-brand.png                  |  Bin 0 -> 316055 bytes
+ docs/screenshots/08-dev-design-system.png          |  Bin 0 -> 149690 bytes
+ docs/venue-presets.md                              |  106 +-
+ frontend/e2e/screenshots.spec.ts                   |  105 +
+ frontend/e2e/tamil-rendering.spec.ts               |   36 +
+ frontend/index.html                                |   19 +
+ frontend/package-lock.json                         | 5775 ++++++++++++++++++++
+ frontend/package.json                              |   54 +
+ frontend/playwright.config.ts                      |   30 +
+ frontend/postcss.config.js                         |    6 +
+ frontend/public/apple-touch-icon.png               |  Bin 0 -> 1209 bytes
+ frontend/public/favicon-16x16.png                  |  Bin 0 -> 162 bytes
+ frontend/public/favicon-32x32.png                  |  Bin 0 -> 239 bytes
+ frontend/public/favicon.svg                        |   11 +
+ frontend/public/fonts/inter-latin.woff2            |   11 +
+ frontend/public/fonts/inter.woff2                  |  Bin 0 -> 48256 bytes
+ frontend/public/fonts/noto-sans-tamil.woff2        |  Bin 0 -> 50468 bytes
+ frontend/public/fonts/poppins-600.woff2            |  Bin 0 -> 8000 bytes
+ frontend/public/fonts/poppins-700.woff2            |  Bin 0 -> 7816 bytes
+ frontend/public/icons/icon-192.png                 |  Bin 0 -> 1269 bytes
+ frontend/public/icons/icon-512.png                 |  Bin 0 -> 3985 bytes
+ frontend/public/manifest.webmanifest               |   26 +
+ frontend/src/App.tsx                               |   84 +
+ frontend/src/api/client.ts                         |  123 +
+ frontend/src/components/brand/BrandLogo.tsx        |   83 +
+ frontend/src/components/ui/badge.tsx               |   46 +
+ frontend/src/components/ui/button.tsx              |   60 +
+ frontend/src/components/ui/card.tsx                |   78 +
+ frontend/src/components/ui/dialog.tsx              |  116 +
+ frontend/src/components/ui/dropdown-menu.tsx       |  109 +
+ frontend/src/components/ui/input.tsx               |   26 +
+ frontend/src/components/ui/table.tsx               |  103 +
+ frontend/src/components/ui/tabs.tsx                |   52 +
+ frontend/src/context/AuthContext.tsx               |  167 +
+ frontend/src/context/ThemeContext.tsx              |   97 +
+ frontend/src/i18n/index.ts                         |  137 +
+ frontend/src/index.css                             |  125 +
+ frontend/src/main.tsx                              |   10 +
+ frontend/src/pages/auth/ChangePasswordPage.tsx     |  170 +
+ frontend/src/pages/auth/LoginPage.tsx              |  269 +
+ frontend/src/pages/dashboard/DashboardPage.tsx     |  340 ++
+ frontend/src/pages/dev/DevBrandPage.tsx            |  343 ++
+ frontend/src/pages/dev/DevDesignSystemPage.tsx     |  239 +
+ frontend/src/tests/components.test.tsx             |   44 +
+ frontend/src/tests/contrast.test.ts                |   55 +
+ frontend/src/tests/setup.ts                        |    1 +
+ frontend/src/types/api.ts                          | 3255 +++++++++++
+ frontend/tailwind.config.js                        |   98 +
+ frontend/tsconfig.json                             |   25 +
+ frontend/tsconfig.node.json                        |   10 +
+ frontend/vite.config.ts                            |   22 +
+ frontend/vitest.config.ts                          |   21 +
+ 82 files changed, 13429 insertions(+), 95 deletions(-)

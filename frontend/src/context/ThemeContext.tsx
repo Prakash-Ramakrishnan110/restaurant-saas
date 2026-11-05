@@ -46,18 +46,22 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
     if (isDark) {
       root.classList.add("dark");
+      root.setAttribute("data-theme", "dark");
     } else {
       root.classList.remove("dark");
+      root.setAttribute("data-theme", "light");
     }
   }, [theme]);
 
-  // Sync touch-mode class on document root
+  // Sync touch-mode class and data-density on document root
   useEffect(() => {
     const root = document.documentElement;
     if (touchMode) {
       root.classList.add("touch-mode");
+      root.setAttribute("data-density", "touch");
     } else {
       root.classList.remove("touch-mode");
+      root.setAttribute("data-density", "comfortable");
     }
   }, [touchMode]);
 

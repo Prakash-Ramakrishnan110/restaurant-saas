@@ -1,0 +1,50 @@
+﻿=== (a) Error-Code Table in docs/api-notes.md ===
+
+| `VALIDATION_ERROR` | 400 | `{ "<field>": ["<message>"] }` | Request body or query parameter fails serializer 
+validation (missing field, invalid choice, weak password). |
+| `SESSION_ALREADY_OPEN` | 409 | `{ "session_code": "<code-or-null>" }` | Attempting to open a session on a table or 
+group that already has an active session. |
+| `TABLE_NOT_AVAILABLE` | 409 | `{ "table_id": "<uuid>", "status": "<status>" }` | Attempting to seat or open session 
+on a table that is BLOCKED or CLEANING. |
+| `DUPLICATE_LABEL` | 409 | `{ "label": "<label>", "service_area_id": "<uuid>" }` | Creating or updating table with a 
+label already in use within the service area. |
+| `LAST_OWNER` | 409 | `{ "message": "Cannot demote or deactivate the last active owner." }` | Attempting to 
+deactivate or demote the last remaining active owner of a tenant. |
+
+=== (b) Golden Preset Test Name and Pass ===
+============================= test session starts =============================
+platform win32 -- Python 3.12.10, pytest-9.2.0, pluggy-1.6.0 -- C:\Users\praka\AppData\Local\Microsoft\WindowsApps\PythonSoftwareFoundation.Python.3.12_qbz5n2kfra8p0\python.exe
+cachedir: .pytest_cache
+django: version: 5.2.18, settings: config.settings.test (from ini)
+rootdir: C:\Users\praka\Desktop\Restaurant_saas\backend
+configfile: pyproject.toml
+plugins: anyio-4.11.0, Faker-40.1.2, asyncio-1.4.0, cov-6.0.0, django-4.9.0
+asyncio: mode=Mode.STRICT, debug=False, asyncio_default_fixture_loop_scope=function, asyncio_default_test_loop_scope=function
+collecting ... collected 19 items / 18 deselected / 1 selected
+
+apps/venues/tests/test_presets.py::test_golden_table_all_seven_presets_15_fields PASSED [100%]
+
+====================== 1 passed, 18 deselected in 7.78s =======================
+
+=== (c) 409 Tests for LAST_OWNER, SESSION_ALREADY_OPEN, TABLE_NOT_AVAILABLE, DUPLICATE_LABEL ===
+============================= test session starts =============================
+platform win32 -- Python 3.12.10, pytest-9.2.0, pluggy-1.6.0 -- C:\Users\praka\AppData\Local\Microsoft\WindowsApps\PythonSoftwareFoundation.Python.3.12_qbz5n2kfra8p0\python.exe
+cachedir: .pytest_cache
+django: version: 5.2.18, settings: config.settings.test (from ini)
+rootdir: C:\Users\praka\Desktop\Restaurant_saas\backend
+configfile: pyproject.toml
+plugins: anyio-4.11.0, Faker-40.1.2, asyncio-1.4.0, cov-6.0.0, django-4.9.0
+asyncio: mode=Mode.STRICT, debug=False, asyncio_default_fixture_loop_scope=function, asyncio_default_test_loop_scope=function
+collecting ... collected 14 items / 11 deselected / 3 selected
+
+apps/accounts/tests/test_staff_rules_and_reset.py::test_last_owner_cannot_be_deactivated_or_demoted PASSED [ 33%]
+apps/accounts/tests/test_staff_rules_and_reset.py::test_last_owner_delete_endpoint_returns_409 PASSED [ 66%]
+apps/core/tests/test_exceptions.py::test_custom_exception_handler PASSED [100%]
+
+====================== 3 passed, 11 deselected in 7.60s =======================
+
+=== (d) CAFE qr_ordering_mode & HOTEL_RESTAURANT qr_session_policy from Golden Test ===
+CAFE qr_ordering_mode: ORDER_DIRECT
+HOTEL_RESTAURANT qr_session_policy: STAFF_ONLY
+
+

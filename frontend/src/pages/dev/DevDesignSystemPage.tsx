@@ -49,6 +49,17 @@ import { ToastProvider, useToast } from "../../components/ui/toast";
 import { Skeleton } from "../../components/ui/skeleton";
 import { Stepper } from "../../components/ui/stepper";
 import { DataTable } from "../../components/ui/data-table";
+import { Badge } from "../../components/ui/badge";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "../../components/ui/dialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../components/ui/tabs";
 import { StatusBadge } from "../../components/app/StatusBadge";
 import { EmptyState } from "../../components/app/EmptyState";
 import { PageHeader } from "../../components/app/PageHeader";
@@ -338,27 +349,63 @@ const InnerDesignSystemPage: React.FC = () => {
           </Card>
         </section>
 
-        {/* 4. Table Status Badges */}
+        {/* 4. Badges (Standard & Semantic Table Status) */}
         <section className="space-y-4">
-          <h2 className="text-xl font-bold font-heading">4. Table Status Semantic Badges</h2>
-          <Card className="p-6">
-            <p className="text-xs text-muted-foreground mb-4">
-              Strict Invariant: Table status badges use verified semantic tokens. Orange is strictly
-              forbidden for status.
-            </p>
-            <div className="flex flex-wrap items-center gap-4">
-              <StatusBadge status="AVAILABLE" />
-              <StatusBadge status="OCCUPIED" />
-              <StatusBadge status="RESERVED" />
-              <StatusBadge status="CLEANING" />
-              <StatusBadge status="BLOCKED" />
+          <h2 className="text-xl font-bold font-heading">4. Badges & Table Status</h2>
+          <Card className="p-6 space-y-4">
+            <div>
+              <span className="text-xs font-semibold text-muted-foreground uppercase block mb-3">
+                Standard UI Badges:
+              </span>
+              <div className="flex flex-wrap items-center gap-3">
+                <Badge variant="default">Primary Badge</Badge>
+                <Badge variant="secondary">Secondary Badge</Badge>
+                <Badge variant="destructive">Destructive Badge</Badge>
+                <Badge variant="outline">Outline Badge</Badge>
+              </div>
+            </div>
+
+            <div className="pt-4 border-t border-border">
+              <span className="text-xs font-semibold text-muted-foreground uppercase block mb-3">
+                Semantic Table Status Badges (Strict Rule: Zero Brand Orange in Status UI):
+              </span>
+              <div className="flex flex-wrap items-center gap-4">
+                <StatusBadge status="AVAILABLE" />
+                <StatusBadge status="OCCUPIED" />
+                <StatusBadge status="RESERVED" />
+                <StatusBadge status="CLEANING" />
+                <StatusBadge status="BLOCKED" />
+              </div>
             </div>
           </Card>
         </section>
 
-        {/* 5. Stepper & SaveStatusIndicator */}
+        {/* 5. Tabs Navigation Component */}
         <section className="space-y-4">
-          <h2 className="text-xl font-bold font-heading">5. Stepper & Live Save Indicator</h2>
+          <h2 className="text-xl font-bold font-heading">5. Tabs Navigation Component</h2>
+          <Card className="p-6">
+            <Tabs defaultValue="floor" className="w-full">
+              <TabsList className="grid w-full grid-cols-3 max-w-md">
+                <TabsTrigger value="floor">Dining Floor</TabsTrigger>
+                <TabsTrigger value="kitchen">Kitchen Screen</TabsTrigger>
+                <TabsTrigger value="takeaway">Takeaway Bays</TabsTrigger>
+              </TabsList>
+              <TabsContent value="floor" className="pt-4 text-sm text-muted-foreground">
+                Live interactive table layout view with active seating sessions.
+              </TabsContent>
+              <TabsContent value="kitchen" className="pt-4 text-sm text-muted-foreground">
+                Kitchen Display System (KDS) order bump bar and course pacing.
+              </TabsContent>
+              <TabsContent value="takeaway" className="pt-4 text-sm text-muted-foreground">
+                Counter pickup queue and daily sequential token monitor.
+              </TabsContent>
+            </Tabs>
+          </Card>
+        </section>
+
+        {/* 6. Stepper & SaveStatusIndicator */}
+        <section className="space-y-4">
+          <h2 className="text-xl font-bold font-heading">6. Stepper & Live Save Indicator</h2>
           <Card className="p-6 space-y-6">
             <Stepper
               steps={[
@@ -394,11 +441,35 @@ const InnerDesignSystemPage: React.FC = () => {
           </Card>
         </section>
 
-        {/* 6. Modals, Sheets, Toasts & Tooltips */}
+        {/* 7. Dialogs, Modals, Sheets, Toasts & Tooltips */}
         <section className="space-y-4">
-          <h2 className="text-xl font-bold font-heading">6. Dialogs, Drawers & Notifications</h2>
+          <h2 className="text-xl font-bold font-heading">7. Dialogs, Drawers & Notifications</h2>
           <Card className="p-6">
             <div className="flex flex-wrap items-center gap-4">
+              {/* Standard Dialog */}
+              <Dialog>
+                <DialogTrigger asChild>
+                  <Button variant="outline">Open Standard Dialog</Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Configure Service Area</DialogTitle>
+                    <DialogDescription>
+                      Update seating limits and section groupings for this floor area.
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="py-4 space-y-3">
+                    <FormField id="area-name" label="Service Area Name">
+                      {({ id }) => <Input id={id} defaultValue="Main Dining Hall" />}
+                    </FormField>
+                  </div>
+                  <DialogFooter>
+                    <Button variant="outline">Cancel</Button>
+                    <Button variant="default">Save Changes</Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
+
               <Button variant="destructive" onClick={() => setConfirmOpen(true)}>
                 Trigger ConfirmDialog
               </Button>
@@ -458,7 +529,7 @@ const InnerDesignSystemPage: React.FC = () => {
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <Button variant="ghost" size="sm">
-                      <Info className="h-4 w-4 mr-1 text-[#FF6A00]" />
+                      <Info className="h-4 w-4 mr-1 text-blue-600 dark:text-blue-400" />
                       Hover Tooltip
                     </Button>
                   </TooltipTrigger>

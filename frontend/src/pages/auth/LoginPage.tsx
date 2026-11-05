@@ -28,6 +28,7 @@ export const LoginPage: React.FC = () => {
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [rateLimitSeconds, setRateLimitSeconds] = useState<number | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showForgotNotice, setShowForgotNotice] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -96,10 +97,10 @@ export const LoginPage: React.FC = () => {
             </div>
             <div>
               <div className="font-semibold text-sm text-[#0B1F3B] dark:text-white">
-                Floor & Table Management
+                {t("auth.benefit1Title")}
               </div>
               <div className="text-xs text-gray-600 dark:text-gray-400">
-                Dynamic table grouping, join/split, and real-time status tracking.
+                {t("auth.benefit1Desc")}
               </div>
             </div>
           </div>
@@ -110,10 +111,10 @@ export const LoginPage: React.FC = () => {
             </div>
             <div>
               <div className="font-semibold text-sm text-[#0B1F3B] dark:text-white">
-                QR Ordering & Tokens
+                {t("auth.benefit2Title")}
               </div>
               <div className="text-xs text-gray-600 dark:text-gray-400">
-                Customer contactless ordering and race-free daily token counters.
+                {t("auth.benefit2Desc")}
               </div>
             </div>
           </div>
@@ -124,10 +125,10 @@ export const LoginPage: React.FC = () => {
             </div>
             <div>
               <div className="font-semibold text-sm text-[#0B1F3B] dark:text-white">
-                Strict Multi-Tenant Security
+                {t("auth.benefit3Title")}
               </div>
               <div className="text-xs text-gray-600 dark:text-gray-400">
-                Row-level database tenant isolation with audited RBAC permissions.
+                {t("auth.benefit3Desc")}
               </div>
             </div>
           </div>
@@ -135,7 +136,10 @@ export const LoginPage: React.FC = () => {
 
         {/* Footer Meta */}
         <div className="relative z-10 flex items-center justify-between text-xs text-gray-600 dark:text-gray-400 font-sans">
-          <span>ServeMyFood v0.3.0</span>
+          <span>
+            ServeMyFood v{typeof __APP_VERSION__ !== "undefined" ? __APP_VERSION__ : "0.3.3"} (
+            {typeof __GIT_HASH__ !== "undefined" ? __GIT_HASH__ : "6caba5a"})
+          </span>
           <span>© 2026 {t("brand.company")}</span>
         </div>
       </div>
@@ -224,17 +228,31 @@ export const LoginPage: React.FC = () => {
                     >
                       {t("auth.password")}
                     </label>
-                    <a
-                      href="#"
+                    <button
+                      type="button"
                       className="text-xs text-[#C2410C] hover:underline"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        alert("Contact your tenant owner or platform admin to reset password.");
-                      }}
+                      onClick={() => setShowForgotNotice((prev) => !prev)}
                     >
                       {t("auth.forgotPassword")}
-                    </a>
+                    </button>
                   </div>
+
+                  {showForgotNotice && (
+                    <div
+                      role="status"
+                      className="p-2.5 rounded-md bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-900 text-xs text-blue-700 dark:text-blue-300 flex items-start justify-between gap-2"
+                    >
+                      <span>{t("auth.forgotPasswordHelp")}</span>
+                      <button
+                        type="button"
+                        onClick={() => setShowForgotNotice(false)}
+                        className="font-bold text-blue-800 dark:text-blue-200 hover:opacity-75"
+                        aria-label="Dismiss help"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  )}
                   <Input
                     id="password-input"
                     type="password"

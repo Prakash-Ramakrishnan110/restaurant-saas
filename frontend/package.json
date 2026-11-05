@@ -1,7 +1,7 @@
 {
   "name": "servemyfood-frontend",
   "private": true,
-  "version": "0.3.0",
+  "version": "0.3.3",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -12,10 +12,10 @@
     "format:check": "prettier --check \"src/**/*.{ts,tsx,css,json}\"",
     "format": "prettier --write \"src/**/*.{ts,tsx,css,json}\"",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run",
-    "test:run": "vitest run",
-    "test:watch": "vitest",
-    "test:coverage": "vitest run --coverage",
+    "test": "vitest run src",
+    "test:run": "vitest run src",
+    "test:watch": "vitest src",
+    "test:coverage": "vitest run src --coverage",
     "test:e2e": "playwright test"
   },
   "dependencies": {

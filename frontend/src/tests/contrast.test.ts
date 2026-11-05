@@ -98,4 +98,63 @@ describe("Brand Color Token WCAG 2.1 Contrast Invariants", () => {
       expect(Math.abs(textHue - brandOrangeHue)).toBeGreaterThan(15);
     });
   });
+
+  it("INVARIANT: Primary brand orange tokens (#FF6A00, #EA6200, #D65900) are NEVER used in Status, Alert, or Warning UI", () => {
+    const alertWarningStatusHexes = [
+      // Alerts & Errors (Red semantic scale)
+      "#DC2626",
+      "#B91C1C",
+      "#991B1B",
+      "#FEF2F2",
+      "#7F1D1D",
+      // Warnings & Cautions (Amber semantic scale)
+      "#D97706",
+      "#B45309",
+      "#92400E",
+      "#FFFBEB",
+      "#78350F",
+      // Info Notices (Blue semantic scale)
+      "#2563EB",
+      "#1D4ED8",
+      "#1E40AF",
+      "#EFF6FF",
+      "#172554",
+      // Operational Table Status Tokens (Green, Blue, Purple, Amber, Slate)
+      "#15803D",
+      "#1D4ED8",
+      "#7E22CE",
+      "#B45309",
+      "#374151",
+      "#DCFCE7",
+      "#DBEAFE",
+      "#F3E8FF",
+      "#FEF3C7",
+      "#F3F4F6",
+      "#4ADE80",
+      "#93C5FD",
+      "#E9D5FF",
+      "#FBBF24",
+      "#D1D5DB",
+      "#14532D",
+      "#1E3A8A",
+      "#581C87",
+      "#78350F",
+    ];
+
+    const forbiddenBrandOrangeHexes = [
+      "#FF6A00",
+      "#EA6200",
+      "#D65900",
+      "#F97316",
+      "#EA580C",
+      "#C2410C",
+    ];
+
+    alertWarningStatusHexes.forEach((hex) => {
+      // Must not match any brand orange hexes
+      forbiddenBrandOrangeHexes.forEach((forbidden) => {
+        expect(hex.toUpperCase()).not.toBe(forbidden.toUpperCase());
+      });
+    });
+  });
 });

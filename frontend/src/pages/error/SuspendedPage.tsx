@@ -31,7 +31,7 @@ export const SuspendedPage: React.FC = () => {
 
         <div className="p-4 bg-muted/50 rounded-lg text-xs text-muted-foreground text-left space-y-2">
           <div className="font-semibold text-foreground flex items-center gap-1.5">
-            <PhoneCall className="h-3.5 w-3.5 text-[#FF6A00]" />
+            <PhoneCall className="h-3.5 w-3.5 text-blue-600 dark:text-blue-400" />
             Resolution Support
           </div>
           <p>

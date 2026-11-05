@@ -17,6 +17,13 @@ export const defaultResources = {
         email: "Email address",
         password: "Password",
         forgotPassword: "Forgot password?",
+        forgotPasswordHelp: "Ask your owner or manager to reset your password.",
+        benefit1Title: "Orders go straight to the kitchen",
+        benefit1Desc: "Instant kitchen tickets and display screens prevent order delays.",
+        benefit2Title: "See today's sales at a glance",
+        benefit2Desc: "Track daily revenue, table turns, and payment collections live.",
+        benefit3Title: "Works for every food business",
+        benefit3Desc: "Tailored presets for tea shops, cafés, restaurants, and hotels.",
         signingIn: "Signing in...",
         mustChangePassword: "Password Change Required",
         mustChangePasswordDesc:
@@ -75,6 +82,14 @@ export const defaultResources = {
         email: "மின்னஞ்சல் முகவரி",
         password: "கடவுச்சொல்",
         forgotPassword: "கடவுச்சொல் மறந்துவிட்டதா?",
+        forgotPasswordHelp:
+          "உங்கள் கடவுச்சொல்லை மீட்டமைக்க உங்கள் உரிமையாளர் அல்லது மேலாளரை அணுகவும்.",
+        benefit1Title: "ஆர்டர்கள் நேரடியாக சமையலறைக்குச் செல்லும்",
+        benefit1Desc: "உடனடி சமையலறை சீட்டுகள் மூலம் ஆர்டர் தாமதங்கள் தவிர்க்கப்படுகின்றன.",
+        benefit2Title: "இன்றைய விற்பனையை உடனடியாகப் பாருங்கள்",
+        benefit2Desc: "தினசரி வருமானம் மற்றும் கட்டணங்களை நேரலையில் கண்காணிக்கலாம்.",
+        benefit3Title: "அனைத்து உணவு வணிகங்களுக்கும் ஏற்றது",
+        benefit3Desc: "டீ கடைகள், கஃபேக்கள், உணவகங்கள் மற்றும் விடுதிகளுக்கான பிரத்யேக அமைப்புகள்.",
         signingIn: "உள்நுழைகிறது...",
         mustChangePassword: "கடவுச்சொல் மாற்றம் அவசியம்",
         mustChangePasswordDesc:

@@ -1,13 +1,17 @@
-============================= test session starts =============================
-platform win32 -- Python 3.12.10, pytest-9.2.0, pluggy-1.6.0
+﻿============================= test session starts =============================
+platform win32 -- Python 3.12.10, pytest-9.2.0, pluggy-1.6.0 -- C:\Users\praka\AppData\Local\Microsoft\WindowsApps\PythonSoftwareFoundation.Python.3.12_qbz5n2kfra8p0\python.exe
+cachedir: .pytest_cache
 django: version: 5.2.18, settings: config.settings.test (from ini)
 rootdir: C:\Users\praka\Desktop\Restaurant_saas\backend
 configfile: pyproject.toml
 plugins: anyio-4.11.0, Faker-40.1.2, asyncio-1.4.0, cov-6.0.0, django-4.9.0
 asyncio: mode=Mode.STRICT, debug=False, asyncio_default_fixture_loop_scope=function, asyncio_default_test_loop_scope=function
-collected 4 items / 2 deselected / 2 selected
+collecting ... collected 4 items
 
-apps\accounts\tests\test_password_gate_sweep.py FF                       [100%]
+apps/accounts/tests/test_password_gate_sweep.py::test_every_api_route_is_gated_while_password_change_required[owner] FAILED [ 25%]
+apps/accounts/tests/test_password_gate_sweep.py::test_every_api_route_is_gated_while_password_change_required[platform_admin] FAILED [ 50%]
+apps/accounts/tests/test_password_gate_sweep.py::test_gate_exempt_routes_still_work PASSED [ 75%]
+apps/accounts/tests/test_password_gate_sweep.py::test_exempt_path_helper PASSED [100%]
 
 ================================== FAILURES ===================================
 _____ test_every_api_route_is_gated_while_password_change_required[owner] _____
@@ -34,6 +38,9 @@ E               assert 405 == 403
 E                +  where 405 = <Response status_code=405, "application/json">.status_code
 
 apps\accounts\tests\test_password_gate_sweep.py:69: AssertionError
+---------------------------- Captured stderr setup ----------------------------
+Creating test database for alias 'default'...
+
 ------------------------------ Captured log call ------------------------------
 WARNING  django.request:log.py:253 Method Not Allowed: /api/v1/auth/login/
 _ test_every_api_route_is_gated_while_password_change_required[platform_admin] _
@@ -65,4 +72,4 @@ WARNING  django.request:log.py:253 Method Not Allowed: /api/v1/auth/login/
 =========================== short test summary info ===========================
 FAILED apps/accounts/tests/test_password_gate_sweep.py::test_every_api_route_is_gated_while_password_change_required[owner]
 FAILED apps/accounts/tests/test_password_gate_sweep.py::test_every_api_route_is_gated_while_password_change_required[platform_admin]
-====================== 2 failed, 2 deselected in 13.93s =======================
+======================== 2 failed, 2 passed in 18.33s =========================

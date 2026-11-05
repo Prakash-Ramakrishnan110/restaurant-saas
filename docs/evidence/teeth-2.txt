@@ -1,13 +1,15 @@
-============================= test session starts =============================
-platform win32 -- Python 3.12.10, pytest-9.2.0, pluggy-1.6.0
+﻿============================= test session starts =============================
+platform win32 -- Python 3.12.10, pytest-9.2.0, pluggy-1.6.0 -- C:\Users\praka\AppData\Local\Microsoft\WindowsApps\PythonSoftwareFoundation.Python.3.12_qbz5n2kfra8p0\python.exe
+cachedir: .pytest_cache
 django: version: 5.2.18, settings: config.settings.test (from ini)
 rootdir: C:\Users\praka\Desktop\Restaurant_saas\backend
 configfile: pyproject.toml
 plugins: anyio-4.11.0, Faker-40.1.2, asyncio-1.4.0, cov-6.0.0, django-4.9.0
 asyncio: mode=Mode.STRICT, debug=False, asyncio_default_fixture_loop_scope=function, asyncio_default_test_loop_scope=function
-collected 12 items / 10 deselected / 2 selected
+collecting ... collected 12 items / 10 deselected / 2 selected
 
-apps\accounts\tests\test_staff_rules_and_reset.py F.                     [100%]
+apps/accounts/tests/test_staff_rules_and_reset.py::test_last_owner_cannot_be_deactivated_or_demoted FAILED [ 50%]
+apps/accounts/tests/test_staff_rules_and_reset.py::test_last_owner_delete_endpoint_returns_409 PASSED [100%]
 
 ================================== FAILURES ===================================
 ______________ test_last_owner_cannot_be_deactivated_or_demoted _______________
@@ -27,6 +29,9 @@ env = {'t': <Tenant: Staff Co (staff-co)>, 'b1': <Branch: B1 - Staff Co>, 'b2': 
 E           Failed: DID NOT RAISE BusinessRuleError
 
 apps\accounts\tests\test_staff_rules_and_reset.py:70: Failed
+---------------------------- Captured stderr setup ----------------------------
+Creating test database for alias 'default'...
+
 =========================== short test summary info ===========================
 FAILED apps/accounts/tests/test_staff_rules_and_reset.py::test_last_owner_cannot_be_deactivated_or_demoted
-================= 1 failed, 1 passed, 10 deselected in 8.38s ==================
+================= 1 failed, 1 passed, 10 deselected in 15.64s =================

@@ -1,0 +1,5 @@
+﻿->  celery@e3eaa39e739a: OK
+    * apps.core.tasks.expire_idle_sessions_task
+    * apps.core.tasks.health_check_task
+
+1 node online.

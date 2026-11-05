@@ -33,15 +33,35 @@ export const BrandLogo: React.FC<BrandLogoProps> = ({
       role="img"
     >
       <rect width="36" height="36" rx="8" fill={iconBg} />
-      {/* Cloche Top Handle */}
-      <circle cx="18" cy="11" r="2" fill={iconFg} />
-      {/* Modern Food Cloche Dome */}
-      <path d="M10 21C10 15.5 13.5 13 18 13C22.5 13 26 15.5 26 21H10Z" fill={iconFg} />
-      {/* Serving Platter Base */}
-      <rect x="7" y="22" width="22" height="2.5" rx="1.25" fill={iconFg} />
-      {/* Warm Hospitality Accent */}
+      {/* Chef Hat (Toque) Crown Outline */}
       <path
-        d="M12 26.5C15 28 21 28 24 26.5"
+        d="M11 18.5C9.5 18.5 8.5 17 9 15C9.5 13 11.5 13 12.5 14C13 11.5 16 10 18 10C20 10 23 11.5 23.5 14C24.5 13 26.5 13 27 15C27.5 17 26.5 18.5 25 18.5"
+        stroke={iconFg}
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      {/* Hat Base Band */}
+      <path
+        d="M11.5 19H24.5V22C24.5 22.5 24 23 23.5 23H12.5C12 23 11.5 22.5 11.5 22V19Z"
+        fill={iconFg}
+      />
+      {/* Crossed Fork and Spoon inside Chef's Hat */}
+      <path
+        d="M14 28L17 23.5M13 27.5L14 26"
+        stroke={iconFg}
+        strokeWidth="1.6"
+        strokeLinecap="round"
+      />
+      <path
+        d="M22 28L19 23.5M21.5 27.5C22.3 26.7 22.3 25.5 21.5 24.7"
+        stroke={iconFg}
+        strokeWidth="1.6"
+        strokeLinecap="round"
+      />
+      {/* Dynamic Service Swoosh under hat */}
+      <path
+        d="M7 29.5C13 32.5 23 32.5 29 28.5"
         stroke={isMono ? iconFg : "#FFF3E0"}
         strokeWidth="2"
         strokeLinecap="round"

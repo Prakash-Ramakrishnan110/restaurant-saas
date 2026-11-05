@@ -62,7 +62,7 @@ export const ChangePasswordPage: React.FC = () => {
 
         <Card className="border shadow-lg">
           <CardHeader className="text-center">
-            <div className="w-12 h-12 rounded-full bg-[#FFF3E0] dark:bg-[#0B1F3B] text-[#FF6A00] flex items-center justify-center mx-auto mb-2">
+            <div className="w-12 h-12 rounded-full bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 flex items-center justify-center mx-auto mb-2">
               <ShieldAlert className="w-6 h-6" />
             </div>
             <CardTitle className="text-xl font-bold font-display text-[#0B1F3B] dark:text-white">

@@ -1,0 +1,106 @@
+﻿
+> servemyfood-frontend@0.3.3 test:coverage
+> vitest run src --coverage
+
+
+[1m[46m RUN [49m[22m [36mv3.2.7 [39m[90mC:/Users/praka/Desktop/Restaurant_saas/frontend[39m
+      [2mCoverage enabled with [22m[33mv8[39m
+
+ [32mΓ£ô[39m src/tests/error-mapper.test.ts [2m([22m[2m6 tests[22m[2m)[22m[32m 17[2mms[22m[39m
+ [32mΓ£ô[39m src/tests/auth.test.tsx [2m([22m[2m5 tests[22m[2m)[22m[33m 607[2mms[22m[39m
+ [32mΓ£ô[39m src/tests/contrast.test.ts [2m([22m[2m9 tests[22m[2m)[22m[32m 43[2mms[22m[39m
+ [32mΓ£ô[39m src/tests/components.test.tsx [2m([22m[2m11 tests[22m[2m)[22m[33m 862[2mms[22m[39m
+ [32mΓ£ô[39m src/tests/a11y.test.tsx [2m([22m[2m4 tests[22m[2m)[22m[33m 1825[2mms[22m[39m
+   [33m[2mΓ£ô[22m[39m Automated Accessibility Audits (vitest-axe)[2m > [22mLoginPage has zero serious or critical accessibility violations [33m 712[2mms[22m[39m
+   [33m[2mΓ£ô[22m[39m Automated Accessibility Audits (vitest-axe)[2m > [22mDevDesignSystemPage has zero serious or critical accessibility violations [33m 749[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m5 passed[39m[22m[90m (5)[39m
+[2m      Tests [22m [1m[32m35 passed[39m[22m[90m (35)[39m
+[2m   Start at [22m 09:43:48
+[2m   Duration [22m 24.68s[2m (transform 3.32s, setup 7.95s, collect 31.69s, tests 3.35s, environment 33.44s, prepare 3.48s)[22m
+
+[34m % [39m[2mCoverage report from [22m[33mv8[39m
+-------------------|---------|----------|---------|---------|-------------------
+File               | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s 
+-------------------|---------|----------|---------|---------|-------------------
+All files          |   67.96 |    59.13 |   46.52 |   67.96 |                   
+ frontend          |       0 |        0 |       0 |       0 |                   
+  ...ght.config.ts |       0 |        0 |       0 |       0 | 1-30              
+  ...css.config.js |       0 |        0 |       0 |       0 | 1-6               
+  ...ind.config.js |       0 |        0 |       0 |       0 | 1-98              
+ frontend/src      |       0 |       50 |      50 |       0 |                   
+  App.tsx          |       0 |      100 |     100 |       0 | 2-169             
+  main.tsx         |       0 |        0 |       0 |       0 | 1-10              
+ frontend/src/api  |   89.58 |    70.37 |     100 |   89.58 |                   
+  client.ts        |   89.58 |    70.37 |     100 |   89.58 | ...01-104,107,123 
+ ...components/app |   86.09 |       60 |   63.63 |   86.09 |                   
+  EmptyState.tsx   |     100 |      100 |     100 |     100 |                   
+  ...ineBanner.tsx |   65.38 |       60 |   33.33 |   65.38 | 24-35             
+  PageHeader.tsx   |     100 |    83.33 |     100 |     100 | 61                
+  ...Countdown.tsx |      65 |       60 |     100 |      65 | 19-21,25-27,30-37 
+  ...Indicator.tsx |   70.58 |       20 |     100 |   70.58 | 27-30,34-37,48-51 
+  StatusBadge.tsx  |   98.11 |       50 |     100 |   98.11 | 53                
+  UpgradeModal.tsx |   92.68 |      100 |   33.33 |   92.68 | 52-54             
+ ...mponents/brand |     100 |    33.33 |     100 |     100 |                   
+  BrandLogo.tsx    |     100 |    33.33 |     100 |     100 | 19-65             
+ ...ponents/layout |   90.16 |    29.62 |    9.09 |   90.16 |                   
+  AppShell.tsx     |   90.16 |    29.62 |    9.09 |   90.16 | ...43,216,243,292 
+ .../components/ui |   74.73 |    79.59 |   44.44 |   74.73 |                   
+  badge.tsx        |     100 |      100 |     100 |     100 |                   
+  button.tsx       |     100 |       50 |     100 |     100 | 43                
+  card.tsx         |    97.5 |      100 |     100 |    97.5 | 50                
+  checkbox.tsx     |     100 |      100 |     100 |     100 |                   
+  combobox.tsx     |   48.83 |     62.5 |      25 |   48.83 | 42-45,67-109      
+  ...rm-dialog.tsx |   93.18 |    33.33 |   33.33 |   93.18 | 57-59             
+  data-table.tsx   |   69.53 |    71.42 |      20 |   69.53 | ...02-109,111-118 
+  dialog.tsx       |     100 |      100 |     100 |     100 |                   
+  ...down-menu.tsx |       0 |        0 |       0 |       0 | 1-95              
+  form-field.tsx   |     100 |    88.88 |     100 |     100 | 29                
+  icon-button.tsx  |     100 |      100 |     100 |     100 |                   
+  input.tsx        |     100 |      100 |     100 |     100 |                   
+  ...ord-input.tsx |     100 |       20 |       0 |     100 | 16-32             
+  radio-card.tsx   |     100 |       75 |      50 |     100 | 39-55             
+  select.tsx       |     100 |      100 |     100 |     100 |                   
+  sheet.tsx        |   71.42 |      100 |       0 |   71.42 | ...73,81-86,93-98 
+  skeleton.tsx     |     100 |      100 |     100 |     100 |                   
+  stepper.tsx      |     100 |      100 |      50 |     100 |                   
+  switch.tsx       |     100 |      100 |     100 |     100 |                   
+  table.tsx        |       0 |        0 |       0 |       0 | 1-84              
+  tabs.tsx         |     100 |      100 |     100 |     100 |                   
+  toast.tsx        |   41.93 |    66.66 |     100 |   41.93 | ...34,45-76,86-87 
+  tooltip.tsx      |     100 |      100 |     100 |     100 |                   
+ ...nd/src/context |   85.08 |    58.97 |   84.61 |   85.08 |                   
+  AuthContext.tsx  |   86.79 |    61.53 |     100 |   86.79 | ...04,126,206-207 
+  ThemeContext.tsx |   81.15 |    53.84 |      50 |   81.15 | ...60-61,73,98-99 
+ frontend/src/i18n |     100 |      100 |     100 |     100 |                   
+  index.ts         |     100 |      100 |     100 |     100 |                   
+ frontend/src/lib  |     100 |      100 |     100 |     100 |                   
+  utils.ts         |     100 |      100 |     100 |     100 |                   
+ ...src/pages/auth |   80.83 |     12.5 |      10 |   80.83 |                   
+  ...swordPage.tsx |    80.4 |    33.33 |   16.66 |    80.4 | 29-54,78-83       
+  LoginPage.tsx    |   81.05 |     7.69 |    7.14 |   81.05 | ...95-200,241-254 
+ ...ages/dashboard |      45 |    14.28 |   28.57 |      45 |                   
+  ...boardPage.tsx |      45 |    14.28 |   28.57 |      45 | ...36-353,406-422 
+ .../src/pages/dev |   64.26 |       65 |   38.46 |   64.26 |                   
+  DevBrandPage.tsx |    9.79 |    85.71 |      75 |    9.79 | 22-26,44-361      
+  ...ystemPage.tsx |   98.71 |    53.84 |   31.81 |   98.71 | ...84-485,508,516 
+ ...rc/pages/error |     100 |       75 |      50 |     100 |                   
+  ...iddenPage.tsx |     100 |      100 |      50 |     100 |                   
+  NotFoundPage.tsx |     100 |      100 |      50 |     100 |                   
+  ...endedPage.tsx |     100 |       50 |      50 |     100 | 26                
+ ...ges/onboarding |       0 |      100 |     100 |       0 |                   
+  ...rdingPage.tsx |       0 |      100 |     100 |       0 | 2-23              
+ ...pages/settings |       0 |      100 |     100 |       0 |                   
+  ...tingsPage.tsx |       0 |      100 |     100 |       0 | 2-23              
+ ...rc/pages/staff |       0 |      100 |     100 |       0 |                   
+  StaffPage.tsx    |       0 |      100 |     100 |       0 | 2-23              
+ ...rc/pages/venue |       0 |      100 |     100 |       0 |                   
+  AreasPage.tsx    |       0 |      100 |     100 |       0 | 2-23              
+  BranchesPage.tsx |       0 |      100 |     100 |       0 | 2-23              
+  ...rPlanPage.tsx |       0 |      100 |     100 |       0 | 2-23              
+  QRCodesPage.tsx  |       0 |      100 |     100 |       0 | 2-23              
+  TablesPage.tsx   |       0 |      100 |     100 |       0 | 2-23              
+ ...tend/src/types |       0 |        0 |       0 |       0 |                   
+  api.ts           |       0 |        0 |       0 |       0 |                   
+-------------------|---------|----------|---------|---------|-------------------
+
