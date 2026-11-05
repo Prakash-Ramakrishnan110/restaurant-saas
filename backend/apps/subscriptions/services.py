@@ -5,7 +5,7 @@ from apps.subscriptions.constants import ALLOWED_SUBSCRIPTION_STATUSES
 
 
 class EntitlementLimitReached(BusinessRuleError):
-    """Raised when a plan limit is hit; details = {limit_key, limit, current}."""
+    """Raised when a plan limit is hit; details = {limit_key, limit, current, requested}."""
 
     def __init__(
         self,
@@ -14,12 +14,16 @@ class EntitlementLimitReached(BusinessRuleError):
         limit_key: str = "",
         limit: Any = None,
         current: int | None = None,
+        requested: int | None = None,
     ) -> None:
+        details = {"limit_key": limit_key, "limit": limit, "current": current}
+        if requested is not None:
+            details["requested"] = requested
         super().__init__(
             "ENTITLEMENT_LIMIT_REACHED",
             message,
             status_code=403,
-            details={"limit_key": limit_key, "limit": limit, "current": current},
+            details=details,
         )
 
 

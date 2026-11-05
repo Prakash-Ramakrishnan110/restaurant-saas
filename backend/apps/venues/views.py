@@ -29,6 +29,7 @@ from apps.venues.constants import (
     QRSessionPolicy,
     SessionStatus,
 )
+from apps.venues.layout_templates import get_template_catalog
 from apps.venues.models import (
     BranchCapabilities,
     DiningTable,
@@ -45,11 +46,14 @@ from apps.venues.serializers import (
     BulkTableCreateSerializer,
     DiningTableSerializer,
     GenerateQRCodeSerializer,
+    LayoutTemplateApplyResponseSerializer,
+    LayoutTemplateCatalogItemSerializer,
     OpenSessionSerializer,
     PublicQRDetailSerializer,
     PublicQROpenSessionResponseSerializer,
     PublicQROpenSessionSerializer,
     QRCodeSerializer,
+    QRCodeSheetItemSerializer,
     SectionSerializer,
     ServiceAreaSerializer,
     StaffSectionAssignmentSerializer,
@@ -61,10 +65,12 @@ from apps.venues.serializers import (
     TableStatusTransitionSerializer,
 )
 from apps.venues.services import (
+    apply_layout_template,
     bulk_create_tables,
     close_session,
     deactivate_qr_code,
     generate_qr_code,
+    get_qr_sheet_data,
     join_tables,
     open_session,
     render_qr_image,
@@ -655,8 +661,136 @@ class QRCodeViewSet(
     def image(self, request: Request, pk: str | None = None) -> HttpResponse:
         qr = self.get_object()
         image_format = request.query_params.get("format", "png")
-        image_bytes, content_type = render_qr_image(qr, image_format=image_format)
+        try:
+            size = int(request.query_params.get("size", 400))
+        except (ValueError, TypeError):
+            size = 400
+        branded = str(request.query_params.get("branded", "false")).lower() in ("true", "1", "yes")
+        color = request.query_params.get("color", "#000000")
+
+        image_bytes, content_type = render_qr_image(
+            qr_code=qr,
+            image_format=image_format,
+            size=size,
+            branded=branded,
+            color=color,
+        )
         return HttpResponse(image_bytes, content_type=content_type)
+
+
+class QRCodeSheetDataView(APIView):
+    """Returns active QR codes data for print sheets."""
+
+    permission_classes = [HasTenantPermission(Permission.QR_VIEW)]
+
+    @extend_schema(
+        responses={200: QRCodeSheetItemSerializer(many=True)},
+        summary="Get QR code sheet data",
+        description="Returns list of active QR codes with table, area, section names, and public URLs.",
+    )
+    def get(self, request: Request) -> Response:
+        tenant = getattr(request, "tenant", None) or get_current_tenant()
+        if not tenant:
+            return Response(
+                {
+                    "error": {
+                        "code": "NO_TENANT_CONTEXT",
+                        "message": "Active tenant context required.",
+                        "details": {},
+                    }
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        branch_id = request.query_params.get("branch")
+        target_type = request.query_params.get("target_type")
+        data = get_qr_sheet_data(tenant=tenant, branch_id=branch_id, target_type=target_type)
+        return Response(data, status=status.HTTP_200_OK)
+
+
+class LayoutTemplateListView(APIView):
+    """List available layout templates with optional filter by venue_profile."""
+
+    permission_classes = [HasTenantPermission(Permission.AREA_VIEW)]
+
+    @extend_schema(
+        responses={200: LayoutTemplateCatalogItemSerializer(many=True)},
+        summary="List layout templates",
+        description="Returns catalog of predefined layout templates for venue onboarding and layout setup.",
+    )
+    def get(self, request: Request) -> Response:
+        profile = request.query_params.get("venue_profile")
+        catalog = get_template_catalog()
+        if profile:
+            profile_upper = profile.upper()
+            catalog = [t for t in catalog if profile_upper in t.get("recommended_profiles", [])]
+        return Response(catalog, status=status.HTTP_200_OK)
+
+
+class LayoutTemplateApplyView(APIView):
+    """Atomic application or dry-run validation of a layout template onto a branch."""
+
+    serializer_class = LayoutTemplateApplyResponseSerializer
+
+    def get_permissions(self):
+        # Requires area.manage + table.manage + floor.manage
+        from apps.rbac.matrix import role_has_permission
+        from apps.rbac.permissions import BasePermission
+
+        class HasLayoutManagePermissions(BasePermission):
+            def has_permission(self, req: Request, view: Any) -> bool:
+                membership = getattr(req, "membership", None)
+                if not membership or not membership.is_active:
+                    return False
+                return (
+                    role_has_permission(membership.role, Permission.AREA_MANAGE)
+                    and role_has_permission(membership.role, Permission.TABLE_MANAGE)
+                    and role_has_permission(membership.role, Permission.FLOOR_MANAGE)
+                )
+
+        return [HasLayoutManagePermissions()]
+
+    @extend_schema(
+        responses={200: LayoutTemplateApplyResponseSerializer},
+        summary="Apply layout template",
+        description="Atomically creates areas, sections, and tables or counters from template. Pre-checks subscription entitlements.",
+    )
+    def post(self, request: Request, branch_id: str, key: str) -> Response:
+        tenant = getattr(request, "tenant", None) or get_current_tenant()
+        if not tenant:
+            return Response(
+                {
+                    "error": {
+                        "code": "NO_TENANT_CONTEXT",
+                        "message": "Active tenant context required.",
+                        "details": {},
+                    }
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        # Enforce deterministic isolation: foreign branch id returns 404
+        try:
+            branch = Branch.objects.get(pk=branch_id, tenant=tenant, is_active=True)
+        except (Branch.DoesNotExist, ValueError):
+            raise Http404("Branch not found.") from None
+
+        # Check user branch scope if restricted
+        verify_tenant_and_branch_access(request.user, branch, tenant=tenant)
+
+        params = request.data.get("params") or {}
+        dry_run = bool(request.data.get("dry_run", False))
+        mode = request.data.get("mode", "new")
+
+        result = apply_layout_template(
+            branch=branch,
+            key=key,
+            params=params,
+            dry_run=dry_run,
+            mode=mode,
+            actor=request.user,
+            request=request,
+        )
+        return Response(result, status=status.HTTP_200_OK)
 
 
 class PublicQRDetailView(APIView):
@@ -668,12 +802,12 @@ class PublicQRDetailView(APIView):
 
     def get(self, request: Request, token: str) -> Response:
         qr = get_public_qr_code(token)
-        if not qr:
+        if not qr or not qr.is_active:
             raise Http404("QR code is invalid or deactivated.")
 
         tenant = qr.branch.tenant
         if not is_tenant_allowed(tenant):
-            raise Http404("Venue is currently unavailable.")
+            raise Http404("QR code is invalid or deactivated.")
 
         # Establish request-scoped tenant context
         set_current_tenant(tenant)
@@ -702,10 +836,19 @@ class PublicQRDetailView(APIView):
 
         business_settings = getattr(tenant, "business_settings", None)
         logo_url = business_settings.logo_url if business_settings else ""
+        brand_color = business_settings.brand_primary_color if business_settings else "#FF6A00"
+        display_name = (
+            business_settings.legal_name
+            if business_settings and business_settings.legal_name
+            else tenant.name
+        )
 
         payload = {
             "tenant_name": tenant.name,
+            "display_name": display_name,
             "tenant_logo_url": logo_url,
+            "logo_url": logo_url,
+            "brand_primary_color": brand_color,
             "branch_name": qr.branch.name,
             "area_name": (
                 qr.table.section.service_area.name

@@ -154,6 +154,27 @@ MATRIX_TEST_CASES = [
     ("business_profile_patch", Role.WAITER, 403),
     ("business_profile_patch", Role.KITCHEN, 403),
     ("business_profile_patch", Role.INVENTORY_MANAGER, 403),
+    # 13. Layout template apply -> area.manage + table.manage + floor.manage (OWNER, BM only)
+    ("layout_template_apply", Role.OWNER, 200),
+    ("layout_template_apply", Role.BRANCH_MANAGER, 200),
+    ("layout_template_apply", Role.CASHIER, 403),
+    ("layout_template_apply", Role.WAITER, 403),
+    ("layout_template_apply", Role.KITCHEN, 403),
+    ("layout_template_apply", Role.INVENTORY_MANAGER, 403),
+    # 14. QR sheet data -> qr.view (OWNER, BM only)
+    ("qr_sheet_data", Role.OWNER, 200),
+    ("qr_sheet_data", Role.BRANCH_MANAGER, 200),
+    ("qr_sheet_data", Role.CASHIER, 403),
+    ("qr_sheet_data", Role.WAITER, 403),
+    ("qr_sheet_data", Role.KITCHEN, 403),
+    ("qr_sheet_data", Role.INVENTORY_MANAGER, 403),
+    # 15. Logo upload -> business.manage (OWNER only)
+    ("business_logo_upload", Role.OWNER, 200),
+    ("business_logo_upload", Role.BRANCH_MANAGER, 403),
+    ("business_logo_upload", Role.CASHIER, 403),
+    ("business_logo_upload", Role.WAITER, 403),
+    ("business_logo_upload", Role.KITCHEN, 403),
+    ("business_logo_upload", Role.INVENTORY_MANAGER, 403),
 ]
 
 
@@ -263,4 +284,34 @@ def test_role_x_endpoint_access(matrix_env, endpoint, role, expected_status):
 
     elif endpoint == "business_profile_patch":
         res = client.patch("/api/v1/business/", {"name": f"Renamed By {role}"})
+        assert res.status_code == expected_status
+
+    elif endpoint == "layout_template_apply":
+        target_branch = Branch.objects.create(tenant=tenant, name=f"Branch for {role}")
+        if role != Role.OWNER:
+            matrix_env["clients"][role]  # ensure client ready
+            mem = Membership.objects.get(user__email=f"{role.lower()}@matrix.com", tenant=tenant)
+            mem.branches.add(target_branch)
+        res = client.post(
+            f"/api/v1/branches/{target_branch.id}/layout-templates/cafe_small/apply/",
+            {"mode": "new"},
+            format="json",
+        )
+        assert res.status_code == expected_status
+
+    elif endpoint == "qr_sheet_data":
+        res = client.get(f"/api/v1/qr-codes/sheet-data/?branch={branch.id}")
+        assert res.status_code == expected_status
+
+    elif endpoint == "business_logo_upload":
+        import io
+
+        from PIL import Image
+
+        img = Image.new("RGBA", (100, 100), color=(255, 106, 0, 255))
+        buf = io.BytesIO()
+        img.save(buf, format="PNG")
+        buf.seek(0)
+        buf.name = f"logo_{role.lower()}.png"
+        res = client.post("/api/v1/business/logo/", {"logo": buf}, format="multipart")
         assert res.status_code == expected_status

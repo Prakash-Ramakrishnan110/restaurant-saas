@@ -15,6 +15,8 @@ import { FloorPlanPage } from "./pages/venue/FloorPlanPage";
 import { QRCodesPage } from "./pages/venue/QRCodesPage";
 import { StaffPage } from "./pages/staff/StaffPage";
 import { VenueSettingsPage } from "./pages/settings/VenueSettingsPage";
+import { BrandingSettingsPage } from "./pages/settings/BrandingSettingsPage";
+import { PublicQRPage } from "./pages/public/PublicQRPage";
 import { SuspendedPage } from "./pages/error/SuspendedPage";
 import { ForbiddenPage } from "./pages/error/ForbiddenPage";
 import { NotFoundPage } from "./pages/error/NotFoundPage";
@@ -71,11 +73,12 @@ export const App: React.FC = () => {
             }}
           >
             <Routes>
-              {/* Public Auth Routes */}
+              {/* Public Auth & Customer Landing Routes */}
               <Route path="/login" element={<LoginPage />} />
               <Route path="/change-password" element={<ChangePasswordPage />} />
               <Route path="/suspended" element={<SuspendedPage />} />
               <Route path="/403" element={<ForbiddenPage />} />
+              <Route path="/q/:token" element={<PublicQRPage />} />
 
               {/* Dev Showcase Routes */}
               <Route path="/dev/brand" element={<DevBrandPage />} />
@@ -151,6 +154,14 @@ export const App: React.FC = () => {
                 element={
                   <ProtectedRoute>
                     <VenueSettingsPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/settings/branding"
+                element={
+                  <ProtectedRoute>
+                    <BrandingSettingsPage />
                   </ProtectedRoute>
                 }
               />

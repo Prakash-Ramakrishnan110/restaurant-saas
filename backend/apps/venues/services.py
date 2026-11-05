@@ -1,20 +1,27 @@
 from __future__ import annotations
 
+import io
 import secrets
 import zoneinfo
 from datetime import timedelta
 from typing import Any
 
+import segno
+from django.conf import settings
+from django.core.cache import cache
+from django.core.files.storage import default_storage
 from django.db import transaction
 from django.http import HttpRequest
 from django.utils import timezone
+from PIL import Image, ImageDraw
 from rest_framework.exceptions import PermissionDenied, ValidationError
 
 from apps.audit.services import log_audit_event
 from apps.core.context import get_current_tenant, reset_current_tenant, set_current_tenant
 from apps.core.exceptions import BusinessRuleError
-from apps.subscriptions.services import enforce_limit
-from apps.tenants.models import Branch
+from apps.subscriptions.services import EntitlementLimitReached, enforce_limit, get_entitlement
+from apps.tenants.color_utils import contrast_ratio
+from apps.tenants.models import Branch, Tenant
 from apps.venues.constants import (
     ALLOWED_TABLE_STATUS_TRANSITIONS,
     OpenedVia,
@@ -814,34 +821,332 @@ def bulk_create_tables(
     return created_tables
 
 
-def render_qr_image(qr_code: QRCode, image_format: str = "png") -> tuple[bytes, str]:
+@transaction.atomic
+def apply_layout_template(
+    branch: Branch,
+    key: str,
+    params: dict[str, Any] | None = None,
+    dry_run: bool = False,
+    mode: str = "new",
+    actor: Any | None = None,
+    request: HttpRequest | None = None,
+) -> dict[str, Any]:
+    """Applies a predefined layout template to a branch.
+
+    Invariants:
+    - Atomic transaction.
+    - Mode 'new' requires zero existing active areas or tables.
+    - Entitlement limit check performed BEFORE creating anything.
+    - If limit exceeded, raises EntitlementLimitReached with {limit_key, limit, current, requested} and creates nothing.
+    - Audited with before and after state.
+    """
+    from apps.venues.layout_templates import build_template_spec
+
+    tenant = branch.tenant
+
+    # 1. Mode check
+    if mode == "new":
+        has_active_areas = ServiceArea.objects.filter(branch=branch, is_active=True).exists()
+        has_active_tables = DiningTable.objects.filter(branch=branch, is_active=True).exists()
+        if has_active_areas or has_active_tables:
+            raise BusinessRuleError(
+                "BRANCH_NOT_EMPTY",
+                "Mode 'new' requires the branch to have no active areas or tables.",
+                status_code=400,
+            )
+    elif mode != "add":
+        raise BusinessRuleError(
+            "INVALID_MODE",
+            "Mode must be either 'new' or 'add'.",
+            status_code=400,
+        )
+
+    # 2. Build spec
+    spec = build_template_spec(key, params)
+    requested_areas = spec["summary"]["areas_count"]
+    requested_tables = spec["summary"]["tables_count"]
+
+    # 3. Entitlement pre-check
+    current_areas = ServiceArea.objects.filter(tenant=tenant, is_active=True).count()
+    current_tables = DiningTable.objects.filter(tenant=tenant, is_active=True).count()
+    max_areas = get_entitlement(tenant, "max_service_areas", 1)
+    max_tables = get_entitlement(tenant, "max_tables", 15)
+
+    plan_allows = True
+    if max_areas is not None and (current_areas + requested_areas) > max_areas:
+        plan_allows = False
+        if not dry_run:
+            raise EntitlementLimitReached(
+                message=f"Plan limit of {max_areas} service areas reached.",
+                limit_key="max_service_areas",
+                limit=max_areas,
+                current=current_areas,
+                requested=requested_areas,
+            )
+
+    if max_tables is not None and (current_tables + requested_tables) > max_tables:
+        plan_allows = False
+        if not dry_run:
+            raise EntitlementLimitReached(
+                message=f"Plan limit of {max_tables} dining tables reached.",
+                limit_key="max_tables",
+                limit=max_tables,
+                current=current_tables,
+                requested=requested_tables,
+            )
+
+    # 4. Handle dry_run
+    if dry_run:
+        return {
+            "dry_run": True,
+            "template_key": key,
+            "mode": mode,
+            "would_create": spec["summary"],
+            "plan_allows": plan_allows,
+            "limits": {
+                "max_service_areas": {
+                    "limit": max_areas,
+                    "current": current_areas,
+                    "requested": requested_areas,
+                },
+                "max_tables": {
+                    "limit": max_tables,
+                    "current": current_tables,
+                    "requested": requested_tables,
+                },
+            },
+        }
+
+    # 5. Create rows atomically
+    created_areas: list[ServiceArea] = []
+    created_tables: list[DiningTable] = []
+    created_counters: list[TokenCounter] = []
+
+    for a_def in spec["areas"]:
+        sa = ServiceArea.objects.create(
+            tenant=tenant,
+            branch=branch,
+            name=a_def["name"],
+            area_type=a_def["area_type"],
+            sort_order=len(created_areas),
+        )
+        created_areas.append(sa)
+
+        for s_def in a_def.get("sections", []):
+            sec = Section.objects.create(
+                tenant=tenant,
+                branch=branch,
+                service_area=sa,
+                name=s_def["name"],
+                sort_order=sa.sections.count(),
+            )
+            for t_def in s_def.get("tables", []):
+                dt = DiningTable.objects.create(
+                    tenant=tenant,
+                    branch=branch,
+                    section=sec,
+                    label=t_def["label"],
+                    capacity=t_def["capacity"],
+                    table_type=t_def["table_type"],
+                    shape=t_def["shape"],
+                    x=t_def.get("x", 0.0),
+                    y=t_def.get("y", 0.0),
+                )
+                created_tables.append(dt)
+
+    today = timezone.localdate()
+    for idx, _c_def in enumerate(spec.get("token_counters", [])):
+        sa = created_areas[idx] if idx < len(created_areas) else None
+        tc, _ = TokenCounter.objects.get_or_create(
+            tenant=tenant,
+            branch=branch,
+            service_area=sa,
+            service_date=today,
+            defaults={"last_number": 0},
+        )
+        created_counters.append(tc)
+
+    log_audit_event(
+        action="layout_template.apply",
+        entity_type="Branch",
+        entity_id=str(branch.id),
+        tenant=tenant,
+        actor=actor,
+        request=request,
+        after_state={
+            "template_key": key,
+            "mode": mode,
+            "created_areas_count": len(created_areas),
+            "created_tables_count": len(created_tables),
+            "created_counters_count": len(created_counters),
+        },
+    )
+
+    return {
+        "dry_run": False,
+        "template_key": key,
+        "mode": mode,
+        "branch_id": str(branch.id),
+        "created": spec["summary"],
+    }
+
+
+def render_qr_image(
+    qr_code: QRCode,
+    image_format: str = "png",
+    size: int = 400,
+    branded: bool = False,
+    color: str = "#000000",
+) -> tuple[bytes, str]:
     """Renders a QR code image encoding the public token URL.
 
-    Results are cached in Redis for 1 hour keyed by qr_code id and version.
+    Requirements:
+    - format=svg|png
+    - size (default 400px)
+    - branded=true|false (uses error correction H and overlays logo <= 20% width on white rounded backing)
+    - color (hex; must reach at least 7:1 contrast against white, else 400 INVALID_QR_COLOR)
     """
-    import io
-
-    import segno
-    from django.conf import settings
-    from django.core.cache import cache
-
     fmt = image_format.lower()
     if fmt not in ("png", "svg"):
         fmt = "png"
 
+    # Validate color contrast >= 7:1 against white
+    clean_color = color.strip()
+    if not clean_color.startswith("#"):
+        clean_color = f"#{clean_color}"
+    clean_color = clean_color.upper()
+
+    try:
+        ratio = contrast_ratio(clean_color, "#FFFFFF")
+    except Exception:
+        raise BusinessRuleError("INVALID_QR_COLOR", "Invalid QR color hex format.", status_code=400) from None
+
+    if ratio < 7.0:
+        raise BusinessRuleError(
+            "INVALID_QR_COLOR",
+            f"QR color '{clean_color}' has contrast ratio {ratio:.2f}:1 against white (must be at least 7.0:1).",
+            status_code=400,
+            details={"color": clean_color, "contrast_ratio": round(ratio, 2), "minimum_required": 7.0},
+        )
+
     content_type = "image/png" if fmt == "png" else "image/svg+xml"
-    cache_key = f"qr_image:{qr_code.id}:{qr_code.version}:{fmt}"
+    cache_key = f"qr_image:{qr_code.id}:{qr_code.version}:{fmt}:{size}:{branded}:{clean_color}"
     cached_data = cache.get(cache_key)
     if cached_data is not None:
         return cached_data, content_type
 
-    frontend_url = getattr(settings, "FRONTEND_URL", "http://localhost:3000").rstrip("/")
-    target_url = f"{frontend_url}/qr/{qr_code.public_token}"
+    menu_base = getattr(settings, "PUBLIC_MENU_BASE_URL", "http://localhost:5173/q").rstrip("/")
+    target_url = f"{menu_base}/{qr_code.public_token}"
 
-    qr = segno.make(target_url, error="m")
-    out = io.BytesIO()
-    qr.save(out, kind=fmt, scale=5)
-    image_bytes = out.getvalue()
+    err_level = "h" if branded else "m"
+    qr = segno.make(target_url, error=err_level)
+
+    # Compute scale
+    scale = max(3, int(size / 37)) if size > 0 else 5
+
+    if fmt == "svg":
+        out_svg = io.BytesIO()
+        qr.save(out_svg, kind="svg", dark=clean_color, light="#FFFFFF", scale=scale, border=2)
+        image_bytes = out_svg.getvalue()
+        cache.set(cache_key, image_bytes, timeout=3600)
+        return image_bytes, content_type
+
+    # PNG generation with optional branding overlay
+    out_png = io.BytesIO()
+    qr.save(out_png, kind="png", scale=scale, dark=clean_color, light="#FFFFFF", border=2)
+    qr_img = Image.open(out_png).convert("RGBA")
+
+    if size > 0 and (qr_img.width != size or qr_img.height != size):
+        qr_img = qr_img.resize((size, size), Image.Resampling.NEAREST)
+
+    if branded:
+        # Overlay logo on a white rounded backing (at no more than 20% of width)
+        max_logo_w = int(qr_img.width * 0.20)
+        tenant = qr_code.branch.tenant
+        settings_obj = getattr(tenant, "business_settings", None)
+        logo_img = None
+
+        if settings_obj and settings_obj.logo_url:
+            try:
+                rel_path = settings_obj.logo_url.replace(default_storage.url(""), "").lstrip("/")
+                if default_storage.exists(rel_path):
+                    with default_storage.open(rel_path, "rb") as f:
+                        logo_img = Image.open(f).convert("RGBA")
+            except Exception:
+                pass
+
+        if logo_img is not None:
+            # Inner logo fits within 75% of backing
+            inner_w = max(16, int(max_logo_w * 0.75))
+            logo_img.thumbnail((inner_w, inner_w), Image.Resampling.LANCZOS)
+
+            backing = Image.new("RGBA", (max_logo_w, max_logo_w), (255, 255, 255, 255))
+            mask = Image.new("L", (max_logo_w, max_logo_w), 0)
+            mask_draw = ImageDraw.Draw(mask)
+            radius = int(max_logo_w * 0.20)
+            mask_draw.rounded_rectangle([0, 0, max_logo_w, max_logo_w], radius=radius, fill=255)
+
+            paste_x = (max_logo_w - logo_img.width) // 2
+            paste_y = (max_logo_w - logo_img.height) // 2
+            backing.paste(logo_img, (paste_x, paste_y), logo_img)
+
+            pos_x = (qr_img.width - max_logo_w) // 2
+            pos_y = (qr_img.height - max_logo_w) // 2
+            qr_img.paste(backing, (pos_x, pos_y), mask)
+
+    out_final = io.BytesIO()
+    qr_img.save(out_final, format="PNG")
+    image_bytes = out_final.getvalue()
 
     cache.set(cache_key, image_bytes, timeout=3600)
     return image_bytes, content_type
+
+
+def get_qr_sheet_data(
+    tenant: Tenant,
+    branch_id: str | None = None,
+    target_type: str | None = None,
+) -> list[dict[str, Any]]:
+    """Returns active QR codes with table, area, section names, and public URLs."""
+    qs = (
+        QRCode.objects.filter(tenant=tenant, is_active=True)
+        .select_related("table", "table__section", "table__section__service_area", "service_area", "branch")
+        .order_by("table__section__service_area__name", "table__section__name", "table__label", "service_area__name")
+    )
+    if branch_id:
+        qs = qs.filter(branch_id=branch_id)
+    if target_type:
+        qs = qs.filter(target_type=target_type)
+
+    base_url = getattr(settings, "PUBLIC_MENU_BASE_URL", "http://localhost:5173/q").rstrip("/")
+    results: list[dict[str, Any]] = []
+
+    for qr in qs:
+        label = ""
+        area_name = ""
+        section_name = ""
+        if qr.target_type == QRTargetType.TABLE and qr.table:
+            label = qr.table.label
+            section_name = qr.table.section.name if qr.table.section else ""
+            area_name = (
+                qr.table.section.service_area.name
+                if qr.table.section and qr.table.section.service_area
+                else ""
+            )
+        elif qr.service_area:
+            label = qr.service_area.name
+            area_name = qr.service_area.name
+
+        results.append({
+            "id": str(qr.id),
+            "public_token": qr.public_token,
+            "target_type": qr.target_type,
+            "label": label,
+            "area_name": area_name,
+            "section_name": section_name,
+            "branch_id": str(qr.branch_id),
+            "branch_name": qr.branch.name,
+            "public_url": f"{base_url}/{qr.public_token}",
+        })
+
+    return results

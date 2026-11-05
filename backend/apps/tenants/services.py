@@ -1,11 +1,17 @@
+import io
+import uuid
 from typing import Any
 
 from django.contrib.auth import get_user_model
+from django.core.files.base import ContentFile
+from django.core.files.storage import default_storage
 from django.db import transaction
 from django.utils.text import slugify
+from PIL import Image
 
 from apps.accounts.models import Membership
 from apps.audit.services import log_audit_event
+from apps.core.exceptions import BusinessRuleError
 from apps.rbac.constants import Role
 from apps.subscriptions.constants import SubscriptionStatus
 from apps.subscriptions.models import Subscription
@@ -320,10 +326,11 @@ def update_business_profile(
     """Updates the active tenant's profile and business settings with audit logging.
 
     Fields on tenant: name, business_type, email, phone, timezone, address.
-    Fields on business_settings: invoice_prefix, logo_url, primary_color, tax_mode.
+    Fields on business_settings: invoice_prefix, logo_url, logo_128_url, primary_color,
+    brand_primary_color, legal_name, gstin, registered_address, document_language, receipt_footer_text, tax_mode.
     Read-only / immutable via this endpoint: id, slug, status, subscription_status, currency.
     """
-    settings, _ = BusinessSettings.objects.get_or_create(tenant=tenant)
+    settings, _ = BusinessSettings.unscoped.get_or_create(tenant=tenant)
 
     before_state = {
         "name": tenant.name,
@@ -334,7 +341,14 @@ def update_business_profile(
         "address": tenant.address,
         "invoice_prefix": settings.invoice_prefix,
         "logo_url": settings.logo_url,
+        "logo_128_url": settings.logo_128_url,
         "primary_color": settings.primary_color,
+        "brand_primary_color": settings.brand_primary_color,
+        "legal_name": settings.legal_name,
+        "gstin": settings.gstin,
+        "registered_address": settings.registered_address,
+        "document_language": settings.document_language,
+        "receipt_footer_text": settings.receipt_footer_text,
         "tax_mode": settings.tax_mode,
     }
 
@@ -343,11 +357,31 @@ def update_business_profile(
     if not isinstance(settings_data, dict):
         settings_data = {}
 
-    for field in ["invoice_prefix", "logo_url", "primary_color", "tax_mode"]:
+    settings_fields = [
+        "invoice_prefix",
+        "logo_url",
+        "logo_128_url",
+        "primary_color",
+        "brand_primary_color",
+        "legal_name",
+        "gstin",
+        "registered_address",
+        "document_language",
+        "receipt_footer_text",
+        "tax_mode",
+    ]
+
+    for field in settings_fields:
         if field in data and data[field] is not None:
             setattr(settings, field, data[field])
         elif field in settings_data and settings_data[field] is not None:
             setattr(settings, field, settings_data[field])
+
+    # Keep primary_color and brand_primary_color in sync
+    if "brand_primary_color" in data and data["brand_primary_color"]:
+        settings.primary_color = data["brand_primary_color"]
+    elif "primary_color" in data and data["primary_color"] and "brand_primary_color" not in data:
+        settings.brand_primary_color = data["primary_color"]
 
     for field in ["name", "business_type", "email", "phone", "timezone", "address"]:
         if field in data and data[field] is not None:
@@ -365,7 +399,14 @@ def update_business_profile(
         "address": tenant.address,
         "invoice_prefix": settings.invoice_prefix,
         "logo_url": settings.logo_url,
+        "logo_128_url": settings.logo_128_url,
         "primary_color": settings.primary_color,
+        "brand_primary_color": settings.brand_primary_color,
+        "legal_name": settings.legal_name,
+        "gstin": settings.gstin,
+        "registered_address": settings.registered_address,
+        "document_language": settings.document_language,
+        "receipt_footer_text": settings.receipt_footer_text,
         "tax_mode": settings.tax_mode,
     }
 
@@ -434,18 +475,58 @@ def get_onboarding_status(tenant: Tenant) -> dict[str, Any]:
     staff_count = Membership.objects.filter(tenant=tenant, is_active=True).count()
     has_staff_invited = staff_count >= 2
 
+    has_layout = (
+        (has_service_areas and has_tables_or_counters)
+        if uses_tables
+        else (has_service_areas or counters_count >= 1)
+    )
+
     steps = {
         "business_profile": has_profile,
         "first_branch": has_first_branch,
         "venue_profile_chosen": has_venue_profile,
         "service_areas": has_service_areas,
         "tables_or_counters": has_tables_or_counters,
+        "layout": has_layout,
         "qr_codes": has_qr_codes,
         "staff_invited": has_staff_invited,
+        "step_1_business": has_profile,
+        "step_2_branch": has_first_branch,
+        "step_3_service": has_venue_profile,
+        "step_4_layout": has_layout,
+        "step_5_qr": has_qr_codes,
+        "step_6_staff": has_staff_invited,
+        "step_7_done": bool(
+            has_profile and has_first_branch and has_venue_profile and has_layout and has_qr_codes
+        ),
     }
 
-    next_step = next((k for k, v in steps.items() if not v), None)
-    is_complete = next_step is None
+    # Determine next_step along primary progression
+    if not has_profile:
+        next_step = "business_profile"
+    elif not has_first_branch:
+        next_step = "first_branch"
+    elif not has_venue_profile:
+        next_step = "venue_profile_chosen"
+    elif not has_service_areas:
+        next_step = "service_areas"
+    elif not has_tables_or_counters:
+        next_step = "tables_or_counters"
+    elif not has_qr_codes:
+        next_step = "qr_codes"
+    elif not has_staff_invited:
+        next_step = "staff_invited"
+    else:
+        next_step = None
+
+    is_complete = bool(
+        has_profile
+        and has_first_branch
+        and has_venue_profile
+        and has_layout
+        and has_qr_codes
+        and has_staff_invited
+    )
     suggested_profile = suggest_venue_profile(tenant.business_type)
 
     return {
@@ -492,3 +573,214 @@ def reset_owner_passwords(
             request=request,
         )
     return results
+
+
+def upload_business_logo(
+    tenant: Tenant,
+    file_obj: Any,
+    actor: Any | None = None,
+    request: Any | None = None,
+) -> dict[str, str]:
+    """Uploads and validates a business logo image with security hardening.
+
+    Invariants:
+    - PNG, JPEG, WebP only; SVG is strictly forbidden.
+    - Max size 2 MB; Max dimensions 4000x4000.
+    - Pillow verification + safe MAX_IMAGE_PIXELS against decompression bombs.
+    - Strips EXIF and metadata via re-encoding.
+    - Produces 512px and 128px versions saved under random per-tenant paths.
+    - Audited.
+    """
+    if not file_obj:
+        raise BusinessRuleError("NO_FILE_PROVIDED", "No logo file was provided.", status_code=400)
+
+    # 1. Check file size (max 2 MB)
+    max_size = 2 * 1024 * 1024
+    size = getattr(file_obj, "size", None)
+    if size is None:
+        file_obj.seek(0, 2)
+        size = file_obj.tell()
+        file_obj.seek(0)
+
+    if size > max_size:
+        raise BusinessRuleError(
+            "IMAGE_TOO_LARGE",
+            "Logo image exceeds the maximum permitted size of 2 MB.",
+            status_code=400,
+            details={"size_bytes": size, "max_bytes": max_size},
+        )
+
+    # 2. Reject SVG by extension or header inspection
+    filename = getattr(file_obj, "name", "") or ""
+    if filename.lower().endswith(".svg"):
+        raise BusinessRuleError(
+            "INVALID_IMAGE_FORMAT",
+            "SVG files are strictly disallowed for logo uploads. Use PNG, JPEG, or WebP.",
+            status_code=400,
+        )
+
+    header = file_obj.read(512)
+    file_obj.seek(0)
+    if b"<svg" in header.lower() or b"<?xml" in header.lower():
+        raise BusinessRuleError(
+            "INVALID_IMAGE_FORMAT",
+            "SVG content detected. SVG files are strictly disallowed. Use PNG, JPEG, or WebP.",
+            status_code=400,
+        )
+
+    # 3. Safe MAX_IMAGE_PIXELS and Pillow verification
+    Image.MAX_IMAGE_PIXELS = 16_000_000
+
+    try:
+        raw_img = Image.open(file_obj)
+        raw_img.verify()
+    except Image.DecompressionBombError:
+        raise BusinessRuleError(
+            "DECOMPRESSION_BOMB",
+            "Image exceeds maximum safe pixel dimensions (decompression bomb protection).",
+            status_code=400,
+        ) from None
+    except Exception:
+        raise BusinessRuleError(
+            "INVALID_IMAGE",
+            "Uploaded file is corrupted or not a valid image.",
+            status_code=400,
+        ) from None
+
+    # Re-open after verify
+    file_obj.seek(0)
+    try:
+        img = Image.open(file_obj)
+    except Image.DecompressionBombError:
+        raise BusinessRuleError(
+            "DECOMPRESSION_BOMB",
+            "Image exceeds maximum safe pixel dimensions (decompression bomb protection).",
+            status_code=400,
+        ) from None
+    except Exception:
+        raise BusinessRuleError(
+            "INVALID_IMAGE",
+            "Uploaded file could not be decoded.",
+            status_code=400,
+        ) from None
+
+    img_format = (img.format or "").upper()
+    if img_format not in ("PNG", "JPEG", "JPG", "WEBP"):
+        raise BusinessRuleError(
+            "INVALID_IMAGE_FORMAT",
+            f"Unsupported format '{img_format}'. Only PNG, JPEG, and WebP are allowed.",
+            status_code=400,
+        )
+
+    width, height = img.size
+    if width > 4000 or height > 4000:
+        raise BusinessRuleError(
+            "IMAGE_DIMENSIONS_TOO_LARGE",
+            f"Image dimensions ({width}x{height}) exceed maximum allowed (4000x4000).",
+            status_code=400,
+            details={"width": width, "height": height, "max": 4000},
+        )
+
+    # 4. Clean convert mode to RGB or RGBA (strip EXIF/metadata)
+    target_mode = "RGBA" if img.mode in ("RGBA", "LA", "P") else "RGB"
+    converted_img = img.convert(target_mode)
+
+    # 5. Generate 512px and 128px versions
+    img_512 = converted_img.copy()
+    img_512.thumbnail((512, 512), Image.Resampling.LANCZOS)
+    buf_512 = io.BytesIO()
+    img_512.save(buf_512, format="PNG", optimize=True)
+    buf_512.seek(0)
+
+    img_128 = converted_img.copy()
+    img_128.thumbnail((128, 128), Image.Resampling.LANCZOS)
+    buf_128 = io.BytesIO()
+    img_128.save(buf_128, format="PNG", optimize=True)
+    buf_128.seek(0)
+
+    # 6. Save under random per-tenant path
+    token_id = uuid.uuid4().hex
+    path_512 = f"logos/{tenant.id}/{token_id}_512.png"
+    path_128 = f"logos/{tenant.id}/{token_id}_128.png"
+
+    default_storage.save(path_512, ContentFile(buf_512.getvalue()))
+    default_storage.save(path_128, ContentFile(buf_128.getvalue()))
+
+    url_512 = default_storage.url(path_512)
+    url_128 = default_storage.url(path_128)
+
+    settings, _ = BusinessSettings.unscoped.get_or_create(tenant=tenant)
+    before_state = {
+        "logo_url": settings.logo_url,
+        "logo_128_url": settings.logo_128_url,
+    }
+    settings.logo_url = url_512
+    settings.logo_128_url = url_128
+    settings.save()
+    after_state = {
+        "logo_url": url_512,
+        "logo_128_url": url_128,
+    }
+
+    log_audit_event(
+        action="business.logo_upload",
+        entity_type="BusinessSettings",
+        entity_id=str(settings.id),
+        tenant=tenant,
+        actor=actor,
+        request=request,
+        before_state=before_state,
+        after_state=after_state,
+    )
+
+    return {"logo_url": url_512, "logo_128_url": url_128}
+
+
+def delete_business_logo(
+    tenant: Tenant,
+    actor: Any | None = None,
+    request: Any | None = None,
+) -> None:
+    """Removes the business logo for a tenant with audit logging."""
+    settings, _ = BusinessSettings.unscoped.get_or_create(tenant=tenant)
+    before_state = {
+        "logo_url": settings.logo_url,
+        "logo_128_url": settings.logo_128_url,
+    }
+
+    # Delete storage files if present
+    if settings.logo_url:
+        try:
+            rel_path = settings.logo_url.replace(default_storage.url(""), "")
+            if default_storage.exists(rel_path):
+                default_storage.delete(rel_path)
+        except Exception:
+            pass
+
+    if settings.logo_128_url:
+        try:
+            rel_path = settings.logo_128_url.replace(default_storage.url(""), "")
+            if default_storage.exists(rel_path):
+                default_storage.delete(rel_path)
+        except Exception:
+            pass
+
+    settings.logo_url = ""
+    settings.logo_128_url = ""
+    settings.save()
+    after_state = {
+        "logo_url": "",
+        "logo_128_url": "",
+    }
+
+    log_audit_event(
+        action="business.logo_delete",
+        entity_type="BusinessSettings",
+        entity_id=str(settings.id),
+        tenant=tenant,
+        actor=actor,
+        request=request,
+        before_state=before_state,
+        after_state=after_state,
+    )
+

@@ -70,6 +70,7 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
     { label: "Floor Plan", path: "/venue/floor", icon: LayoutGrid, permission: "floor.manage" },
     { label: "QR Codes", path: "/qr", icon: QrCode, permission: "qr.view" },
     { label: "Staff", path: "/staff", icon: Users, permission: "staff.view" },
+    { label: "Branding", path: "/settings/branding", icon: Palette, permission: "business.manage" },
     { label: "Settings", path: "/settings/venue", icon: Sliders, permission: "business.manage" },
   ];
 

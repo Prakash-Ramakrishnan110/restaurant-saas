@@ -128,6 +128,26 @@ export interface paths {
         patch: operations["branches_capabilities_partial_update"];
         trace?: never;
     };
+    "/api/v1/branches/{branch_id}/layout-templates/{key}/apply/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Apply layout template
+         * @description Atomically creates areas, sections, and tables or counters from template. Pre-checks subscription entitlements.
+         */
+        post: operations["branches_layout_templates_apply_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/branches/{id}/": {
         parameters: {
             query?: never;
@@ -171,6 +191,30 @@ export interface paths {
         patch: operations["business_partial_update"];
         trace?: never;
     };
+    "/api/v1/business/logo/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Upload business logo
+         * @description Upload PNG, JPEG, or WebP logo (max 2MB, max 4000x4000). Strips metadata, produces 512px and 128px versions. Audited.
+         */
+        post: operations["business_logo_create"];
+        /**
+         * Delete business logo
+         * @description Delete current business logo and clear logo URLs. Audited.
+         */
+        delete: operations["business_logo_destroy"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/entitlements/": {
         parameters: {
             query?: never;
@@ -183,6 +227,26 @@ export interface paths {
          * @description Returns plan name, subscription status, numeric limits with remaining headroom, and feature flags.
          */
         get: operations["entitlements_retrieve"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/layout-templates/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List layout templates
+         * @description Returns catalog of predefined layout templates for venue onboarding and layout setup.
+         */
+        get: operations["layout_templates_list"];
         put?: never;
         post?: never;
         delete?: never;
@@ -325,6 +389,26 @@ export interface paths {
         put?: never;
         /** @description Staff management of cryptographic QR tokens. */
         post: operations["qr_codes_generate_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/qr-codes/sheet-data/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get QR code sheet data
+         * @description Returns list of active QR codes with table, area, section names, and public URLs.
+         */
+        get: operations["qr_codes_sheet_data_list"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -900,6 +984,14 @@ export interface components {
             name: string;
             is_active?: boolean;
         };
+        BusinessLogoResponse: {
+            logo_url: string;
+            logo_128_url: string;
+        };
+        BusinessLogoResponseRequest: {
+            logo_url: string;
+            logo_128_url: string;
+        };
         BusinessProfile: {
             /** Format: uuid */
             readonly id: string;
@@ -913,9 +1005,17 @@ export interface components {
             phone?: string;
             timezone?: string;
             readonly currency: string;
+            address?: string;
             invoice_prefix?: string;
             logo_url?: string;
+            readonly logo_128_url: string;
             primary_color?: string;
+            brand_primary_color?: string;
+            legal_name?: string;
+            gstin?: string;
+            registered_address?: string;
+            document_language?: components["schemas"]["DocumentLanguageEnum"];
+            receipt_footer_text?: string;
             tax_mode?: components["schemas"]["TaxMode"];
             /** Format: date-time */
             readonly created_at: string;
@@ -925,16 +1025,28 @@ export interface components {
         BusinessSettings: {
             tax_mode?: components["schemas"]["TaxMode"];
             invoice_prefix?: string;
-            /** Format: uri */
             logo_url?: string;
+            logo_128_url?: string;
             primary_color?: string;
+            brand_primary_color?: string;
+            legal_name?: string;
+            gstin?: string;
+            registered_address?: string;
+            document_language?: components["schemas"]["DocumentLanguageEnum"];
+            receipt_footer_text?: string;
         };
         BusinessSettingsRequest: {
             tax_mode?: components["schemas"]["TaxMode"];
             invoice_prefix?: string;
-            /** Format: uri */
             logo_url?: string;
+            logo_128_url?: string;
             primary_color?: string;
+            brand_primary_color?: string;
+            legal_name?: string;
+            gstin?: string;
+            registered_address?: string;
+            document_language?: components["schemas"]["DocumentLanguageEnum"];
+            receipt_footer_text?: string;
         };
         /**
          * @description * `TEA_SHOP` - Tea Shop
@@ -1009,6 +1121,52 @@ export interface components {
             height?: number;
             rotation?: number;
             shape?: components["schemas"]["TableShape"];
+        };
+        /**
+         * @description * `EN` - English
+         *     * `EN_TA` - English and Tamil
+         * @enum {string}
+         */
+        DocumentLanguageEnum: "EN" | "EN_TA";
+        LayoutTemplateApplyResponse: {
+            dry_run: boolean;
+            template_key: string;
+            mode: string;
+            would_create?: {
+                [key: string]: unknown;
+            };
+            created?: {
+                [key: string]: unknown;
+            };
+            plan_allows?: boolean;
+            limits?: {
+                [key: string]: unknown;
+            };
+        };
+        LayoutTemplateApplyResponseRequest: {
+            dry_run: boolean;
+            template_key: string;
+            mode: string;
+            would_create?: {
+                [key: string]: unknown;
+            };
+            created?: {
+                [key: string]: unknown;
+            };
+            plan_allows?: boolean;
+            limits?: {
+                [key: string]: unknown;
+            };
+        };
+        LayoutTemplateCatalogItem: {
+            key: string;
+            name: string;
+            description: string;
+            recommended_profiles: string[];
+            has_tables: boolean;
+            params_schema: {
+                [key: string]: unknown;
+            };
         };
         LoginRequestRequest: {
             /** Format: email */
@@ -1241,9 +1399,16 @@ export interface components {
             email?: string;
             phone?: string;
             timezone?: string;
+            address?: string;
             invoice_prefix?: string;
             logo_url?: string;
             primary_color?: string;
+            brand_primary_color?: string;
+            legal_name?: string;
+            gstin?: string;
+            registered_address?: string;
+            document_language?: components["schemas"]["DocumentLanguageEnum"];
+            receipt_footer_text?: string;
             tax_mode?: components["schemas"]["TaxMode"];
         };
         PatchedDiningTableRequest: {
@@ -1306,7 +1471,11 @@ export interface components {
         PaymentTiming: "PAY_FIRST" | "PAY_LATER" | "EITHER";
         PublicQRDetail: {
             tenant_name: string;
+            display_name: string;
             tenant_logo_url: string;
+            logo_url: string;
+            /** @default #FF6A00 */
+            brand_primary_color: string;
             branch_name: string;
             area_name: string;
             table_label: string;
@@ -1348,6 +1517,17 @@ export interface components {
             readonly created_at: string;
             /** Format: date-time */
             readonly updated_at: string;
+        };
+        QRCodeSheetItem: {
+            id: string;
+            public_token: string;
+            target_type: string;
+            label: string;
+            area_name: string;
+            section_name: string;
+            branch_id: string;
+            branch_name: string;
+            public_url: string;
         };
         /**
          * @description * `TABLE` - Dining Table
@@ -1869,6 +2049,34 @@ export interface operations {
             };
         };
     };
+    branches_layout_templates_apply_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                branch_id: string;
+                key: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LayoutTemplateApplyResponseRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["LayoutTemplateApplyResponseRequest"];
+                "multipart/form-data": components["schemas"]["LayoutTemplateApplyResponseRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LayoutTemplateApplyResponse"];
+                };
+            };
+        };
+    };
     branches_retrieve: {
         parameters: {
             query?: never;
@@ -1981,6 +2189,50 @@ export interface operations {
             };
         };
     };
+    business_logo_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BusinessLogoResponseRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["BusinessLogoResponseRequest"];
+                "multipart/form-data": components["schemas"]["BusinessLogoResponseRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BusinessLogoResponse"];
+                };
+            };
+        };
+    };
+    business_logo_destroy: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BusinessLogoResponse"];
+                };
+            };
+        };
+    };
     entitlements_retrieve: {
         parameters: {
             query?: never;
@@ -1998,6 +2250,25 @@ export interface operations {
                     "application/json": {
                         [key: string]: unknown;
                     };
+                };
+            };
+        };
+    };
+    layout_templates_list: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LayoutTemplateCatalogItem"][];
                 };
             };
         };
@@ -2206,6 +2477,25 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["QRCode"];
+                };
+            };
+        };
+    };
+    qr_codes_sheet_data_list: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["QRCodeSheetItem"][];
                 };
             };
         };

@@ -1,12 +1,30 @@
 from rest_framework import serializers
 
+from apps.tenants.color_utils import validate_brand_primary_color, validate_gstin
 from apps.tenants.models import Branch, BusinessSettings, Tenant
 
 
 class BusinessSettingsSerializer(serializers.ModelSerializer):
     class Meta:
         model = BusinessSettings
-        fields = ("tax_mode", "invoice_prefix", "logo_url", "primary_color")
+        fields = (
+            "tax_mode",
+            "invoice_prefix",
+            "logo_url",
+            "logo_128_url",
+            "primary_color",
+            "brand_primary_color",
+            "legal_name",
+            "gstin",
+            "registered_address",
+            "document_language",
+            "receipt_footer_text",
+        )
+
+
+class BusinessLogoResponseSerializer(serializers.Serializer):
+    logo_url = serializers.CharField(allow_blank=True)
+    logo_128_url = serializers.CharField(allow_blank=True)
 
 
 class BusinessProfileSerializer(serializers.ModelSerializer):
@@ -16,8 +34,34 @@ class BusinessProfileSerializer(serializers.ModelSerializer):
     logo_url = serializers.CharField(
         source="business_settings.logo_url", required=False, allow_blank=True
     )
+    logo_128_url = serializers.CharField(
+        source="business_settings.logo_128_url", required=False, allow_blank=True, read_only=True
+    )
     primary_color = serializers.CharField(
         source="business_settings.primary_color", required=False, allow_blank=True
+    )
+    brand_primary_color = serializers.CharField(
+        source="business_settings.brand_primary_color", required=False, allow_blank=True
+    )
+    legal_name = serializers.CharField(
+        source="business_settings.legal_name", required=False, allow_blank=True
+    )
+    gstin = serializers.CharField(
+        source="business_settings.gstin", required=False, allow_blank=True
+    )
+    registered_address = serializers.CharField(
+        source="business_settings.registered_address", required=False, allow_blank=True
+    )
+    document_language = serializers.ChoiceField(
+        choices=BusinessSettings.DocumentLanguage.choices,
+        source="business_settings.document_language",
+        required=False,
+    )
+    receipt_footer_text = serializers.CharField(
+        source="business_settings.receipt_footer_text",
+        required=False,
+        allow_blank=True,
+        max_length=200,
     )
     tax_mode = serializers.ChoiceField(
         choices=BusinessSettings.TaxMode.choices,
@@ -39,9 +83,17 @@ class BusinessProfileSerializer(serializers.ModelSerializer):
             "phone",
             "timezone",
             "currency",
+            "address",
             "invoice_prefix",
             "logo_url",
+            "logo_128_url",
             "primary_color",
+            "brand_primary_color",
+            "legal_name",
+            "gstin",
+            "registered_address",
+            "document_language",
+            "receipt_footer_text",
             "tax_mode",
             "created_at",
             "updated_at",
@@ -52,9 +104,20 @@ class BusinessProfileSerializer(serializers.ModelSerializer):
             "status",
             "subscription_status",
             "currency",
+            "logo_128_url",
             "created_at",
             "updated_at",
         )
+
+    def validate_brand_primary_color(self, value: str) -> str:
+        if value:
+            return validate_brand_primary_color(value)
+        return value
+
+    def validate_gstin(self, value: str) -> str:
+        if value:
+            return validate_gstin(value)
+        return value
 
 
 class TenantSerializer(serializers.ModelSerializer):

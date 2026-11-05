@@ -93,6 +93,10 @@ class BusinessSettings(TenantOwnedModel):
         INCLUSIVE = "INCLUSIVE", "Tax Inclusive"
         EXCLUSIVE = "EXCLUSIVE", "Tax Exclusive"
 
+    class DocumentLanguage(models.TextChoices):
+        EN = "EN", "English"
+        EN_TA = "EN_TA", "English and Tamil"
+
     # BusinessSettings is 1-to-1 with Tenant
     tenant = models.OneToOneField(
         Tenant,
@@ -100,14 +104,26 @@ class BusinessSettings(TenantOwnedModel):
         related_name="business_settings",
         db_index=True,
     )
+    legal_name = models.CharField(max_length=255, blank=True, default="")
+    gstin = models.CharField(max_length=15, blank=True, default="")
+    registered_address = models.TextField(blank=True, default="")
+    document_language = models.CharField(
+        max_length=10,
+        choices=DocumentLanguage.choices,
+        default=DocumentLanguage.EN,
+    )
+    brand_primary_color = models.CharField(max_length=7, default="#FF6A00")
+    receipt_footer_text = models.CharField(max_length=200, blank=True, default="")
+
     tax_mode = models.CharField(
         max_length=20,
         choices=TaxMode.choices,
         default=TaxMode.INCLUSIVE,
     )
     invoice_prefix = models.CharField(max_length=20, default="INV-")
-    logo_url = models.URLField(max_length=500, blank=True)
-    primary_color = models.CharField(max_length=16, default="#000000")
+    logo_url = models.CharField(max_length=500, blank=True, default="")
+    logo_128_url = models.CharField(max_length=500, blank=True, default="")
+    primary_color = models.CharField(max_length=16, default="#FF6A00")
 
     class Meta:
         verbose_name_plural = "Business settings"

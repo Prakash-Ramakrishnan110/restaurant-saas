@@ -349,7 +349,10 @@ class GenerateQRCodeSerializer(serializers.Serializer):
 
 class PublicQRDetailSerializer(serializers.Serializer):
     tenant_name = serializers.CharField()
+    display_name = serializers.CharField()
     tenant_logo_url = serializers.CharField(allow_blank=True)
+    logo_url = serializers.CharField(allow_blank=True)
+    brand_primary_color = serializers.CharField(default="#FF6A00")
     branch_name = serializers.CharField()
     area_name = serializers.CharField(allow_blank=True)
     table_label = serializers.CharField(allow_blank=True)
@@ -368,3 +371,34 @@ class PublicQROpenSessionResponseSerializer(serializers.Serializer):
     session_token = serializers.CharField()
     status = serializers.CharField()
     guest_count = serializers.IntegerField()
+
+
+class QRCodeSheetItemSerializer(serializers.Serializer):
+    id = serializers.CharField()
+    public_token = serializers.CharField()
+    target_type = serializers.CharField()
+    label = serializers.CharField(allow_blank=True)  # type: ignore[assignment]
+    area_name = serializers.CharField(allow_blank=True)
+    section_name = serializers.CharField(allow_blank=True)
+    branch_id = serializers.CharField()
+    branch_name = serializers.CharField()
+    public_url = serializers.CharField()
+
+
+class LayoutTemplateCatalogItemSerializer(serializers.Serializer):
+    key = serializers.CharField()
+    name = serializers.CharField()
+    description = serializers.CharField()
+    recommended_profiles = serializers.ListField(child=serializers.CharField())
+    has_tables = serializers.BooleanField()
+    params_schema = serializers.DictField()
+
+
+class LayoutTemplateApplyResponseSerializer(serializers.Serializer):
+    dry_run = serializers.BooleanField()
+    template_key = serializers.CharField()
+    mode = serializers.CharField()
+    would_create = serializers.DictField(required=False)
+    created = serializers.DictField(required=False)
+    plan_allows = serializers.BooleanField(required=False)
+    limits = serializers.DictField(required=False)

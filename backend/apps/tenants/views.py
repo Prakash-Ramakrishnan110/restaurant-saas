@@ -21,6 +21,7 @@ from apps.tenants.models import Branch, Tenant
 from apps.tenants.serializers import (
     BranchCreateUpdateSerializer,
     BranchSerializer,
+    BusinessLogoResponseSerializer,
     BusinessProfileSerializer,
     OnboardingStatusSerializer,
     TenantCreateSerializer,
@@ -31,11 +32,13 @@ from apps.tenants.services import (
     create_branch,
     create_tenant_with_defaults,
     delete_branch,
+    delete_business_logo,
     get_onboarding_status,
     reset_owner_passwords,
     suspend_tenant,
     update_branch,
     update_business_profile,
+    upload_business_logo,
 )
 
 
@@ -328,6 +331,8 @@ class BusinessProfileView(APIView):
                 },
                 status=status.HTTP_400_BAD_REQUEST,
             )
+        from apps.tenants.models import BusinessSettings
+        BusinessSettings.unscoped.get_or_create(tenant=tenant)
         serializer = BusinessProfileSerializer(tenant)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
@@ -359,3 +364,73 @@ class BusinessProfileView(APIView):
             request=request,
         )
         return Response(BusinessProfileSerializer(updated_tenant).data, status=status.HTTP_200_OK)
+
+
+class BusinessLogoView(APIView):
+    """Upload or delete logo image for the active tenant."""
+
+    serializer_class = BusinessLogoResponseSerializer
+    permission_classes = [HasTenantPermission(Permission.BUSINESS_MANAGE)]
+
+    @extend_schema(
+        responses={200: BusinessLogoResponseSerializer},
+        summary="Upload business logo",
+        description="Upload PNG, JPEG, or WebP logo (max 2MB, max 4000x4000). Strips metadata, produces 512px and 128px versions. Audited.",
+    )
+    def post(self, request: Request) -> Response:
+        tenant = getattr(request, "tenant", None) or get_current_tenant()
+        if not tenant:
+            return Response(
+                {
+                    "error": {
+                        "code": "NO_TENANT_CONTEXT",
+                        "message": "Active tenant context required.",
+                        "details": {},
+                    }
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        file_obj = request.FILES.get("logo") or request.FILES.get("file")
+        if not file_obj:
+            return Response(
+                {
+                    "error": {
+                        "code": "NO_FILE_PROVIDED",
+                        "message": "No logo file was provided in multipart body.",
+                        "details": {},
+                    }
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        result = upload_business_logo(
+            tenant=tenant,
+            file_obj=file_obj,
+            actor=request.user,
+            request=request,
+        )
+        response = Response(result, status=status.HTTP_200_OK)
+        response["X-Content-Type-Options"] = "nosniff"
+        return response
+
+    @extend_schema(
+        responses={200: BusinessLogoResponseSerializer},
+        summary="Delete business logo",
+        description="Delete current business logo and clear logo URLs. Audited.",
+    )
+    def delete(self, request: Request) -> Response:
+        tenant = getattr(request, "tenant", None) or get_current_tenant()
+        if not tenant:
+            return Response(
+                {
+                    "error": {
+                        "code": "NO_TENANT_CONTEXT",
+                        "message": "Active tenant context required.",
+                        "details": {},
+                    }
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        delete_business_logo(tenant=tenant, actor=request.user, request=request)
+        response = Response({"logo_url": "", "logo_128_url": ""}, status=status.HTTP_200_OK)
+        response["X-Content-Type-Options"] = "nosniff"
+        return response
