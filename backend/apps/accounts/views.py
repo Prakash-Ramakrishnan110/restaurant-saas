@@ -390,6 +390,21 @@ class StaffViewSet(ViewSet):
             .order_by("-created_at")
         )
 
+        role = request.query_params.get("role")
+        if role:
+            queryset = queryset.filter(role=role)
+
+        is_active = request.query_params.get("is_active")
+        if is_active is not None:
+            if is_active.lower() == "true":
+                queryset = queryset.filter(is_active=True)
+            elif is_active.lower() == "false":
+                queryset = queryset.filter(is_active=False)
+
+        branch_id = request.query_params.get("branch") or request.query_params.get("branch_id")
+        if branch_id:
+            queryset = queryset.filter(branches__id=branch_id).distinct()
+
         # Branch Manager can only see staff assigned to overlapping branches
         user_membership = getattr(request, "membership", None)
         if user_membership and user_membership.branches.exists():

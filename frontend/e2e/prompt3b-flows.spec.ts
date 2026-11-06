@@ -559,8 +559,8 @@ test.describe("Prompt 3B: 8 Core E2E Flows", () => {
     await page.goto("/login");
     await page.waitForLoadState("networkidle");
 
-    // Measure "ServeMy" text contrast against header in light mode
-    const servemyLight = page.getByTestId("wordmark-servemy").first();
+    // Measure "ServeMy" text contrast against header in light mode (select visible wordmark on current viewport)
+    const servemyLight = page.locator('[data-testid="wordmark-servemy"]:visible').first();
     await expect(servemyLight).toBeVisible();
     const lightColor = await servemyLight.evaluate((el) => window.getComputedStyle(el).color);
     // In light mode, color is navy rgb(11, 31, 59)

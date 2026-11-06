@@ -11,6 +11,7 @@ import { OnboardingPage } from "./pages/onboarding/OnboardingPage";
 import { BranchesPage } from "./pages/venue/BranchesPage";
 import { AreasPage } from "./pages/venue/AreasPage";
 import { TablesPage } from "./pages/venue/TablesPage";
+import { CountersPage } from "./pages/venue/CountersPage";
 import { FloorPlanPage } from "./pages/venue/FloorPlanPage";
 import { QRCodesPage } from "./pages/venue/QRCodesPage";
 import { StaffPage } from "./pages/staff/StaffPage";
@@ -110,6 +111,14 @@ export const App: React.FC = () => {
                 }
               />
               <Route
+                path="/venue/branches"
+                element={
+                  <ProtectedRoute>
+                    <BranchesPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
                 path="/venue/areas"
                 element={
                   <ProtectedRoute>
@@ -126,7 +135,23 @@ export const App: React.FC = () => {
                 }
               />
               <Route
+                path="/venue/counters"
+                element={
+                  <ProtectedRoute>
+                    <CountersPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
                 path="/venue/floor"
+                element={
+                  <ProtectedRoute>
+                    <FloorPlanPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/venue/floor-plan"
                 element={
                   <ProtectedRoute>
                     <FloorPlanPage />

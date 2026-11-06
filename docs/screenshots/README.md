@@ -24,6 +24,15 @@ All screenshots were generated automatically via Playwright E2E automation again
 | `12-error-notfound.png` | `/404` | 1440 × 900 | Error State | 404 Route Not Found page: "We couldn't find that page.", clean navigation recovery, return to dashboard CTA. Zero cross-tenant leakage. |
 | `15-settings-branding.png` | `/settings/branding` | 1440 × 900 | Desktop Management | Branding settings: logo upload (PNG/JPEG <= 2MB, rejects SVG), hex color picker, live WCAG AA contrast calculation, customer QR card preview with dark QR and "Sample" badge. |
 | `qr-codes-page.png` | `/qr` | 1440 × 900 | Desktop Management | QR codes management table: client-side high-contrast QR generation (EC level H), table standees, token rotation action, "Print QR Sheet" launcher. |
+| `18-branches-desktop.png` | `/branches` | 1440 × 900 | Desktop Management | Branches management: outlet cards (Main Outlet, Express Kiosk), active status badge, plan limit usage, Add New Branch modal trigger. |
+| `19-areas-sections-desktop.png` | `/venue/areas` | 1440 × 900 | Desktop Management | Service Areas tree view: Ground Floor Dining, First Floor Banquet, child sections (Family AC Hall, Garden Verandah, VIP Suite) with color swatches. |
+| `20-tables-datatable-desktop.png` | `/venue/tables` | 1440 × 900 | Desktop Management | Dining Tables DataTable: natural sorting (T1, T2, T3, T4, T10), status badges, capacity, area filters, Bulk Create dialog trigger. |
+| `21-floor-plan-desktop.png` | `/venue/floor` | 1440 × 900 | Desktop Management | Floor Plan map: read-only visual table map, status-coded table cards (Available, Occupied, Billing, Reserved), "Drag-and-drop editing comes later" banner. |
+| `22-floor-plan-dark-touch.png` | `/venue/floor` | 1440 × 900 | Dark + Touch Mode | Floor Plan in Dark Mode + Touch Density (>= 56px touch targets, deep navy background `#0B1F3B`, high contrast status accents). |
+| `23-counters-tokens-desktop.png` | `/venue/counters` | 1440 × 900 | Desktop Management | Quick Service / Tea Shop Counters & Tokens station: Now Serving #101 token card, active pickup counters list, ZERO occurrences of "table". |
+| `24-counters-tokens-mobile.png` | `/venue/counters` | 412 × 915 | Mobile Stacked | Mobile view of Counters & Tokens station on Pixel 7 viewport with full responsive touch ergonomics and zero table references. |
+| `25-staff-management-desktop.png` | `/staff` | 1440 × 900 | Desktop Management | Staff Management: team members table with role badges (Owner, Branch Manager, Cashier, Waiter), branch assignments, Reset Password, Add Member. |
+| `26-settings-venue-desktop.png` | `/settings/venue` | 1440 × 900 | Desktop Management | Venue Settings: capability switches grouped into Dining & Floor Layout and Ordering & Workflow, plan upgrade locks, Reset to Venue Defaults. |
 | `logo-preview-sheet.png` | `/dev/brand` | 1200 × 600 | Design Proof | Chef's Hat mark with fork and spoon across full, compact, and icon variants (renamed from `logo-compare.png`). |
 
 ---

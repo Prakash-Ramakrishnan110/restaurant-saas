@@ -30,7 +30,7 @@ async function loginAsSeededOwner(page: any) {
   await expect(page.getByRole("main").getByText("Spice Garden")).toBeVisible();
   await expect(page.getByText("Manage Tables")).toBeVisible();
   await expect(page.getByText("Onboarding Checklist")).toBeVisible();
-  await expect(page.getByText("Your plan")).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Your plan" })).toBeVisible();
 
   // Invariant C7: Wait until data loaded, no skeleton (.animate-pulse) or empty state
   await expect(page.locator(".animate-pulse")).toHaveCount(0, { timeout: 10000 });
@@ -85,7 +85,7 @@ test.describe("ServeMyFood Visual Artifacts & Screenshots Suite", () => {
     await expect(page.getByText("Sign In")).not.toBeVisible();
     await expect(page.locator("h1")).toBeVisible();
     await expect(page.getByRole("main").getByText("Spice Garden")).toBeVisible();
-    await expect(page.getByText("Your plan")).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Your plan" })).toBeVisible();
     await expect(page.locator(".animate-pulse")).toHaveCount(0);
     // Ensure wordmark is clearly visible in 06
     await expect(page.getByTestId("wordmark-servemy")).toBeVisible();
@@ -192,7 +192,7 @@ test.describe("ServeMyFood Visual Artifacts & Screenshots Suite", () => {
     await expect(page.getByText("Sign In")).not.toBeVisible();
     await expect(page.locator("h1")).toBeVisible();
     await expect(page.getByRole("main").getByText("Spice Garden")).toBeVisible();
-    await expect(page.getByText("Your plan")).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Your plan" })).toBeVisible();
     await expect(page.locator(".animate-pulse")).toHaveCount(0);
     await page.screenshot({
       path: path.join(screenshotsDir, "05-dashboard-mobile.png"),

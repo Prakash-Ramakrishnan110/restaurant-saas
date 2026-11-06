@@ -31,6 +31,9 @@ Phase 2: Payment Gateways (Razorpay/Stripe), Push Real-Time SSE, and Multi-Branc
   - As an owner, I want to generate a multi-up printable PDF/SVG sheet of QR table stands with venue logo, table number, Wi-Fi details, and scanning instructions in English and Tamil.
 
 ### Epic 2: Staff-Entered Dine-In & Table Operations (Pilot 1)
+- **STORY-POS-00**: Interactive Drag-and-Drop Floor Plan Editor (Deferred from Prompt 3C)
+  - As a venue owner or manager, I want an interactive 2D drag-and-drop floor plan designer to freely position tables, rotate shapes, align furniture, and configure architectural boundaries (pillars, doors, walls).
+  - *Status*: Deferred to post-v0.5.0 milestone. Current Screen B5 delivers a clean read-only grid layout with live table status and side-sheet status updates.
 - **STORY-POS-01**: Touch-Optimized Waiter Terminal
   - As a floor waiter using an Android tablet, I want large touch targets (>= 56px) and high-contrast item cards to rapidly take orders at table-side.
 - **STORY-POS-02**: Modifiers & Special Kitchen Instructions

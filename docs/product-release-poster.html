@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ServeMyFood v0.4.1 - Official Product Release</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @keyframes pulseGlow {
+      0%, 100% { opacity: 0.6; transform: scale(1); }
+      50% { opacity: 0.9; transform: scale(1.05); }
+    }
+    .glow-bg {
+      animation: pulseGlow 6s infinite ease-in-out;
+    }
+    .badge-shimmer {
+      background: linear-gradient(90deg, rgba(255,106,0,0.15) 0%, rgba(255,255,255,0.4) 50%, rgba(255,106,0,0.15) 100%);
+      background-size: 200% 100%;
+      animation: shimmer 3s infinite linear;
+    }
+    @keyframes shimmer {
+      0% { background-position: -200% 0; }
+      100% { background-position: 200% 0; }
+    }
+    @media print {
+      .no-print { display: none !important; }
+      body { background: white !important; color: black !important; }
+      .poster-card { box-shadow: none !important; border: 1px solid #ccc !important; }
+    }
+  </style>
+</head>
+<body class="bg-[#071224] text-slate-100 min-h-screen flex flex-col items-center justify-center p-4 sm:p-8 font-sans antialiased selection:bg-[#FF6A00] selection:text-white">
+
+  <!-- Interactive Controls Bar -->
+  <div class="no-print w-full max-w-4xl flex items-center justify-between mb-6 px-2">
+    <div class="flex items-center gap-2">
+      <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+        PILOT 1 OFFICIAL RELEASE
+      </span>
+      <span class="text-xs text-slate-400 font-mono">v0.4.1 (6e4f670)</span>
+    </div>
+    <div class="flex items-center gap-3">
+      <button onclick="window.print()" class="px-4 py-2 text-xs font-bold rounded-lg bg-[#FF6A00] text-[#0B1F3B] hover:bg-[#ff7b1a] transition shadow-lg shadow-[#FF6A00]/20 flex items-center gap-2 cursor-pointer">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
+        Print / Save as PDF
+      </button>
+    </div>
+  </div>
+
+  <!-- Main Poster Frame -->
+  <div class="poster-card relative w-full max-w-4xl rounded-3xl bg-gradient-to-b from-[#0B1F3B] via-[#09182e] to-[#06101f] border border-slate-700/60 shadow-2xl overflow-hidden p-8 sm:p-12">
+    
+    <!-- Ambient Glow Orbs -->
+    <div class="glow-bg absolute -top-24 -left-24 w-96 h-96 bg-[#FF6A00]/20 rounded-full blur-3xl pointer-events-none"></div>
+    <div class="glow-bg absolute -bottom-24 -right-24 w-96 h-96 bg-blue-600/20 rounded-full blur-3xl pointer-events-none"></div>
+
+    <!-- Header Section -->
+    <div class="relative z-10 flex flex-col items-center text-center">
+      
+      <!-- Logo Mark -->
+      <div class="flex items-center gap-3 mb-4">
+        <div class="w-14 h-14 rounded-2xl bg-gradient-to-tr from-[#FF6A00] to-[#ffa34d] flex items-center justify-center shadow-lg shadow-[#FF6A00]/30 border border-white/20">
+          <svg class="w-8 h-8 text-[#0B1F3B]" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M18.06 22.99h1.66c.84 0 1.53-.64 1.63-1.46L23 5.05h-5v17.94zm-8.5-8.87h4.88c.8 0 1.48-.61 1.55-1.41.6-6.55-3.8-7.71-3.8-7.71s-4.4 1.16-3.8 7.71c.07.8.75 1.41 1.55 1.41h-.38v8.87h-.79c-.44 0-.8.36-.8.8v.8h4.5v-.8c0-.44-.36-.8-.8-.8h-.79v-8.87h-.37zM1 5.05l1.65 16.48c.1.82.79 1.46 1.63 1.46h1.66V5.05H1z"/>
+          </svg>
+        </div>
+        <div class="text-left">
+          <div class="text-2xl sm:text-3xl font-extrabold tracking-tight">
+            <span class="text-[#FF6A00]">ServeMy</span><span class="text-white">Food</span>
+          </div>
+          <p class="text-xs text-slate-400 font-medium tracking-wide uppercase">Hospitality Operating Platform</p>
+        </div>
+      </div>
+
+      <!-- Tagline Pill -->
+      <div class="badge-shimmer border border-[#FF6A00]/40 text-[#FF6A00] px-4 py-1.5 rounded-full text-xs font-bold tracking-wider uppercase mb-6 inline-flex items-center gap-2">
+        <span>★</span> THE COMPLETE DIGITAL RESTAURANT ENGINE <span>★</span>
+      </div>
+
+      <!-- Hero Title -->
+      <h1 class="text-3xl sm:text-5xl font-black text-white tracking-tight leading-tight max-w-2xl mb-4">
+        From <span class="text-transparent bg-clip-text bg-gradient-to-r from-[#FF6A00] via-amber-300 to-[#FF8C33]">Chai Stalls</span> to <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-300 to-cyan-200">Fine Dining</span>.
+      </h1>
+      <p class="text-slate-300 text-sm sm:text-base max-w-xl mb-8 leading-relaxed">
+        Say goodbye to expensive POS hardware. ServeMyFood turns any phone, tablet, or PC into a lightning-fast cashier, kitchen screen, and QR dining engine.
+      </p>
+    </div>
+
+    <!-- 4 Core Pillars Grid -->
+    <div class="relative z-10 grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
+      
+      <!-- Feature 1 -->
+      <div class="p-5 rounded-2xl bg-white/[0.04] border border-white/10 hover:border-[#FF6A00]/40 transition group backdrop-blur-sm">
+        <div class="flex items-start gap-4">
+          <div class="p-3 rounded-xl bg-[#FF6A00]/20 text-[#FF6A00] font-black text-xl group-hover:scale-110 transition">
+            ⚡
+          </div>
+          <div>
+            <h3 class="text-white font-bold text-base mb-1">Dual Engine (Tables or Counters)</h3>
+            <p class="text-slate-300 text-xs leading-relaxed">
+              Full table management with split & join for dine-in, or zero-table <strong>Counter & Token mode</strong> tailored for tea shops, bakeries, and fast-food.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Feature 2 -->
+      <div class="p-5 rounded-2xl bg-white/[0.04] border border-white/10 hover:border-emerald-500/40 transition group backdrop-blur-sm">
+        <div class="flex items-start gap-4">
+          <div class="p-3 rounded-xl bg-emerald-500/20 text-emerald-400 font-black text-xl group-hover:scale-110 transition">
+            📱
+          </div>
+          <div>
+            <h3 class="text-white font-bold text-base mb-1">Instant QR Standees (No App Needed)</h3>
+            <p class="text-slate-300 text-xs leading-relaxed">
+              Customers scan to see your digital menu instantly. Ready-to-print A4 sheets with 6-card tents or 12-card table stickers in <strong>English & Tamil</strong>.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Feature 3 -->
+      <div class="p-5 rounded-2xl bg-white/[0.04] border border-white/10 hover:border-cyan-500/40 transition group backdrop-blur-sm">
+        <div class="flex items-start gap-4">
+          <div class="p-3 rounded-xl bg-cyan-500/20 text-cyan-400 font-black text-xl group-hover:scale-110 transition">
+            👨‍🍳
+          </div>
+          <div>
+            <h3 class="text-white font-bold text-base mb-1">Live Kitchen Display & Bill Printing</h3>
+            <p class="text-slate-300 text-xs leading-relaxed">
+              Order tickets hit the kitchen screen in real-time. Cashiers print bills via standard ESC/POS 2" & 3" thermal printers or Android phones.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Feature 4 -->
+      <div class="p-5 rounded-2xl bg-white/[0.04] border border-white/10 hover:border-purple-500/40 transition group backdrop-blur-sm">
+        <div class="flex items-start gap-4">
+          <div class="p-3 rounded-xl bg-purple-500/20 text-purple-400 font-black text-xl group-hover:scale-110 transition">
+            🛡️
+          </div>
+          <div>
+            <h3 class="text-white font-bold text-base mb-1">Role-Based Team & Multi-Branch</h3>
+            <p class="text-slate-300 text-xs leading-relaxed">
+              Dedicated screens for Owners, Managers, Cashiers, Waiters, and Kitchen. Multi-branch support with zero cross-tenant data leaks.
+            </p>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Supported Business Types Banner -->
+    <div class="relative z-10 p-4 rounded-2xl bg-white/[0.02] border border-white/5 flex flex-wrap items-center justify-center gap-3 sm:gap-6 text-xs text-slate-300 mb-8 font-medium">
+      <span class="flex items-center gap-1.5"><span class="text-[#FF6A00]">☕</span> Tea Shops</span>
+      <span class="text-slate-600">•</span>
+      <span class="flex items-center gap-1.5"><span class="text-[#FF6A00]">🥐</span> Bakeries</span>
+      <span class="text-slate-600">•</span>
+      <span class="flex items-center gap-1.5"><span class="text-[#FF6A00]">☕</span> Cafés</span>
+      <span class="text-slate-600">•</span>
+      <span class="flex items-center gap-1.5"><span class="text-[#FF6A00]">🍽️</span> Casual Dining</span>
+      <span class="text-slate-600">•</span>
+      <span class="flex items-center gap-1.5"><span class="text-[#FF6A00]">🍷</span> Fine Dining</span>
+      <span class="text-slate-600">•</span>
+      <span class="flex items-center gap-1.5"><span class="text-[#FF6A00]">🏨</span> Hotels</span>
+      <span class="text-slate-600">•</span>
+      <span class="flex items-center gap-1.5"><span class="text-[#FF6A00]">🏬</span> Food Courts</span>
+    </div>
+
+    <!-- Footer Specs Callout -->
+    <div class="relative z-10 flex flex-col sm:flex-row items-center justify-between pt-6 border-t border-slate-700/60 text-xs text-slate-400 gap-4">
+      <div class="flex items-center gap-2">
+        <span class="w-2.5 h-2.5 rounded-full bg-emerald-400"></span>
+        <span>Built with React 18, Django 5.2, PostgreSQL 16 & WCAG AA Contrast</span>
+      </div>
+      <div class="font-semibold text-slate-300 flex items-center gap-1">
+        Powered by <span class="text-[#FF6A00]">ServeMyFood</span>
+      </div>
+    </div>
+
+  </div>
+
+</body>
+</html>

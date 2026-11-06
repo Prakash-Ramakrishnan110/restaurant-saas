@@ -1,0 +1,113 @@
+import pytest
+
+from apps.venues.models import DiningTable, Section, ServiceArea
+from apps.venues.tests.conftest import make_client
+
+
+@pytest.mark.django_db
+def test_dining_table_list_filters_and_natural_ordering(venue_test_setup):
+    """
+    Test DiningTable list filters:
+    area_id, section_id, branch_id, status, is_active, search, and natural ordering.
+    """
+    setup = venue_test_setup
+    client = make_client(setup["owner_a"], setup["tenant_a"])
+    branch = setup["branch_a"]
+    sec = setup["section_a1"]
+    tenant = setup["tenant_a"]
+
+    DiningTable.objects.create(
+        tenant=tenant, branch=branch, section=sec, label="X1", label_prefix="X", label_number=1, is_active=True, status="AVAILABLE"
+    )
+    DiningTable.objects.create(
+        tenant=tenant, branch=branch, section=sec, label="X2", label_prefix="X", label_number=2, is_active=True, status="OCCUPIED"
+    )
+    DiningTable.objects.create(
+        tenant=tenant, branch=branch, section=sec, label="X10", label_prefix="X", label_number=10, is_active=False, status="AVAILABLE"
+    )
+
+    # 1. Natural ordering: X1, X2, X10
+    res = client.get(f"/api/v1/venues/tables/?branch_id={branch.id}")
+    assert res.status_code == 200
+    labels = [t["label"] for t in res.data["results"] if t["label"].startswith("X")]
+    assert labels == ["X1", "X2", "X10"]
+
+    # 2. Filter by status=AVAILABLE
+    res_avail = client.get(f"/api/v1/venues/tables/?branch_id={branch.id}&status=AVAILABLE")
+    assert res_avail.status_code == 200
+    avail_labels = [t["label"] for t in res_avail.data["results"] if t["label"].startswith("X")]
+    assert "X1" in avail_labels
+    assert "X10" in avail_labels
+    assert "X2" not in avail_labels
+
+    # 3. Filter by is_active=true
+    res_active = client.get(f"/api/v1/venues/tables/?branch_id={branch.id}&is_active=true")
+    assert res_active.status_code == 200
+    active_labels = [t["label"] for t in res_active.data["results"] if t["label"].startswith("X")]
+    assert "X1" in active_labels
+    assert "X2" in active_labels
+    assert "X10" not in active_labels
+
+    # 4. Filter by search=X10
+    res_search = client.get(f"/api/v1/venues/tables/?branch_id={branch.id}&search=X10")
+    assert res_search.status_code == 200
+    search_labels = [t["label"] for t in res_search.data["results"] if t["label"].startswith("X")]
+    assert search_labels == ["X10"]
+
+    # 5. Filter by area_id
+    area_id = setup["area_a1"].id
+    res_area = client.get(f"/api/v1/venues/tables/?area_id={area_id}")
+    assert res_area.status_code == 200
+    area_labels = [t["label"] for t in res_area.data["results"] if t["label"].startswith("X")]
+    assert "X1" in area_labels
+
+
+@pytest.mark.django_db
+def test_service_area_and_section_list_filters(venue_test_setup):
+    """
+    Test ServiceArea and Section list filtering by branch_id and is_active.
+    """
+    setup = venue_test_setup
+    client = make_client(setup["owner_a"], setup["tenant_a"])
+    branch = setup["branch_a"]
+    tenant = setup["tenant_a"]
+
+    ServiceArea.objects.create(
+        tenant=tenant, branch=branch, name="Inactive Terrace", sort_order=10, is_active=False
+    )
+    Section.objects.create(
+        tenant=tenant, branch=branch, service_area=setup["area_a1"], name="Outdoor Porch", sort_order=5
+    )
+
+    # Filter ServiceArea by is_active=true
+    res = client.get(f"/api/v1/venues/service-areas/?branch_id={branch.id}&is_active=true")
+    assert res.status_code == 200
+    names = [a["name"] for a in res.data["results"]]
+    assert "Inactive Terrace" not in names
+    assert setup["area_a1"].name in names
+
+    # Filter Section by service_area_id
+    res_sec = client.get(f"/api/v1/venues/sections/?service_area_id={setup['area_a1'].id}")
+    assert res_sec.status_code == 200
+    sec_names = [s["name"] for s in res_sec.data["results"]]
+    assert "Outdoor Porch" in sec_names
+
+
+@pytest.mark.django_db
+def test_staff_list_filters(venue_test_setup):
+    """
+    Test Staff list filters: role, is_active, branch.
+    """
+    setup = venue_test_setup
+    client = make_client(setup["owner_a"], setup["tenant_a"])
+
+    # Filter staff by role
+    res_role = client.get("/api/v1/accounts/staff/?role=OWNER")
+    assert res_role.status_code == 200
+    roles = [s["role"] for s in res_role.data["results"]]
+    assert all(r == "OWNER" for r in roles)
+
+    # Filter staff by is_active=true
+    res_active = client.get("/api/v1/accounts/staff/?is_active=true")
+    assert res_active.status_code == 200
+    assert all(s["is_active"] is True for s in res_active.data["results"])

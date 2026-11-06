@@ -151,9 +151,15 @@ class ServiceAreaViewSet(viewsets.ModelViewSet):
     def get_queryset(self) -> Any:
         qs = ServiceArea.objects.all().select_related("branch")
         branch_id = self.request.query_params.get("branch_id")
+        is_active = self.request.query_params.get("is_active")
         if branch_id:
             qs = qs.filter(branch_id=branch_id)
-        return qs
+        if is_active is not None:
+            if is_active.lower() == "true":
+                qs = qs.filter(is_active=True)
+            elif is_active.lower() == "false":
+                qs = qs.filter(is_active=False)
+        return qs.order_by("sort_order", "name")
 
     def perform_create(self, serializer: Any) -> None:
         tenant = getattr(self.request, "tenant", None)
@@ -196,7 +202,7 @@ class SectionViewSet(viewsets.ModelViewSet):
             qs = qs.filter(service_area_id=service_area_id)
         if branch_id:
             qs = qs.filter(branch_id=branch_id)
-        return qs
+        return qs.order_by("sort_order", "name")
 
     def perform_create(self, serializer: Any) -> None:
         tenant = getattr(self.request, "tenant", None)
@@ -238,15 +244,28 @@ class DiningTableViewSet(viewsets.ModelViewSet):
     def get_queryset(self) -> Any:
         qs = DiningTable.objects.all().select_related("section", "branch", "group")
         section_id = self.request.query_params.get("section_id")
+        area_id = self.request.query_params.get("area_id") or self.request.query_params.get("service_area_id")
         branch_id = self.request.query_params.get("branch_id")
         status_filter = self.request.query_params.get("status")
+        is_active = self.request.query_params.get("is_active")
+        search = self.request.query_params.get("search")
+
         if section_id:
             qs = qs.filter(section_id=section_id)
+        if area_id:
+            qs = qs.filter(section__service_area_id=area_id)
         if branch_id:
             qs = qs.filter(branch_id=branch_id)
         if status_filter:
             qs = qs.filter(status=status_filter)
-        return qs
+        if is_active is not None:
+            if is_active.lower() == "true":
+                qs = qs.filter(is_active=True)
+            elif is_active.lower() == "false":
+                qs = qs.filter(is_active=False)
+        if search:
+            qs = qs.filter(label__icontains=search.strip())
+        return qs.order_by("label_prefix", "label_number", "label")
 
     def perform_create(self, serializer: Any) -> None:
         tenant = getattr(self.request, "tenant", None) or get_current_tenant()

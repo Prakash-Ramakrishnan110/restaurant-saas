@@ -141,7 +141,7 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
       label: "Settings",
       items: [
         { label: "Branding", path: "/settings/branding", icon: Palette, permission: "business.manage" },
-        { label: "Settings", path: "/settings/venue", icon: Sliders, permission: "business.manage" },
+        { label: "Settings", path: "/settings/venue", icon: Sliders, permission: "business.view" },
       ],
     },
   ];
