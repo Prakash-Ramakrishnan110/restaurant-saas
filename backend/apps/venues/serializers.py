@@ -102,6 +102,8 @@ class SectionSerializer(serializers.ModelSerializer[Section]):
             "branch",
             "service_area",
             "name",
+            "section_type",
+            "is_active",
             "color",
             "canvas_width",
             "canvas_height",
@@ -161,6 +163,11 @@ class DiningTableSerializer(serializers.ModelSerializer[DiningTable]):
             raise serializers.ValidationError(
                 {"section": ["Invalid reference - object does not exist."]},
                 code="does_not_exist",
+            )
+        if section and not section.is_active:
+            raise serializers.ValidationError(
+                {"section": ["Cannot add or move table to an inactive section."]},
+                code="INACTIVE_SECTION",
             )
         label = attrs.get("label")
         if branch and label and (inst is None or label != inst.label):

@@ -117,7 +117,9 @@ describe("Prompt 3B Frontend: Branding Settings Page", () => {
 
     // Check accountant advisory note exists
     expect(
-      screen.getAllByText(/Please confirm your GSTIN, legal entity name, and tax registration details with your chartered accountant/i).length
+      screen.getAllByText(
+        /Please confirm your GSTIN, legal entity name, and tax registration details with your chartered accountant/i
+      ).length
     ).toBeGreaterThanOrEqual(1);
   });
 });
@@ -162,9 +164,7 @@ describe("Prompt 3B Frontend: Public QR Landing Page", () => {
     ).toBeDefined();
 
     // Check powered by footer
-    expect(
-      screen.getByText("Powered by ServeMyFood")
-    ).toBeDefined();
+    expect(screen.getByText("Powered by ServeMyFood")).toBeDefined();
   });
 
   it("renders friendly not found page when QR token is invalid or inactive", async () => {

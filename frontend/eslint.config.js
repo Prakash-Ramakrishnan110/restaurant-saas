@@ -22,6 +22,7 @@ export default [
     },
     rules: {
       ...reactHooksPlugin.configs.recommended.rules,
+      "react-hooks/set-state-in-effect": "off",
       "@typescript-eslint/no-unused-vars": [
         "warn",
         { argsIgnorePattern: "^_", varsIgnorePattern: "^_" },

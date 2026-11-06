@@ -82,38 +82,39 @@ export const FloorPlanPage: React.FC = () => {
     (t) => !selectedSectionId || t.section?.id === selectedSectionId
   );
 
-  const statusThemes: Record<string, { bg: string; border: string; text: string; label: string }> = {
-    AVAILABLE: {
-      bg: "bg-emerald-500/10 hover:bg-emerald-500/20",
-      border: "border-emerald-500/40",
-      text: "text-emerald-700 dark:text-emerald-400",
-      label: t("floorPlan.legendAvailable"),
-    },
-    OCCUPIED: {
-      bg: "bg-blue-500/10 hover:bg-blue-500/20",
-      border: "border-blue-500/40",
-      text: "text-blue-700 dark:text-blue-400",
-      label: t("floorPlan.legendOccupied"),
-    },
-    RESERVED: {
-      bg: "bg-purple-500/10 hover:bg-purple-500/20",
-      border: "border-purple-500/40",
-      text: "text-purple-700 dark:text-purple-400",
-      label: t("floorPlan.legendReserved"),
-    },
-    BILLING: {
-      bg: "bg-amber-500/10 hover:bg-amber-500/20",
-      border: "border-amber-500/40",
-      text: "text-amber-700 dark:text-amber-400",
-      label: t("floorPlan.legendBilling"),
-    },
-    DIRTY: {
-      bg: "bg-slate-500/10 hover:bg-slate-500/20",
-      border: "border-slate-500/40",
-      text: "text-slate-700 dark:text-slate-400",
-      label: t("floorPlan.legendDirty"),
-    },
-  };
+  const statusThemes: Record<string, { bg: string; border: string; text: string; label: string }> =
+    {
+      AVAILABLE: {
+        bg: "bg-emerald-500/10 hover:bg-emerald-500/20",
+        border: "border-emerald-500/40",
+        text: "text-emerald-700 dark:text-emerald-400",
+        label: t("floorPlan.legendAvailable"),
+      },
+      OCCUPIED: {
+        bg: "bg-blue-500/10 hover:bg-blue-500/20",
+        border: "border-blue-500/40",
+        text: "text-blue-700 dark:text-blue-400",
+        label: t("floorPlan.legendOccupied"),
+      },
+      RESERVED: {
+        bg: "bg-purple-500/10 hover:bg-purple-500/20",
+        border: "border-purple-500/40",
+        text: "text-purple-700 dark:text-purple-400",
+        label: t("floorPlan.legendReserved"),
+      },
+      BILLING: {
+        bg: "bg-amber-500/10 hover:bg-amber-500/20",
+        border: "border-amber-500/40",
+        text: "text-amber-700 dark:text-amber-400",
+        label: t("floorPlan.legendBilling"),
+      },
+      DIRTY: {
+        bg: "bg-slate-500/10 hover:bg-slate-500/20",
+        border: "border-slate-500/40",
+        text: "text-slate-700 dark:text-slate-400",
+        label: t("floorPlan.legendDirty"),
+      },
+    };
 
   const allowedTransitions: Record<string, string[]> = {
     AVAILABLE: ["OCCUPIED", "RESERVED"],
@@ -147,10 +148,7 @@ export const FloorPlanPage: React.FC = () => {
       <PageHeader
         title={t("floorPlan.title")}
         description={t("floorPlan.subtitle")}
-        breadcrumbs={[
-          { label: "Dashboard", href: "/dashboard" },
-          { label: t("floorPlan.title") },
-        ]}
+        breadcrumbs={[{ label: "Dashboard", href: "/dashboard" }, { label: t("floorPlan.title") }]}
       />
 
       {/* Header notice: Drag-and-drop comes later */}
@@ -207,7 +205,9 @@ export const FloorPlanPage: React.FC = () => {
           <CardContent className="p-12 text-center">
             <LayoutGrid className="w-12 h-12 text-muted-foreground mx-auto mb-3 opacity-40" />
             <h3 className="text-base font-bold text-foreground">No tables in this section</h3>
-            <p className="text-xs text-muted-foreground mt-1">Configure dining tables under the Tables menu.</p>
+            <p className="text-xs text-muted-foreground mt-1">
+              Configure dining tables under the Tables menu.
+            </p>
           </CardContent>
         </Card>
       ) : (
@@ -235,7 +235,9 @@ export const FloorPlanPage: React.FC = () => {
                     <Users className="w-3 h-3" />
                     <span>{table.capacity}</span>
                   </div>
-                  <span className={`text-[10px] font-bold uppercase tracking-wider mt-1.5 ${theme.text}`}>
+                  <span
+                    className={`text-[10px] font-bold uppercase tracking-wider mt-1.5 ${theme.text}`}
+                  >
                     {table.status}
                   </span>
 
@@ -258,9 +260,7 @@ export const FloorPlanPage: React.FC = () => {
             <div className="flex items-center justify-between pb-4 border-b border-border">
               <div className="flex items-center gap-2">
                 <Utensils className="w-5 h-5 text-[#FF6A00]" />
-                <h3 className="text-lg font-bold text-foreground">
-                  {t("floorPlan.tableDetails")}
-                </h3>
+                <h3 className="text-lg font-bold text-foreground">{t("floorPlan.tableDetails")}</h3>
               </div>
               <Button
                 variant="ghost"
@@ -309,14 +309,17 @@ export const FloorPlanPage: React.FC = () => {
               <div className="p-3 rounded-lg border border-border bg-card text-muted-foreground">
                 <span className="block text-[11px] font-semibold">Section & Area</span>
                 <span className="text-xs font-bold text-foreground mt-0.5 block">
-                  {selectedTable.section?.name} • {selectedTable.section?.service_area?.name || "Main Area"}
+                  {selectedTable.section?.name} •{" "}
+                  {selectedTable.section?.service_area?.name || "Main Area"}
                 </span>
               </div>
 
               {selectedTable.group && (
                 <div className="p-3 rounded-lg border border-primary/30 bg-primary/10 text-primary">
                   <span className="block text-[11px] font-semibold">Joined Group</span>
-                  <span className="text-sm font-bold block mt-0.5">{selectedTable.group.label}</span>
+                  <span className="text-sm font-bold block mt-0.5">
+                    {selectedTable.group.label}
+                  </span>
                 </div>
               )}
 

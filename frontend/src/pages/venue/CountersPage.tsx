@@ -3,7 +3,13 @@ import { Zap, Plus, Edit2, Power, Bell, CheckCircle2, Clock, Sparkles } from "lu
 import { PageHeader } from "../../components/app/PageHeader";
 import { Card, CardHeader, CardTitle, CardContent } from "../../components/ui/card";
 import { Button } from "../../components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "../../components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "../../components/ui/dialog";
 import { ConfirmDialog } from "../../components/ui/confirm-dialog";
 import { apiClient } from "../../api/client";
 import { useAuth } from "../../context/AuthContext";
@@ -151,7 +157,12 @@ export const CountersPage: React.FC = () => {
     const nextNum = callingToken + 1;
     setCallingToken(nextNum);
     setLiveTokens([
-      { number: nextNum, status: "READY", counter_name: counters[0]?.name || "Main Counter", timestamp: "Just now" },
+      {
+        number: nextNum,
+        status: "READY",
+        counter_name: counters[0]?.name || "Main Counter",
+        timestamp: "Just now",
+      },
       ...liveTokens.slice(0, 4),
     ]);
   };
@@ -165,10 +176,7 @@ export const CountersPage: React.FC = () => {
       <PageHeader
         title={t("counters.title")}
         description={t("counters.subtitle")}
-        breadcrumbs={[
-          { label: "Dashboard", href: "/dashboard" },
-          { label: t("counters.title") },
-        ]}
+        breadcrumbs={[{ label: "Dashboard", href: "/dashboard" }, { label: t("counters.title") }]}
         actions={
           canManage && (
             <Button
@@ -255,8 +263,8 @@ export const CountersPage: React.FC = () => {
                         tok.status === "READY"
                           ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/30"
                           : tok.status === "COLLECTED"
-                          ? "bg-muted text-muted-foreground border-border"
-                          : "bg-amber-500/10 text-amber-600 border-amber-500/30"
+                            ? "bg-muted text-muted-foreground border-border"
+                            : "bg-amber-500/10 text-amber-600 border-amber-500/30"
                       }`}
                     >
                       {tok.status}
@@ -356,7 +364,9 @@ export const CountersPage: React.FC = () => {
               <DialogTitle>{t("counters.addCounter")}</DialogTitle>
             </DialogHeader>
             <div className="py-4 text-xs">
-              <label className="font-semibold block mb-1 text-foreground">{t("counters.counterName")} *</label>
+              <label className="font-semibold block mb-1 text-foreground">
+                {t("counters.counterName")} *
+              </label>
               <input
                 required
                 value={counterName}
@@ -389,7 +399,9 @@ export const CountersPage: React.FC = () => {
               <DialogTitle>{t("counters.renameCounter")}</DialogTitle>
             </DialogHeader>
             <div className="py-4 text-xs">
-              <label className="font-semibold block mb-1 text-foreground">{t("counters.counterName")} *</label>
+              <label className="font-semibold block mb-1 text-foreground">
+                {t("counters.counterName")} *
+              </label>
               <input
                 required
                 value={counterName}
@@ -427,4 +439,3 @@ export const CountersPage: React.FC = () => {
     </div>
   );
 };
-

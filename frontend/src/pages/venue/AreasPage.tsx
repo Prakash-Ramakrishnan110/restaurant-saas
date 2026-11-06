@@ -3,7 +3,13 @@ import { Layers, Plus, Edit2, Trash2, ChevronUp, ChevronDown, Folder } from "luc
 import { PageHeader } from "../../components/app/PageHeader";
 import { Card, CardContent } from "../../components/ui/card";
 import { Button } from "../../components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "../../components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "../../components/ui/dialog";
 import { ConfirmDialog } from "../../components/ui/confirm-dialog";
 import { apiClient } from "../../api/client";
 import { useAuth } from "../../context/AuthContext";
@@ -13,6 +19,8 @@ import { mapBackendErrorCode } from "../../lib/errorMapper";
 export interface SectionItem {
   id: string;
   name: string;
+  section_type: "INDOOR" | "OUTDOOR" | "VIP" | "PRIVATE_ROOM";
+  is_active: boolean;
   color: string;
   sort_order: number;
   service_area: string;
@@ -46,9 +54,12 @@ export const AreasPage: React.FC = () => {
   const [editAreaTarget, setEditAreaTarget] = useState<ServiceAreaItem | null>(null);
 
   const [isSectionAddOpen, setIsSectionAddOpen] = useState<boolean>(false);
-  const [selectedAreaForSection, setSelectedAreaForSection] = useState<ServiceAreaItem | null>(null);
+  const [selectedAreaForSection, setSelectedAreaForSection] = useState<ServiceAreaItem | null>(
+    null
+  );
   const [isSectionEditOpen, setIsSectionEditOpen] = useState<boolean>(false);
   const [editSectionTarget, setEditSectionTarget] = useState<SectionItem | null>(null);
+  const [deactivateSectionTarget, setDeactivateSectionTarget] = useState<SectionItem | null>(null);
 
   const [deactivateAreaTarget, setDeactivateAreaTarget] = useState<ServiceAreaItem | null>(null);
   const [actionLoading, setActionLoading] = useState<boolean>(false);
@@ -61,7 +72,9 @@ export const AreasPage: React.FC = () => {
   });
   const [sectionForm, setSectionForm] = useState({
     name: "",
+    section_type: "INDOOR" as "INDOOR" | "OUTDOOR" | "VIP" | "PRIVATE_ROOM",
     color: "#3B82F6",
+    is_active: true,
   });
   const [isFormDirty, setIsFormDirty] = useState<boolean>(false);
 
@@ -177,14 +190,24 @@ export const AreasPage: React.FC = () => {
 
   const handleOpenAddSection = (area: ServiceAreaItem) => {
     setSelectedAreaForSection(area);
-    setSectionForm({ name: "", color: "#3B82F6" });
+    setSectionForm({
+      name: "",
+      section_type: "INDOOR",
+      color: "#3B82F6",
+      is_active: true,
+    });
     setIsFormDirty(false);
     setIsSectionAddOpen(true);
   };
 
   const handleOpenEditSection = (sec: SectionItem) => {
     setEditSectionTarget(sec);
-    setSectionForm({ name: sec.name, color: sec.color || "#3B82F6" });
+    setSectionForm({
+      name: sec.name,
+      section_type: sec.section_type || "INDOOR",
+      color: sec.color || "#3B82F6",
+      is_active: sec.is_active ?? true,
+    });
     setIsFormDirty(false);
     setIsSectionEditOpen(true);
   };
@@ -254,6 +277,21 @@ export const AreasPage: React.FC = () => {
     }
   };
 
+  const handleDeactivateSection = async () => {
+    if (!deactivateSectionTarget) return;
+    setActionLoading(true);
+    setErrorMessage(null);
+    try {
+      await apiClient.patch(`/sections/${deactivateSectionTarget.id}/`, { is_active: false });
+      setDeactivateSectionTarget(null);
+      await fetchData();
+    } catch (err: any) {
+      setErrorMessage(mapBackendErrorCode(err));
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
   const handleDeactivateArea = async () => {
     if (!deactivateAreaTarget) return;
     setActionLoading(true);
@@ -276,10 +314,7 @@ export const AreasPage: React.FC = () => {
       <PageHeader
         title={t("areas.title")}
         description={t("areas.subtitle")}
-        breadcrumbs={[
-          { label: "Dashboard", href: "/dashboard" },
-          { label: t("areas.title") },
-        ]}
+        breadcrumbs={[{ label: "Dashboard", href: "/dashboard" }, { label: t("areas.title") }]}
         actions={
           canManage && (
             <Button
@@ -302,13 +337,17 @@ export const AreasPage: React.FC = () => {
 
       {/* Tree View of Areas and Sections */}
       {loading ? (
-        <div className="p-12 text-center text-muted-foreground font-medium">{t("common.loading")}</div>
+        <div className="p-12 text-center text-muted-foreground font-medium">
+          {t("common.loading")}
+        </div>
       ) : areas.length === 0 ? (
         <Card>
           <CardContent className="p-12 text-center">
             <Layers className="w-12 h-12 text-muted-foreground mx-auto mb-3 opacity-40" />
             <h3 className="text-base font-bold text-foreground">{t("areas.noAreas")}</h3>
-            <p className="text-xs text-muted-foreground mt-1">Create your first service area (e.g. Main Hall, AC Room, Counter).</p>
+            <p className="text-xs text-muted-foreground mt-1">
+              Create your first service area (e.g. Main Hall, AC Room, Counter).
+            </p>
           </CardContent>
         </Card>
       ) : (
@@ -338,7 +377,10 @@ export const AreasPage: React.FC = () => {
                           )}
                         </div>
                         <p className="text-xs text-muted-foreground mt-0.5">
-                          {areaSections.length} sections • {area.service_charge_bps > 0 ? `${area.service_charge_bps / 100}% service charge` : "No service charge"}
+                          {areaSections.length} sections •{" "}
+                          {area.service_charge_bps > 0
+                            ? `${area.service_charge_bps / 100}% service charge`
+                            : "No service charge"}
                         </p>
                       </div>
                     </div>
@@ -412,6 +454,14 @@ export const AreasPage: React.FC = () => {
                               style={{ backgroundColor: sec.color }}
                             />
                             <span className="text-xs font-bold text-foreground">{sec.name}</span>
+                            <span className="px-2 py-0.5 text-[10px] font-semibold rounded bg-muted border border-border">
+                              {sec.section_type || "INDOOR"}
+                            </span>
+                            {!sec.is_active && (
+                              <span className="px-2 py-0.5 text-[10px] font-bold rounded bg-destructive/10 text-destructive border border-destructive/20">
+                                Inactive
+                              </span>
+                            )}
                           </div>
 
                           {canManage && (
@@ -444,6 +494,15 @@ export const AreasPage: React.FC = () => {
                               >
                                 <Edit2 className="w-3.5 h-3.5" />
                               </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => setDeactivateSectionTarget(sec)}
+                                className="min-h-[32px] p-1.5 text-destructive hover:bg-destructive/10"
+                                title="Deactivate Section"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </Button>
                             </div>
                           )}
                         </div>
@@ -457,7 +516,12 @@ export const AreasPage: React.FC = () => {
       )}
 
       {/* Add Area Dialog */}
-      <Dialog open={isAreaAddOpen} onOpenChange={(open) => !open && (!isFormDirty || window.confirm("Discard changes?")) && setIsAreaAddOpen(false)}>
+      <Dialog
+        open={isAreaAddOpen}
+        onOpenChange={(open) =>
+          !open && (!isFormDirty || window.confirm("Discard changes?")) && setIsAreaAddOpen(false)
+        }
+      >
         <DialogContent className="max-w-md">
           <form onSubmit={handleSaveAddArea}>
             <DialogHeader>
@@ -465,7 +529,9 @@ export const AreasPage: React.FC = () => {
             </DialogHeader>
             <div className="space-y-4 py-4 text-xs">
               <div>
-                <label className="font-semibold block mb-1 text-foreground">{t("areas.areaName")} *</label>
+                <label className="font-semibold block mb-1 text-foreground">
+                  {t("areas.areaName")} *
+                </label>
                 <input
                   required
                   value={areaForm.name}
@@ -478,7 +544,9 @@ export const AreasPage: React.FC = () => {
                 />
               </div>
               <div>
-                <label className="font-semibold block mb-1 text-foreground">{t("areas.areaType")} *</label>
+                <label className="font-semibold block mb-1 text-foreground">
+                  {t("areas.areaType")} *
+                </label>
                 <select
                   value={areaForm.area_type}
                   onChange={(e) => {
@@ -495,7 +563,9 @@ export const AreasPage: React.FC = () => {
                 </select>
               </div>
               <div>
-                <label className="font-semibold block mb-1 text-foreground">{t("areas.serviceCharge")}</label>
+                <label className="font-semibold block mb-1 text-foreground">
+                  {t("areas.serviceCharge")}
+                </label>
                 <input
                   type="number"
                   min="0"
@@ -503,7 +573,10 @@ export const AreasPage: React.FC = () => {
                   step="0.5"
                   value={areaForm.service_charge_bps / 100}
                   onChange={(e) => {
-                    setAreaForm({ ...areaForm, service_charge_bps: Math.round(Number(e.target.value) * 100) });
+                    setAreaForm({
+                      ...areaForm,
+                      service_charge_bps: Math.round(Number(e.target.value) * 100),
+                    });
                     setIsFormDirty(true);
                   }}
                   className="w-full rounded-md border border-input bg-card p-2.5 min-h-[44px]"
@@ -528,7 +601,12 @@ export const AreasPage: React.FC = () => {
       </Dialog>
 
       {/* Edit Area Dialog */}
-      <Dialog open={isAreaEditOpen} onOpenChange={(open) => !open && (!isFormDirty || window.confirm("Discard changes?")) && setIsAreaEditOpen(false)}>
+      <Dialog
+        open={isAreaEditOpen}
+        onOpenChange={(open) =>
+          !open && (!isFormDirty || window.confirm("Discard changes?")) && setIsAreaEditOpen(false)
+        }
+      >
         <DialogContent className="max-w-md">
           <form onSubmit={handleSaveEditArea}>
             <DialogHeader>
@@ -536,7 +614,9 @@ export const AreasPage: React.FC = () => {
             </DialogHeader>
             <div className="space-y-4 py-4 text-xs">
               <div>
-                <label className="font-semibold block mb-1 text-foreground">{t("areas.areaName")} *</label>
+                <label className="font-semibold block mb-1 text-foreground">
+                  {t("areas.areaName")} *
+                </label>
                 <input
                   required
                   value={areaForm.name}
@@ -548,7 +628,9 @@ export const AreasPage: React.FC = () => {
                 />
               </div>
               <div>
-                <label className="font-semibold block mb-1 text-foreground">{t("areas.areaType")} *</label>
+                <label className="font-semibold block mb-1 text-foreground">
+                  {t("areas.areaType")} *
+                </label>
                 <select
                   value={areaForm.area_type}
                   onChange={(e) => {
@@ -565,7 +647,9 @@ export const AreasPage: React.FC = () => {
                 </select>
               </div>
               <div>
-                <label className="font-semibold block mb-1 text-foreground">{t("areas.serviceCharge")}</label>
+                <label className="font-semibold block mb-1 text-foreground">
+                  {t("areas.serviceCharge")}
+                </label>
                 <input
                   type="number"
                   min="0"
@@ -573,7 +657,10 @@ export const AreasPage: React.FC = () => {
                   step="0.5"
                   value={areaForm.service_charge_bps / 100}
                   onChange={(e) => {
-                    setAreaForm({ ...areaForm, service_charge_bps: Math.round(Number(e.target.value) * 100) });
+                    setAreaForm({
+                      ...areaForm,
+                      service_charge_bps: Math.round(Number(e.target.value) * 100),
+                    });
                     setIsFormDirty(true);
                   }}
                   className="w-full rounded-md border border-input bg-card p-2.5 min-h-[44px]"
@@ -597,15 +684,26 @@ export const AreasPage: React.FC = () => {
       </Dialog>
 
       {/* Add Section Dialog */}
-      <Dialog open={isSectionAddOpen} onOpenChange={(open) => !open && (!isFormDirty || window.confirm("Discard changes?")) && setIsSectionAddOpen(false)}>
+      <Dialog
+        open={isSectionAddOpen}
+        onOpenChange={(open) =>
+          !open &&
+          (!isFormDirty || window.confirm("Discard changes?")) &&
+          setIsSectionAddOpen(false)
+        }
+      >
         <DialogContent className="max-w-md">
           <form onSubmit={handleSaveAddSection}>
             <DialogHeader>
-              <DialogTitle>{t("areas.addSection")} ({selectedAreaForSection?.name})</DialogTitle>
+              <DialogTitle>
+                {t("areas.addSection")} ({selectedAreaForSection?.name})
+              </DialogTitle>
             </DialogHeader>
             <div className="space-y-4 py-4 text-xs">
               <div>
-                <label className="font-semibold block mb-1 text-foreground">{t("areas.sectionName")} *</label>
+                <label className="font-semibold block mb-1 text-foreground">
+                  {t("areas.sectionName")} *
+                </label>
                 <input
                   required
                   value={sectionForm.name}
@@ -618,7 +716,25 @@ export const AreasPage: React.FC = () => {
                 />
               </div>
               <div>
-                <label className="font-semibold block mb-1 text-foreground">{t("areas.sectionColor")}</label>
+                <label className="font-semibold block mb-1 text-foreground">Section Type *</label>
+                <select
+                  value={sectionForm.section_type}
+                  onChange={(e) => {
+                    setSectionForm({ ...sectionForm, section_type: e.target.value as any });
+                    setIsFormDirty(true);
+                  }}
+                  className="w-full rounded-md border border-input bg-card p-2.5 min-h-[44px]"
+                >
+                  <option value="INDOOR">Indoor</option>
+                  <option value="OUTDOOR">Outdoor</option>
+                  <option value="VIP">VIP</option>
+                  <option value="PRIVATE_ROOM">Private Room</option>
+                </select>
+              </div>
+              <div>
+                <label className="font-semibold block mb-1 text-foreground">
+                  {t("areas.sectionColor")}
+                </label>
                 <div className="flex items-center gap-3">
                   <input
                     type="color"
@@ -629,7 +745,9 @@ export const AreasPage: React.FC = () => {
                     }}
                     className="w-10 h-10 rounded border border-border cursor-pointer p-0.5"
                   />
-                  <span className="font-mono text-xs text-muted-foreground">{sectionForm.color}</span>
+                  <span className="font-mono text-xs text-muted-foreground">
+                    {sectionForm.color}
+                  </span>
                 </div>
               </div>
             </div>
@@ -650,7 +768,14 @@ export const AreasPage: React.FC = () => {
       </Dialog>
 
       {/* Edit Section Dialog */}
-      <Dialog open={isSectionEditOpen} onOpenChange={(open) => !open && (!isFormDirty || window.confirm("Discard changes?")) && setIsSectionEditOpen(false)}>
+      <Dialog
+        open={isSectionEditOpen}
+        onOpenChange={(open) =>
+          !open &&
+          (!isFormDirty || window.confirm("Discard changes?")) &&
+          setIsSectionEditOpen(false)
+        }
+      >
         <DialogContent className="max-w-md">
           <form onSubmit={handleSaveEditSection}>
             <DialogHeader>
@@ -658,7 +783,9 @@ export const AreasPage: React.FC = () => {
             </DialogHeader>
             <div className="space-y-4 py-4 text-xs">
               <div>
-                <label className="font-semibold block mb-1 text-foreground">{t("areas.sectionName")} *</label>
+                <label className="font-semibold block mb-1 text-foreground">
+                  {t("areas.sectionName")} *
+                </label>
                 <input
                   required
                   value={sectionForm.name}
@@ -670,7 +797,43 @@ export const AreasPage: React.FC = () => {
                 />
               </div>
               <div>
-                <label className="font-semibold block mb-1 text-foreground">{t("areas.sectionColor")}</label>
+                <label className="font-semibold block mb-1 text-foreground">Section Type *</label>
+                <select
+                  value={sectionForm.section_type}
+                  onChange={(e) => {
+                    setSectionForm({ ...sectionForm, section_type: e.target.value as any });
+                    setIsFormDirty(true);
+                  }}
+                  className="w-full rounded-md border border-input bg-card p-2.5 min-h-[44px]"
+                >
+                  <option value="INDOOR">Indoor</option>
+                  <option value="OUTDOOR">Outdoor</option>
+                  <option value="VIP">VIP</option>
+                  <option value="PRIVATE_ROOM">Private Room</option>
+                </select>
+              </div>
+              <div className="flex items-center gap-2 pt-1">
+                <input
+                  type="checkbox"
+                  id="section-active-toggle"
+                  checked={sectionForm.is_active}
+                  onChange={(e) => {
+                    setSectionForm({ ...sectionForm, is_active: e.target.checked });
+                    setIsFormDirty(true);
+                  }}
+                  className="w-4 h-4 rounded border-border"
+                />
+                <label
+                  htmlFor="section-active-toggle"
+                  className="font-semibold text-foreground cursor-pointer"
+                >
+                  Active Section
+                </label>
+              </div>
+              <div>
+                <label className="font-semibold block mb-1 text-foreground">
+                  {t("areas.sectionColor")}
+                </label>
                 <div className="flex items-center gap-3">
                   <input
                     type="color"
@@ -681,7 +844,9 @@ export const AreasPage: React.FC = () => {
                     }}
                     className="w-10 h-10 rounded border border-border cursor-pointer p-0.5"
                   />
-                  <span className="font-mono text-xs text-muted-foreground">{sectionForm.color}</span>
+                  <span className="font-mono text-xs text-muted-foreground">
+                    {sectionForm.color}
+                  </span>
                 </div>
               </div>
             </div>
@@ -711,6 +876,18 @@ export const AreasPage: React.FC = () => {
         variant="destructive"
         isLoading={actionLoading}
         onConfirm={handleDeactivateArea}
+      />
+
+      {/* Deactivate Section Confirm */}
+      <ConfirmDialog
+        open={Boolean(deactivateSectionTarget)}
+        onOpenChange={(open) => !open && setDeactivateSectionTarget(null)}
+        title="Deactivate Section"
+        description="Are you sure you want to deactivate this section? New tables cannot be created in an inactive section."
+        confirmLabel={t("common.confirm")}
+        variant="destructive"
+        isLoading={actionLoading}
+        onConfirm={handleDeactivateSection}
       />
     </div>
   );

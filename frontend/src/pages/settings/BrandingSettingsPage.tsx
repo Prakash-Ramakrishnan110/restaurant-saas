@@ -10,7 +10,13 @@ import {
   FileText,
 } from "lucide-react";
 import { PageHeader } from "../../components/app/PageHeader";
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "../../components/ui/card";
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardContent,
+} from "../../components/ui/card";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
 import { SaveStatusIndicator } from "../../components/app/SaveStatusIndicator";
@@ -95,7 +101,9 @@ export const BrandingSettingsPage: React.FC = () => {
 
     // Strict client-side SVG rejection
     if (file.type === "image/svg+xml" || file.name.toLowerCase().endsWith(".svg")) {
-      setLogoError("SVG files are not allowed for security reasons. Please upload a PNG, JPEG, or WebP image.");
+      setLogoError(
+        "SVG files are not allowed for security reasons. Please upload a PNG, JPEG, or WebP image."
+      );
       if (fileInputRef.current) fileInputRef.current.value = "";
       return;
     }
@@ -146,7 +154,9 @@ export const BrandingSettingsPage: React.FC = () => {
   const handleSave = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     if (!contrastCheck.passesThreshold) {
-      setErrorMessage("Brand primary color must reach at least 4.5:1 contrast against white or navy.");
+      setErrorMessage(
+        "Brand primary color must reach at least 4.5:1 contrast against white or navy."
+      );
       return;
     }
     if (!gstinValid) {
@@ -179,7 +189,9 @@ export const BrandingSettingsPage: React.FC = () => {
     return (
       <div className="p-8 flex flex-col items-center justify-center">
         <div className="w-8 h-8 border-4 border-[#FF6A00] border-t-transparent rounded-full animate-spin mb-3" />
-        <span className="text-xs text-muted-foreground font-semibold">Loading branding preferences...</span>
+        <span className="text-xs text-muted-foreground font-semibold">
+          Loading branding preferences...
+        </span>
       </div>
     );
   }
@@ -280,9 +292,7 @@ export const BrandingSettingsPage: React.FC = () => {
                     )}
                   </div>
 
-                  {logoError && (
-                    <p className="text-xs text-destructive font-medium">{logoError}</p>
-                  )}
+                  {logoError && <p className="text-xs text-destructive font-medium">{logoError}</p>}
                 </div>
               </div>
             </CardContent>
@@ -293,7 +303,9 @@ export const BrandingSettingsPage: React.FC = () => {
             <CardHeader>
               <div className="flex items-center gap-2">
                 <Palette className="w-5 h-5 text-primary" />
-                <CardTitle className="text-base font-bold">{t("branding.brandColorSection")}</CardTitle>
+                <CardTitle className="text-base font-bold">
+                  {t("branding.brandColorSection")}
+                </CardTitle>
               </div>
               <CardDescription className="text-xs">{t("branding.colorHelp")}</CardDescription>
             </CardHeader>
@@ -403,7 +415,9 @@ export const BrandingSettingsPage: React.FC = () => {
                 <Building2 className="w-5 h-5 text-primary" />
                 <CardTitle className="text-base font-bold">{t("branding.legalSection")}</CardTitle>
               </div>
-              <CardDescription className="text-xs">{t("branding.accountantNotice")}</CardDescription>
+              <CardDescription className="text-xs">
+                {t("branding.accountantNotice")}
+              </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-1.5">
@@ -435,7 +449,8 @@ export const BrandingSettingsPage: React.FC = () => {
                 />
                 {!gstinValid ? (
                   <p className="text-xs text-destructive font-medium">
-                    Invalid GSTIN format. Must be 15 characters (2 state digits + 10 PAN chars + entity + Z + check char).
+                    Invalid GSTIN format. Must be 15 characters (2 state digits + 10 PAN chars +
+                    entity + Z + check char).
                   </p>
                 ) : (
                   <p className="text-[11px] text-muted-foreground">{t("branding.gstinHelp")}</p>
@@ -471,7 +486,9 @@ export const BrandingSettingsPage: React.FC = () => {
             <CardHeader>
               <div className="flex items-center gap-2">
                 <QrCode className="w-5 h-5 text-primary" />
-                <CardTitle className="text-base font-bold">{t("branding.qrPreviewTitle")}</CardTitle>
+                <CardTitle className="text-base font-bold">
+                  {t("branding.qrPreviewTitle")}
+                </CardTitle>
               </div>
               <CardDescription className="text-xs">
                 Preview of your printed A4 table standee card.
@@ -482,7 +499,9 @@ export const BrandingSettingsPage: React.FC = () => {
               <div className="p-4 bg-muted/20 rounded-2xl border border-dashed border-border flex justify-center">
                 <div
                   className="w-64 bg-white rounded-xl shadow-lg border border-slate-200 overflow-hidden text-center transition-all duration-200"
-                  style={{ borderTop: `6px solid ${contrastCheck.isValidHex ? brandColor : "#FF6A00"}` }}
+                  style={{
+                    borderTop: `6px solid ${contrastCheck.isValidHex ? brandColor : "#FF6A00"}`,
+                  }}
                 >
                   <div className="p-4 border-b border-slate-100 flex flex-col items-center">
                     {logoUrl ? (

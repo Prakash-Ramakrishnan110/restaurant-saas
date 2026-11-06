@@ -1,9 +1,25 @@
 import React, { useState, useEffect } from "react";
-import { GitBranch, Plus, Edit2, Power, AlertTriangle, ArrowUpRight, Phone, MapPin, Store } from "lucide-react";
+import {
+  GitBranch,
+  Plus,
+  Edit2,
+  Power,
+  AlertTriangle,
+  ArrowUpRight,
+  Phone,
+  MapPin,
+  Store,
+} from "lucide-react";
 import { PageHeader } from "../../components/app/PageHeader";
 import { Card, CardHeader, CardTitle, CardContent } from "../../components/ui/card";
 import { Button } from "../../components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "../../components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "../../components/ui/dialog";
 import { ConfirmDialog } from "../../components/ui/confirm-dialog";
 import { apiClient } from "../../api/client";
 import { useAuth } from "../../context/AuthContext";
@@ -55,7 +71,9 @@ export const BranchesPage: React.FC = () => {
     try {
       const [branchRes, entRes] = await Promise.all([
         apiClient.get<any>("/branches/"),
-        apiClient.get<any>("/entitlements/").catch(() => ({ data: { entitlements: { max_branches: 1 } } })),
+        apiClient
+          .get<any>("/entitlements/")
+          .catch(() => ({ data: { entitlements: { max_branches: 1 } } })),
       ]);
 
       const items: BranchItem[] = branchRes.data?.results || branchRes.data || [];
@@ -165,10 +183,7 @@ export const BranchesPage: React.FC = () => {
       <PageHeader
         title={t("branches.title")}
         description={t("branches.subtitle")}
-        breadcrumbs={[
-          { label: "Dashboard", href: "/dashboard" },
-          { label: t("branches.title") },
-        ]}
+        breadcrumbs={[{ label: "Dashboard", href: "/dashboard" }, { label: t("branches.title") }]}
         actions={
           canManage && (
             <Button
@@ -190,7 +205,8 @@ export const BranchesPage: React.FC = () => {
           <div className="flex-1">
             <h4 className="text-sm font-bold text-foreground">{t("branches.limitReached")}</h4>
             <p className="text-xs text-muted-foreground mt-0.5">
-              {t("branches.limitReachedDesc")} ({branches.filter((b) => b.is_active).length} of {maxBranches} used)
+              {t("branches.limitReachedDesc")} ({branches.filter((b) => b.is_active).length} of{" "}
+              {maxBranches} used)
             </p>
           </div>
           <Button variant="outline" size="sm" className="shrink-0 text-xs font-semibold">
@@ -207,19 +223,26 @@ export const BranchesPage: React.FC = () => {
 
       {/* Branch Cards Grid */}
       {loading ? (
-        <div className="p-12 text-center text-muted-foreground font-medium">{t("common.loading")}</div>
+        <div className="p-12 text-center text-muted-foreground font-medium">
+          {t("common.loading")}
+        </div>
       ) : branches.length === 0 ? (
         <Card>
           <CardContent className="p-12 text-center">
             <Store className="w-12 h-12 text-muted-foreground mx-auto mb-3 opacity-40" />
             <h3 className="text-base font-bold text-foreground">No branches found</h3>
-            <p className="text-xs text-muted-foreground mt-1">Get started by creating your primary branch.</p>
+            <p className="text-xs text-muted-foreground mt-1">
+              Get started by creating your primary branch.
+            </p>
           </CardContent>
         </Card>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {branches.map((branch) => (
-            <Card key={branch.id} className="relative overflow-hidden border border-border flex flex-col justify-between">
+            <Card
+              key={branch.id}
+              className="relative overflow-hidden border border-border flex flex-col justify-between"
+            >
               <div
                 className={`h-2 w-full ${
                   branch.is_active ? "bg-emerald-500" : "bg-muted-foreground/30"
@@ -277,7 +300,9 @@ export const BranchesPage: React.FC = () => {
                     size="sm"
                     onClick={() => setDeactivateTarget(branch)}
                     className={`min-h-[44px] text-xs font-semibold ${
-                      branch.is_active ? "text-destructive hover:bg-destructive/10" : "text-emerald-600"
+                      branch.is_active
+                        ? "text-destructive hover:bg-destructive/10"
+                        : "text-emerald-600"
                     }`}
                   >
                     <Power className="w-3.5 h-3.5 mr-1.5" />
@@ -291,7 +316,14 @@ export const BranchesPage: React.FC = () => {
       )}
 
       {/* Add Branch Dialog */}
-      <Dialog open={isAddOpen} onOpenChange={(open) => !open && (!isFormDirty || window.confirm("You have unsaved changes. Discard?")) && setIsAddOpen(false)}>
+      <Dialog
+        open={isAddOpen}
+        onOpenChange={(open) =>
+          !open &&
+          (!isFormDirty || window.confirm("You have unsaved changes. Discard?")) &&
+          setIsAddOpen(false)
+        }
+      >
         <DialogContent className="max-w-md">
           <form onSubmit={handleSaveAdd}>
             <DialogHeader>
@@ -305,7 +337,9 @@ export const BranchesPage: React.FC = () => {
               ) : (
                 <>
                   <div>
-                    <label className="font-semibold block mb-1 text-foreground">{t("branches.branchName")} *</label>
+                    <label className="font-semibold block mb-1 text-foreground">
+                      {t("branches.branchName")} *
+                    </label>
                     <input
                       required
                       value={formData.name}
@@ -318,7 +352,9 @@ export const BranchesPage: React.FC = () => {
                     />
                   </div>
                   <div>
-                    <label className="font-semibold block mb-1 text-foreground">{t("branches.venueType")} *</label>
+                    <label className="font-semibold block mb-1 text-foreground">
+                      {t("branches.venueType")} *
+                    </label>
                     <select
                       value={formData.venue_profile}
                       onChange={(e) => {
@@ -336,7 +372,9 @@ export const BranchesPage: React.FC = () => {
                     </select>
                   </div>
                   <div>
-                    <label className="font-semibold block mb-1 text-foreground">{t("branches.address")}</label>
+                    <label className="font-semibold block mb-1 text-foreground">
+                      {t("branches.address")}
+                    </label>
                     <textarea
                       rows={2}
                       value={formData.address}
@@ -349,7 +387,9 @@ export const BranchesPage: React.FC = () => {
                     />
                   </div>
                   <div>
-                    <label className="font-semibold block mb-1 text-foreground">{t("branches.phone")}</label>
+                    <label className="font-semibold block mb-1 text-foreground">
+                      {t("branches.phone")}
+                    </label>
                     <input
                       value={formData.phone}
                       onChange={(e) => {
@@ -382,7 +422,14 @@ export const BranchesPage: React.FC = () => {
       </Dialog>
 
       {/* Edit Branch Dialog */}
-      <Dialog open={isEditOpen} onOpenChange={(open) => !open && (!isFormDirty || window.confirm("You have unsaved changes. Discard?")) && setIsEditOpen(false)}>
+      <Dialog
+        open={isEditOpen}
+        onOpenChange={(open) =>
+          !open &&
+          (!isFormDirty || window.confirm("You have unsaved changes. Discard?")) &&
+          setIsEditOpen(false)
+        }
+      >
         <DialogContent className="max-w-md">
           <form onSubmit={handleSaveEdit}>
             <DialogHeader>
@@ -390,7 +437,9 @@ export const BranchesPage: React.FC = () => {
             </DialogHeader>
             <div className="space-y-4 py-4 text-xs">
               <div>
-                <label className="font-semibold block mb-1 text-foreground">{t("branches.branchName")} *</label>
+                <label className="font-semibold block mb-1 text-foreground">
+                  {t("branches.branchName")} *
+                </label>
                 <input
                   required
                   value={formData.name}
@@ -402,7 +451,9 @@ export const BranchesPage: React.FC = () => {
                 />
               </div>
               <div>
-                <label className="font-semibold block mb-1 text-foreground">{t("branches.venueType")} *</label>
+                <label className="font-semibold block mb-1 text-foreground">
+                  {t("branches.venueType")} *
+                </label>
                 <select
                   value={formData.venue_profile}
                   onChange={(e) => {
@@ -420,7 +471,9 @@ export const BranchesPage: React.FC = () => {
                 </select>
               </div>
               <div>
-                <label className="font-semibold block mb-1 text-foreground">{t("branches.address")}</label>
+                <label className="font-semibold block mb-1 text-foreground">
+                  {t("branches.address")}
+                </label>
                 <textarea
                   rows={2}
                   value={formData.address}
@@ -432,7 +485,9 @@ export const BranchesPage: React.FC = () => {
                 />
               </div>
               <div>
-                <label className="font-semibold block mb-1 text-foreground">{t("branches.phone")}</label>
+                <label className="font-semibold block mb-1 text-foreground">
+                  {t("branches.phone")}
+                </label>
                 <input
                   value={formData.phone}
                   onChange={(e) => {

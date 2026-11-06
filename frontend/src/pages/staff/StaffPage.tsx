@@ -3,7 +3,13 @@ import { Users, Plus, Edit2, Key, Shield, AlertTriangle, Check, Copy, Power } fr
 import { PageHeader } from "../../components/app/PageHeader";
 import { Card, CardContent } from "../../components/ui/card";
 import { Button } from "../../components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "../../components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "../../components/ui/dialog";
 import { ConfirmDialog } from "../../components/ui/confirm-dialog";
 import { apiClient } from "../../api/client";
 import { useAuth } from "../../context/AuthContext";
@@ -231,10 +237,7 @@ export const StaffPage: React.FC = () => {
       <PageHeader
         title={t("staff.title")}
         description={t("staff.subtitle")}
-        breadcrumbs={[
-          { label: "Dashboard", href: "/dashboard" },
-          { label: t("staff.title") },
-        ]}
+        breadcrumbs={[{ label: "Dashboard", href: "/dashboard" }, { label: t("staff.title") }]}
         actions={
           canManage && (
             <Button
@@ -259,7 +262,9 @@ export const StaffPage: React.FC = () => {
       <Card className="border border-border">
         <CardContent className="p-4 grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
           <div>
-            <label className="font-semibold block mb-1 text-muted-foreground">{t("staff.filterRole")}</label>
+            <label className="font-semibold block mb-1 text-muted-foreground">
+              {t("staff.filterRole")}
+            </label>
             <select
               value={roleFilter}
               onChange={(e) => setRoleFilter(e.target.value)}
@@ -275,7 +280,9 @@ export const StaffPage: React.FC = () => {
           </div>
 
           <div>
-            <label className="font-semibold block mb-1 text-muted-foreground">{t("staff.filterActive")}</label>
+            <label className="font-semibold block mb-1 text-muted-foreground">
+              {t("staff.filterActive")}
+            </label>
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
@@ -288,7 +295,9 @@ export const StaffPage: React.FC = () => {
           </div>
 
           <div>
-            <label className="font-semibold block mb-1 text-muted-foreground">{t("staff.filterBranch")}</label>
+            <label className="font-semibold block mb-1 text-muted-foreground">
+              {t("staff.filterBranch")}
+            </label>
             <select
               value={branchFilter}
               onChange={(e) => setBranchFilter(e.target.value)}
@@ -296,7 +305,9 @@ export const StaffPage: React.FC = () => {
             >
               <option value="">{t("staff.filterBranch")}</option>
               {branches.map((b) => (
-                <option key={b.id} value={b.id}>{b.name}</option>
+                <option key={b.id} value={b.id}>
+                  {b.name}
+                </option>
               ))}
             </select>
           </div>
@@ -311,7 +322,9 @@ export const StaffPage: React.FC = () => {
           <CardContent className="p-12 text-center">
             <Users className="w-12 h-12 text-muted-foreground mx-auto mb-3 opacity-40" />
             <h3 className="text-base font-bold text-foreground">No team members found</h3>
-            <p className="text-xs text-muted-foreground mt-1">Add staff members to grant them role-based access.</p>
+            <p className="text-xs text-muted-foreground mt-1">
+              Add staff members to grant them role-based access.
+            </p>
           </CardContent>
         </Card>
       ) : (
@@ -338,7 +351,9 @@ export const StaffPage: React.FC = () => {
                     {staff.user.phone && <div className="text-[11px]">{staff.user.phone}</div>}
                   </td>
                   <td className="p-3.5">
-                    <span className={`px-2.5 py-1 rounded-full text-[11px] font-bold border ${roleBadges[staff.role] || ""}`}>
+                    <span
+                      className={`px-2.5 py-1 rounded-full text-[11px] font-bold border ${roleBadges[staff.role] || ""}`}
+                    >
                       {staff.role}
                     </span>
                   </td>
@@ -404,7 +419,9 @@ export const StaffPage: React.FC = () => {
             </DialogHeader>
             <div className="space-y-4 py-4 text-xs">
               <div>
-                <label className="font-semibold block mb-1 text-foreground">{t("staff.fullName")} *</label>
+                <label className="font-semibold block mb-1 text-foreground">
+                  {t("staff.fullName")} *
+                </label>
                 <input
                   required
                   value={addForm.full_name}
@@ -415,7 +432,9 @@ export const StaffPage: React.FC = () => {
               </div>
 
               <div>
-                <label className="font-semibold block mb-1 text-foreground">{t("staff.email")} *</label>
+                <label className="font-semibold block mb-1 text-foreground">
+                  {t("staff.email")} *
+                </label>
                 <input
                   required
                   type="email"
@@ -427,7 +446,9 @@ export const StaffPage: React.FC = () => {
               </div>
 
               <div>
-                <label className="font-semibold block mb-1 text-foreground">{t("staff.phone")}</label>
+                <label className="font-semibold block mb-1 text-foreground">
+                  {t("staff.phone")}
+                </label>
                 <input
                   value={addForm.phone}
                   onChange={(e) => setAddForm({ ...addForm, phone: e.target.value })}
@@ -437,20 +458,26 @@ export const StaffPage: React.FC = () => {
               </div>
 
               <div>
-                <label className="font-semibold block mb-1 text-foreground">{t("staff.role")} *</label>
+                <label className="font-semibold block mb-1 text-foreground">
+                  {t("staff.role")} *
+                </label>
                 <select
                   value={addForm.role}
                   onChange={(e) => setAddForm({ ...addForm, role: e.target.value })}
                   className="w-full rounded-md border border-input bg-card p-2.5 min-h-[44px]"
                 >
                   {assignableRoles.map((r) => (
-                    <option key={r.value} value={r.value}>{r.label}</option>
+                    <option key={r.value} value={r.value}>
+                      {r.label}
+                    </option>
                   ))}
                 </select>
               </div>
 
               <div>
-                <label className="font-semibold block mb-1 text-foreground">{t("staff.branches")}</label>
+                <label className="font-semibold block mb-1 text-foreground">
+                  {t("staff.branches")}
+                </label>
                 <div className="space-y-1.5 border border-border rounded-lg p-2 max-h-32 overflow-y-auto">
                   {branches.map((b) => (
                     <label key={b.id} className="flex items-center gap-2 text-xs cursor-pointer">
@@ -461,7 +488,10 @@ export const StaffPage: React.FC = () => {
                           if (e.target.checked) {
                             setAddForm({ ...addForm, branch_ids: [...addForm.branch_ids, b.id] });
                           } else {
-                            setAddForm({ ...addForm, branch_ids: addForm.branch_ids.filter((id) => id !== b.id) });
+                            setAddForm({
+                              ...addForm,
+                              branch_ids: addForm.branch_ids.filter((id) => id !== b.id),
+                            });
                           }
                         }}
                         className="rounded border-border text-[#FF6A00]"
@@ -493,24 +523,32 @@ export const StaffPage: React.FC = () => {
         <DialogContent className="max-w-md">
           <form onSubmit={handleEditSubmit}>
             <DialogHeader>
-              <DialogTitle>{t("staff.editStaff")} ({editTarget?.user.full_name})</DialogTitle>
+              <DialogTitle>
+                {t("staff.editStaff")} ({editTarget?.user.full_name})
+              </DialogTitle>
             </DialogHeader>
             <div className="space-y-4 py-4 text-xs">
               <div>
-                <label className="font-semibold block mb-1 text-foreground">{t("staff.role")} *</label>
+                <label className="font-semibold block mb-1 text-foreground">
+                  {t("staff.role")} *
+                </label>
                 <select
                   value={editForm.role}
                   onChange={(e) => setEditForm({ ...editForm, role: e.target.value })}
                   className="w-full rounded-md border border-input bg-card p-2.5 min-h-[44px]"
                 >
                   {assignableRoles.map((r) => (
-                    <option key={r.value} value={r.value}>{r.label}</option>
+                    <option key={r.value} value={r.value}>
+                      {r.label}
+                    </option>
                   ))}
                 </select>
               </div>
 
               <div>
-                <label className="font-semibold block mb-1 text-foreground">{t("staff.branches")}</label>
+                <label className="font-semibold block mb-1 text-foreground">
+                  {t("staff.branches")}
+                </label>
                 <div className="space-y-1.5 border border-border rounded-lg p-2 max-h-32 overflow-y-auto">
                   {branches.map((b) => (
                     <label key={b.id} className="flex items-center gap-2 text-xs cursor-pointer">
@@ -519,9 +557,15 @@ export const StaffPage: React.FC = () => {
                         checked={editForm.branch_ids.includes(b.id)}
                         onChange={(e) => {
                           if (e.target.checked) {
-                            setEditForm({ ...editForm, branch_ids: [...editForm.branch_ids, b.id] });
+                            setEditForm({
+                              ...editForm,
+                              branch_ids: [...editForm.branch_ids, b.id],
+                            });
                           } else {
-                            setEditForm({ ...editForm, branch_ids: editForm.branch_ids.filter((id) => id !== b.id) });
+                            setEditForm({
+                              ...editForm,
+                              branch_ids: editForm.branch_ids.filter((id) => id !== b.id),
+                            });
                           }
                         }}
                         className="rounded border-border text-[#FF6A00]"
@@ -572,7 +616,11 @@ export const StaffPage: React.FC = () => {
                 onClick={handleCopyPassword}
                 className="bg-[#FF6A00] hover:bg-[#E55F00] text-navy font-bold text-xs"
               >
-                {copied ? <Check className="w-3.5 h-3.5 mr-1" /> : <Copy className="w-3.5 h-3.5 mr-1" />}
+                {copied ? (
+                  <Check className="w-3.5 h-3.5 mr-1" />
+                ) : (
+                  <Copy className="w-3.5 h-3.5 mr-1" />
+                )}
                 {copied ? "Copied!" : "Copy"}
               </Button>
             </div>

@@ -11,10 +11,22 @@ import {
   RefreshCw,
 } from "lucide-react";
 import { PageHeader } from "../../components/app/PageHeader";
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "../../components/ui/card";
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardContent,
+} from "../../components/ui/card";
 import { Button } from "../../components/ui/button";
 import { ConfirmDialog } from "../../components/ui/confirm-dialog";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "../../components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "../../components/ui/dialog";
 import { apiClient } from "../../api/client";
 import { evaluateBrandColor } from "../../lib/colorUtils";
 import { useTranslation } from "react-i18next";
@@ -224,10 +236,7 @@ export const QRCodesPage: React.FC = () => {
         <PageHeader
           title={t("qr.title")}
           description={t("qr.subtitle")}
-          breadcrumbs={[
-            { label: "Dashboard", href: "/dashboard" },
-            { label: "QR Codes" },
-          ]}
+          breadcrumbs={[{ label: "Dashboard", href: "/dashboard" }, { label: "QR Codes" }]}
           actions={
             <div className="flex items-center gap-3">
               <Button
@@ -276,11 +285,14 @@ export const QRCodesPage: React.FC = () => {
             {loading ? (
               <div className="py-12 flex flex-col items-center justify-center">
                 <div className="w-8 h-8 border-4 border-[#FF6A00] border-t-transparent rounded-full animate-spin mb-3" />
-                <span className="text-xs text-muted-foreground font-semibold">Loading QR standees...</span>
+                <span className="text-xs text-muted-foreground font-semibold">
+                  Loading QR standees...
+                </span>
               </div>
             ) : qrCodes.length === 0 ? (
               <div className="py-12 text-center text-muted-foreground text-sm">
-                No active QR codes found. Apply a layout template in Onboarding or generate QR codes for tables.
+                No active QR codes found. Apply a layout template in Onboarding or generate QR codes
+                for tables.
               </div>
             ) : (
               <div className="overflow-x-auto">
@@ -295,7 +307,11 @@ export const QRCodesPage: React.FC = () => {
                   </thead>
                   <tbody className="divide-y divide-border">
                     {qrCodes.map((qr) => {
-                      const label = qr.table ? qr.table.name : qr.service_area ? qr.service_area.name : "Branch";
+                      const label = qr.table
+                        ? qr.table.name
+                        : qr.service_area
+                          ? qr.service_area.name
+                          : "Branch";
                       const areaName = qr.service_area ? qr.service_area.name : "General Area";
                       return (
                         <tr key={qr.id} className="hover:bg-muted/40 transition-colors">
@@ -439,11 +455,7 @@ export const QRCodesPage: React.FC = () => {
 
           {/* Printable A4 Sheet Container */}
           <div className="qr-sheet-print-container py-4">
-            <div
-              className={`grid gap-4 ${
-                cardsPerPage === 6 ? "grid-cols-2" : "grid-cols-3"
-              }`}
-            >
+            <div className={`grid gap-4 ${cardsPerPage === 6 ? "grid-cols-2" : "grid-cols-3"}`}>
               {sheetData.map((item, idx) => (
                 <div
                   key={item.id}
@@ -464,7 +476,11 @@ export const QRCodesPage: React.FC = () => {
                   <div className="w-full flex flex-col items-center">
                     {includeLogo && logoUrl ? (
                       <div className="w-8 h-8 rounded mb-1 bg-white p-0.5 flex items-center justify-center">
-                        <img src={logoUrl} alt="Logo" className="max-w-full max-h-full object-contain" />
+                        <img
+                          src={logoUrl}
+                          alt="Logo"
+                          className="max-w-full max-h-full object-contain"
+                        />
                       </div>
                     ) : (
                       <div
@@ -507,9 +523,7 @@ export const QRCodesPage: React.FC = () => {
                       {t("qr.scanToOrder")}
                     </p>
                     {sheetLanguage === "EN_TA" && (
-                      <p className="text-[8px] text-slate-500">
-                        மெனுவை பார்க்க ஸ்கேன் செய்யவும்
-                      </p>
+                      <p className="text-[8px] text-slate-500">மெனுவை பார்க்க ஸ்கேன் செய்யவும்</p>
                     )}
                     {/* B2: Never print secret token prefix. Use short non-secret card reference */}
                     <p className="text-[8px] text-slate-400 mt-1 font-mono">

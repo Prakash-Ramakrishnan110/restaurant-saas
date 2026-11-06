@@ -1441,6 +1441,8 @@ export interface components {
             /** Format: uuid */
             service_area?: string;
             name?: string;
+            section_type?: components["schemas"]["SectionTypeEnum"];
+            is_active?: boolean;
             color?: string;
             canvas_width?: number;
             canvas_height?: number;
@@ -1559,6 +1561,8 @@ export interface components {
             /** Format: uuid */
             service_area: string;
             name: string;
+            section_type?: components["schemas"]["SectionTypeEnum"];
+            is_active?: boolean;
             color?: string;
             canvas_width?: number;
             canvas_height?: number;
@@ -1574,11 +1578,21 @@ export interface components {
             /** Format: uuid */
             service_area: string;
             name: string;
+            section_type?: components["schemas"]["SectionTypeEnum"];
+            is_active?: boolean;
             color?: string;
             canvas_width?: number;
             canvas_height?: number;
             sort_order?: number;
         };
+        /**
+         * @description * `INDOOR` - Indoor
+         *     * `OUTDOOR` - Outdoor
+         *     * `VIP` - VIP
+         *     * `PRIVATE_ROOM` - Private Room
+         * @enum {string}
+         */
+        SectionTypeEnum: "INDOOR" | "OUTDOOR" | "VIP" | "PRIVATE_ROOM";
         ServiceArea: {
             /** Format: uuid */
             readonly id: string;

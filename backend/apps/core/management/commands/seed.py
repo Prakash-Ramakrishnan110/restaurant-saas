@@ -13,6 +13,7 @@ from apps.tenants.models import Branch, BusinessSettings, Tenant
 from apps.venues.constants import (
     AreaType,
     QRTargetType,
+    SectionType,
     TableStatus,
     TableType,
 )
@@ -231,7 +232,7 @@ class Command(BaseCommand):
             branch=b2,
             service_area=sa2,
             name="Main Cafe",
-            defaults={"color": "#10B981"},
+            defaults={"color": "#10B981", "section_type": SectionType.INDOOR, "is_active": True},
         )
         for i in range(1, 16):
             tbl, _ = DiningTable.objects.get_or_create(
@@ -309,7 +310,7 @@ class Command(BaseCommand):
             branch=b3,
             service_area=sa3_ac,
             name="Family AC",
-            defaults={"color": "#3B82F6"},
+            defaults={"color": "#3B82F6", "section_type": SectionType.INDOOR, "is_active": True},
         )
         sa3_patio, _ = ServiceArea.objects.get_or_create(
             tenant=t3,
@@ -322,7 +323,7 @@ class Command(BaseCommand):
             branch=b3,
             service_area=sa3_patio,
             name="Patio Open",
-            defaults={"color": "#F59E0B"},
+            defaults={"color": "#F59E0B", "section_type": SectionType.OUTDOOR, "is_active": True},
         )
         for i in range(1, 16):
             tbl, _ = DiningTable.objects.get_or_create(
@@ -429,7 +430,7 @@ class Command(BaseCommand):
             branch=b4,
             service_area=sa4_room,
             name="Guest Rooms Tower A",
-            defaults={"color": "#8B5CF6"},
+            defaults={"color": "#8B5CF6", "section_type": SectionType.PRIVATE_ROOM, "is_active": True},
         )
         for r_num in range(101, 121):
             tbl, _ = DiningTable.objects.get_or_create(

@@ -2873,6 +2873,10 @@ components:
           type: string
           minLength: 1
           maxLength: 100
+        section_type:
+          $ref: '#/components/schemas/SectionTypeEnum'
+        is_active:
+          type: boolean
         color:
           type: string
           minLength: 1
@@ -3145,6 +3149,10 @@ components:
         name:
           type: string
           maxLength: 100
+        section_type:
+          $ref: '#/components/schemas/SectionTypeEnum'
+        is_active:
+          type: boolean
         color:
           type: string
           maxLength: 20
@@ -3188,6 +3196,10 @@ components:
           type: string
           minLength: 1
           maxLength: 100
+        section_type:
+          $ref: '#/components/schemas/SectionTypeEnum'
+        is_active:
+          type: boolean
         color:
           type: string
           minLength: 1
@@ -3208,6 +3220,18 @@ components:
       - branch
       - name
       - service_area
+    SectionTypeEnum:
+      enum:
+      - INDOOR
+      - OUTDOOR
+      - VIP
+      - PRIVATE_ROOM
+      type: string
+      description: |-
+        * `INDOOR` - Indoor
+        * `OUTDOOR` - Outdoor
+        * `VIP` - VIP
+        * `PRIVATE_ROOM` - Private Room
     ServiceArea:
       type: object
       properties:

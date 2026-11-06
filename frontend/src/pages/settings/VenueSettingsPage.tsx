@@ -156,9 +156,7 @@ export const VenueSettingsPage: React.FC = () => {
               </span>
             )}
           </div>
-          <p className="text-[11px] text-muted-foreground mt-0.5 leading-relaxed">
-            {description}
-          </p>
+          <p className="text-[11px] text-muted-foreground mt-0.5 leading-relaxed">{description}</p>
         </div>
 
         <label className="relative inline-flex items-center cursor-pointer shrink-0 mt-0.5">
@@ -180,10 +178,7 @@ export const VenueSettingsPage: React.FC = () => {
       <PageHeader
         title={t("settings.title")}
         description={t("settings.subtitle")}
-        breadcrumbs={[
-          { label: "Dashboard", href: "/dashboard" },
-          { label: t("settings.title") },
-        ]}
+        breadcrumbs={[{ label: "Dashboard", href: "/dashboard" }, { label: t("settings.title") }]}
         actions={
           canEdit && (
             <div className="flex items-center gap-2">
@@ -224,7 +219,8 @@ export const VenueSettingsPage: React.FC = () => {
 
       {!canEdit && (
         <div className="p-3.5 rounded-xl border border-border bg-muted/40 text-xs text-muted-foreground">
-          You are viewing these settings in read-only mode. Only the restaurant owner can modify operational capabilities.
+          You are viewing these settings in read-only mode. Only the restaurant owner can modify
+          operational capabilities.
         </div>
       )}
 
@@ -237,11 +233,31 @@ export const VenueSettingsPage: React.FC = () => {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
-            {renderSwitch("uses_tables", "Dining Tables", "Enable table seating, table numbers, and waitstaff dining service.")}
-            {renderSwitch("uses_token_numbers", "Token Numbers", "Generate sequential queue tokens for customer takeaway and counter pickup.")}
-            {renderSwitch("has_sections", "Area Sections", "Subdivide dining areas into AC, Non-AC, Outdoor, or Family sections.")}
-            {renderSwitch("has_seat_ordering", "Seat-Level Ordering", "Allow waiters to assign menu items to specific seat positions at a table.")}
-            {renderSwitch("allows_table_transfer", "Table Transfers", "Allow active dining tabs to be transferred between different tables.")}
+            {renderSwitch(
+              "uses_tables",
+              "Dining Tables",
+              "Enable table seating, table numbers, and waitstaff dining service."
+            )}
+            {renderSwitch(
+              "uses_token_numbers",
+              "Token Numbers",
+              "Generate sequential queue tokens for customer takeaway and counter pickup."
+            )}
+            {renderSwitch(
+              "has_sections",
+              "Area Sections",
+              "Subdivide dining areas into AC, Non-AC, Outdoor, or Family sections."
+            )}
+            {renderSwitch(
+              "has_seat_ordering",
+              "Seat-Level Ordering",
+              "Allow waiters to assign menu items to specific seat positions at a table."
+            )}
+            {renderSwitch(
+              "allows_table_transfer",
+              "Table Transfers",
+              "Allow active dining tabs to be transferred between different tables."
+            )}
           </CardContent>
         </Card>
 
@@ -253,12 +269,22 @@ export const VenueSettingsPage: React.FC = () => {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
-            {renderSwitch("allows_takeaway", "Takeaway & Parcel Orders", "Support takeaway orders packaged for takeout.")}
-            {renderSwitch("allows_qr_ordering", "Guest QR Self-Ordering", "Allow guests to view the digital menu and submit orders from their phones.")}
+            {renderSwitch(
+              "allows_takeaway",
+              "Takeaway & Parcel Orders",
+              "Support takeaway orders packaged for takeout."
+            )}
+            {renderSwitch(
+              "allows_qr_ordering",
+              "Guest QR Self-Ordering",
+              "Allow guests to view the digital menu and submit orders from their phones."
+            )}
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-2">
               <div className="p-4 rounded-xl border border-border bg-card">
-                <label className="font-bold text-xs text-foreground block mb-1">QR Ordering Mode</label>
+                <label className="font-bold text-xs text-foreground block mb-1">
+                  QR Ordering Mode
+                </label>
                 <select
                   disabled={!canEdit}
                   value={capabilities.qr_ordering_mode}
@@ -272,7 +298,9 @@ export const VenueSettingsPage: React.FC = () => {
               </div>
 
               <div className="p-4 rounded-xl border border-border bg-card">
-                <label className="font-bold text-xs text-foreground block mb-1">QR Session Policy</label>
+                <label className="font-bold text-xs text-foreground block mb-1">
+                  QR Session Policy
+                </label>
                 <select
                   disabled={!canEdit}
                   value={capabilities.qr_session_policy}
@@ -295,15 +323,27 @@ export const VenueSettingsPage: React.FC = () => {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
-            {renderSwitch("uses_kds", "Kitchen Display Screen (KDS)", "Route live order tickets to digital display screens for kitchen staff.")}
+            {renderSwitch(
+              "uses_kds",
+              "Kitchen Display Screen (KDS)",
+              "Route live order tickets to digital display screens for kitchen staff."
+            )}
             {renderSwitch(
               "supports_courses",
               "Course Management",
               "Manage order timing by courses (Starters, Mains, Desserts).",
               !entitlements?.courses
             )}
-            {renderSwitch("allows_room_service", "Room Service", "Allow room-delivery orders for hotel operations.")}
-            {renderSwitch("allows_room_charge", "Room Billing Charges", "Charge dining bills directly to guest hotel room tabs.")}
+            {renderSwitch(
+              "allows_room_service",
+              "Room Service",
+              "Allow room-delivery orders for hotel operations."
+            )}
+            {renderSwitch(
+              "allows_room_charge",
+              "Room Billing Charges",
+              "Charge dining bills directly to guest hotel room tabs."
+            )}
           </CardContent>
         </Card>
 
@@ -316,7 +356,9 @@ export const VenueSettingsPage: React.FC = () => {
           </CardHeader>
           <CardContent className="space-y-3">
             <div className="p-4 rounded-xl border border-border bg-card">
-              <label className="font-bold text-xs text-foreground block mb-1">Payment Timing Policy</label>
+              <label className="font-bold text-xs text-foreground block mb-1">
+                Payment Timing Policy
+              </label>
               <select
                 disabled={!canEdit}
                 value={capabilities.payment_timing}

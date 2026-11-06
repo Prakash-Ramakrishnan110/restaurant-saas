@@ -114,7 +114,8 @@ export const defaultResources = {
         openTime: "Opening Time",
         closeTime: "Closing Time",
         closed: "Closed",
-        counterNote: "Counter takeaway mode: tokens and pickup points are created without dining furniture.",
+        counterNote:
+          "Counter takeaway mode: tokens and pickup points are created without dining furniture.",
         inviteStaffTitle: "Add an Initial Staff Member (Optional)",
         inviteRole: "Staff Role",
         staffName: "Staff Member Full Name",
@@ -123,7 +124,8 @@ export const defaultResources = {
         copyPassword: "Copy Password",
         passwordCopied: "Password copied to clipboard!",
         doneAllSteps: "All 7 onboarding steps completed!",
-        doneSummary: "Your restaurant profile, service areas, tables/counters, and staff credentials have been configured.",
+        doneSummary:
+          "Your restaurant profile, service areas, tables/counters, and staff credentials have been configured.",
         goToDashboard: "Go to Dashboard",
         printQrStandees: "Print QR Standees",
       },
@@ -133,9 +135,11 @@ export const defaultResources = {
         addBranch: "Add New Branch",
         editBranch: "Edit Branch",
         deactivateBranch: "Deactivate Branch",
-        deactivateConfirm: "Deactivating this branch will prevent staff from logging in and suspend live table operations for this location.",
+        deactivateConfirm:
+          "Deactivating this branch will prevent staff from logging in and suspend live table operations for this location.",
         limitReached: "Branch Limit Reached",
-        limitReachedDesc: "You have reached your subscription plan limit for branches. Upgrade your plan to add more outlets.",
+        limitReachedDesc:
+          "You have reached your subscription plan limit for branches. Upgrade your plan to add more outlets.",
         branchName: "Branch Name",
         venueType: "Venue Type",
         address: "Address",
@@ -153,7 +157,8 @@ export const defaultResources = {
         reorderUp: "Move Up",
         reorderDown: "Move Down",
         deactivateArea: "Deactivate Area",
-        deactivateConfirm: "Deactivating this area will hide all associated tables from waiters and the floor plan.",
+        deactivateConfirm:
+          "Deactivating this area will hide all associated tables from waiters and the floor plan.",
         areaName: "Area Name",
         areaType: "Area Type",
         serviceCharge: "Service Charge (%)",
@@ -183,7 +188,8 @@ export const defaultResources = {
         joinable: "Joinable",
         qrCode: "QR Standee",
         deactivateTable: "Deactivate Table",
-        deactivateConfirm: "Deactivating this table will remove it from waiter and cashier screens.",
+        deactivateConfirm:
+          "Deactivating this table will remove it from waiter and cashier screens.",
         prefix: "Label Prefix",
         startNumber: "Start Number",
         count: "Table Count",
@@ -224,10 +230,12 @@ export const defaultResources = {
         addStaff: "Add Team Member",
         editStaff: "Edit Member",
         resetPassword: "Reset Password",
-        resetPasswordConfirm: "This will generate a new temporary password for this user. Continue?",
+        resetPasswordConfirm:
+          "This will generate a new temporary password for this user. Continue?",
         tempPasswordModalTitle: "Temporary Password Generated",
         tempPasswordNotice: "They must change it at first sign-in.",
-        tempPasswordWarning: "Copy this temporary password now. It is shown only ONCE and cannot be recovered after closing.",
+        tempPasswordWarning:
+          "Copy this temporary password now. It is shown only ONCE and cannot be recovered after closing.",
         copyPassword: "Copy Temporary Password",
         passwordCopied: "Password copied to clipboard!",
         fullName: "Full Name",
@@ -246,7 +254,8 @@ export const defaultResources = {
         title: "Venue Settings",
         subtitle: "Configure operational capabilities, ordering workflows, and service options.",
         resetDefaults: "Reset to Venue Defaults",
-        resetConfirm: "Are you sure you want to reset all capabilities to the default settings for this venue type?",
+        resetConfirm:
+          "Are you sure you want to reset all capabilities to the default settings for this venue type?",
         planLocked: "Upgrade required for this capability",
         saveSuccess: "Venue settings updated successfully.",
         groupDining: "Dining & Floor Layout",
@@ -257,7 +266,8 @@ export const defaultResources = {
       },
       errors: {
         DUPLICATE_LABEL: "A table with this label already exists in this branch.",
-        ENTITLEMENT_LIMIT_REACHED: "Your plan table limit has been reached. Please upgrade to add more tables.",
+        ENTITLEMENT_LIMIT_REACHED:
+          "Your plan table limit has been reached. Please upgrade to add more tables.",
         TABLE_NOT_AVAILABLE: "This table is currently in use or occupied.",
         INVALID_STATUS_TRANSITION: "This table cannot transition to that status directly.",
         TABLES_NOT_COMBINABLE: "These tables cannot be joined together.",
@@ -268,24 +278,29 @@ export const defaultResources = {
       },
       branding: {
         title: "Branding & Business Identity",
-        subtitle: "Customize your restaurant's logo, colors, receipt header, and GST billing credentials.",
+        subtitle:
+          "Customize your restaurant's logo, colors, receipt header, and GST billing credentials.",
         logoSection: "Restaurant Logo",
-        logoHelp: "Upload a PNG, JPEG, or WebP logo (max 2 MB, min 64×64 px, max 4000×4000 px). SVGs are disallowed for security.",
+        logoHelp:
+          "Upload a PNG, JPEG, or WebP logo (max 2 MB, min 64×64 px, max 4000×4000 px). SVGs are disallowed for security.",
         brandColorSection: "Brand Primary Color",
-        colorHelp: "Hex code for your restaurant's primary identity color. Must achieve at least 4.5:1 contrast against white or navy.",
+        colorHelp:
+          "Hex code for your restaurant's primary identity color. Must achieve at least 4.5:1 contrast against white or navy.",
         contrastWhite: "Contrast vs White",
         contrastNavy: "Contrast vs Navy",
         contrastPass: "Meets WCAG AA (>= 4.5:1)",
         contrastFail: "Fails WCAG AA (< 4.5:1)",
         displayName: "Display Name (Receipts & QR)",
         receiptFooter: "Receipt Footer Message",
-        receiptFooterHelp: "Optional thank-you note or return policy printed at the bottom of customer bills.",
+        receiptFooterHelp:
+          "Optional thank-you note or return policy printed at the bottom of customer bills.",
         legalSection: "Tax & Registered Entity Details",
         legalName: "Registered Legal Business Name",
         gstin: "GSTIN (Goods and Services Tax ID)",
         gstinHelp: "15-character uppercase Indian GSTIN structure (e.g. 33AAAAA0000A1Z5).",
         registeredAddress: "Registered Business Address",
-        accountantNotice: "Please confirm your GSTIN, legal entity name, and tax registration details with your chartered accountant.",
+        accountantNotice:
+          "Please confirm your GSTIN, legal entity name, and tax registration details with your chartered accountant.",
         qrPreviewTitle: "Live Customer QR Card Preview",
       },
       qr: {
@@ -303,14 +318,17 @@ export const defaultResources = {
         counterLabel: "Counter",
         areaLabel: "Section",
         rotateTitle: "Rotate QR Token?",
-        rotateWarning: "Rotating this QR token will invalidate all previously printed standees for this location immediately.",
+        rotateWarning:
+          "Rotating this QR token will invalidate all previously printed standees for this location immediately.",
       },
       publicQr: {
         welcomeTo: "Welcome to",
         comingSoonTitle: "Online Ordering Coming Soon",
-        comingSoonMessage: "Online ordering is coming soon. Please ask our staff to take your order.",
+        comingSoonMessage:
+          "Online ordering is coming soon. Please ask our staff to take your order.",
         notFoundTitle: "QR Code Inactive or Invalid",
-        notFoundMessage: "This QR code could not be verified or has been replaced by venue staff. Please request assistance from restaurant personnel.",
+        notFoundMessage:
+          "This QR code could not be verified or has been replaced by venue staff. Please request assistance from restaurant personnel.",
         poweredBy: "Powered by ServeMyFood Hospitality Platform",
       },
     },
@@ -432,11 +450,13 @@ export const defaultResources = {
         inviteRole: "பணியாளர் பதவி",
         staffName: "பணியாளர் முழு பெயர்",
         staffEmail: "பணியாளர் மின்னஞ்சல்",
-        tempPasswordWarning: "இந்த தற்காலிக கடவுச்சொல்லை இப்போதே குறித்துக்கொள்ளவும். இது மீண்டும் காட்டப்படாது.",
+        tempPasswordWarning:
+          "இந்த தற்காலிக கடவுச்சொல்லை இப்போதே குறித்துக்கொள்ளவும். இது மீண்டும் காட்டப்படாது.",
         copyPassword: "கடவுச்சொல்லை நகலெடு",
         passwordCopied: "கடவுச்சொல் நகலெடுக்கப்பட்டது!",
         doneAllSteps: "அனைத்து 7 படிகளும் முடிவடைந்தன!",
-        doneSummary: "உங்கள் உணவக விவரங்கள், சேவை பகுதிகள் மற்றும் பணியாளர் சான்றுகள் வெற்றிகரமாக உருவாக்கப்பட்டன.",
+        doneSummary:
+          "உங்கள் உணவக விவரங்கள், சேவை பகுதிகள் மற்றும் பணியாளர் சான்றுகள் வெற்றிகரமாக உருவாக்கப்பட்டன.",
         goToDashboard: "டாஷ்போர்டிற்குச் செல்",
         printQrStandees: "QR குறியீடுகளை அச்சிடுக",
       },
@@ -446,9 +466,11 @@ export const defaultResources = {
         addBranch: "புதிய கிளையைச் சேர்",
         editBranch: "கிளையைத் திருத்து",
         deactivateBranch: "கிளையை முடக்கு",
-        deactivateConfirm: "இந்த கிளையை முடக்கினால் பணியாளர்கள் உள்நுழையவோ நேரலை பணிகளை செய்யவோ முடியாது.",
+        deactivateConfirm:
+          "இந்த கிளையை முடக்கினால் பணியாளர்கள் உள்நுழையவோ நேரலை பணிகளை செய்யவோ முடியாது.",
         limitReached: "கிளை வரம்பு முடிந்தது",
-        limitReachedDesc: "உங்கள் சந்தா திட்டத்தின் கிளை வரம்பை எட்டிவிட்டீர்கள். கூடுதல் கிளைகளைச் சேர்க்க திட்டத்தை மேம்படுத்தவும்.",
+        limitReachedDesc:
+          "உங்கள் சந்தா திட்டத்தின் கிளை வரம்பை எட்டிவிட்டீர்கள். கூடுதல் கிளைகளைச் சேர்க்க திட்டத்தை மேம்படுத்தவும்.",
         branchName: "கிளையின் பெயர்",
         venueType: "உணவக வகை",
         address: "முகவரி",
@@ -466,7 +488,8 @@ export const defaultResources = {
         reorderUp: "மேலே நகர்த்து",
         reorderDown: "கீழே நகர்த்து",
         deactivateArea: "பகுதியை முடக்கு",
-        deactivateConfirm: "இந்த பகுதியை முடக்கினால் இதனுடன் இணைக்கப்பட்ட மேஜைகள் தள வரைபடத்தில் இருந்து மறைக்கப்படும்.",
+        deactivateConfirm:
+          "இந்த பகுதியை முடக்கினால் இதனுடன் இணைக்கப்பட்ட மேஜைகள் தள வரைபடத்தில் இருந்து மறைக்கப்படும்.",
         areaName: "பகுதியின் பெயர்",
         areaType: "பகுதி வகை",
         serviceCharge: "சேவைக் கட்டணம் (%)",
@@ -496,7 +519,8 @@ export const defaultResources = {
         joinable: "இணைக்கக்கூடியது",
         qrCode: "QR அட்டை",
         deactivateTable: "மேஜையை முடக்கு",
-        deactivateConfirm: "இந்த மேஜையை முடக்கினால் பணியாளர் மற்றும் காசாளர் திரையிலிருந்து நீக்கப்படும்.",
+        deactivateConfirm:
+          "இந்த மேஜையை முடக்கினால் பணியாளர் மற்றும் காசாளர் திரையிலிருந்து நீக்கப்படும்.",
         prefix: "முன்னொட்டு",
         startNumber: "தொடக்க எண்",
         count: "மேஜைகள் எண்ணிக்கை",
@@ -533,14 +557,16 @@ export const defaultResources = {
       },
       staff: {
         title: "பணியாளர்கள்",
-        subtitle: "குழு உறுப்பினர்கள், பதவிகள், கிளை ஒதுக்கீடுகள் மற்றும் கடவுச்சொற்களை நிர்வகியுங்கள்.",
+        subtitle:
+          "குழு உறுப்பினர்கள், பதவிகள், கிளை ஒதுக்கீடுகள் மற்றும் கடவுச்சொற்களை நிர்வகியுங்கள்.",
         addStaff: "பணியாளரைச் சேர்",
         editStaff: "விவரங்களைத் திருத்து",
         resetPassword: "கடவுச்சொல்லை மீட்டமை",
         resetPasswordConfirm: "இந்த பயனருக்கு புதிய தற்காலிக கடவுச்சொல் உருவாக்கப்படும். தொடரவா?",
         tempPasswordModalTitle: "தற்காலிக கடவுச்சொல் உருவாக்கப்பட்டது",
         tempPasswordNotice: "அவர்கள் முதல் முறை உள்நுழையும்போது இதை மாற்ற வேண்டும்.",
-        tempPasswordWarning: "இந்த தற்காலிக கடவுச்சொல்லை இப்போதே குறித்துக்கொள்ளவும். இது மீண்டும் ஒருபோதும் காட்டப்படாது.",
+        tempPasswordWarning:
+          "இந்த தற்காலிக கடவுச்சொல்லை இப்போதே குறித்துக்கொள்ளவும். இது மீண்டும் ஒருபோதும் காட்டப்படாது.",
         copyPassword: "கடவுச்சொல்லை நகலெடு",
         passwordCopied: "கடவுச்சொல் நகலெடுக்கப்பட்டது!",
         fullName: "முழு பெயர்",
@@ -559,7 +585,8 @@ export const defaultResources = {
         title: "செயல்பாட்டு அமைப்புகள்",
         subtitle: "உணவக செயல்பாட்டு விதிகள் மற்றும் சேவைகளை அமைத்துக் கொள்ளுங்கள்.",
         resetDefaults: "முன்னிருப்பு அமைப்புகளுக்கு மீட்டமை",
-        resetConfirm: "இந்த உணவக வகையின் முன்னிருப்பு அமைப்புகளுக்கு அனைத்து விதிகளையும் மீட்டமைக்க வேண்டுமா?",
+        resetConfirm:
+          "இந்த உணவக வகையின் முன்னிருப்பு அமைப்புகளுக்கு அனைத்து விதிகளையும் மீட்டமைக்க வேண்டுமா?",
         planLocked: "இந்த வசதியைப் பயன்படுத்த திட்டத்தை மேம்படுத்தவும்",
         saveSuccess: "அமைப்புகள் வெற்றிகரமாக சேமிக்கப்பட்டன.",
         groupDining: "சாப்பாட்டு கூடம் மற்றும் தள அமைப்பு",
@@ -570,7 +597,8 @@ export const defaultResources = {
       },
       errors: {
         DUPLICATE_LABEL: "இந்த பெயரில் ஏற்கனவே ஒரு மேஜை உள்ளது.",
-        ENTITLEMENT_LIMIT_REACHED: "உங்கள் சந்தா திட்டத்தின் வரம்பு முடிந்துவிட்டது. தயவுசெய்து திட்டத்தை மேம்படுத்தவும்.",
+        ENTITLEMENT_LIMIT_REACHED:
+          "உங்கள் சந்தா திட்டத்தின் வரம்பு முடிந்துவிட்டது. தயவுசெய்து திட்டத்தை மேம்படுத்தவும்.",
         TABLE_NOT_AVAILABLE: "இந்த மேஜை தற்போது பயன்பாட்டில் உள்ளது.",
         INVALID_STATUS_TRANSITION: "இந்த நிலைக்கு நேரடியாக மாற்ற முடியாது.",
         TABLES_NOT_COMBINABLE: "இந்த மேஜைகளை இணைக்க முடியாது.",
@@ -581,11 +609,14 @@ export const defaultResources = {
       },
       branding: {
         title: "பிராண்டிங் மற்றும் வணிக அடையாளம்",
-        subtitle: "உங்கள் உணவகத்தின் லோகோ, முதன்மை வண்ணம், பில் உரை மற்றும் ஜிஎஸ்டி விவரங்களை அமைக்கவும்.",
+        subtitle:
+          "உங்கள் உணவகத்தின் லோகோ, முதன்மை வண்ணம், பில் உரை மற்றும் ஜிஎஸ்டி விவரங்களை அமைக்கவும்.",
         logoSection: "உணவக லோகோ",
-        logoHelp: "PNG, JPEG அல்லது WebP லோகோவை பதிவேற்றவும் (அதிகபட்சம் 2 MB, 64×64 முதல் 4000×4000 px வரை).",
+        logoHelp:
+          "PNG, JPEG அல்லது WebP லோகோவை பதிவேற்றவும் (அதிகபட்சம் 2 MB, 64×64 முதல் 4000×4000 px வரை).",
         brandColorSection: "பிராண்ட் முதன்மை வண்ணம்",
-        colorHelp: "வெள்ளை அல்லது அடர் நீல நிறத்திற்கு எதிராக குறைந்தது 4.5:1 மாறுபட்ட விகிதம் (contrast) கொண்ட வண்ணத்தை தேர்வு செய்யவும்.",
+        colorHelp:
+          "வெள்ளை அல்லது அடர் நீல நிறத்திற்கு எதிராக குறைந்தது 4.5:1 மாறுபட்ட விகிதம் (contrast) கொண்ட வண்ணத்தை தேர்வு செய்யவும்.",
         contrastWhite: "வெள்ளைக்கு எதிரான விகிதம்",
         contrastNavy: "நீலத்திற்கு எதிரான விகிதம்",
         contrastPass: "WCAG AA தேவையை பூர்த்தி செய்கிறது (>= 4.5:1)",
@@ -598,7 +629,8 @@ export const defaultResources = {
         gstin: "ஜிஎஸ்டி எண் (GSTIN)",
         gstinHelp: "15 எழுத்துக்களைக் கொண்ட இந்திய ஜிஎஸ்டி வடிவம் (எ.கா: 33AAAAA0000A1Z5).",
         registeredAddress: "பதிவு செய்யப்பட்ட வணிக முகவரி",
-        accountantNotice: "தயவுசெய்து உங்கள் ஜிஎஸ்டி எண், சட்டபூர்வ பெயர் மற்றும் வரி விவரங்களை உங்கள் ஆடிட்டரிடம் (Chartered Accountant) சரிபார்த்துக் கொள்ளவும்.",
+        accountantNotice:
+          "தயவுசெய்து உங்கள் ஜிஎஸ்டி எண், சட்டபூர்வ பெயர் மற்றும் வரி விவரங்களை உங்கள் ஆடிட்டரிடம் (Chartered Accountant) சரிபார்த்துக் கொள்ளவும்.",
         qrPreviewTitle: "QR அட்டையின் நேரலை முன்னோட்டம்",
       },
       qr: {
@@ -616,14 +648,17 @@ export const defaultResources = {
         counterLabel: "கவுண்டர்",
         areaLabel: "பிரிவு",
         rotateTitle: "QR குறியீட்டை மாற்றவா?",
-        rotateWarning: "இதை மாற்றினால் முந்தைய அச்சிடப்பட்ட QR குறியீடுகள் உடனடியாக செயலிழந்துவிடும்.",
+        rotateWarning:
+          "இதை மாற்றினால் முந்தைய அச்சிடப்பட்ட QR குறியீடுகள் உடனடியாக செயலிழந்துவிடும்.",
       },
       publicQr: {
         welcomeTo: "நல்வரவு",
         comingSoonTitle: "ஆன்லைன் ஆர்டர் விரைவில் தொடங்கும்",
-        comingSoonMessage: "ஆன்லைன் ஆர்டர் விரைவில் தொடங்கப்பட உள்ளது. தயவுசெய்து உங்கள் ஆர்டரை எங்கள் பணியாளரிடம் தெரிவிக்கவும்.",
+        comingSoonMessage:
+          "ஆன்லைன் ஆர்டர் விரைவில் தொடங்கப்பட உள்ளது. தயவுசெய்து உங்கள் ஆர்டரை எங்கள் பணியாளரிடம் தெரிவிக்கவும்.",
         notFoundTitle: "QR குறியீடு செயல்படவில்லை அல்லது தவறானது",
-        notFoundMessage: "இந்த QR குறியீடு சரிபார்க்கப்படவில்லை அல்லது மாற்றப்பட்டுள்ளது. தயவுசெய்து உணவக பணியாளரை அணுகவும்.",
+        notFoundMessage:
+          "இந்த QR குறியீடு சரிபார்க்கப்படவில்லை அல்லது மாற்றப்பட்டுள்ளது. தயவுசெய்து உணவக பணியாளரை அணுகவும்.",
         poweredBy: "ServeMyFood உணவக மேலாண்மை தளம்",
       },
     },

@@ -12,6 +12,7 @@ from apps.venues.constants import (
     QROrderingMode,
     QRSessionPolicy,
     QRTargetType,
+    SectionType,
     SessionStatus,
     TableShape,
     TableStatus,
@@ -110,6 +111,12 @@ class Section(BranchOwnedModel):
         related_name="sections",
     )
     name = models.CharField(max_length=100)
+    section_type = models.CharField(
+        max_length=30,
+        choices=SectionType.choices,
+        default=SectionType.INDOOR,
+    )
+    is_active = models.BooleanField(default=True)
     color = models.CharField(max_length=20, default="#3B82F6")
     canvas_width = models.IntegerField(default=1200)
     canvas_height = models.IntegerField(default=800)

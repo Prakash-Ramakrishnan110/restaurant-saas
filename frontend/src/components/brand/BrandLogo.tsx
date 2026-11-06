@@ -96,10 +96,7 @@ export const BrandLogo: React.FC<BrandLogoProps> = ({
           >
             ServeMy
           </span>
-          <span
-            className={isMono ? "text-current" : "text-[#FF6A00]"}
-            data-testid="wordmark-food"
-          >
+          <span className={isMono ? "text-current" : "text-[#FF6A00]"} data-testid="wordmark-food">
             Food
           </span>
         </span>

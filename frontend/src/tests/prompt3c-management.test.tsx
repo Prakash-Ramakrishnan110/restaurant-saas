@@ -58,7 +58,12 @@ describe("Prompt 3C: Management Screens Role Visibility & Accessibility", () => 
 
   const setupAuthMock = (role: string, permissions: string[]) => {
     vi.spyOn(AuthContextModule, "useAuth").mockReturnValue({
-      user: { id: "u-1", email: "user@example.com", full_name: "Test User", is_platform_admin: false },
+      user: {
+        id: "u-1",
+        email: "user@example.com",
+        full_name: "Test User",
+        is_platform_admin: false,
+      },
       memberships: [
         {
           tenant_id: "t-1",
@@ -274,4 +279,3 @@ describe("Prompt 3C: Management Screens Role Visibility & Accessibility", () => 
     });
   });
 });
-

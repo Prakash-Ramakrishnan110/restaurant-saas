@@ -24,7 +24,12 @@ describe("AppShell Sidebar Navigation Structure & Role Filtering", () => {
 
   const setupAuthMock = (role: string, permissions: string[], tenantInfo: any) => {
     vi.spyOn(AuthContextModule, "useAuth").mockReturnValue({
-      user: { id: "u-1", email: "user@example.com", full_name: "Test User", is_platform_admin: false },
+      user: {
+        id: "u-1",
+        email: "user@example.com",
+        full_name: "Test User",
+        is_platform_admin: false,
+      },
       memberships: [
         {
           tenant_id: tenantInfo.tenant_id || "t-1",
@@ -51,7 +56,8 @@ describe("AppShell Sidebar Navigation Structure & Role Filtering", () => {
       logout: vi.fn(),
       selectTenant: vi.fn(),
       changePassword: vi.fn(),
-      can: (perm: string) => permissions.includes(perm) || permissions.includes("*") || role === "OWNER",
+      can: (perm: string) =>
+        permissions.includes(perm) || permissions.includes("*") || role === "OWNER",
     });
   };
 

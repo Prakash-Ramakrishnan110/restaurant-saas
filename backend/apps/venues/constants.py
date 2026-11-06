@@ -37,6 +37,13 @@ class AreaType(models.TextChoices):
     TAKEAWAY = "TAKEAWAY", "Takeaway Pickup Point"
 
 
+class SectionType(models.TextChoices):
+    INDOOR = "INDOOR", "Indoor"
+    OUTDOOR = "OUTDOOR", "Outdoor"
+    VIP = "VIP", "VIP"
+    PRIVATE_ROOM = "PRIVATE_ROOM", "Private Room"
+
+
 class TableType(models.TextChoices):
     TABLE = "TABLE", "Dining Table"
     BOOTH = "BOOTH", "Booth Seating"

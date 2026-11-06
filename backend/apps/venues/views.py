@@ -198,10 +198,21 @@ class SectionViewSet(viewsets.ModelViewSet):
         qs = Section.objects.all().select_related("service_area", "branch")
         service_area_id = self.request.query_params.get("service_area_id")
         branch_id = self.request.query_params.get("branch_id")
+        section_type = self.request.query_params.get("section_type")
+        is_active = self.request.query_params.get("is_active")
+
         if service_area_id:
             qs = qs.filter(service_area_id=service_area_id)
         if branch_id:
             qs = qs.filter(branch_id=branch_id)
+        if section_type:
+            qs = qs.filter(section_type=section_type)
+        if is_active is not None:
+            if is_active.lower() == "true":
+                qs = qs.filter(is_active=True)
+            elif is_active.lower() == "false":
+                qs = qs.filter(is_active=False)
+
         return qs.order_by("sort_order", "name")
 
     def perform_create(self, serializer: Any) -> None:

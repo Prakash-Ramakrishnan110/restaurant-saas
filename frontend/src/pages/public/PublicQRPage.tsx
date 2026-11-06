@@ -83,9 +83,7 @@ export const PublicQRPage: React.FC = () => {
           </p>
         </main>
 
-        <footer className="pb-6 text-center text-xs text-slate-400">
-          Powered by ServeMyFood
-        </footer>
+        <footer className="pb-6 text-center text-xs text-slate-400">Powered by ServeMyFood</footer>
       </div>
     );
   }
@@ -162,9 +160,7 @@ export const PublicQRPage: React.FC = () => {
 
       {/* Footer - B6: Exact string */}
       <footer className="w-full max-w-lg py-4 text-center">
-        <p className="text-xs text-slate-400">
-          Powered by ServeMyFood
-        </p>
+        <p className="text-xs text-slate-400">Powered by ServeMyFood</p>
       </footer>
     </div>
   );

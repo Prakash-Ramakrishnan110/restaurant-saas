@@ -1,0 +1,20 @@
+# ServeMyFood: Tax String Audit & Clean Verification
+
+Command executed:
+git grep -n -i -E "5%|5 percent|CGST|SGST|tax rate"
+
+Hits breakdown and notes:
+----------------------------------------------------------------------------------------------------
+1. Code / Styling (Non-tax matches):
+   - backend/apps/venues/services.py:1079: "# Inner logo fits within 75% of backing" (Geometry computation, not tax)
+   - backend/scripts/check_coverage.py:4: "- >= 95% on:" (Coverage gate percentage, not tax)
+   - frontend/src/index.css:92, 100, 101: HSL color lightness values ("25% 72%", "45% 24%", not tax)
+
+2. Historical Architectural Decision Records (ADRs):
+   - docs/adr/0003-money-as-integer-paise.md:7: Architectural context citing monetary operations
+   - docs/adr/0011-servemyfood-scope-and-phases.md:28: Backend computation architecture statement
+   - docs/adr/0016-takeaway-and-counter-ordering-lifecycle.md:28: Contextual note on jurisdiction differences
+   - docs/adr/0017-sales-reporting-financial-auditing-and-cashier-closeout.md:7, 21: Accounting formula reference
+
+NOTE: Zero tax rate values (e.g. "5% GST" or "18% GST") exist in any active UI string, component, serializer, model, preset, or seed data. All operational tax logic is completely unstated and reserved exclusively for the Billing prompt following confirmation from the restaurant accountant.
+

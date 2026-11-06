@@ -23,7 +23,13 @@ import {
   Printer,
   Sliders,
 } from "lucide-react";
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "../../components/ui/card";
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardContent,
+} from "../../components/ui/card";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
 import { Stepper, StepItem } from "../../components/ui/stepper";
@@ -269,9 +275,12 @@ export const OnboardingWizardPage: React.FC = () => {
   useEffect(() => {
     if (currentStep === 3 && branchId && selectedTemplateKey) {
       apiClient
-        .post<any>(`/branches/${branchId}/layout-templates/${selectedTemplateKey}/apply/?dry_run=true`, {
-          mode: "replace",
-        })
+        .post<any>(
+          `/branches/${branchId}/layout-templates/${selectedTemplateKey}/apply/?dry_run=true`,
+          {
+            mode: "replace",
+          }
+        )
         .then((res) => {
           setDryRunResult(res.data);
         })
@@ -460,9 +469,7 @@ export const OnboardingWizardPage: React.FC = () => {
           <h1 className="text-2xl font-black tracking-tight text-foreground">
             {t("onboarding.title")}
           </h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            {t("onboarding.subtitle")}
-          </p>
+          <p className="text-sm text-muted-foreground mt-1">{t("onboarding.subtitle")}</p>
         </div>
         <div className="flex items-center gap-3">
           <SaveStatusIndicator status={saveStatus} />
@@ -682,7 +689,9 @@ export const OnboardingWizardPage: React.FC = () => {
                     <span className="font-semibold text-foreground w-28">{h.day}</span>
                     <div className="flex items-center gap-3">
                       <div className="flex items-center gap-1.5">
-                        <span className="text-muted-foreground text-[11px]">{t("onboarding.openTime")}:</span>
+                        <span className="text-muted-foreground text-[11px]">
+                          {t("onboarding.openTime")}:
+                        </span>
                         <input
                           type="time"
                           value={h.open}
@@ -699,7 +708,9 @@ export const OnboardingWizardPage: React.FC = () => {
                         />
                       </div>
                       <div className="flex items-center gap-1.5">
-                        <span className="text-muted-foreground text-[11px]">{t("onboarding.closeTime")}:</span>
+                        <span className="text-muted-foreground text-[11px]">
+                          {t("onboarding.closeTime")}:
+                        </span>
                         <input
                           type="time"
                           value={h.close}
@@ -729,7 +740,9 @@ export const OnboardingWizardPage: React.FC = () => {
                           }}
                           className="rounded border-border text-[#FF6A00]"
                         />
-                        <span className="text-[11px] text-muted-foreground">{t("onboarding.closed")}</span>
+                        <span className="text-[11px] text-muted-foreground">
+                          {t("onboarding.closed")}
+                        </span>
                       </label>
                     </div>
                   </div>
@@ -789,7 +802,9 @@ export const OnboardingWizardPage: React.FC = () => {
               <CheckCircle2 className="w-5 h-5 text-[#FF6A00] flex-shrink-0 mt-0.5" />
               <div className="text-xs leading-relaxed text-foreground">
                 <span className="font-bold">Automated Operational Rules: </span>
-                Preset capabilities are configured out-of-the-box according to hospitality standards for {venueProfile}. You can customize granular overrides at any time in Branch Settings.
+                Preset capabilities are configured out-of-the-box according to hospitality standards
+                for {venueProfile}. You can customize granular overrides at any time in Branch
+                Settings.
               </div>
             </div>
           </CardContent>
@@ -835,9 +850,7 @@ export const OnboardingWizardPage: React.FC = () => {
                       <div className="flex items-start justify-between gap-2">
                         <div>
                           <h4 className="font-bold text-sm text-foreground">
-                            {isCountersTemplate
-                              ? "Counters and token numbers"
-                              : template.name}
+                            {isCountersTemplate ? "Counters and token numbers" : template.name}
                           </h4>
                           <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
                             {isCountersTemplate
@@ -1051,9 +1064,7 @@ export const OnboardingWizardPage: React.FC = () => {
                     />
                   </div>
                   <div className="space-y-1.5">
-                    <label className="text-xs font-semibold text-foreground">
-                      Staff Phone
-                    </label>
+                    <label className="text-xs font-semibold text-foreground">Staff Phone</label>
                     <Input
                       type="tel"
                       value={staffPhone}
@@ -1094,9 +1105,7 @@ export const OnboardingWizardPage: React.FC = () => {
               <div className="w-16 h-16 rounded-full bg-emerald-100 dark:bg-emerald-900 text-emerald-700 dark:text-emerald-300 mx-auto flex items-center justify-center">
                 <Check className="w-8 h-8 stroke-[3]" />
               </div>
-              <h3 className="text-xl font-black text-foreground">
-                {t("onboarding.doneAllSteps")}
-              </h3>
+              <h3 className="text-xl font-black text-foreground">{t("onboarding.doneAllSteps")}</h3>
               <p className="text-xs text-muted-foreground max-w-md mx-auto leading-relaxed">
                 {t("onboarding.doneSummary")}
               </p>

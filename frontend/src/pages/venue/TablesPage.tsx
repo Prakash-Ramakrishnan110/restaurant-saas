@@ -3,7 +3,13 @@ import { Utensils, Plus, Copy, Link2, Unlink, QrCode, Search, Power } from "luci
 import { PageHeader } from "../../components/app/PageHeader";
 import { Card, CardContent } from "../../components/ui/card";
 import { Button } from "../../components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "../../components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "../../components/ui/dialog";
 import { ConfirmDialog } from "../../components/ui/confirm-dialog";
 import { apiClient } from "../../api/client";
 import { useAuth } from "../../context/AuthContext";
@@ -105,7 +111,9 @@ export const TablesPage: React.FC = () => {
         apiClient.get<any>("/tables/", { params: queryParams }),
         apiClient.get<any>("/sections/"),
         apiClient.get<any>("/service-areas/"),
-        apiClient.get<any>("/entitlements/").catch(() => ({ data: { entitlements: { max_tables: 50 } } })),
+        apiClient
+          .get<any>("/entitlements/")
+          .catch(() => ({ data: { entitlements: { max_tables: 50 } } })),
       ]);
 
       setTables(tblRes.data?.results || tblRes.data || []);
@@ -262,10 +270,7 @@ export const TablesPage: React.FC = () => {
       <PageHeader
         title={t("tables.title")}
         description={t("tables.subtitle")}
-        breadcrumbs={[
-          { label: "Dashboard", href: "/dashboard" },
-          { label: t("tables.title") },
-        ]}
+        breadcrumbs={[{ label: "Dashboard", href: "/dashboard" }, { label: t("tables.title") }]}
         actions={
           <div className="flex items-center gap-2 flex-wrap">
             {canMerge && (
@@ -323,7 +328,9 @@ export const TablesPage: React.FC = () => {
       {/* Plan Usage Meter Card */}
       <div className="p-4 rounded-xl border border-border bg-card flex items-center justify-between flex-wrap gap-4">
         <div>
-          <span className="text-xs font-semibold text-muted-foreground block">{t("tables.planUsage")}</span>
+          <span className="text-xs font-semibold text-muted-foreground block">
+            {t("tables.planUsage")}
+          </span>
           <span className="text-lg font-black text-foreground">
             {activeCount} of {maxTables} tables used
           </span>
@@ -335,8 +342,8 @@ export const TablesPage: React.FC = () => {
                 activeCount / maxTables >= 1
                   ? "bg-destructive"
                   : activeCount / maxTables >= 0.8
-                  ? "bg-amber-500"
-                  : "bg-emerald-500"
+                    ? "bg-amber-500"
+                    : "bg-emerald-500"
               }`}
               style={{ width: `${Math.min((activeCount / maxTables) * 100, 100)}%` }}
             />
@@ -362,7 +369,9 @@ export const TablesPage: React.FC = () => {
             >
               <option value="">{t("tables.filterArea")}</option>
               {areas.map((a) => (
-                <option key={a.id} value={a.id}>{a.name}</option>
+                <option key={a.id} value={a.id}>
+                  {a.name}
+                </option>
               ))}
             </select>
           </div>
@@ -376,7 +385,9 @@ export const TablesPage: React.FC = () => {
             >
               <option value="">{t("tables.filterSection")}</option>
               {sections.map((s) => (
-                <option key={s.id} value={s.id}>{s.name}</option>
+                <option key={s.id} value={s.id}>
+                  {s.name}
+                </option>
               ))}
             </select>
           </div>
@@ -414,13 +425,17 @@ export const TablesPage: React.FC = () => {
 
       {/* Tables DataTable */}
       {loading ? (
-        <div className="p-12 text-center text-muted-foreground font-medium">{t("common.loading")}</div>
+        <div className="p-12 text-center text-muted-foreground font-medium">
+          {t("common.loading")}
+        </div>
       ) : tables.length === 0 ? (
         <Card>
           <CardContent className="p-12 text-center">
             <Utensils className="w-12 h-12 text-muted-foreground mx-auto mb-3 opacity-40" />
             <h3 className="text-base font-bold text-foreground">No tables match your filter</h3>
-            <p className="text-xs text-muted-foreground mt-1">Try resetting filters or adding new dining tables.</p>
+            <p className="text-xs text-muted-foreground mt-1">
+              Try resetting filters or adding new dining tables.
+            </p>
           </CardContent>
         </Card>
       ) : (
@@ -448,15 +463,15 @@ export const TablesPage: React.FC = () => {
                       </span>
                     )}
                   </td>
-                  <td className="p-3.5 text-muted-foreground">
-                    {table.section?.name || "-"}
-                  </td>
+                  <td className="p-3.5 text-muted-foreground">{table.section?.name || "-"}</td>
                   <td className="p-3.5 font-medium">{table.capacity} seats</td>
                   <td className="p-3.5 text-muted-foreground">
                     {table.table_type} • {table.shape}
                   </td>
                   <td className="p-3.5">
-                    <span className={`px-2.5 py-1 rounded-full text-[11px] font-bold border ${statusColors[table.status] || ""}`}>
+                    <span
+                      className={`px-2.5 py-1 rounded-full text-[11px] font-bold border ${statusColors[table.status] || ""}`}
+                    >
                       {table.status}
                     </span>
                   </td>
@@ -483,18 +498,19 @@ export const TablesPage: React.FC = () => {
                   <td className="p-3.5 text-right">
                     <div className="flex items-center justify-end gap-1.5">
                       {/* Status Transition buttons if permitted */}
-                      {canUpdateStatus && allowedTransitions[table.status]?.map((nextStat) => (
-                        <Button
-                          key={nextStat}
-                          variant="outline"
-                          size="sm"
-                          disabled={actionLoading}
-                          onClick={() => handleStatusChange(table, nextStat)}
-                          className="h-8 px-2 text-[10px] font-bold"
-                        >
-                          → {nextStat}
-                        </Button>
-                      ))}
+                      {canUpdateStatus &&
+                        allowedTransitions[table.status]?.map((nextStat) => (
+                          <Button
+                            key={nextStat}
+                            variant="outline"
+                            size="sm"
+                            disabled={actionLoading}
+                            onClick={() => handleStatusChange(table, nextStat)}
+                            className="h-8 px-2 text-[10px] font-bold"
+                          >
+                            → {nextStat}
+                          </Button>
+                        ))}
 
                       {/* QR standee link */}
                       <Button
@@ -544,14 +560,18 @@ export const TablesPage: React.FC = () => {
                   className="w-full rounded-md border border-input bg-card p-2.5 min-h-[44px]"
                 >
                   {sections.map((s) => (
-                    <option key={s.id} value={s.id}>{s.name}</option>
+                    <option key={s.id} value={s.id}>
+                      {s.name}
+                    </option>
                   ))}
                 </select>
               </div>
 
               <div className="grid grid-cols-3 gap-2">
                 <div>
-                  <label className="font-semibold block mb-1 text-foreground">{t("tables.prefix")}</label>
+                  <label className="font-semibold block mb-1 text-foreground">
+                    {t("tables.prefix")}
+                  </label>
                   <input
                     value={bulkForm.prefix}
                     onChange={(e) => setBulkForm({ ...bulkForm, prefix: e.target.value })}
@@ -559,17 +579,23 @@ export const TablesPage: React.FC = () => {
                   />
                 </div>
                 <div>
-                  <label className="font-semibold block mb-1 text-foreground">{t("tables.startNumber")}</label>
+                  <label className="font-semibold block mb-1 text-foreground">
+                    {t("tables.startNumber")}
+                  </label>
                   <input
                     type="number"
                     min="1"
                     value={bulkForm.start_number}
-                    onChange={(e) => setBulkForm({ ...bulkForm, start_number: Number(e.target.value) })}
+                    onChange={(e) =>
+                      setBulkForm({ ...bulkForm, start_number: Number(e.target.value) })
+                    }
                     className="w-full rounded-md border border-input bg-card p-2.5 min-h-[44px]"
                   />
                 </div>
                 <div>
-                  <label className="font-semibold block mb-1 text-foreground">{t("tables.count")}</label>
+                  <label className="font-semibold block mb-1 text-foreground">
+                    {t("tables.count")}
+                  </label>
                   <input
                     type="number"
                     min="1"
@@ -583,13 +609,17 @@ export const TablesPage: React.FC = () => {
 
               {/* Label Preview */}
               <div className="p-3 rounded-lg bg-muted/40 border border-border text-xs">
-                <span className="font-bold text-muted-foreground block mb-0.5">{t("tables.bulkPreview")}:</span>
+                <span className="font-bold text-muted-foreground block mb-0.5">
+                  {t("tables.bulkPreview")}:
+                </span>
                 <span className="font-mono text-primary font-bold">{getBulkPreviewString()}</span>
               </div>
 
               <div className="grid grid-cols-2 gap-2">
                 <div>
-                  <label className="font-semibold block mb-1 text-foreground">{t("tables.seats")}</label>
+                  <label className="font-semibold block mb-1 text-foreground">
+                    {t("tables.seats")}
+                  </label>
                   <input
                     type="number"
                     min="1"
@@ -599,7 +629,9 @@ export const TablesPage: React.FC = () => {
                   />
                 </div>
                 <div>
-                  <label className="font-semibold block mb-1 text-foreground">{t("tables.shape")}</label>
+                  <label className="font-semibold block mb-1 text-foreground">
+                    {t("tables.shape")}
+                  </label>
                   <select
                     value={bulkForm.shape}
                     onChange={(e) => setBulkForm({ ...bulkForm, shape: e.target.value })}
@@ -645,13 +677,17 @@ export const TablesPage: React.FC = () => {
                   className="w-full rounded-md border border-input bg-card p-2.5 min-h-[44px]"
                 >
                   {sections.map((s) => (
-                    <option key={s.id} value={s.id}>{s.name}</option>
+                    <option key={s.id} value={s.id}>
+                      {s.name}
+                    </option>
                   ))}
                 </select>
               </div>
 
               <div>
-                <label className="font-semibold block mb-1 text-foreground">{t("tables.label")} *</label>
+                <label className="font-semibold block mb-1 text-foreground">
+                  {t("tables.label")} *
+                </label>
                 <input
                   required
                   value={singleForm.label}
@@ -663,17 +699,23 @@ export const TablesPage: React.FC = () => {
 
               <div className="grid grid-cols-2 gap-2">
                 <div>
-                  <label className="font-semibold block mb-1 text-foreground">{t("tables.seats")}</label>
+                  <label className="font-semibold block mb-1 text-foreground">
+                    {t("tables.seats")}
+                  </label>
                   <input
                     type="number"
                     min="1"
                     value={singleForm.capacity}
-                    onChange={(e) => setSingleForm({ ...singleForm, capacity: Number(e.target.value) })}
+                    onChange={(e) =>
+                      setSingleForm({ ...singleForm, capacity: Number(e.target.value) })
+                    }
                     className="w-full rounded-md border border-input bg-card p-2.5 min-h-[44px]"
                   />
                 </div>
                 <div>
-                  <label className="font-semibold block mb-1 text-foreground">{t("tables.shape")}</label>
+                  <label className="font-semibold block mb-1 text-foreground">
+                    {t("tables.shape")}
+                  </label>
                   <select
                     value={singleForm.shape}
                     onChange={(e) => setSingleForm({ ...singleForm, shape: e.target.value })}
@@ -711,7 +753,9 @@ export const TablesPage: React.FC = () => {
             </DialogHeader>
             <div className="space-y-4 py-4 text-xs">
               <div>
-                <label className="font-semibold block mb-1 text-foreground">{t("tables.groupLabel")}</label>
+                <label className="font-semibold block mb-1 text-foreground">
+                  {t("tables.groupLabel")}
+                </label>
                 <input
                   value={joinGroupLabel}
                   onChange={(e) => setJoinGroupLabel(e.target.value)}
@@ -721,7 +765,9 @@ export const TablesPage: React.FC = () => {
               </div>
 
               <div>
-                <label className="font-semibold block mb-1 text-foreground">Select joinable tables (min 2):</label>
+                <label className="font-semibold block mb-1 text-foreground">
+                  Select joinable tables (min 2):
+                </label>
                 <div className="max-h-48 overflow-y-auto border border-border rounded-lg p-2 space-y-1.5">
                   {tables
                     .filter((t) => t.is_combinable && !t.group)
@@ -739,13 +785,17 @@ export const TablesPage: React.FC = () => {
                               if (e.target.checked) {
                                 setSelectedTableIdsForJoin([...selectedTableIdsForJoin, table.id]);
                               } else {
-                                setSelectedTableIdsForJoin(selectedTableIdsForJoin.filter((id) => id !== table.id));
+                                setSelectedTableIdsForJoin(
+                                  selectedTableIdsForJoin.filter((id) => id !== table.id)
+                                );
                               }
                             }}
                             className="rounded border-border text-[#FF6A00] focus:ring-[#FF6A00]"
                           />
                           <span className="font-bold text-foreground">{table.label}</span>
-                          <span className="text-muted-foreground text-[11px]">({table.capacity} seats, {table.section?.name})</span>
+                          <span className="text-muted-foreground text-[11px]">
+                            ({table.capacity} seats, {table.section?.name})
+                          </span>
                         </label>
                       );
                     })}

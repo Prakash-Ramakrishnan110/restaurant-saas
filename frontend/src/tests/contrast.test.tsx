@@ -95,17 +95,47 @@ describe("Brand Color Token WCAG 2.1 Contrast Invariants", () => {
 
   it("INVARIANT: Primary brand orange tokens (#FF6A00, #EA6200, #D65900) are NEVER used in Status, Alert, or Warning UI", () => {
     const alertWarningStatusHexes = [
-      "#DC2626", "#B91C1C", "#991B1B", "#FEF2F2", "#7F1D1D",
-      "#D97706", "#B45309", "#92400E", "#FFFBEB", "#78350F",
-      "#2563EB", "#1D4ED8", "#1E40AF", "#EFF6FF", "#172554",
-      "#15803D", "#7E22CE", "#374151", "#DCFCE7", "#DBEAFE",
-      "#F3E8FF", "#FEF3C7", "#F3F4F6", "#4ADE80", "#93C5FD",
-      "#E9D5FF", "#FBBF24", "#D1D5DB", "#14532D", "#1E3A8A",
-      "#581C87", "#78350F",
+      "#DC2626",
+      "#B91C1C",
+      "#991B1B",
+      "#FEF2F2",
+      "#7F1D1D",
+      "#D97706",
+      "#B45309",
+      "#92400E",
+      "#FFFBEB",
+      "#78350F",
+      "#2563EB",
+      "#1D4ED8",
+      "#1E40AF",
+      "#EFF6FF",
+      "#172554",
+      "#15803D",
+      "#7E22CE",
+      "#374151",
+      "#DCFCE7",
+      "#DBEAFE",
+      "#F3E8FF",
+      "#FEF3C7",
+      "#F3F4F6",
+      "#4ADE80",
+      "#93C5FD",
+      "#E9D5FF",
+      "#FBBF24",
+      "#D1D5DB",
+      "#14532D",
+      "#1E3A8A",
+      "#581C87",
+      "#78350F",
     ];
 
     const forbiddenBrandOrangeHexes = [
-      "#FF6A00", "#EA6200", "#D65900", "#F97316", "#EA580C", "#C2410C",
+      "#FF6A00",
+      "#EA6200",
+      "#D65900",
+      "#F97316",
+      "#EA580C",
+      "#C2410C",
     ];
 
     alertWarningStatusHexes.forEach((hex) => {
@@ -215,12 +245,22 @@ describe("Usage Meter Semantic Colors (Requirement C4)", () => {
 describe("Exhaustive UI Token Contrast Matrix across Light and Dark Themes (Requirement C5)", () => {
   // Light Theme Pairs
   const lightPairs = [
-    { name: "Primary Foreground (Navy) on Primary (Orange)", fg: "#0B1F3B", bg: "#FF6A00", min: 4.5 },
+    {
+      name: "Primary Foreground (Navy) on Primary (Orange)",
+      fg: "#0B1F3B",
+      bg: "#FF6A00",
+      min: 4.5,
+    },
     { name: "Foreground on Background", fg: "#0B1F3B", bg: "#FFFFFF", min: 4.5 },
     { name: "Card Foreground on Card", fg: "#0B1F3B", bg: "#FFFFFF", min: 4.5 },
     { name: "Muted Foreground on Background", fg: "#475569", bg: "#FFFFFF", min: 4.5 },
     { name: "Muted Foreground on Card", fg: "#475569", bg: "#FFFFFF", min: 4.5 },
-    { name: "Destructive Foreground (White) on Destructive (Red)", fg: "#FFFFFF", bg: "#DC2626", min: 4.5 },
+    {
+      name: "Destructive Foreground (White) on Destructive (Red)",
+      fg: "#FFFFFF",
+      bg: "#DC2626",
+      min: 4.5,
+    },
     { name: "Warning Text (Amber) on Light Amber BG", fg: "#B45309", bg: "#FEF3C7", min: 4.5 },
     { name: "Amber Text (#B45309) on White Background", fg: "#B45309", bg: "#FFFFFF", min: 4.5 },
     { name: "Table Available (Green 700 on Green 100)", fg: "#15803D", bg: "#DCFCE7", min: 4.5 },
@@ -236,9 +276,24 @@ describe("Exhaustive UI Token Contrast Matrix across Light and Dark Themes (Requ
   const darkNavyBase = "#0B1F3B";
   const darkNavyCard = "#112948";
   const darkPairs = [
-    { name: "Primary Foreground (Navy) on Primary (Orange)", fg: "#0B1F3B", bg: "#FF6A00", min: 4.5 },
-    { name: "Foreground (White) on Dark Navy Background", fg: "#FFFFFF", bg: darkNavyBase, min: 4.5 },
-    { name: "Foreground (Off-white) on Dark Navy Background", fg: "#F8FAFC", bg: darkNavyBase, min: 4.5 },
+    {
+      name: "Primary Foreground (Navy) on Primary (Orange)",
+      fg: "#0B1F3B",
+      bg: "#FF6A00",
+      min: 4.5,
+    },
+    {
+      name: "Foreground (White) on Dark Navy Background",
+      fg: "#FFFFFF",
+      bg: darkNavyBase,
+      min: 4.5,
+    },
+    {
+      name: "Foreground (Off-white) on Dark Navy Background",
+      fg: "#F8FAFC",
+      bg: darkNavyBase,
+      min: 4.5,
+    },
     { name: "Foreground on Dark Card", fg: "#F8FAFC", bg: darkNavyCard, min: 4.5 },
     { name: "Muted Foreground on Dark Navy Background", fg: "#A8BAD0", bg: darkNavyBase, min: 4.5 },
     { name: "Muted Foreground on Dark Card", fg: "#A8BAD0", bg: darkNavyCard, min: 4.5 },
@@ -247,10 +302,25 @@ describe("Exhaustive UI Token Contrast Matrix across Light and Dark Themes (Requ
     { name: "Destructive Foreground on Destructive Red", fg: "#FFFFFF", bg: "#DC2626", min: 4.5 },
     { name: "Warning Text (Amber 400) on Dark Amber BG", fg: "#FBBF24", bg: "#78350F", min: 4.5 },
     { name: "Amber Text (#FBBF24) on Dark Navy Base", fg: "#FBBF24", bg: darkNavyBase, min: 4.5 },
-    { name: "Table Available Dark (Green 400 on Green 900)", fg: "#4ADE80", bg: "#14532D", min: 4.5 },
+    {
+      name: "Table Available Dark (Green 400 on Green 900)",
+      fg: "#4ADE80",
+      bg: "#14532D",
+      min: 4.5,
+    },
     { name: "Table Occupied Dark (Blue 300 on Blue 900)", fg: "#93C5FD", bg: "#1E3A8A", min: 4.5 },
-    { name: "Table Reserved Dark (Purple 200 on Purple 900)", fg: "#E9D5FF", bg: "#581C87", min: 4.5 },
-    { name: "Table Cleaning Dark (Amber 400 on Amber 900)", fg: "#FBBF24", bg: "#78350F", min: 4.5 },
+    {
+      name: "Table Reserved Dark (Purple 200 on Purple 900)",
+      fg: "#E9D5FF",
+      bg: "#581C87",
+      min: 4.5,
+    },
+    {
+      name: "Table Cleaning Dark (Amber 400 on Amber 900)",
+      fg: "#FBBF24",
+      bg: "#78350F",
+      min: 4.5,
+    },
     { name: "Table Blocked Dark (Gray 300 on Gray 700)", fg: "#D1D5DB", bg: "#374151", min: 4.5 },
   ];
 
@@ -342,7 +412,9 @@ describe("Exhaustive UI Token Contrast Matrix across Light and Dark Themes (Requ
     }
 
     const violations = scanDirectory(srcDir);
-    expect(violations, `Found forbidden #D97706 text color usage:\n${violations.join("\n")}`).toEqual([]);
+    expect(
+      violations,
+      `Found forbidden #D97706 text color usage:\n${violations.join("\n")}`
+    ).toEqual([]);
   });
 });
-

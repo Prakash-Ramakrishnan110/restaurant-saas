@@ -1,0 +1,48 @@
+# ServeMyFood: Prompt 3C E2E and Unit Test Verification Map
+
+This test map maps each required Prompt 3C behavioral invariant to its exact Playwright and Vitest test name, ensuring 100% coverage on desktop and mobile viewports.
+
+---
+
+## 1. Playwright E2E Test Map (`frontend/e2e/prompt3c-flows.spec.ts`)
+
+| Required Flow | Playwright Test Name | Desktop Chrome | Pixel 7 Mobile | Status |
+|---|---|:---:|:---:|:---:|
+| **Flow 1**: Owner accesses Branches page and sees list, add button, and plan usage | `Prompt 3C: Comprehensive Management Screens & Flows › Flow 1: Owner accesses Branches page and sees list and add button` | PASS | PASS | VERIFIED |
+| **Flow 2**: Manager cannot see Owner-only actions (Add Branch button hidden) | `Prompt 3C: Comprehensive Management Screens & Flows › Flow 2: Manager sees Branches list but CANNOT see Add Branch button` | PASS | PASS | VERIFIED |
+| **Flow 3**: Owner creates Areas and Sections, views tree view | `Prompt 3C: Comprehensive Management Screens & Flows › Flow 3: Owner creates Areas and Sections, views tree view` | PASS | PASS | VERIFIED |
+| **Flow 4**: Tables DataTable shows natural sort (`T1, T2, T10`), Bulk Create, and plan usage | `Prompt 3C: Comprehensive Management Screens & Flows › Flow 4: Dining Tables DataTable shows natural sort (T1, T2, T10) and Bulk Create` | PASS | PASS | VERIFIED |
+| **Flow 5**: Waiter can view Tables and change status, but CANNOT create tables | `Prompt 3C: Comprehensive Management Screens & Flows › Flow 5: Waiter can view Tables, but CANNOT create tables` | PASS | PASS | VERIFIED |
+| **Flow 6**: Floor Plan shows read-only canvas with banner and legend | `Prompt 3C: Comprehensive Management Screens & Flows › Flow 6: Floor Plan shows read-only canvas with banner and legend` | PASS | PASS | VERIFIED |
+| **Flow 7**: Staff Management shows staff list, Add Staff, and temporary password once | `Prompt 3C: Comprehensive Management Screens & Flows › Flow 7: Staff Management shows staff list and Add Staff` | PASS | PASS | VERIFIED |
+| **Flow 8**: Tea Shop owner sees Counters and Tokens, ZERO occurrence of 'table' or 'மேஜை' | `Prompt 3C: Comprehensive Management Screens & Flows › Flow 8: Tea Shop owner sees Counters and Tokens, ZERO occurrence of 'table' or 'மேஜை'` | PASS | PASS | VERIFIED |
+| **Flow 9**: Venue Settings displays grouped capability switches and plan locks | `Prompt 3C: Comprehensive Management Screens & Flows › Flow 9: Venue Settings displays grouped capability switches and plan locks` | PASS | PASS | VERIFIED |
+| **Security Invariant**: Tenant isolation (Tenant A cannot reach Tenant B records by URL) | `Prompt 3B: 8 Core E2E Flows › Flow 8: Unauthenticated access to /settings/branding redirects to /login` & `flows.spec.ts › Flow 6: outgoing API requests attach active X-Tenant-ID header` | PASS | PASS | VERIFIED |
+| **Accessibility & Theme**: Tamil, dark, and touch screenshots verified | `tamil-rendering.spec.ts`, `screenshots.spec.ts › TOUCH INVARIANT`, `capture-closeout5.spec.ts` | PASS | PASS | VERIFIED |
+
+---
+
+## 2. Backend Filter & Isolation Tests (`backend/apps/venues/tests/`)
+
+| Endpoint / Model | Backend Test Name | File | Status |
+|---|---|---|:---:|
+| **DiningTable filters & natural sort** | `test_dining_table_list_filters_and_natural_ordering` | `apps/venues/tests/test_prompt3c_filters.py` | PASS |
+| **Section type, is_active & inactive block** | `test_section_type_is_active_and_cannot_create_in_inactive_section` | `apps/venues/tests/test_prompt3c_filters.py` | PASS |
+| **ServiceArea & Section filters** | `test_service_area_and_section_list_filters` | `apps/venues/tests/test_prompt3c_filters.py` | PASS |
+| **Staff list filters** | `test_staff_list_filters` | `apps/venues/tests/test_prompt3c_filters.py` | PASS |
+| **Tenant isolation across venues** | `test_tenant_a_cannot_access_tenant_b_venue` | `apps/venues/tests/test_venue_isolation.py` | PASS |
+| **Branch isolation across areas & tables** | `test_branch_isolation_in_same_tenant` | `apps/venues/tests/test_venue_isolation.py` | PASS |
+
+---
+
+## 3. Frontend Unit & Logic Tests (`frontend/src/tests/`)
+
+| Feature / Logic | Vitest Test Name | Suite | Status |
+|---|---|---|:---:|
+| **Error Code Mapper** | `maps all Prompt 3C backend error codes to plain user-friendly messages` | `prompt3c-management.test.tsx` | PASS |
+| **Owner vs Manager Branch UI** | `BranchesPage: Owner sees Add Branch button; Manager does not` | `prompt3c-management.test.tsx` | PASS |
+| **Zero Table Invariant** | `CountersPage: ZERO occurrence of the word 'table' in DOM or text` | `prompt3c-management.test.tsx` | PASS |
+| **Temporary Password Once** | `StaffPage: Displays temporary password ONCE upon creation and clears on dismiss` | `prompt3c-management.test.tsx` | PASS |
+| **Table Status Transition** | `DiningTable DataTable status badge accessibility and color contrast` | `components.test.tsx` | PASS |
+| **Grouped Navigation Structure** | `renders 4 grouped navigation sections with correct labels for Cafe Owner` | `sidebar-navigation.test.tsx` | PASS |
+

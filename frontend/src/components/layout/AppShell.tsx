@@ -124,23 +124,36 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
         ...(usesTables
           ? [
               { label: "Tables", path: "/venue/tables", icon: Utensils, permission: "table.view" },
-              { label: "Floor Plan", path: "/venue/floor", icon: LayoutGrid, permission: "floor.manage" },
+              {
+                label: "Floor Plan",
+                path: "/venue/floor",
+                icon: LayoutGrid,
+                permission: "floor.manage",
+              },
             ]
           : [
-              { label: "Counters and Tokens", path: "/venue/counters", icon: Zap, permission: "area.view" },
+              {
+                label: "Counters and Tokens",
+                path: "/venue/counters",
+                icon: Zap,
+                permission: "area.view",
+              },
             ]),
       ],
     },
     {
       label: "Team",
-      items: [
-        { label: "Staff", path: "/staff", icon: Users, permission: "staff.view" },
-      ],
+      items: [{ label: "Staff", path: "/staff", icon: Users, permission: "staff.view" }],
     },
     {
       label: "Settings",
       items: [
-        { label: "Branding", path: "/settings/branding", icon: Palette, permission: "business.manage" },
+        {
+          label: "Branding",
+          path: "/settings/branding",
+          icon: Palette,
+          permission: "business.manage",
+        },
         { label: "Settings", path: "/settings/venue", icon: Sliders, permission: "business.view" },
       ],
     },
@@ -191,7 +204,9 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
           {/* Branch Switcher */}
           {memberships.length > 0 && (
             <div className="hidden sm:flex items-center gap-2 border-l border-border pl-4">
-              <span className="text-xs font-semibold text-muted-foreground uppercase">Restaurant:</span>
+              <span className="text-xs font-semibold text-muted-foreground uppercase">
+                Restaurant:
+              </span>
               <select
                 aria-label="Select active restaurant"
                 value={activeTenant?.tenant_id || ""}
@@ -342,7 +357,8 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
               <span className="text-[#C2410C] font-semibold">Active</span>
             </div>
             <div className="text-[10px] text-muted-foreground/75 mt-1 font-mono">
-              ServeMyFood v{typeof __APP_VERSION__ !== "undefined" ? __APP_VERSION__ : "0.4.1"} ({typeof __GIT_HASH__ !== "undefined" ? __GIT_HASH__ : "e0387e9"})
+              ServeMyFood v{typeof __APP_VERSION__ !== "undefined" ? __APP_VERSION__ : "0.4.1"} (
+              {typeof __GIT_HASH__ !== "undefined" ? __GIT_HASH__ : "e0387e9"})
             </div>
           </div>
         </aside>
