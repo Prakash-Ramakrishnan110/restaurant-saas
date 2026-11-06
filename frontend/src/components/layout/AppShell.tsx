@@ -22,6 +22,8 @@ import {
   Palette,
   Component,
   Zap,
+  UtensilsCrossed,
+  Clock,
 } from "lucide-react";
 import { BrandLogo } from "../brand/BrandLogo";
 import { Button } from "../ui/button";
@@ -112,6 +114,13 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
       label: "Daily work",
       items: [
         { label: "Dashboard", path: "/dashboard", icon: LayoutDashboard },
+        { label: "Menu", path: "/menu", icon: UtensilsCrossed, permission: "menu.view" },
+        {
+          label: "Today's Availability",
+          path: "/menu/availability",
+          icon: Clock,
+          permission: "menu.view",
+        },
         { label: "QR Codes", path: "/qr", icon: QrCode, permission: "qr.view" },
       ],
     },

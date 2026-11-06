@@ -90,6 +90,8 @@ describe("AppShell Sidebar Navigation Structure & Role Filtering", () => {
     expect(screen.getAllByText("Settings").length).toBeGreaterThanOrEqual(1);
 
     // Renamed items
+    expect(screen.getByText("Menu")).toBeDefined();
+    expect(screen.getByText("Today's Availability")).toBeDefined();
     expect(screen.getByText("Areas")).toBeDefined();
     expect(screen.getAllByText("Tables").length).toBeGreaterThanOrEqual(1);
     expect(screen.getByText("Floor Plan")).toBeDefined();

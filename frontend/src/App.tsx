@@ -15,6 +15,8 @@ import { CountersPage } from "./pages/venue/CountersPage";
 import { FloorPlanPage } from "./pages/venue/FloorPlanPage";
 import { QRCodesPage } from "./pages/venue/QRCodesPage";
 import { StaffPage } from "./pages/staff/StaffPage";
+import { MenuPage } from "./pages/menu/MenuPage";
+import { MenuAvailabilityPage } from "./pages/menu/MenuAvailabilityPage";
 import { VenueSettingsPage } from "./pages/settings/VenueSettingsPage";
 import { BrandingSettingsPage } from "./pages/settings/BrandingSettingsPage";
 import { PublicQRPage } from "./pages/public/PublicQRPage";
@@ -171,6 +173,22 @@ export const App: React.FC = () => {
                 element={
                   <ProtectedRoute>
                     <StaffPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/menu"
+                element={
+                  <ProtectedRoute>
+                    <MenuPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/menu/availability"
+                element={
+                  <ProtectedRoute>
+                    <MenuAvailabilityPage />
                   </ProtectedRoute>
                 }
               />

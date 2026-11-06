@@ -420,4 +420,3 @@ def test_partial_capability_patch_validated_on_merged_state(venue_test_setup):
     # Ensure other merged fields remained intact
     assert res_ok.data["order_workflow"] == OrderWorkflow.COUNTER_TOKEN
     assert res_ok.data["uses_token_numbers"] is True
-

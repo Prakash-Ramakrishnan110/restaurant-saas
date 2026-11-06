@@ -6,6 +6,15 @@ from django.db import transaction
 
 from apps.accounts.models import Membership
 from apps.core.context import set_current_tenant
+from apps.menu.constants import FoodType
+from apps.menu.models import (
+    ItemOptionGroup,
+    ItemVariant,
+    MenuCategory,
+    MenuItem,
+    Option,
+    OptionGroup,
+)
 from apps.rbac.constants import Role
 from apps.subscriptions.constants import SubscriptionStatus
 from apps.subscriptions.models import Plan, Subscription
@@ -430,7 +439,11 @@ class Command(BaseCommand):
             branch=b4,
             service_area=sa4_room,
             name="Guest Rooms Tower A",
-            defaults={"color": "#8B5CF6", "section_type": SectionType.PRIVATE_ROOM, "is_active": True},
+            defaults={
+                "color": "#8B5CF6",
+                "section_type": SectionType.PRIVATE_ROOM,
+                "is_active": True,
+            },
         )
         for r_num in range(101, 121):
             tbl, _ = DiningTable.objects.get_or_create(
@@ -534,12 +547,14 @@ class Command(BaseCommand):
             user=u5_cashier, tenant=t5, defaults={"role": Role.CASHIER, "is_active": True}
         )
 
+        self._seed_menus(t1, b1, t2, b2, t3, b3, t4, b4, t5, b5)
+
         # Print Seed Summary Table
         self.stdout.write("\n" + "=" * 90)
         self.stdout.write("DATABASE SEEDING SUMMARY")
         self.stdout.write("=" * 90)
         self.stdout.write(
-            f"{'Tenant':<22} | {'Profile':<16} | {'Plan':<14} | {'Areas':<6} | {'Tables':<7} | {'QRs':<5}"
+            f"{'Tenant':<22} | {'Profile':<16} | {'Plan':<14} | {'Areas':<6} | {'Tables':<7} | {'QRs':<5} | {'Items':<5}"
         )
         self.stdout.write("-" * 90)
 
@@ -549,12 +564,13 @@ class Command(BaseCommand):
             areas_count = ServiceArea.objects.filter(tenant=t).count()
             tables_count = DiningTable.objects.filter(tenant=t).count()
             qrs_count = QRCode.objects.filter(tenant=t).count()
+            items_count = MenuItem.objects.filter(tenant=t).count()
             sub = Subscription.objects.filter(tenant=t).first()
             plan_name = sub.plan.name if sub and sub.plan else "None"
             branch = Branch.objects.filter(tenant=t).first()
             v_profile = branch.venue_profile if branch else "N/A"
             self.stdout.write(
-                f"{t.name:<22} | {v_profile:<16} | {plan_name:<14} | {areas_count:<6} | {tables_count:<7} | {qrs_count:<5}"
+                f"{t.name:<22} | {v_profile:<16} | {plan_name:<14} | {areas_count:<6} | {tables_count:<7} | {qrs_count:<5} | {items_count:<5}"
             )
         set_current_tenant(None)
 
@@ -563,4 +579,365 @@ class Command(BaseCommand):
             self.style.SUCCESS(
                 "Database seeding completed successfully! All 5 venue profiles seeded successfully! Demo password: Password123!"
             )
+        )
+
+    def _seed_menus(self, t1, b1, t2, b2, t3, b3, t4, b4, t5, b5):
+        # 1. Chai Corner (Tea Shop)
+        set_current_tenant(t1)
+        cat_c1, _ = MenuCategory.objects.get_or_create(
+            tenant=t1, name="Beverages", defaults={"name_ta": "பானங்கள்", "sort_order": 1}
+        )
+        cat_c2, _ = MenuCategory.objects.get_or_create(
+            tenant=t1, name="Snacks", defaults={"name_ta": "சிற்றுண்டிகள்", "sort_order": 2}
+        )
+
+        chai_items = [
+            (
+                cat_c1,
+                "Masala Chai",
+                "மசாலா தேநீர்",
+                "Freshly brewed aromatic spiced tea",
+                2000,
+                FoodType.VEG,
+                3,
+                True,
+            ),
+            (
+                cat_c1,
+                "Ginger Tea",
+                "இஞ்சி தேநீர்",
+                "Strong tea brewed with fresh crushed ginger",
+                2500,
+                FoodType.VEG,
+                3,
+                False,
+            ),
+            (
+                cat_c1,
+                "Filter Coffee",
+                "பில்டர் காபி",
+                "Traditional South Indian chicory-blend coffee",
+                3000,
+                FoodType.VEG,
+                4,
+                True,
+            ),
+            (
+                cat_c1,
+                "Badam Milk",
+                "பாதாம் பால்",
+                "Rich hot milk infused with crushed almonds and saffron",
+                4000,
+                FoodType.VEG,
+                5,
+                False,
+            ),
+            (
+                cat_c2,
+                "Samosa",
+                "சமோசா",
+                "Crispy pastry stuffed with spiced potatoes and peas",
+                2500,
+                FoodType.VEG,
+                2,
+                True,
+            ),
+            (
+                cat_c2,
+                "Bun Maska",
+                "பன் மஸ்கா",
+                "Fresh warm bun slathered with dollop of salted butter",
+                3500,
+                FoodType.VEG,
+                2,
+                False,
+            ),
+            (
+                cat_c2,
+                "Osmania Biscuits",
+                "உஸ்மானியா பிஸ்கட்",
+                "Classic Hyderabad melt-in-mouth sweet and salt biscuits",
+                1500,
+                FoodType.VEG,
+                1,
+                False,
+            ),
+        ]
+        for cat, name, name_ta, desc, price, food, prep, best in chai_items:
+            MenuItem.objects.get_or_create(
+                tenant=t1,
+                category=cat,
+                name=name,
+                defaults={
+                    "name_ta": name_ta,
+                    "description": desc,
+                    "base_price_paise": price,
+                    "food_type": food,
+                    "prep_minutes": prep,
+                    "is_bestseller": best,
+                },
+            )
+
+        # 2. Bean & Bloom (Cafe)
+        set_current_tenant(t2)
+        cat_b1, _ = MenuCategory.objects.get_or_create(
+            tenant=t2, name="Coffee & Brews", defaults={"name_ta": "காபி வகைகள்", "sort_order": 1}
+        )
+        cat_b2, _ = MenuCategory.objects.get_or_create(
+            tenant=t2,
+            name="Bakery & Light Bites",
+            defaults={"name_ta": "பேக்கரி உணவுகள்", "sort_order": 2},
+        )
+
+        opt_milk, _ = OptionGroup.objects.get_or_create(
+            tenant=t2,
+            name="Milk Choice",
+            defaults={"min_select": 1, "max_select": 1, "sort_order": 1},
+        )
+        Option.objects.get_or_create(
+            group=opt_milk, name="Dairy Milk", defaults={"price_delta_paise": 0, "is_default": True}
+        )
+        Option.objects.get_or_create(
+            group=opt_milk,
+            name="Oat Milk",
+            defaults={"price_delta_paise": 4000, "is_default": False},
+        )
+        Option.objects.get_or_create(
+            group=opt_milk,
+            name="Almond Milk",
+            defaults={"price_delta_paise": 5000, "is_default": False},
+        )
+
+        cappuccino, _ = MenuItem.objects.get_or_create(
+            tenant=t2,
+            category=cat_b1,
+            name="Artisan Cappuccino",
+            defaults={
+                "name_ta": "ஆர்ட்டிசன் கப்புச்சினோ",
+                "description": "Double espresso shot topped with velvety steamed milk foam",
+                "base_price_paise": 16000,
+                "food_type": FoodType.VEG,
+                "prep_minutes": 6,
+                "is_bestseller": True,
+            },
+        )
+        ItemOptionGroup.objects.get_or_create(item=cappuccino, group=opt_milk)
+        ItemVariant.objects.get_or_create(
+            item=cappuccino,
+            name="Regular (250ml)",
+            defaults={"price_paise": 16000, "is_default": True, "sort_order": 1},
+        )
+        ItemVariant.objects.get_or_create(
+            item=cappuccino,
+            name="Large (350ml)",
+            defaults={"price_paise": 21000, "is_default": False, "sort_order": 2},
+        )
+
+        MenuItem.objects.get_or_create(
+            tenant=t2,
+            category=cat_b1,
+            name="Cold Brew Nitro",
+            defaults={
+                "name_ta": "கோல்ட் ப்ரூ நைட்ரோ",
+                "description": "16-hour slow steeped cold brew infused with nitrogen",
+                "base_price_paise": 22000,
+                "food_type": FoodType.VEG,
+                "prep_minutes": 3,
+                "is_bestseller": False,
+            },
+        )
+        MenuItem.objects.get_or_create(
+            tenant=t2,
+            category=cat_b2,
+            name="Butter Croissant",
+            defaults={
+                "name_ta": "வெண்ணெய் குரோசண்ட்",
+                "description": "Flaky French pastry rolled and baked with pure butter",
+                "base_price_paise": 14000,
+                "food_type": FoodType.VEG,
+                "prep_minutes": 4,
+                "is_bestseller": True,
+            },
+        )
+        MenuItem.objects.get_or_create(
+            tenant=t2,
+            category=cat_b2,
+            name="Egg & Bacon Brioche",
+            defaults={
+                "name_ta": "முட்டை பிரியோச்",
+                "description": "Sunny side egg with maple bacon in toasted brioche bun",
+                "base_price_paise": 24000,
+                "food_type": FoodType.NON_VEG,
+                "prep_minutes": 10,
+                "is_bestseller": False,
+            },
+        )
+
+        # 3. Copper Chimney (Fine Dining)
+        set_current_tenant(t3)
+        cat_d1, _ = MenuCategory.objects.get_or_create(
+            tenant=t3,
+            name="Tandoori Starters",
+            defaults={"name_ta": "தந்தூரி தொடக்க உணவுகள்", "sort_order": 1},
+        )
+        cat_d2, _ = MenuCategory.objects.get_or_create(
+            tenant=t3,
+            name="Curries & Mains",
+            defaults={"name_ta": "குழம்பு & பிரதான உணவுகள்", "sort_order": 2},
+        )
+        cat_d3, _ = MenuCategory.objects.get_or_create(
+            tenant=t3,
+            name="Artisan Biryanis",
+            defaults={"name_ta": "பிரியாணி வகைகள்", "sort_order": 3},
+        )
+
+        MenuItem.objects.get_or_create(
+            tenant=t3,
+            category=cat_d1,
+            name="Paneer Tikka Angare",
+            defaults={
+                "name_ta": "பனீர் டிக்கா",
+                "description": "Cottage cheese marinated in Kashmiri chilies and char-grilled",
+                "base_price_paise": 34000,
+                "food_type": FoodType.VEG,
+                "prep_minutes": 15,
+                "is_bestseller": True,
+            },
+        )
+        MenuItem.objects.get_or_create(
+            tenant=t3,
+            category=cat_d1,
+            name="Murgh Malai Kebab",
+            defaults={
+                "name_ta": "முர்க் மலாய் கபாப்",
+                "description": "Boneless chicken steeped in cream, cardamom and garlic",
+                "base_price_paise": 44000,
+                "food_type": FoodType.NON_VEG,
+                "prep_minutes": 18,
+                "is_bestseller": True,
+            },
+        )
+        MenuItem.objects.get_or_create(
+            tenant=t3,
+            category=cat_d2,
+            name="Dal Makhani Heritage",
+            defaults={
+                "name_ta": "தால் மக்கானி",
+                "description": "Black lentils slow-cooked overnight with churned butter and tomatoes",
+                "base_price_paise": 36000,
+                "food_type": FoodType.VEG,
+                "prep_minutes": 10,
+                "is_bestseller": True,
+            },
+        )
+        MenuItem.objects.get_or_create(
+            tenant=t3,
+            category=cat_d2,
+            name="Butter Chicken Royal",
+            defaults={
+                "name_ta": "பட்டர் சிக்கன்",
+                "description": "Tandoori chicken simmered in satin smooth makhani gravy",
+                "base_price_paise": 49000,
+                "food_type": FoodType.NON_VEG,
+                "prep_minutes": 15,
+                "is_bestseller": True,
+            },
+        )
+        biryani, _ = MenuItem.objects.get_or_create(
+            tenant=t3,
+            category=cat_d3,
+            name="Dum Pukht Biryani",
+            defaults={
+                "name_ta": "தம் பிரியாணி",
+                "description": "Aromatic long-grain basmati rice cooked on slow charcoal dum",
+                "base_price_paise": 38000,
+                "food_type": FoodType.NON_VEG,
+                "prep_minutes": 20,
+                "is_bestseller": True,
+            },
+        )
+        ItemVariant.objects.get_or_create(
+            item=biryani,
+            name="Subz Paneer Veg",
+            defaults={"price_paise": 38000, "is_default": False, "sort_order": 1},
+        )
+        ItemVariant.objects.get_or_create(
+            item=biryani,
+            name="Chicken Dum Biryani",
+            defaults={"price_paise": 48000, "is_default": True, "sort_order": 2},
+        )
+        ItemVariant.objects.get_or_create(
+            item=biryani,
+            name="Gosht Mutton Dum",
+            defaults={"price_paise": 58000, "is_default": False, "sort_order": 3},
+        )
+
+        # 4. The Grand Palace
+        set_current_tenant(t4)
+        cat_g1, _ = MenuCategory.objects.get_or_create(
+            tenant=t4, name="South Indian Tiffin", defaults={"sort_order": 1}
+        )
+        cat_g2, _ = MenuCategory.objects.get_or_create(
+            tenant=t4, name="Buffet Specials", defaults={"sort_order": 2}
+        )
+        MenuItem.objects.get_or_create(
+            tenant=t4,
+            category=cat_g1,
+            name="Ghee Roast Dosa",
+            defaults={
+                "base_price_paise": 11000,
+                "food_type": FoodType.VEG,
+                "prep_minutes": 8,
+                "is_bestseller": True,
+            },
+        )
+        MenuItem.objects.get_or_create(
+            tenant=t4,
+            category=cat_g1,
+            name="Idli Vada Combo",
+            defaults={
+                "base_price_paise": 8500,
+                "food_type": FoodType.VEG,
+                "prep_minutes": 5,
+                "is_bestseller": False,
+            },
+        )
+        MenuItem.objects.get_or_create(
+            tenant=t4,
+            category=cat_g2,
+            name="Continental Breakfast Platter",
+            defaults={
+                "base_price_paise": 35000,
+                "food_type": FoodType.EGG,
+                "prep_minutes": 15,
+                "is_bestseller": False,
+            },
+        )
+
+        # 5. Foodie Plaza
+        set_current_tenant(t5)
+        cat_f1, _ = MenuCategory.objects.get_or_create(
+            tenant=t5, name="Combos & Meals", defaults={"sort_order": 1}
+        )
+        MenuItem.objects.get_or_create(
+            tenant=t5,
+            category=cat_f1,
+            name="Burger & Fries Combo",
+            defaults={
+                "base_price_paise": 19900,
+                "food_type": FoodType.NON_VEG,
+                "prep_minutes": 7,
+                "is_bestseller": True,
+            },
+        )
+        MenuItem.objects.get_or_create(
+            tenant=t5,
+            category=cat_f1,
+            name="Veg Fried Rice Combo",
+            defaults={
+                "base_price_paise": 16900,
+                "food_type": FoodType.VEG,
+                "prep_minutes": 6,
+                "is_bestseller": True,
+            },
         )

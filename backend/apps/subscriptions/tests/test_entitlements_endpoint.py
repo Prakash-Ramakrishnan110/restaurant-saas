@@ -172,4 +172,3 @@ def test_entitlements_clamped_remaining_and_over_limit(entitlements_fixture):
     assert branch_info["current"] == 3
     assert branch_info["remaining"] == 0  # Clamped, never negative
     assert branch_info["over_limit"] is True
-

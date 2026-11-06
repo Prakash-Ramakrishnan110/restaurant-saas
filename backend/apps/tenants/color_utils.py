@@ -87,4 +87,3 @@ def validate_gstin(gstin: str) -> str:
             details={"value": gstin},
         )
     return cleaned
-

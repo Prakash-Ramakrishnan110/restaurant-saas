@@ -255,7 +255,9 @@ class DiningTableViewSet(viewsets.ModelViewSet):
     def get_queryset(self) -> Any:
         qs = DiningTable.objects.all().select_related("section", "branch", "group")
         section_id = self.request.query_params.get("section_id")
-        area_id = self.request.query_params.get("area_id") or self.request.query_params.get("service_area_id")
+        area_id = self.request.query_params.get("area_id") or self.request.query_params.get(
+            "service_area_id"
+        )
         branch_id = self.request.query_params.get("branch_id")
         status_filter = self.request.query_params.get("status")
         is_active = self.request.query_params.get("is_active")

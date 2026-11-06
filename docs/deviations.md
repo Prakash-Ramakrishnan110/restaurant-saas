@@ -19,6 +19,7 @@ This document records all deliberate, accepted design decisions, deviations from
 | **DEV-009** | Application-Level Tenant Isolation | Database-level Postgres Row Level Security (RLS) | Application-level multi-tenant query filtering with strict scoping & `unscoped` guard | Consistent with Django ORM best practices across multi-tenant SaaS engines, verified by comprehensive tenant isolation test suites. |
 | **DEV-010** | Rejection of SVG Logo Uploads | Permitting SVG uploads for restaurant branding | Strictly JPEG, PNG, and WebP raster formats permitted; SVG rejected with `INVALID_FILE_TYPE` | SVGs present severe XSS vulnerabilities (embedded JavaScript, external XML entities). Client and server strictly validate MIME magic bytes and reject SVGs. |
 | **DEV-011** | Interactive Floor Map Manipulation | Interactive drag-and-drop table layout editor in Pilot 1 | Clean read-only visual floor plan grid map with side sheet status updates in Screen B5 | Interactive 2D drag-and-drop table designer deferred to post-v0.5.0 milestone (`STORY-POS-00` in `docs/product/backlog.md`). |
+| **DEV-012** | Menu Tax Decoupling | Embedding tax percentages/flags in menu models | Zero tax fields in menu models; pure integer paise catalog (ADR 0021) | Tax percentages depend on dynamic customer order parameters (dine-in, AC, takeaway, liquor, state GST). Storing tax in menu items leads to billing corruption and difficult tax rate updates. |
 
 ---
 
@@ -37,3 +38,4 @@ This document records all deliberate, accepted design decisions, deviations from
 | 2026-11-06 | — | DEV-009 | App-Level Isolation | Restored historical architectural decision. |
 | 2026-11-06 | — | DEV-010 | SVG Upload Rejection | Restored historical logo security decision. |
 | 2026-11-06 | — | DEV-011 | Floor Plan Phased Delivery | Added; read-only grid layout in Screen B5 with drag-and-drop editor deferred. |
+| 2026-11-06 | — | DEV-012 | Menu Tax Decoupling | Added; decoupling tax calculation from menu data models (ADR 0021). |

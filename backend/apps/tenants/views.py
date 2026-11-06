@@ -332,6 +332,7 @@ class BusinessProfileView(APIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
         from apps.tenants.models import BusinessSettings
+
         BusinessSettings.unscoped.get_or_create(tenant=tenant)
         serializer = BusinessProfileSerializer(tenant)
         return Response(serializer.data, status=status.HTTP_200_OK)

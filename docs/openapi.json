@@ -451,6 +451,865 @@ paths:
                 items:
                   $ref: '#/components/schemas/LayoutTemplateCatalogItem'
           description: ''
+  /api/v1/menu/availability/:
+    get:
+      operationId: menu_availability_list
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      tags:
+      - menu
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedBranchItemAvailabilityList'
+          description: ''
+    post:
+      operationId: menu_availability_create
+      tags:
+      - menu
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BranchItemAvailabilityRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/BranchItemAvailabilityRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/BranchItemAvailabilityRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BranchItemAvailability'
+          description: ''
+  /api/v1/menu/availability/{id}/:
+    get:
+      operationId: menu_availability_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this branch item availability.
+        required: true
+      tags:
+      - menu
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BranchItemAvailability'
+          description: ''
+    put:
+      operationId: menu_availability_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this branch item availability.
+        required: true
+      tags:
+      - menu
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BranchItemAvailabilityRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/BranchItemAvailabilityRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/BranchItemAvailabilityRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BranchItemAvailability'
+          description: ''
+    patch:
+      operationId: menu_availability_partial_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this branch item availability.
+        required: true
+      tags:
+      - menu
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedBranchItemAvailabilityRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedBranchItemAvailabilityRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedBranchItemAvailabilityRequest'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BranchItemAvailability'
+          description: ''
+    delete:
+      operationId: menu_availability_destroy
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this branch item availability.
+        required: true
+      tags:
+      - menu
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/v1/menu/availability/bulk-toggle/:
+    post:
+      operationId: menu_availability_bulk_toggle_create
+      tags:
+      - menu
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BranchItemAvailabilityRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/BranchItemAvailabilityRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/BranchItemAvailabilityRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BranchItemAvailability'
+          description: ''
+  /api/v1/menu/availability/toggle/:
+    post:
+      operationId: menu_availability_toggle_create
+      tags:
+      - menu
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BranchItemAvailabilityRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/BranchItemAvailabilityRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/BranchItemAvailabilityRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BranchItemAvailability'
+          description: ''
+  /api/v1/menu/categories/:
+    get:
+      operationId: menu_categories_list
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      tags:
+      - menu
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedMenuCategoryList'
+          description: ''
+    post:
+      operationId: menu_categories_create
+      tags:
+      - menu
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MenuCategoryRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/MenuCategoryRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/MenuCategoryRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MenuCategory'
+          description: ''
+  /api/v1/menu/categories/{id}/:
+    get:
+      operationId: menu_categories_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this menu category.
+        required: true
+      tags:
+      - menu
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MenuCategory'
+          description: ''
+    put:
+      operationId: menu_categories_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this menu category.
+        required: true
+      tags:
+      - menu
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MenuCategoryRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/MenuCategoryRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/MenuCategoryRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MenuCategory'
+          description: ''
+    patch:
+      operationId: menu_categories_partial_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this menu category.
+        required: true
+      tags:
+      - menu
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedMenuCategoryRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedMenuCategoryRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedMenuCategoryRequest'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MenuCategory'
+          description: ''
+    delete:
+      operationId: menu_categories_destroy
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this menu category.
+        required: true
+      tags:
+      - menu
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/v1/menu/categories/reorder/:
+    post:
+      operationId: menu_categories_reorder_create
+      tags:
+      - menu
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MenuCategoryRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/MenuCategoryRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/MenuCategoryRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MenuCategory'
+          description: ''
+  /api/v1/menu/full/:
+    get:
+      operationId: menu_full_retrieve
+      description: Constant query-count read-only active menu endpoint for customer
+        QR and staff ordering.
+      tags:
+      - menu
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+                description: Unspecified response body
+          description: ''
+  /api/v1/menu/items/:
+    get:
+      operationId: menu_items_list
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      tags:
+      - menu
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedMenuItemList'
+          description: ''
+    post:
+      operationId: menu_items_create
+      tags:
+      - menu
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MenuItemRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/MenuItemRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/MenuItemRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MenuItem'
+          description: ''
+  /api/v1/menu/items/{id}/:
+    get:
+      operationId: menu_items_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this menu item.
+        required: true
+      tags:
+      - menu
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MenuItem'
+          description: ''
+    put:
+      operationId: menu_items_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this menu item.
+        required: true
+      tags:
+      - menu
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MenuItemRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/MenuItemRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/MenuItemRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MenuItem'
+          description: ''
+    patch:
+      operationId: menu_items_partial_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this menu item.
+        required: true
+      tags:
+      - menu
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedMenuItemRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedMenuItemRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedMenuItemRequest'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MenuItem'
+          description: ''
+    delete:
+      operationId: menu_items_destroy
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this menu item.
+        required: true
+      tags:
+      - menu
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/v1/menu/items/{id}/image/:
+    post:
+      operationId: menu_items_image_create
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this menu item.
+        required: true
+      tags:
+      - menu
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/MenuItemRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MenuItem'
+          description: ''
+    delete:
+      operationId: menu_items_image_destroy
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this menu item.
+        required: true
+      tags:
+      - menu
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/v1/menu/items/{id}/option-groups/:
+    put:
+      operationId: menu_items_option_groups_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this menu item.
+        required: true
+      tags:
+      - menu
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MenuItemRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/MenuItemRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/MenuItemRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MenuItem'
+          description: ''
+  /api/v1/menu/items/{id}/variants/:
+    put:
+      operationId: menu_items_variants_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this menu item.
+        required: true
+      tags:
+      - menu
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MenuItemRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/MenuItemRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/MenuItemRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MenuItem'
+          description: ''
+  /api/v1/menu/items/bulk-create/:
+    post:
+      operationId: menu_items_bulk_create_create
+      tags:
+      - menu
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MenuItemRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/MenuItemRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/MenuItemRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MenuItem'
+          description: ''
+  /api/v1/menu/option-groups/:
+    get:
+      operationId: menu_option_groups_list
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      tags:
+      - menu
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedOptionGroupList'
+          description: ''
+    post:
+      operationId: menu_option_groups_create
+      tags:
+      - menu
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OptionGroupRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/OptionGroupRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/OptionGroupRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OptionGroup'
+          description: ''
+  /api/v1/menu/option-groups/{id}/:
+    get:
+      operationId: menu_option_groups_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this option group.
+        required: true
+      tags:
+      - menu
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OptionGroup'
+          description: ''
+    put:
+      operationId: menu_option_groups_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this option group.
+        required: true
+      tags:
+      - menu
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OptionGroupRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/OptionGroupRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/OptionGroupRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OptionGroup'
+          description: ''
+    patch:
+      operationId: menu_option_groups_partial_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this option group.
+        required: true
+      tags:
+      - menu
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedOptionGroupRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedOptionGroupRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedOptionGroupRequest'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OptionGroup'
+          description: ''
+    delete:
+      operationId: menu_option_groups_destroy
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this option group.
+        required: true
+      tags:
+      - menu
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
   /api/v1/onboarding/status/:
     get:
       operationId: onboarding_status_retrieve
@@ -1913,6 +2772,52 @@ components:
       - created_at
       - id
       - updated_at
+    BranchItemAvailability:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        branch:
+          type: string
+          format: uuid
+        item:
+          type: string
+          format: uuid
+        item_name:
+          type: string
+          readOnly: true
+        category_name:
+          type: string
+          readOnly: true
+        is_available:
+          type: boolean
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - branch
+      - category_name
+      - id
+      - item
+      - item_name
+      - updated_at
+    BranchItemAvailabilityRequest:
+      type: object
+      properties:
+        branch:
+          type: string
+          format: uuid
+        item:
+          type: string
+          format: uuid
+        is_available:
+          type: boolean
+      required:
+      - branch
+      - item
     BranchRequest:
       type: object
       properties:
@@ -2301,6 +3206,66 @@ components:
       description: |-
         * `EN` - English
         * `EN_TA` - English and Tamil
+    FoodTypeEnum:
+      enum:
+      - VEG
+      - NON_VEG
+      - EGG
+      type: string
+      description: |-
+        * `VEG` - Vegetarian
+        * `NON_VEG` - Non-Vegetarian
+        * `EGG` - Contains Egg
+    ItemVariant:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        name:
+          type: string
+          maxLength: 100
+        name_ta:
+          type: string
+          maxLength: 100
+        price_paise:
+          type: integer
+          maximum: 2147483647
+          minimum: 0
+        is_default:
+          type: boolean
+        sort_order:
+          type: integer
+          maximum: 2147483647
+          minimum: 0
+      required:
+      - id
+      - name
+      - price_paise
+    ItemVariantRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 100
+        name_ta:
+          type: string
+          maxLength: 100
+        price_paise:
+          type: integer
+          maximum: 2147483647
+          minimum: 0
+        is_default:
+          type: boolean
+        sort_order:
+          type: integer
+          maximum: 2147483647
+          minimum: 0
+      required:
+      - name
+      - price_paise
     LayoutTemplateApplyResponse:
       type: object
       properties:
@@ -2448,6 +3413,201 @@ components:
       - tenant_name
       - tenant_slug
       - tenant_status
+    MenuCategory:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        name:
+          type: string
+          maxLength: 100
+        name_ta:
+          type: string
+          maxLength: 100
+        sort_order:
+          type: integer
+          maximum: 2147483647
+          minimum: 0
+        is_active:
+          type: boolean
+        items_count:
+          type: integer
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - created_at
+      - id
+      - items_count
+      - name
+      - updated_at
+    MenuCategoryRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 100
+        name_ta:
+          type: string
+          maxLength: 100
+        sort_order:
+          type: integer
+          maximum: 2147483647
+          minimum: 0
+        is_active:
+          type: boolean
+      required:
+      - name
+    MenuItem:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        category:
+          type: string
+          format: uuid
+        category_name:
+          type: string
+          readOnly: true
+        name:
+          type: string
+          maxLength: 150
+        name_ta:
+          type: string
+          maxLength: 150
+        description:
+          type: string
+        description_ta:
+          type: string
+        base_price_paise:
+          type: integer
+          maximum: 2147483647
+          minimum: 0
+        food_type:
+          $ref: '#/components/schemas/FoodTypeEnum'
+        prep_minutes:
+          type: integer
+          maximum: 2147483647
+          minimum: 0
+          nullable: true
+        is_bestseller:
+          type: boolean
+        is_active:
+          type: boolean
+        sort_order:
+          type: integer
+          maximum: 2147483647
+          minimum: 0
+        image_original:
+          type: string
+          readOnly: true
+        image_card:
+          type: string
+          readOnly: true
+        image_thumb:
+          type: string
+          readOnly: true
+        image_bytes:
+          type: integer
+          readOnly: true
+        image_focus_x:
+          type: number
+          format: double
+        image_focus_y:
+          type: number
+          format: double
+        variants:
+          type: array
+          items:
+            $ref: '#/components/schemas/ItemVariant'
+          readOnly: true
+        option_groups:
+          type: array
+          items:
+            type: object
+            additionalProperties: {}
+          readOnly: true
+        is_available:
+          type: boolean
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - category
+      - category_name
+      - created_at
+      - id
+      - image_bytes
+      - image_card
+      - image_original
+      - image_thumb
+      - is_available
+      - name
+      - option_groups
+      - updated_at
+      - variants
+    MenuItemRequest:
+      type: object
+      properties:
+        category:
+          type: string
+          format: uuid
+        name:
+          type: string
+          minLength: 1
+          maxLength: 150
+        name_ta:
+          type: string
+          maxLength: 150
+        description:
+          type: string
+        description_ta:
+          type: string
+        base_price_paise:
+          type: integer
+          maximum: 2147483647
+          minimum: 0
+        food_type:
+          $ref: '#/components/schemas/FoodTypeEnum'
+        prep_minutes:
+          type: integer
+          maximum: 2147483647
+          minimum: 0
+          nullable: true
+        is_bestseller:
+          type: boolean
+        is_active:
+          type: boolean
+        sort_order:
+          type: integer
+          maximum: 2147483647
+          minimum: 0
+        image_focus_x:
+          type: number
+          format: double
+        image_focus_y:
+          type: number
+          format: double
+      required:
+      - category
+      - name
     OnboardingStatus:
       type: object
       properties:
@@ -2478,6 +3638,132 @@ components:
         * `STAFF` - Staff Opened
         * `QR` - Customer QR Scan
         * `QR_CUSTOMER` - Customer QR Scan
+    Option:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        name:
+          type: string
+          maxLength: 100
+        name_ta:
+          type: string
+          maxLength: 100
+        price_delta_paise:
+          type: integer
+          maximum: 2147483647
+          minimum: -2147483648
+        is_default:
+          type: boolean
+        is_active:
+          type: boolean
+        sort_order:
+          type: integer
+          maximum: 2147483647
+          minimum: 0
+      required:
+      - id
+      - name
+    OptionGroup:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        name:
+          type: string
+          maxLength: 100
+        name_ta:
+          type: string
+          maxLength: 100
+        min_select:
+          type: integer
+          maximum: 2147483647
+          minimum: 0
+        max_select:
+          type: integer
+          maximum: 2147483647
+          minimum: 0
+        sort_order:
+          type: integer
+          maximum: 2147483647
+          minimum: 0
+        is_active:
+          type: boolean
+        options:
+          type: array
+          items:
+            $ref: '#/components/schemas/Option'
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - created_at
+      - id
+      - name
+      - updated_at
+    OptionGroupRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 100
+        name_ta:
+          type: string
+          maxLength: 100
+        min_select:
+          type: integer
+          maximum: 2147483647
+          minimum: 0
+        max_select:
+          type: integer
+          maximum: 2147483647
+          minimum: 0
+        sort_order:
+          type: integer
+          maximum: 2147483647
+          minimum: 0
+        is_active:
+          type: boolean
+        options:
+          type: array
+          items:
+            $ref: '#/components/schemas/OptionRequest'
+      required:
+      - name
+    OptionRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 100
+        name_ta:
+          type: string
+          maxLength: 100
+        price_delta_paise:
+          type: integer
+          maximum: 2147483647
+          minimum: -2147483648
+        is_default:
+          type: boolean
+        is_active:
+          type: boolean
+        sort_order:
+          type: integer
+          maximum: 2147483647
+          minimum: 0
+      required:
+      - name
     OrderWorkflow:
       enum:
       - COUNTER_TOKEN
@@ -2490,6 +3776,29 @@ components:
         * `TABLE_SERVICE` - Table Service
         * `BAR_TAB` - Bar Tab
         * `ROOM_SERVICE` - Room Service
+    PaginatedBranchItemAvailabilityList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/BranchItemAvailability'
     PaginatedBranchList:
       type: object
       required:
@@ -2536,6 +3845,75 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/DiningTable'
+    PaginatedMenuCategoryList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/MenuCategory'
+    PaginatedMenuItemList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/MenuItem'
+    PaginatedOptionGroupList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/OptionGroup'
     PaginatedQRCodeList:
       type: object
       required:
@@ -2753,6 +4131,17 @@ components:
           $ref: '#/components/schemas/QrSessionPolicy'
         order_workflow:
           $ref: '#/components/schemas/OrderWorkflow'
+    PatchedBranchItemAvailabilityRequest:
+      type: object
+      properties:
+        branch:
+          type: string
+          format: uuid
+        item:
+          type: string
+          format: uuid
+        is_available:
+          type: boolean
     PatchedBranchRequest:
       type: object
       properties:
@@ -2860,6 +4249,92 @@ components:
           minimum: -2147483648
         shape:
           $ref: '#/components/schemas/TableShape'
+    PatchedMenuCategoryRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 100
+        name_ta:
+          type: string
+          maxLength: 100
+        sort_order:
+          type: integer
+          maximum: 2147483647
+          minimum: 0
+        is_active:
+          type: boolean
+    PatchedMenuItemRequest:
+      type: object
+      properties:
+        category:
+          type: string
+          format: uuid
+        name:
+          type: string
+          minLength: 1
+          maxLength: 150
+        name_ta:
+          type: string
+          maxLength: 150
+        description:
+          type: string
+        description_ta:
+          type: string
+        base_price_paise:
+          type: integer
+          maximum: 2147483647
+          minimum: 0
+        food_type:
+          $ref: '#/components/schemas/FoodTypeEnum'
+        prep_minutes:
+          type: integer
+          maximum: 2147483647
+          minimum: 0
+          nullable: true
+        is_bestseller:
+          type: boolean
+        is_active:
+          type: boolean
+        sort_order:
+          type: integer
+          maximum: 2147483647
+          minimum: 0
+        image_focus_x:
+          type: number
+          format: double
+        image_focus_y:
+          type: number
+          format: double
+    PatchedOptionGroupRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 100
+        name_ta:
+          type: string
+          maxLength: 100
+        min_select:
+          type: integer
+          maximum: 2147483647
+          minimum: 0
+        max_select:
+          type: integer
+          maximum: 2147483647
+          minimum: 0
+        sort_order:
+          type: integer
+          maximum: 2147483647
+          minimum: 0
+        is_active:
+          type: boolean
+        options:
+          type: array
+          items:
+            $ref: '#/components/schemas/OptionRequest'
     PatchedSectionRequest:
       type: object
       properties:

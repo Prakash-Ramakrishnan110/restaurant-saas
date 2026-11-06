@@ -163,4 +163,3 @@ def test_all_business_error_codes_and_details():
         assert res.data["error"]["code"] == expected_code
         assert res.data["error"]["details"] == expected_details
         assert len(res.data["error"]["message"]) > 0
-

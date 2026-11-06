@@ -93,7 +93,9 @@ def test_tenant_manager_create_raises_without_context():
 
 @pytest.mark.django_db
 def test_tenant_managers_filter_by_current_tenant():
-    tenant = Tenant.objects.create(name="Boost Tenant", slug="boost-tenant", status=Tenant.Status.ACTIVE)
+    tenant = Tenant.objects.create(
+        name="Boost Tenant", slug="boost-tenant", status=Tenant.Status.ACTIVE
+    )
     Branch.objects.create(tenant=tenant, name="Boost Branch")
 
     # Without tenant context
@@ -122,9 +124,13 @@ def test_tenant_middleware_edge_cases():
     from apps.subscriptions.constants import SubscriptionStatus
     from apps.subscriptions.models import Subscription
 
-    tenant = Tenant.objects.create(name="Mid Tenant", slug="mid-tenant", status=Tenant.Status.ACTIVE)
+    tenant = Tenant.objects.create(
+        name="Mid Tenant", slug="mid-tenant", status=Tenant.Status.ACTIVE
+    )
     Subscription.objects.create(tenant=tenant, status=SubscriptionStatus.ACTIVE)
-    owner = User.objects.create_user(email="midowner@example.com", password="Password123!", full_name="Mid Owner")
+    owner = User.objects.create_user(
+        email="midowner@example.com", password="Password123!", full_name="Mid Owner"
+    )
     Membership.objects.create(user=owner, tenant=tenant, role=Role.OWNER, is_active=True)
     middleware = TenantContextMiddleware(lambda req: HttpResponse("ok"))
     factory = APIRequestFactory()

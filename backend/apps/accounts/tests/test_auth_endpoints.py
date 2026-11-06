@@ -242,7 +242,8 @@ def test_refresh_rejects_untrusted_origin(auth_setup):
     # Untrusted origin receives 403 INVALID_ORIGIN
     new_refresh = resp_valid.cookies[settings.REFRESH_COOKIE_NAME].value
     client.cookies[settings.REFRESH_COOKIE_NAME] = new_refresh
-    resp_invalid = client.post("/api/v1/auth/refresh/", HTTP_ORIGIN="https://evil-untrusted-site.com")
+    resp_invalid = client.post(
+        "/api/v1/auth/refresh/", HTTP_ORIGIN="https://evil-untrusted-site.com"
+    )
     assert resp_invalid.status_code == status.HTTP_403_FORBIDDEN
     assert resp_invalid.data["error"]["code"] == "INVALID_ORIGIN"
-

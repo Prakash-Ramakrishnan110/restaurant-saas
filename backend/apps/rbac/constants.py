@@ -67,7 +67,9 @@ class Permission:
     QR_MANAGE = "qr.manage"
 
     # Core Operations
+    MENU_VIEW = "menu.view"
     MENU_MANAGE = "menu.manage"
+    MENU_AVAILABILITY = "menu.availability"
     ORDER_CREATE = "order.create"
     ORDER_CANCEL = "order.cancel"
     INVOICE_REFUND = "invoice.refund"

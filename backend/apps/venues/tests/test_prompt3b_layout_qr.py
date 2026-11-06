@@ -46,17 +46,24 @@ def venue_env(django_db_blocker):
 
         client_owner = APIClient()
         token = str(RefreshToken.for_user(owner).access_token)
-        client_owner.credentials(HTTP_AUTHORIZATION=f"Bearer {token}", HTTP_X_TENANT_ID=str(tenant.id))
+        client_owner.credentials(
+            HTTP_AUTHORIZATION=f"Bearer {token}", HTTP_X_TENANT_ID=str(tenant.id)
+        )
 
         client_mgr = APIClient()
         token_mgr = str(RefreshToken.for_user(mgr).access_token)
-        client_mgr.credentials(HTTP_AUTHORIZATION=f"Bearer {token_mgr}", HTTP_X_TENANT_ID=str(tenant.id))
+        client_mgr.credentials(
+            HTTP_AUTHORIZATION=f"Bearer {token_mgr}", HTTP_X_TENANT_ID=str(tenant.id)
+        )
 
         client_cashier = APIClient()
         token_c = str(RefreshToken.for_user(cashier).access_token)
-        client_cashier.credentials(HTTP_AUTHORIZATION=f"Bearer {token_c}", HTTP_X_TENANT_ID=str(tenant.id))
+        client_cashier.credentials(
+            HTTP_AUTHORIZATION=f"Bearer {token_c}", HTTP_X_TENANT_ID=str(tenant.id)
+        )
 
         from apps.core.context import set_current_tenant
+
         set_current_tenant(tenant)
 
         return {
@@ -152,7 +159,10 @@ def test_template_counters_zero_tables(venue_env):
 
     res = client.post(
         f"/api/v1/branches/{branch.id}/layout-templates/counters/apply/",
-        {"mode": "new", "params": {"count": 3, "names": ["Pickup Counter", "Juice Counter", "Express"]}},
+        {
+            "mode": "new",
+            "params": {"count": 3, "names": ["Pickup Counter", "Juice Counter", "Express"]},
+        },
         format="json",
     )
     assert res.status_code == status.HTTP_200_OK

@@ -1019,14 +1019,20 @@ def render_qr_image(
     try:
         ratio = contrast_ratio(clean_color, "#FFFFFF")
     except Exception:
-        raise BusinessRuleError("INVALID_QR_COLOR", "Invalid QR color hex format.", status_code=400) from None
+        raise BusinessRuleError(
+            "INVALID_QR_COLOR", "Invalid QR color hex format.", status_code=400
+        ) from None
 
     if ratio < 7.0:
         raise BusinessRuleError(
             "INVALID_QR_COLOR",
             f"QR color '{clean_color}' has contrast ratio {ratio:.2f}:1 against white (must be at least 7.0:1).",
             status_code=400,
-            details={"color": clean_color, "contrast_ratio": round(ratio, 2), "minimum_required": 7.0},
+            details={
+                "color": clean_color,
+                "contrast_ratio": round(ratio, 2),
+                "minimum_required": 7.0,
+            },
         )
 
     content_type = "image/png" if fmt == "png" else "image/svg+xml"
@@ -1110,8 +1116,15 @@ def get_qr_sheet_data(
     """Returns active QR codes with table, area, section names, and public URLs."""
     qs = (
         QRCode.objects.filter(tenant=tenant, is_active=True)
-        .select_related("table", "table__section", "table__section__service_area", "service_area", "branch")
-        .order_by("table__section__service_area__name", "table__section__name", "table__label", "service_area__name")
+        .select_related(
+            "table", "table__section", "table__section__service_area", "service_area", "branch"
+        )
+        .order_by(
+            "table__section__service_area__name",
+            "table__section__name",
+            "table__label",
+            "service_area__name",
+        )
     )
     if branch_id:
         qs = qs.filter(branch_id=branch_id)
@@ -1137,16 +1150,18 @@ def get_qr_sheet_data(
             label = qr.service_area.name
             area_name = qr.service_area.name
 
-        results.append({
-            "id": str(qr.id),
-            "public_token": qr.public_token,
-            "target_type": qr.target_type,
-            "label": label,
-            "area_name": area_name,
-            "section_name": section_name,
-            "branch_id": str(qr.branch_id),
-            "branch_name": qr.branch.name,
-            "public_url": f"{base_url}/{qr.public_token}",
-        })
+        results.append(
+            {
+                "id": str(qr.id),
+                "public_token": qr.public_token,
+                "target_type": qr.target_type,
+                "label": label,
+                "area_name": area_name,
+                "section_name": section_name,
+                "branch_id": str(qr.branch_id),
+                "branch_name": qr.branch.name,
+                "public_url": f"{base_url}/{qr.public_token}",
+            }
+        )
 
     return results

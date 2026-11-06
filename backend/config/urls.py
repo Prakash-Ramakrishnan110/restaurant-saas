@@ -22,6 +22,7 @@ api_v1_patterns = [
     path("", include("apps.tenants.urls")),
     path("", include("apps.venues.urls")),
     path("", include("apps.subscriptions.urls")),
+    path("menu/", include("apps.menu.urls")),
 ]
 
 urlpatterns = [

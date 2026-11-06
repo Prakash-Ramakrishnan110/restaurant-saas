@@ -783,4 +783,3 @@ def delete_business_logo(
         before_state=before_state,
         after_state=after_state,
     )
-

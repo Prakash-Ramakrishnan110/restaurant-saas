@@ -13,7 +13,9 @@ from apps.venues.models import DiningTable, Section, ServiceArea, TableSession
 
 @pytest.fixture
 def matrix_env():
-    tenant = Tenant.objects.create(name="Matrix Tenant", slug="matrix-tenant", status=Tenant.Status.ACTIVE)
+    tenant = Tenant.objects.create(
+        name="Matrix Tenant", slug="matrix-tenant", status=Tenant.Status.ACTIVE
+    )
     plan = Plan.objects.create(
         name="Enterprise",
         slug="enterprise",
@@ -27,8 +29,12 @@ def matrix_env():
     )
     Subscription.objects.create(tenant=tenant, plan=plan, status=SubscriptionStatus.ACTIVE)
     branch = Branch.objects.create(tenant=tenant, name="Matrix Branch")
-    area = ServiceArea.objects.create(tenant=tenant, branch=branch, name="Main Dining", area_type=AreaType.DINING)
-    sec = Section.objects.create(tenant=tenant, branch=branch, service_area=area, name="Main Section")
+    area = ServiceArea.objects.create(
+        tenant=tenant, branch=branch, name="Main Dining", area_type=AreaType.DINING
+    )
+    sec = Section.objects.create(
+        tenant=tenant, branch=branch, service_area=area, name="Main Section"
+    )
 
     users = {}
     clients = {}
@@ -189,31 +195,58 @@ def test_role_x_endpoint_access(matrix_env, endpoint, role, expected_status):
 
     if endpoint == "table_status_transition":
         table = DiningTable.objects.create(
-            tenant=tenant, branch=branch, section=sec, label=f"T-Status-{role}", capacity=4, status=TableStatus.AVAILABLE
+            tenant=tenant,
+            branch=branch,
+            section=sec,
+            label=f"T-Status-{role}",
+            capacity=4,
+            status=TableStatus.AVAILABLE,
         )
         res = client.post(f"/api/v1/tables/{table.id}/status/", {"status": TableStatus.OCCUPIED})
         assert res.status_code == expected_status
 
     elif endpoint == "table_merge_join":
         t1 = DiningTable.objects.create(
-            tenant=tenant, branch=branch, section=sec, label=f"TJ1-{role}", capacity=2, is_combinable=True
+            tenant=tenant,
+            branch=branch,
+            section=sec,
+            label=f"TJ1-{role}",
+            capacity=2,
+            is_combinable=True,
         )
         t2 = DiningTable.objects.create(
-            tenant=tenant, branch=branch, section=sec, label=f"TJ2-{role}", capacity=2, is_combinable=True
+            tenant=tenant,
+            branch=branch,
+            section=sec,
+            label=f"TJ2-{role}",
+            capacity=2,
+            is_combinable=True,
         )
         res = client.post("/api/v1/tables/join/", {"table_ids": [str(t1.id), str(t2.id)]})
         assert res.status_code == expected_status
 
     elif endpoint == "table_session_open":
         table = DiningTable.objects.create(
-            tenant=tenant, branch=branch, section=sec, label=f"T-Open-{role}", capacity=4, status=TableStatus.AVAILABLE
+            tenant=tenant,
+            branch=branch,
+            section=sec,
+            label=f"T-Open-{role}",
+            capacity=4,
+            status=TableStatus.AVAILABLE,
         )
-        res = client.post("/api/v1/table-sessions/open/", {"table_id": str(table.id), "guest_count": 2})
+        res = client.post(
+            "/api/v1/table-sessions/open/", {"table_id": str(table.id), "guest_count": 2}
+        )
         assert res.status_code == expected_status
 
     elif endpoint == "table_session_close":
         table = DiningTable.objects.create(
-            tenant=tenant, branch=branch, section=sec, label=f"T-Close-{role}", capacity=4, status=TableStatus.OCCUPIED
+            tenant=tenant,
+            branch=branch,
+            section=sec,
+            label=f"T-Close-{role}",
+            capacity=4,
+            status=TableStatus.OCCUPIED,
         )
         session = TableSession.objects.create(
             tenant=tenant, branch=branch, table=table, session_code=f"S-{role[:4]}", guest_count=2
@@ -265,7 +298,10 @@ def test_role_x_endpoint_access(matrix_env, endpoint, role, expected_status):
 
     elif endpoint == "staff_assign":
         from apps.venues.models import Section
-        sec = Section.objects.create(tenant=tenant, branch=branch, service_area=area, name=f"Sec-{role}")
+
+        sec = Section.objects.create(
+            tenant=tenant, branch=branch, service_area=area, name=f"Sec-{role}"
+        )
         w_user = User.objects.create_user(email=f"wassign_{role.lower()}@test.com", password="P1!")
         w_mem = Membership.objects.create(user=w_user, tenant=tenant, role=Role.WAITER)
         res = client.post(

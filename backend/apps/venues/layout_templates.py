@@ -57,7 +57,15 @@ def get_template_catalog() -> list[dict[str, Any]]:
             "key": "empty",
             "name": "Custom Blank Canvas",
             "description": "Blank canvas with one starter area and section, ready for custom manual layout design.",
-            "recommended_profiles": ["CAFE", "CASUAL_DINING", "FINE_DINING", "HOTEL_RESTAURANT", "QUICK_SERVICE", "FOOD_COURT", "BAR_BREWERY"],
+            "recommended_profiles": [
+                "CAFE",
+                "CASUAL_DINING",
+                "FINE_DINING",
+                "HOTEL_RESTAURANT",
+                "QUICK_SERVICE",
+                "FOOD_COURT",
+                "BAR_BREWERY",
+            ],
             "has_tables": False,
             "params_schema": {},
         },
@@ -211,9 +219,15 @@ def build_template_spec(key: str, params: dict[str, Any] | None = None) -> dict[
         rooms_per_floor = int(params.get("rooms_per_floor", 10))
 
         if floors < 1 or floors > 10:
-            raise BusinessRuleError("INVALID_TEMPLATE_PARAMS", "Floors must be between 1 and 10.", status_code=400)
+            raise BusinessRuleError(
+                "INVALID_TEMPLATE_PARAMS", "Floors must be between 1 and 10.", status_code=400
+            )
         if rooms_per_floor < 1 or rooms_per_floor > 40:
-            raise BusinessRuleError("INVALID_TEMPLATE_PARAMS", "Rooms per floor must be between 1 and 40.", status_code=400)
+            raise BusinessRuleError(
+                "INVALID_TEMPLATE_PARAMS",
+                "Rooms per floor must be between 1 and 40.",
+                status_code=400,
+            )
 
         areas = []
         for f in range(1, floors + 1):
@@ -228,50 +242,79 @@ def build_template_spec(key: str, params: dict[str, Any] | None = None) -> dict[
                 }
                 for r in range(1, rooms_per_floor + 1)
             ]
-            areas.append({
-                "name": f"Floor {f} (Rooms)",
-                "area_type": AreaType.ROOM_SERVICE,
-                "sections": [{"name": f"Floor {f} Wing", "tables": floor_rooms}],
-            })
+            areas.append(
+                {
+                    "name": f"Floor {f} (Rooms)",
+                    "area_type": AreaType.ROOM_SERVICE,
+                    "sections": [{"name": f"Floor {f} Wing", "tables": floor_rooms}],
+                }
+            )
 
         # Plus Lobby Cafe (4 tables), Rooftop (6 tables), Banquet (10 tables)
         lobby_tables = [
-            {"label": f"L{i}", "capacity": 2, "table_type": TableType.TABLE, "shape": TableShape.ROUND, "x": float(100 + i * 90), "y": 100.0}
+            {
+                "label": f"L{i}",
+                "capacity": 2,
+                "table_type": TableType.TABLE,
+                "shape": TableShape.ROUND,
+                "x": float(100 + i * 90),
+                "y": 100.0,
+            }
             for i in range(1, 5)
         ]
         rooftop_tables = [
-            {"label": f"R{i}", "capacity": 4, "table_type": TableType.TABLE, "shape": TableShape.SQUARE, "x": float(100 + ((i - 1) % 3) * 120), "y": float(100 + ((i - 1) // 3) * 120)}
+            {
+                "label": f"R{i}",
+                "capacity": 4,
+                "table_type": TableType.TABLE,
+                "shape": TableShape.SQUARE,
+                "x": float(100 + ((i - 1) % 3) * 120),
+                "y": float(100 + ((i - 1) // 3) * 120),
+            }
             for i in range(1, 7)
         ]
         banquet_tables = [
-            {"label": f"BQ{i}", "capacity": 10, "table_type": TableType.TABLE, "shape": TableShape.ROUND, "x": float(100 + ((i - 1) % 5) * 140), "y": float(100 + ((i - 1) // 5) * 140)}
+            {
+                "label": f"BQ{i}",
+                "capacity": 10,
+                "table_type": TableType.TABLE,
+                "shape": TableShape.ROUND,
+                "x": float(100 + ((i - 1) % 5) * 140),
+                "y": float(100 + ((i - 1) // 5) * 140),
+            }
             for i in range(1, 11)
         ]
 
-        areas.extend([
-            {
-                "name": "Lobby Café",
-                "area_type": AreaType.DINING,
-                "sections": [{"name": "Lobby Seating", "tables": lobby_tables}],
-            },
-            {
-                "name": "Rooftop Restaurant",
-                "area_type": AreaType.OUTDOOR,
-                "sections": [{"name": "Rooftop Terrace", "tables": rooftop_tables}],
-            },
-            {
-                "name": "Grand Banquet",
-                "area_type": AreaType.BANQUET,
-                "sections": [{"name": "Banquet Hall", "tables": banquet_tables}],
-            },
-        ])
+        areas.extend(
+            [
+                {
+                    "name": "Lobby Café",
+                    "area_type": AreaType.DINING,
+                    "sections": [{"name": "Lobby Seating", "tables": lobby_tables}],
+                },
+                {
+                    "name": "Rooftop Restaurant",
+                    "area_type": AreaType.OUTDOOR,
+                    "sections": [{"name": "Rooftop Terrace", "tables": rooftop_tables}],
+                },
+                {
+                    "name": "Grand Banquet",
+                    "area_type": AreaType.BANQUET,
+                    "sections": [{"name": "Banquet Hall", "tables": banquet_tables}],
+                },
+            ]
+        )
         counters = []
 
     elif key == "counters":
         # params: count 1-12 and names; creates counter areas, no tables, for tokens
         count = int(params.get("count", 2))
         if count < 1 or count > 12:
-            raise BusinessRuleError("INVALID_TEMPLATE_PARAMS", "Counter count must be between 1 and 12.", status_code=400)
+            raise BusinessRuleError(
+                "INVALID_TEMPLATE_PARAMS",
+                "Counter count must be between 1 and 12.",
+                status_code=400,
+            )
 
         custom_names = params.get("names", [])
         if not isinstance(custom_names, list):
@@ -306,7 +349,9 @@ def build_template_spec(key: str, params: dict[str, Any] | None = None) -> dict[
         ]
         counters = []
     else:
-        raise BusinessRuleError("TEMPLATE_NOT_FOUND", f"Layout template '{key}' not found.", status_code=404)
+        raise BusinessRuleError(
+            "TEMPLATE_NOT_FOUND", f"Layout template '{key}' not found.", status_code=404
+        )
 
     # Compute summary
     total_sections = sum(len(a.get("sections", [])) for a in areas)
@@ -323,4 +368,3 @@ def build_template_spec(key: str, params: dict[str, Any] | None = None) -> dict[
             "counters_count": len(counters),
         },
     }
-

@@ -34,6 +34,7 @@ def auth_setup(django_db_blocker):
         )
 
         from apps.core.context import set_current_tenant
+
         set_current_tenant(tenant)
 
         return {"tenant": tenant, "owner": owner, "membership": membership, "client": client}
@@ -93,7 +94,9 @@ def test_business_brand_color_contrast_validation(auth_setup):
     res_navy = client.patch("/api/v1/business/", {"brand_primary_color": "#0B1F3B"}, format="json")
     assert res_navy.status_code == status.HTTP_200_OK
 
-    res_orange = client.patch("/api/v1/business/", {"brand_primary_color": "#FF6A00"}, format="json")
+    res_orange = client.patch(
+        "/api/v1/business/", {"brand_primary_color": "#FF6A00"}, format="json"
+    )
     assert res_orange.status_code == status.HTTP_200_OK
 
     # Color failing both white and navy (< 4.5:1)

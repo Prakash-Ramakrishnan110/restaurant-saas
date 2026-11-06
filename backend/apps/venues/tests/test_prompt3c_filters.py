@@ -17,13 +17,34 @@ def test_dining_table_list_filters_and_natural_ordering(venue_test_setup):
     tenant = setup["tenant_a"]
 
     DiningTable.objects.create(
-        tenant=tenant, branch=branch, section=sec, label="X1", label_prefix="X", label_number=1, is_active=True, status="AVAILABLE"
+        tenant=tenant,
+        branch=branch,
+        section=sec,
+        label="X1",
+        label_prefix="X",
+        label_number=1,
+        is_active=True,
+        status="AVAILABLE",
     )
     DiningTable.objects.create(
-        tenant=tenant, branch=branch, section=sec, label="X2", label_prefix="X", label_number=2, is_active=True, status="OCCUPIED"
+        tenant=tenant,
+        branch=branch,
+        section=sec,
+        label="X2",
+        label_prefix="X",
+        label_number=2,
+        is_active=True,
+        status="OCCUPIED",
     )
     DiningTable.objects.create(
-        tenant=tenant, branch=branch, section=sec, label="X10", label_prefix="X", label_number=10, is_active=False, status="AVAILABLE"
+        tenant=tenant,
+        branch=branch,
+        section=sec,
+        label="X10",
+        label_prefix="X",
+        label_number=10,
+        is_active=False,
+        status="AVAILABLE",
     )
 
     # 1. Natural ordering: X1, X2, X10
@@ -77,21 +98,33 @@ def test_section_type_is_active_and_cannot_create_in_inactive_section(venue_test
     area = setup["area_a1"]
 
     Section.objects.create(
-        tenant=tenant, branch=branch, service_area=area, name="Executive VIP", section_type="VIP", is_active=True, sort_order=1
+        tenant=tenant,
+        branch=branch,
+        service_area=area,
+        name="Executive VIP",
+        section_type="VIP",
+        is_active=True,
+        sort_order=1,
     )
     sec_inactive = Section.objects.create(
-        tenant=tenant, branch=branch, service_area=area, name="Renovation Section", section_type="INDOOR", is_active=False, sort_order=2
+        tenant=tenant,
+        branch=branch,
+        service_area=area,
+        name="Renovation Section",
+        section_type="INDOOR",
+        is_active=False,
+        sort_order=2,
     )
 
     # Filter section by section_type=VIP
-    res_vip = client.get(f"/api/v1/sections/?section_type=VIP")
+    res_vip = client.get("/api/v1/sections/?section_type=VIP")
     assert res_vip.status_code == 200
     names = [s["name"] for s in res_vip.data["results"]]
     assert "Executive VIP" in names
     assert "Renovation Section" not in names
 
     # Filter section by is_active=true
-    res_act = client.get(f"/api/v1/sections/?is_active=true")
+    res_act = client.get("/api/v1/sections/?is_active=true")
     assert res_act.status_code == 200
     act_names = [s["name"] for s in res_act.data["results"]]
     assert "Executive VIP" in act_names
@@ -112,7 +145,9 @@ def test_section_type_is_active_and_cannot_create_in_inactive_section(venue_test
         format="json",
     )
     assert res_tbl.status_code == 400
-    assert "INACTIVE_SECTION" in str(res_tbl.data) or "inactive section" in str(res_tbl.data).lower()
+    assert (
+        "INACTIVE_SECTION" in str(res_tbl.data) or "inactive section" in str(res_tbl.data).lower()
+    )
 
 
 @pytest.mark.django_db
@@ -129,7 +164,11 @@ def test_service_area_and_section_list_filters(venue_test_setup):
         tenant=tenant, branch=branch, name="Inactive Terrace", sort_order=10, is_active=False
     )
     Section.objects.create(
-        tenant=tenant, branch=branch, service_area=setup["area_a1"], name="Outdoor Porch", sort_order=5
+        tenant=tenant,
+        branch=branch,
+        service_area=setup["area_a1"],
+        name="Outdoor Porch",
+        sort_order=5,
     )
 
     # Filter ServiceArea by is_active=true

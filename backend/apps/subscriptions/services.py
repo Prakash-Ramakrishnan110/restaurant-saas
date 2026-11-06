@@ -58,6 +58,8 @@ def get_entitlement(tenant: Any, key: str, default: Any = None) -> Any:
             "max_branches": 1,
             "max_service_areas": 1,
             "max_tables": 15,
+            "max_menu_items": 100,
+            "max_image_storage_mb": 50,
             "floor_editor": False,
             "table_merge": False,
             "courses": False,
@@ -89,9 +91,25 @@ def get_tenant_entitlements_summary(tenant: Any) -> dict[str, Any]:
     sa_count = ServiceArea.objects.filter(tenant=tenant).count()
     table_count = DiningTable.objects.filter(tenant=tenant, is_active=True).count()
 
+    try:
+        from django.db.models import Sum
+
+        from apps.menu.models import MenuItem
+
+        menu_item_count = MenuItem.objects.filter(tenant=tenant).count()
+        img_bytes = (
+            MenuItem.objects.filter(tenant=tenant).aggregate(total=Sum("image_bytes"))["total"] or 0
+        )
+        img_mb = round(img_bytes / (1024 * 1024), 2)
+    except Exception:
+        menu_item_count = 0
+        img_mb = 0.0
+
     max_branches = get_entitlement(tenant, "max_branches", 1)
     max_service_areas = get_entitlement(tenant, "max_service_areas", 1)
     max_tables = get_entitlement(tenant, "max_tables", 15)
+    max_menu_items = get_entitlement(tenant, "max_menu_items", 100)
+    max_image_storage_mb = get_entitlement(tenant, "max_image_storage_mb", 50)
 
     floor_editor = bool(get_entitlement(tenant, "floor_editor", False))
     table_merge = bool(get_entitlement(tenant, "table_merge", False))
@@ -127,6 +145,18 @@ def get_tenant_entitlements_summary(tenant: Any) -> dict[str, Any]:
                 "remaining": calc_remaining(max_tables, table_count),
                 "over_limit": is_over(max_tables, table_count),
             },
+            "max_menu_items": {
+                "limit": max_menu_items,
+                "current": menu_item_count,
+                "remaining": calc_remaining(max_menu_items, menu_item_count),
+                "over_limit": is_over(max_menu_items, menu_item_count),
+            },
+            "max_image_storage_mb": {
+                "limit": max_image_storage_mb,
+                "current": img_mb,
+                "remaining": calc_remaining(max_image_storage_mb, int(img_mb)),
+                "over_limit": is_over(max_image_storage_mb, int(img_mb)),
+            },
             "floor_editor": {"enabled": floor_editor},
             "table_merge": {"enabled": table_merge},
             "courses": {"enabled": courses},
@@ -135,6 +165,8 @@ def get_tenant_entitlements_summary(tenant: Any) -> dict[str, Any]:
             "branches": branch_count,
             "service_areas": sa_count,
             "tables": table_count,
+            "menu_items": menu_item_count,
+            "image_storage_mb": img_mb,
         },
     }
 

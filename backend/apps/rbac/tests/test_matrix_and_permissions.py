@@ -93,15 +93,26 @@ def test_rbac_permissions_edge_cases():
     from apps.subscriptions.constants import SubscriptionStatus
     from apps.subscriptions.models import Subscription
 
-    tenant = Tenant.objects.create(name="Boost Tenant", slug="boost-tenant", status=Tenant.Status.ACTIVE)
+    tenant = Tenant.objects.create(
+        name="Boost Tenant", slug="boost-tenant", status=Tenant.Status.ACTIVE
+    )
     Subscription.objects.create(tenant=tenant, status=SubscriptionStatus.ACTIVE)
-    owner = User.objects.create_user(email="boostowner@example.com", password="Password123!", full_name="Boost Owner")
-    owner_mem = Membership.objects.create(user=owner, tenant=tenant, role=Role.OWNER, is_active=True)
+    owner = User.objects.create_user(
+        email="boostowner@example.com", password="Password123!", full_name="Boost Owner"
+    )
+    owner_mem = Membership.objects.create(
+        user=owner, tenant=tenant, role=Role.OWNER, is_active=True
+    )
     branch = Branch.objects.create(tenant=tenant, name="Boost Branch")
     dummy_view = APIView()
 
     # 1. Platform admin bypass in verify_tenant_and_branch_access
-    admin = User.objects.create_user(email="adminboost@example.com", password="Password123!", full_name="Admin", is_platform_admin=True)
+    admin = User.objects.create_user(
+        email="adminboost@example.com",
+        password="Password123!",
+        full_name="Admin",
+        is_platform_admin=True,
+    )
     assert verify_tenant_and_branch_access(admin, branch) is True
 
     # 2. active_tenant is None raises Http404
@@ -109,7 +120,9 @@ def test_rbac_permissions_edge_cases():
         verify_tenant_and_branch_access(owner, branch, tenant=None)
 
     # 3. membership is None and user has no membership -> Http404
-    rando = User.objects.create_user(email="rando@example.com", password="Password123!", full_name="Rando")
+    rando = User.objects.create_user(
+        email="rando@example.com", password="Password123!", full_name="Rando"
+    )
     with pytest.raises(Http404):
         verify_tenant_and_branch_access(rando, branch, tenant=tenant)
 
@@ -176,12 +189,18 @@ def test_rbac_permissions_edge_cases():
 
     # 13. Branch scoping in verify_tenant_and_branch_access
     branch2 = Branch.objects.create(tenant=tenant, name="Branch 2")
-    user_bm = User.objects.create_user(email="scopedbm@example.com", password="Password123!", full_name="Scoped BM")
-    mem_bm = Membership.objects.create(user=user_bm, tenant=tenant, role=Role.BRANCH_MANAGER, is_active=True)
+    user_bm = User.objects.create_user(
+        email="scopedbm@example.com", password="Password123!", full_name="Scoped BM"
+    )
+    mem_bm = Membership.objects.create(
+        user=user_bm, tenant=tenant, role=Role.BRANCH_MANAGER, is_active=True
+    )
     mem_bm.branches.add(branch)
 
     # Scoped user accessing allowed branch -> True
-    assert verify_tenant_and_branch_access(user_bm, branch, tenant=tenant, membership=mem_bm) is True
+    assert (
+        verify_tenant_and_branch_access(user_bm, branch, tenant=tenant, membership=mem_bm) is True
+    )
 
     # Scoped user accessing disallowed branch -> 404
     with pytest.raises(Http404):
@@ -195,7 +214,10 @@ def test_rbac_permissions_edge_cases():
 
     allowed_item = DummyItem(tenant.id, branch.id)
     disallowed_item = DummyItem(tenant.id, branch2.id)
-    assert verify_tenant_and_branch_access(user_bm, allowed_item, tenant=tenant, membership=mem_bm) is True
+    assert (
+        verify_tenant_and_branch_access(user_bm, allowed_item, tenant=tenant, membership=mem_bm)
+        is True
+    )
     with pytest.raises(Http404):
         verify_tenant_and_branch_access(user_bm, disallowed_item, tenant=tenant, membership=mem_bm)
 

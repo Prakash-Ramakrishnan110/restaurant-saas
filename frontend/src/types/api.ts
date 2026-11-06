@@ -255,6 +255,263 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/menu/availability/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["menu_availability_list"];
+        put?: never;
+        post: operations["menu_availability_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/menu/availability/{id}/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["menu_availability_retrieve"];
+        put: operations["menu_availability_update"];
+        post?: never;
+        delete: operations["menu_availability_destroy"];
+        options?: never;
+        head?: never;
+        patch: operations["menu_availability_partial_update"];
+        trace?: never;
+    };
+    "/api/v1/menu/availability/bulk-toggle/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["menu_availability_bulk_toggle_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/menu/availability/toggle/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["menu_availability_toggle_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/menu/categories/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["menu_categories_list"];
+        put?: never;
+        post: operations["menu_categories_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/menu/categories/{id}/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["menu_categories_retrieve"];
+        put: operations["menu_categories_update"];
+        post?: never;
+        delete: operations["menu_categories_destroy"];
+        options?: never;
+        head?: never;
+        patch: operations["menu_categories_partial_update"];
+        trace?: never;
+    };
+    "/api/v1/menu/categories/reorder/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["menu_categories_reorder_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/menu/full/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description Constant query-count read-only active menu endpoint for customer QR and staff ordering. */
+        get: operations["menu_full_retrieve"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/menu/items/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["menu_items_list"];
+        put?: never;
+        post: operations["menu_items_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/menu/items/{id}/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["menu_items_retrieve"];
+        put: operations["menu_items_update"];
+        post?: never;
+        delete: operations["menu_items_destroy"];
+        options?: never;
+        head?: never;
+        patch: operations["menu_items_partial_update"];
+        trace?: never;
+    };
+    "/api/v1/menu/items/{id}/image/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["menu_items_image_create"];
+        delete: operations["menu_items_image_destroy"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/menu/items/{id}/option-groups/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["menu_items_option_groups_update"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/menu/items/{id}/variants/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["menu_items_variants_update"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/menu/items/bulk-create/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["menu_items_bulk_create_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/menu/option-groups/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["menu_option_groups_list"];
+        put?: never;
+        post: operations["menu_option_groups_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/menu/option-groups/{id}/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["menu_option_groups_retrieve"];
+        put: operations["menu_option_groups_update"];
+        post?: never;
+        delete: operations["menu_option_groups_destroy"];
+        options?: never;
+        head?: never;
+        patch: operations["menu_option_groups_partial_update"];
+        trace?: never;
+    };
     "/api/v1/onboarding/status/": {
         parameters: {
             query?: never;
@@ -966,6 +1223,26 @@ export interface components {
             /** Format: date-time */
             readonly updated_at: string;
         };
+        BranchItemAvailability: {
+            /** Format: uuid */
+            readonly id: string;
+            /** Format: uuid */
+            branch: string;
+            /** Format: uuid */
+            item: string;
+            readonly item_name: string;
+            readonly category_name: string;
+            is_available?: boolean;
+            /** Format: date-time */
+            readonly updated_at: string;
+        };
+        BranchItemAvailabilityRequest: {
+            /** Format: uuid */
+            branch: string;
+            /** Format: uuid */
+            item: string;
+            is_available?: boolean;
+        };
         BranchRequest: {
             name: string;
             address?: string;
@@ -1128,6 +1405,29 @@ export interface components {
          * @enum {string}
          */
         DocumentLanguageEnum: "EN" | "EN_TA";
+        /**
+         * @description * `VEG` - Vegetarian
+         *     * `NON_VEG` - Non-Vegetarian
+         *     * `EGG` - Contains Egg
+         * @enum {string}
+         */
+        FoodTypeEnum: "VEG" | "NON_VEG" | "EGG";
+        ItemVariant: {
+            /** Format: uuid */
+            readonly id: string;
+            name: string;
+            name_ta?: string;
+            price_paise: number;
+            is_default?: boolean;
+            sort_order?: number;
+        };
+        ItemVariantRequest: {
+            name: string;
+            name_ta?: string;
+            price_paise: number;
+            is_default?: boolean;
+            sort_order?: number;
+        };
         LayoutTemplateApplyResponse: {
             dry_run: boolean;
             template_key: string;
@@ -1192,6 +1492,77 @@ export interface components {
             readonly branches: components["schemas"]["BranchSummary"][];
             is_active?: boolean;
         };
+        MenuCategory: {
+            /** Format: uuid */
+            readonly id: string;
+            name: string;
+            name_ta?: string;
+            sort_order?: number;
+            is_active?: boolean;
+            readonly items_count: number;
+            /** Format: date-time */
+            readonly created_at: string;
+            /** Format: date-time */
+            readonly updated_at: string;
+        };
+        MenuCategoryRequest: {
+            name: string;
+            name_ta?: string;
+            sort_order?: number;
+            is_active?: boolean;
+        };
+        MenuItem: {
+            /** Format: uuid */
+            readonly id: string;
+            /** Format: uuid */
+            category: string;
+            readonly category_name: string;
+            name: string;
+            name_ta?: string;
+            description?: string;
+            description_ta?: string;
+            base_price_paise?: number;
+            food_type?: components["schemas"]["FoodTypeEnum"];
+            prep_minutes?: number | null;
+            is_bestseller?: boolean;
+            is_active?: boolean;
+            sort_order?: number;
+            readonly image_original: string;
+            readonly image_card: string;
+            readonly image_thumb: string;
+            readonly image_bytes: number;
+            /** Format: double */
+            image_focus_x?: number;
+            /** Format: double */
+            image_focus_y?: number;
+            readonly variants: components["schemas"]["ItemVariant"][];
+            readonly option_groups: {
+                [key: string]: unknown;
+            }[];
+            readonly is_available: boolean;
+            /** Format: date-time */
+            readonly created_at: string;
+            /** Format: date-time */
+            readonly updated_at: string;
+        };
+        MenuItemRequest: {
+            /** Format: uuid */
+            category: string;
+            name: string;
+            name_ta?: string;
+            description?: string;
+            description_ta?: string;
+            base_price_paise?: number;
+            food_type?: components["schemas"]["FoodTypeEnum"];
+            prep_minutes?: number | null;
+            is_bestseller?: boolean;
+            is_active?: boolean;
+            sort_order?: number;
+            /** Format: double */
+            image_focus_x?: number;
+            /** Format: double */
+            image_focus_y?: number;
+        };
         OnboardingStatus: {
             is_complete: boolean;
             next_step: string | null;
@@ -1209,6 +1580,48 @@ export interface components {
          * @enum {string}
          */
         OpenedVia: "STAFF" | "QR" | "QR_CUSTOMER";
+        Option: {
+            /** Format: uuid */
+            readonly id: string;
+            name: string;
+            name_ta?: string;
+            price_delta_paise?: number;
+            is_default?: boolean;
+            is_active?: boolean;
+            sort_order?: number;
+        };
+        OptionGroup: {
+            /** Format: uuid */
+            readonly id: string;
+            name: string;
+            name_ta?: string;
+            min_select?: number;
+            max_select?: number;
+            sort_order?: number;
+            is_active?: boolean;
+            options?: components["schemas"]["Option"][];
+            /** Format: date-time */
+            readonly created_at: string;
+            /** Format: date-time */
+            readonly updated_at: string;
+        };
+        OptionGroupRequest: {
+            name: string;
+            name_ta?: string;
+            min_select?: number;
+            max_select?: number;
+            sort_order?: number;
+            is_active?: boolean;
+            options?: components["schemas"]["OptionRequest"][];
+        };
+        OptionRequest: {
+            name: string;
+            name_ta?: string;
+            price_delta_paise?: number;
+            is_default?: boolean;
+            is_active?: boolean;
+            sort_order?: number;
+        };
         /**
          * @description * `COUNTER_TOKEN` - Counter Token
          *     * `TABLE_SERVICE` - Table Service
@@ -1217,6 +1630,21 @@ export interface components {
          * @enum {string}
          */
         OrderWorkflow: "COUNTER_TOKEN" | "TABLE_SERVICE" | "BAR_TAB" | "ROOM_SERVICE";
+        PaginatedBranchItemAvailabilityList: {
+            /** @example 123 */
+            count: number;
+            /**
+             * Format: uri
+             * @example http://api.example.org/accounts/?page=4
+             */
+            next?: string | null;
+            /**
+             * Format: uri
+             * @example http://api.example.org/accounts/?page=2
+             */
+            previous?: string | null;
+            results: components["schemas"]["BranchItemAvailability"][];
+        };
         PaginatedBranchList: {
             /** @example 123 */
             count: number;
@@ -1246,6 +1674,51 @@ export interface components {
              */
             previous?: string | null;
             results: components["schemas"]["DiningTable"][];
+        };
+        PaginatedMenuCategoryList: {
+            /** @example 123 */
+            count: number;
+            /**
+             * Format: uri
+             * @example http://api.example.org/accounts/?page=4
+             */
+            next?: string | null;
+            /**
+             * Format: uri
+             * @example http://api.example.org/accounts/?page=2
+             */
+            previous?: string | null;
+            results: components["schemas"]["MenuCategory"][];
+        };
+        PaginatedMenuItemList: {
+            /** @example 123 */
+            count: number;
+            /**
+             * Format: uri
+             * @example http://api.example.org/accounts/?page=4
+             */
+            next?: string | null;
+            /**
+             * Format: uri
+             * @example http://api.example.org/accounts/?page=2
+             */
+            previous?: string | null;
+            results: components["schemas"]["MenuItem"][];
+        };
+        PaginatedOptionGroupList: {
+            /** @example 123 */
+            count: number;
+            /**
+             * Format: uri
+             * @example http://api.example.org/accounts/?page=4
+             */
+            next?: string | null;
+            /**
+             * Format: uri
+             * @example http://api.example.org/accounts/?page=2
+             */
+            previous?: string | null;
+            results: components["schemas"]["OptionGroup"][];
         };
         PaginatedQRCodeList: {
             /** @example 123 */
@@ -1384,6 +1857,13 @@ export interface components {
             qr_session_policy?: components["schemas"]["QrSessionPolicy"];
             order_workflow?: components["schemas"]["OrderWorkflow"];
         };
+        PatchedBranchItemAvailabilityRequest: {
+            /** Format: uuid */
+            branch?: string;
+            /** Format: uuid */
+            item?: string;
+            is_available?: boolean;
+        };
         PatchedBranchRequest: {
             name?: string;
             address?: string;
@@ -1434,6 +1914,39 @@ export interface components {
             height?: number;
             rotation?: number;
             shape?: components["schemas"]["TableShape"];
+        };
+        PatchedMenuCategoryRequest: {
+            name?: string;
+            name_ta?: string;
+            sort_order?: number;
+            is_active?: boolean;
+        };
+        PatchedMenuItemRequest: {
+            /** Format: uuid */
+            category?: string;
+            name?: string;
+            name_ta?: string;
+            description?: string;
+            description_ta?: string;
+            base_price_paise?: number;
+            food_type?: components["schemas"]["FoodTypeEnum"];
+            prep_minutes?: number | null;
+            is_bestseller?: boolean;
+            is_active?: boolean;
+            sort_order?: number;
+            /** Format: double */
+            image_focus_x?: number;
+            /** Format: double */
+            image_focus_y?: number;
+        };
+        PatchedOptionGroupRequest: {
+            name?: string;
+            name_ta?: string;
+            min_select?: number;
+            max_select?: number;
+            sort_order?: number;
+            is_active?: boolean;
+            options?: components["schemas"]["OptionRequest"][];
         };
         PatchedSectionRequest: {
             /** Format: uuid */
@@ -2283,6 +2796,822 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["LayoutTemplateCatalogItem"][];
+                };
+            };
+        };
+    };
+    menu_availability_list: {
+        parameters: {
+            query?: {
+                /** @description A page number within the paginated result set. */
+                page?: number;
+                /** @description Number of results to return per page. */
+                page_size?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaginatedBranchItemAvailabilityList"];
+                };
+            };
+        };
+    };
+    menu_availability_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BranchItemAvailabilityRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["BranchItemAvailabilityRequest"];
+                "multipart/form-data": components["schemas"]["BranchItemAvailabilityRequest"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BranchItemAvailability"];
+                };
+            };
+        };
+    };
+    menu_availability_retrieve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description A UUID string identifying this branch item availability. */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BranchItemAvailability"];
+                };
+            };
+        };
+    };
+    menu_availability_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description A UUID string identifying this branch item availability. */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BranchItemAvailabilityRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["BranchItemAvailabilityRequest"];
+                "multipart/form-data": components["schemas"]["BranchItemAvailabilityRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BranchItemAvailability"];
+                };
+            };
+        };
+    };
+    menu_availability_destroy: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description A UUID string identifying this branch item availability. */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No response body */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    menu_availability_partial_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description A UUID string identifying this branch item availability. */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["PatchedBranchItemAvailabilityRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["PatchedBranchItemAvailabilityRequest"];
+                "multipart/form-data": components["schemas"]["PatchedBranchItemAvailabilityRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BranchItemAvailability"];
+                };
+            };
+        };
+    };
+    menu_availability_bulk_toggle_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BranchItemAvailabilityRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["BranchItemAvailabilityRequest"];
+                "multipart/form-data": components["schemas"]["BranchItemAvailabilityRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BranchItemAvailability"];
+                };
+            };
+        };
+    };
+    menu_availability_toggle_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BranchItemAvailabilityRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["BranchItemAvailabilityRequest"];
+                "multipart/form-data": components["schemas"]["BranchItemAvailabilityRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BranchItemAvailability"];
+                };
+            };
+        };
+    };
+    menu_categories_list: {
+        parameters: {
+            query?: {
+                /** @description A page number within the paginated result set. */
+                page?: number;
+                /** @description Number of results to return per page. */
+                page_size?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaginatedMenuCategoryList"];
+                };
+            };
+        };
+    };
+    menu_categories_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MenuCategoryRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["MenuCategoryRequest"];
+                "multipart/form-data": components["schemas"]["MenuCategoryRequest"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MenuCategory"];
+                };
+            };
+        };
+    };
+    menu_categories_retrieve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description A UUID string identifying this menu category. */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MenuCategory"];
+                };
+            };
+        };
+    };
+    menu_categories_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description A UUID string identifying this menu category. */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MenuCategoryRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["MenuCategoryRequest"];
+                "multipart/form-data": components["schemas"]["MenuCategoryRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MenuCategory"];
+                };
+            };
+        };
+    };
+    menu_categories_destroy: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description A UUID string identifying this menu category. */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No response body */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    menu_categories_partial_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description A UUID string identifying this menu category. */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["PatchedMenuCategoryRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["PatchedMenuCategoryRequest"];
+                "multipart/form-data": components["schemas"]["PatchedMenuCategoryRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MenuCategory"];
+                };
+            };
+        };
+    };
+    menu_categories_reorder_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MenuCategoryRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["MenuCategoryRequest"];
+                "multipart/form-data": components["schemas"]["MenuCategoryRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MenuCategory"];
+                };
+            };
+        };
+    };
+    menu_full_retrieve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+        };
+    };
+    menu_items_list: {
+        parameters: {
+            query?: {
+                /** @description A page number within the paginated result set. */
+                page?: number;
+                /** @description Number of results to return per page. */
+                page_size?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaginatedMenuItemList"];
+                };
+            };
+        };
+    };
+    menu_items_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MenuItemRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["MenuItemRequest"];
+                "multipart/form-data": components["schemas"]["MenuItemRequest"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MenuItem"];
+                };
+            };
+        };
+    };
+    menu_items_retrieve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description A UUID string identifying this menu item. */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MenuItem"];
+                };
+            };
+        };
+    };
+    menu_items_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description A UUID string identifying this menu item. */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MenuItemRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["MenuItemRequest"];
+                "multipart/form-data": components["schemas"]["MenuItemRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MenuItem"];
+                };
+            };
+        };
+    };
+    menu_items_destroy: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description A UUID string identifying this menu item. */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No response body */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    menu_items_partial_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description A UUID string identifying this menu item. */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["PatchedMenuItemRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["PatchedMenuItemRequest"];
+                "multipart/form-data": components["schemas"]["PatchedMenuItemRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MenuItem"];
+                };
+            };
+        };
+    };
+    menu_items_image_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description A UUID string identifying this menu item. */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": components["schemas"]["MenuItemRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MenuItem"];
+                };
+            };
+        };
+    };
+    menu_items_image_destroy: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description A UUID string identifying this menu item. */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No response body */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    menu_items_option_groups_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description A UUID string identifying this menu item. */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MenuItemRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["MenuItemRequest"];
+                "multipart/form-data": components["schemas"]["MenuItemRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MenuItem"];
+                };
+            };
+        };
+    };
+    menu_items_variants_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description A UUID string identifying this menu item. */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MenuItemRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["MenuItemRequest"];
+                "multipart/form-data": components["schemas"]["MenuItemRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MenuItem"];
+                };
+            };
+        };
+    };
+    menu_items_bulk_create_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MenuItemRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["MenuItemRequest"];
+                "multipart/form-data": components["schemas"]["MenuItemRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MenuItem"];
+                };
+            };
+        };
+    };
+    menu_option_groups_list: {
+        parameters: {
+            query?: {
+                /** @description A page number within the paginated result set. */
+                page?: number;
+                /** @description Number of results to return per page. */
+                page_size?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaginatedOptionGroupList"];
+                };
+            };
+        };
+    };
+    menu_option_groups_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["OptionGroupRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["OptionGroupRequest"];
+                "multipart/form-data": components["schemas"]["OptionGroupRequest"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OptionGroup"];
+                };
+            };
+        };
+    };
+    menu_option_groups_retrieve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description A UUID string identifying this option group. */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OptionGroup"];
+                };
+            };
+        };
+    };
+    menu_option_groups_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description A UUID string identifying this option group. */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["OptionGroupRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["OptionGroupRequest"];
+                "multipart/form-data": components["schemas"]["OptionGroupRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OptionGroup"];
+                };
+            };
+        };
+    };
+    menu_option_groups_destroy: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description A UUID string identifying this option group. */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No response body */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    menu_option_groups_partial_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description A UUID string identifying this option group. */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["PatchedOptionGroupRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["PatchedOptionGroupRequest"];
+                "multipart/form-data": components["schemas"]["PatchedOptionGroupRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OptionGroup"];
                 };
             };
         };

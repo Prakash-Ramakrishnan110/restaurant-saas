@@ -151,6 +151,19 @@ def HasTenantPermission(permission_code: str) -> type[BaseTenantPermission]:
     return DynamicTenantPermission
 
 
+class ActionPermission(BaseTenantPermission):
+    """Evaluates required_permissions dict on the view keyed by action name."""
+
+    def has_permission(self, request: Request, view: APIView) -> bool:
+        action = getattr(view, "action", None)
+        req_perms = getattr(view, "required_permissions", {})
+        if action and action in req_perms:
+            self.required_permission = req_perms[action]
+        else:
+            self.required_permission = getattr(view, "default_permission", None)
+        return super().has_permission(request, view)
+
+
 class IsPlatformAdmin(BasePermission):
     """Allows access only to platform administrators."""
 

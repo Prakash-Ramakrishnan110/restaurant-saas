@@ -99,6 +99,18 @@ Run `python manage.py seed` or `make seed` to provision:
 
 ---
 
+## Menu Core & Outlets Availability (v0.6.0)
+
+| View | Artifact | Description |
+|---|---|---|
+| **Menu Management** | `docs/screenshots/27-menu-management-desktop.png` | Categories list, FSSAI diet tags, plan quota usage, portion badges, Indian grouping prices in paise. |
+| **Item Editor Side Sheet** | `docs/screenshots/28-menu-item-editor-desktop.png` | Bilingual naming, price in Rupees parsed to paise without float math, focal crop reticle, variants, option groups. |
+| **Quick Add Dialog** | `docs/screenshots/29-menu-quick-add-desktop.png` | Bulk paste from Excel/TSV with live validation preview table and atomic creation. |
+| **Today's Availability (Desktop)** | `docs/screenshots/30-menu-availability-desktop.png` | One-tap sold-out switch by outlet with instant undo toast. |
+| **Today's Availability (Mobile)** | `docs/screenshots/31-menu-availability-mobile.png` | Touch-optimized availability toggles for fast counter & waiter operations. |
+
+---
+
 ## Quality Gates & Verification
 
 ```bash
