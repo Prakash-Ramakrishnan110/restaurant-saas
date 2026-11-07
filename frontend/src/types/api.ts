@@ -532,6 +532,235 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/orders/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description Production ViewSet for placing, tracking, and cancelling orders. */
+        get: operations["orders_list"];
+        put?: never;
+        /** @description Production ViewSet for placing, tracking, and cancelling orders. */
+        post: operations["orders_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/orders/{id}/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description Production ViewSet for placing, tracking, and cancelling orders. */
+        get: operations["orders_retrieve"];
+        /** @description Production ViewSet for placing, tracking, and cancelling orders. */
+        put: operations["orders_update"];
+        post?: never;
+        /** @description Production ViewSet for placing, tracking, and cancelling orders. */
+        delete: operations["orders_destroy"];
+        options?: never;
+        head?: never;
+        /** @description Production ViewSet for placing, tracking, and cancelling orders. */
+        patch: operations["orders_partial_update"];
+        trace?: never;
+    };
+    "/api/v1/orders/{id}/cancel/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** @description Production ViewSet for placing, tracking, and cancelling orders. */
+        post: operations["orders_cancel_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/orders/{id}/fire-mains/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** @description Production ViewSet for placing, tracking, and cancelling orders. */
+        post: operations["orders_fire_mains_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/orders/billing/invoices/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description Cashier billing, split payment, and invoice generation. */
+        get: operations["orders_billing_invoices_retrieve"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/orders/billing/session/{session_id}/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description Cashier billing, split payment, and invoice generation. */
+        get: operations["orders_billing_session_retrieve"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/orders/billing/session/{session_id}/settle/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** @description Cashier billing, split payment, and invoice generation. */
+        post: operations["orders_billing_session_settle_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/orders/kds/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description Kitchen Display System real-time ticket queue. */
+        get: operations["orders_kds_list"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/orders/kds/{id}/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description Kitchen Display System real-time ticket queue. */
+        get: operations["orders_kds_retrieve"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/orders/kds/{id}/bump/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** @description Kitchen Display System real-time ticket queue. */
+        post: operations["orders_kds_bump_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/orders/service-requests/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description Customer Call Bell and service requests. */
+        get: operations["orders_service_requests_list"];
+        put?: never;
+        /** @description Customer Call Bell and service requests. */
+        post: operations["orders_service_requests_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/orders/service-requests/{id}/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description Customer Call Bell and service requests. */
+        get: operations["orders_service_requests_retrieve"];
+        /** @description Customer Call Bell and service requests. */
+        put: operations["orders_service_requests_update"];
+        post?: never;
+        /** @description Customer Call Bell and service requests. */
+        delete: operations["orders_service_requests_destroy"];
+        options?: never;
+        head?: never;
+        /** @description Customer Call Bell and service requests. */
+        patch: operations["orders_service_requests_partial_update"];
+        trace?: never;
+    };
+    "/api/v1/orders/service-requests/{id}/acknowledge/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** @description Customer Call Bell and service requests. */
+        post: operations["orders_service_requests_acknowledge_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/public/qr/{token}/": {
         parameters: {
             query?: never;
@@ -1184,6 +1413,69 @@ export interface components {
             active_role: string | null;
             permissions: string[];
         };
+        BillInvoice: {
+            /** Format: uuid */
+            readonly id: string;
+            /** Format: uuid */
+            readonly branch_id: string;
+            /** Format: uuid */
+            readonly table_session_id: string | null;
+            readonly table_label: string;
+            invoice_number: string;
+            /** Format: int64 */
+            subtotal_paise?: number;
+            /**
+             * Format: int64
+             * @description 2.5% Central GST in paise
+             */
+            cgst_paise?: number;
+            /**
+             * Format: int64
+             * @description 2.5% State GST in paise
+             */
+            sgst_paise?: number;
+            /** Format: int64 */
+            discount_paise?: number;
+            /** Format: int64 */
+            total_paise?: number;
+            payment_method?: components["schemas"]["PaymentMethodEnum"];
+            /** Format: int64 */
+            amount_tendered_paise?: number;
+            /** Format: int64 */
+            change_due_paise?: number;
+            is_settled?: boolean;
+            /** Format: date-time */
+            settled_at?: string | null;
+            notes?: string;
+        };
+        BillInvoiceRequest: {
+            invoice_number: string;
+            /** Format: int64 */
+            subtotal_paise?: number;
+            /**
+             * Format: int64
+             * @description 2.5% Central GST in paise
+             */
+            cgst_paise?: number;
+            /**
+             * Format: int64
+             * @description 2.5% State GST in paise
+             */
+            sgst_paise?: number;
+            /** Format: int64 */
+            discount_paise?: number;
+            /** Format: int64 */
+            total_paise?: number;
+            payment_method?: components["schemas"]["PaymentMethodEnum"];
+            /** Format: int64 */
+            amount_tendered_paise?: number;
+            /** Format: int64 */
+            change_due_paise?: number;
+            is_settled?: boolean;
+            /** Format: date-time */
+            settled_at?: string | null;
+            notes?: string;
+        };
         Branch: {
             /** Format: uuid */
             readonly id: string;
@@ -1341,6 +1633,14 @@ export interface components {
             current_password: string;
             new_password: string;
         };
+        /**
+         * @description * `STARTER` - Starter
+         *     * `MAIN` - Main Course
+         *     * `DESSERT` - Dessert
+         *     * `BEVERAGE` - Beverage
+         * @enum {string}
+         */
+        CourseEnum: "STARTER" | "MAIN" | "DESSERT" | "BEVERAGE";
         DiningTable: {
             /** Format: uuid */
             readonly id: string;
@@ -1427,6 +1727,33 @@ export interface components {
             price_paise: number;
             is_default?: boolean;
             sort_order?: number;
+        };
+        KDSTicket: {
+            /** Format: uuid */
+            readonly id: string;
+            /** Format: uuid */
+            readonly branch_id: string;
+            /** Format: uuid */
+            readonly table_session_id: string | null;
+            readonly table_label: string;
+            order_workflow?: components["schemas"]["OrderWorkflowDafEnum"];
+            /** @description Sequential daily token number for counter service */
+            token_number?: number | null;
+            status?: components["schemas"]["StatusC2bEnum"];
+            /** Format: date-time */
+            placed_at?: string;
+            readonly elapsed_minutes: number;
+            notes?: string;
+            readonly items: components["schemas"]["OrderItem"][];
+        };
+        KDSTicketRequest: {
+            order_workflow?: components["schemas"]["OrderWorkflowDafEnum"];
+            /** @description Sequential daily token number for counter service */
+            token_number?: number | null;
+            status?: components["schemas"]["StatusC2bEnum"];
+            /** Format: date-time */
+            placed_at?: string;
+            notes?: string;
         };
         LayoutTemplateApplyResponse: {
             dry_run: boolean;
@@ -1622,6 +1949,95 @@ export interface components {
             is_active?: boolean;
             sort_order?: number;
         };
+        Order: {
+            /** Format: uuid */
+            readonly id: string;
+            /** Format: uuid */
+            readonly branch_id: string;
+            /** Format: uuid */
+            readonly table_session_id: string | null;
+            readonly table_label: string | null;
+            order_workflow?: components["schemas"]["OrderWorkflowDafEnum"];
+            /** @description Sequential daily token number for counter service */
+            token_number?: number | null;
+            status?: components["schemas"]["StatusC2bEnum"];
+            /** Format: date-time */
+            placed_at?: string;
+            /** Format: date-time */
+            ready_at?: string | null;
+            /** Format: date-time */
+            served_at?: string | null;
+            notes?: string;
+            readonly items: components["schemas"]["OrderItem"][];
+            readonly total_paise: number;
+        };
+        OrderItem: {
+            /** Format: uuid */
+            readonly id: string;
+            /** Format: uuid */
+            readonly menu_item_id: string;
+            item_name: string;
+            quantity?: number;
+            /**
+             * Format: int64
+             * @description Snapshot unit price in paise at order time
+             */
+            unit_price_paise: number;
+            /**
+             * Format: int64
+             * @description quantity * unit_price_paise in paise
+             */
+            subtotal_paise: number;
+            course?: components["schemas"]["CourseEnum"];
+            /** @description True if dispatched to kitchen; False if on HOLD for pacing */
+            is_fired?: boolean;
+            /** @description Kitchen station routing tag (e.g. MAIN_KITCHEN, TANDOOR, BAR) */
+            station?: string;
+            notes?: string;
+            status?: components["schemas"]["OrderItemStatusEnum"];
+        };
+        OrderItemRequest: {
+            item_name: string;
+            quantity?: number;
+            /**
+             * Format: int64
+             * @description Snapshot unit price in paise at order time
+             */
+            unit_price_paise: number;
+            /**
+             * Format: int64
+             * @description quantity * unit_price_paise in paise
+             */
+            subtotal_paise: number;
+            course?: components["schemas"]["CourseEnum"];
+            /** @description True if dispatched to kitchen; False if on HOLD for pacing */
+            is_fired?: boolean;
+            /** @description Kitchen station routing tag (e.g. MAIN_KITCHEN, TANDOOR, BAR) */
+            station?: string;
+            notes?: string;
+            status?: components["schemas"]["OrderItemStatusEnum"];
+        };
+        /**
+         * @description * `PENDING` - Pending
+         *     * `COOKING` - Cooking
+         *     * `READY` - Ready
+         *     * `SERVED` - Served
+         * @enum {string}
+         */
+        OrderItemStatusEnum: "PENDING" | "COOKING" | "READY" | "SERVED";
+        OrderRequest: {
+            order_workflow?: components["schemas"]["OrderWorkflowDafEnum"];
+            /** @description Sequential daily token number for counter service */
+            token_number?: number | null;
+            status?: components["schemas"]["StatusC2bEnum"];
+            /** Format: date-time */
+            placed_at?: string;
+            /** Format: date-time */
+            ready_at?: string | null;
+            /** Format: date-time */
+            served_at?: string | null;
+            notes?: string;
+        };
         /**
          * @description * `COUNTER_TOKEN` - Counter Token
          *     * `TABLE_SERVICE` - Table Service
@@ -1630,6 +2046,14 @@ export interface components {
          * @enum {string}
          */
         OrderWorkflow: "COUNTER_TOKEN" | "TABLE_SERVICE" | "BAR_TAB" | "ROOM_SERVICE";
+        /**
+         * @description * `TABLE_SERVICE` - Table Service
+         *     * `COUNTER_TOKEN` - Counter Token
+         *     * `ROOM_SERVICE` - Room Service
+         *     * `BAR_TAB` - Bar Tab
+         * @enum {string}
+         */
+        OrderWorkflowDafEnum: "TABLE_SERVICE" | "COUNTER_TOKEN" | "ROOM_SERVICE" | "BAR_TAB";
         PaginatedBranchItemAvailabilityList: {
             /** @example 123 */
             count: number;
@@ -1674,6 +2098,21 @@ export interface components {
              */
             previous?: string | null;
             results: components["schemas"]["DiningTable"][];
+        };
+        PaginatedKDSTicketList: {
+            /** @example 123 */
+            count: number;
+            /**
+             * Format: uri
+             * @example http://api.example.org/accounts/?page=4
+             */
+            next?: string | null;
+            /**
+             * Format: uri
+             * @example http://api.example.org/accounts/?page=2
+             */
+            previous?: string | null;
+            results: components["schemas"]["KDSTicket"][];
         };
         PaginatedMenuCategoryList: {
             /** @example 123 */
@@ -1720,6 +2159,21 @@ export interface components {
             previous?: string | null;
             results: components["schemas"]["OptionGroup"][];
         };
+        PaginatedOrderList: {
+            /** @example 123 */
+            count: number;
+            /**
+             * Format: uri
+             * @example http://api.example.org/accounts/?page=4
+             */
+            next?: string | null;
+            /**
+             * Format: uri
+             * @example http://api.example.org/accounts/?page=2
+             */
+            previous?: string | null;
+            results: components["schemas"]["Order"][];
+        };
         PaginatedQRCodeList: {
             /** @example 123 */
             count: number;
@@ -1764,6 +2218,21 @@ export interface components {
              */
             previous?: string | null;
             results: components["schemas"]["ServiceArea"][];
+        };
+        PaginatedServiceRequestList: {
+            /** @example 123 */
+            count: number;
+            /**
+             * Format: uri
+             * @example http://api.example.org/accounts/?page=4
+             */
+            next?: string | null;
+            /**
+             * Format: uri
+             * @example http://api.example.org/accounts/?page=2
+             */
+            previous?: string | null;
+            results: components["schemas"]["ServiceRequest"][];
         };
         PaginatedStaffDetailList: {
             /** @example 123 */
@@ -1948,6 +2417,19 @@ export interface components {
             is_active?: boolean;
             options?: components["schemas"]["OptionRequest"][];
         };
+        PatchedOrderRequest: {
+            order_workflow?: components["schemas"]["OrderWorkflowDafEnum"];
+            /** @description Sequential daily token number for counter service */
+            token_number?: number | null;
+            status?: components["schemas"]["StatusC2bEnum"];
+            /** Format: date-time */
+            placed_at?: string;
+            /** Format: date-time */
+            ready_at?: string | null;
+            /** Format: date-time */
+            served_at?: string | null;
+            notes?: string;
+        };
         PatchedSectionRequest: {
             /** Format: uuid */
             branch?: string;
@@ -1973,10 +2455,27 @@ export interface components {
             /** @description Null indicates inheritance from branch operating hours */
             operating_hours?: unknown;
         };
+        PatchedServiceRequestRequest: {
+            request_type?: components["schemas"]["RequestTypeEnum"];
+            status?: components["schemas"]["StatusDb8Enum"];
+            /** Format: date-time */
+            created_at?: string;
+            /** Format: date-time */
+            acknowledged_at?: string | null;
+        };
         PatchedStaffDetailRequest: {
             role?: string;
             is_active?: boolean;
         };
+        /**
+         * @description * `CASH` - Cash
+         *     * `UPI` - UPI QR
+         *     * `CARD` - Debit / Credit Card
+         *     * `ROOM_FOLIO` - Room Folio Charge
+         *     * `SPLIT` - Split Tender
+         * @enum {string}
+         */
+        PaymentMethodEnum: "CASH" | "UPI" | "CARD" | "ROOM_FOLIO" | "SPLIT";
         /**
          * @description * `PAY_FIRST` - Pay First
          *     * `PAY_LATER` - Pay Later
@@ -2066,6 +2565,14 @@ export interface components {
          * @enum {string}
          */
         QrSessionPolicy: "CUSTOMER_CAN_OPEN" | "STAFF_ONLY";
+        /**
+         * @description * `WATER` - Water
+         *     * `NAPKINS` - Extra Napkins
+         *     * `CALL_WAITER` - Call Waiter
+         *     * `BILL` - Request Bill
+         * @enum {string}
+         */
+        RequestTypeEnum: "WATER" | "NAPKINS" | "CALL_WAITER" | "BILL";
         Section: {
             /** Format: uuid */
             readonly id: string;
@@ -2136,6 +2643,29 @@ export interface components {
             /** @description Null indicates inheritance from branch operating hours */
             operating_hours?: unknown;
         };
+        ServiceRequest: {
+            /** Format: uuid */
+            readonly id: string;
+            /** Format: uuid */
+            readonly table_id: string | null;
+            /** Format: uuid */
+            readonly table_session_id: string | null;
+            readonly table_label: string;
+            request_type?: components["schemas"]["RequestTypeEnum"];
+            status?: components["schemas"]["StatusDb8Enum"];
+            /** Format: date-time */
+            created_at?: string;
+            /** Format: date-time */
+            acknowledged_at?: string | null;
+        };
+        ServiceRequestRequest: {
+            request_type?: components["schemas"]["RequestTypeEnum"];
+            status?: components["schemas"]["StatusDb8Enum"];
+            /** Format: date-time */
+            created_at?: string;
+            /** Format: date-time */
+            acknowledged_at?: string | null;
+        };
         /**
          * @description * `OPEN` - Open
          *     * `CLOSED` - Closed
@@ -2189,6 +2719,23 @@ export interface components {
             /** Format: date-time */
             valid_to?: string | null;
         };
+        /**
+         * @description * `PLACED` - Placed
+         *     * `PREPARING` - Preparing
+         *     * `READY` - Ready to Serve
+         *     * `SERVED` - Served
+         *     * `COMPLETED` - Completed
+         *     * `CANCELLED` - Cancelled
+         * @enum {string}
+         */
+        StatusC2bEnum: "PLACED" | "PREPARING" | "READY" | "SERVED" | "COMPLETED" | "CANCELLED";
+        /**
+         * @description * `PENDING` - Pending
+         *     * `ACKNOWLEDGED` - Acknowledged
+         *     * `RESOLVED` - Resolved
+         * @enum {string}
+         */
+        StatusDb8Enum: "PENDING" | "ACKNOWLEDGED" | "RESOLVED";
         TableGroup: {
             /** Format: uuid */
             readonly id: string;
@@ -3633,6 +4180,527 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["OnboardingStatus"];
+                };
+            };
+        };
+    };
+    orders_list: {
+        parameters: {
+            query?: {
+                /** @description A page number within the paginated result set. */
+                page?: number;
+                /** @description Number of results to return per page. */
+                page_size?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaginatedOrderList"];
+                };
+            };
+        };
+    };
+    orders_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["OrderRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["OrderRequest"];
+                "multipart/form-data": components["schemas"]["OrderRequest"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Order"];
+                };
+            };
+        };
+    };
+    orders_retrieve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description A UUID string identifying this order. */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Order"];
+                };
+            };
+        };
+    };
+    orders_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description A UUID string identifying this order. */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["OrderRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["OrderRequest"];
+                "multipart/form-data": components["schemas"]["OrderRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Order"];
+                };
+            };
+        };
+    };
+    orders_destroy: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description A UUID string identifying this order. */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No response body */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    orders_partial_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description A UUID string identifying this order. */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["PatchedOrderRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["PatchedOrderRequest"];
+                "multipart/form-data": components["schemas"]["PatchedOrderRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Order"];
+                };
+            };
+        };
+    };
+    orders_cancel_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description A UUID string identifying this order. */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["OrderRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["OrderRequest"];
+                "multipart/form-data": components["schemas"]["OrderRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Order"];
+                };
+            };
+        };
+    };
+    orders_fire_mains_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description A UUID string identifying this order. */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["OrderRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["OrderRequest"];
+                "multipart/form-data": components["schemas"]["OrderRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Order"];
+                };
+            };
+        };
+    };
+    orders_billing_invoices_retrieve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BillInvoice"];
+                };
+            };
+        };
+    };
+    orders_billing_session_retrieve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                session_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BillInvoice"];
+                };
+            };
+        };
+    };
+    orders_billing_session_settle_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                session_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BillInvoiceRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["BillInvoiceRequest"];
+                "multipart/form-data": components["schemas"]["BillInvoiceRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BillInvoice"];
+                };
+            };
+        };
+    };
+    orders_kds_list: {
+        parameters: {
+            query?: {
+                /** @description A page number within the paginated result set. */
+                page?: number;
+                /** @description Number of results to return per page. */
+                page_size?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaginatedKDSTicketList"];
+                };
+            };
+        };
+    };
+    orders_kds_retrieve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description A UUID string identifying this order. */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["KDSTicket"];
+                };
+            };
+        };
+    };
+    orders_kds_bump_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description A UUID string identifying this order. */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["KDSTicketRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["KDSTicketRequest"];
+                "multipart/form-data": components["schemas"]["KDSTicketRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["KDSTicket"];
+                };
+            };
+        };
+    };
+    orders_service_requests_list: {
+        parameters: {
+            query?: {
+                /** @description A page number within the paginated result set. */
+                page?: number;
+                /** @description Number of results to return per page. */
+                page_size?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaginatedServiceRequestList"];
+                };
+            };
+        };
+    };
+    orders_service_requests_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["ServiceRequestRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["ServiceRequestRequest"];
+                "multipart/form-data": components["schemas"]["ServiceRequestRequest"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ServiceRequest"];
+                };
+            };
+        };
+    };
+    orders_service_requests_retrieve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description A UUID string identifying this service request. */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ServiceRequest"];
+                };
+            };
+        };
+    };
+    orders_service_requests_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description A UUID string identifying this service request. */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["ServiceRequestRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["ServiceRequestRequest"];
+                "multipart/form-data": components["schemas"]["ServiceRequestRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ServiceRequest"];
+                };
+            };
+        };
+    };
+    orders_service_requests_destroy: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description A UUID string identifying this service request. */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No response body */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    orders_service_requests_partial_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description A UUID string identifying this service request. */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["PatchedServiceRequestRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["PatchedServiceRequestRequest"];
+                "multipart/form-data": components["schemas"]["PatchedServiceRequestRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ServiceRequest"];
+                };
+            };
+        };
+    };
+    orders_service_requests_acknowledge_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description A UUID string identifying this service request. */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["ServiceRequestRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["ServiceRequestRequest"];
+                "multipart/form-data": components["schemas"]["ServiceRequestRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ServiceRequest"];
                 };
             };
         };

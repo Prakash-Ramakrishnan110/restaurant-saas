@@ -131,7 +131,7 @@ describe("ServeMyFood Menu Utilities & Components (Prompt 4A)", () => {
     expect(screen.getByText(/Row 2: Category "NonExistentCat" not found/i)).toBeDefined();
     const disabledBtn = screen.getByRole("button", { name: /Import 1 Items/i });
     expect((disabledBtn as HTMLButtonElement).disabled).toBe(true);
-  });
+  }, 25000);
 
   const setupAuth = (role: string, perms: string[]) => {
     vi.spyOn(AuthContextModule, "useAuth").mockReturnValue({

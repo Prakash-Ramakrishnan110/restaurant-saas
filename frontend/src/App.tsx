@@ -19,6 +19,11 @@ import { MenuPage } from "./pages/menu/MenuPage";
 import { MenuAvailabilityPage } from "./pages/menu/MenuAvailabilityPage";
 import { VenueSettingsPage } from "./pages/settings/VenueSettingsPage";
 import { BrandingSettingsPage } from "./pages/settings/BrandingSettingsPage";
+import { FloorPOSPage } from "./pages/orders/FloorPOSPage";
+import { KDSPage } from "./pages/kds/KDSPage";
+import { BillingPage } from "./pages/billing/BillingPage";
+import { ShiftCloseoutPage } from "./pages/billing/ShiftCloseoutPage";
+import { PlatformAdminPage } from "./pages/admin/PlatformAdminPage";
 import { PublicQRPage } from "./pages/public/PublicQRPage";
 import { SuspendedPage } from "./pages/error/SuspendedPage";
 import { ForbiddenPage } from "./pages/error/ForbiddenPage";
@@ -93,6 +98,62 @@ export const App: React.FC = () => {
                 element={
                   <ProtectedRoute>
                     <DashboardPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/pos"
+                element={
+                  <ProtectedRoute>
+                    <FloorPOSPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/orders"
+                element={
+                  <ProtectedRoute>
+                    <FloorPOSPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/kds"
+                element={
+                  <ProtectedRoute>
+                    <KDSPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/billing"
+                element={
+                  <ProtectedRoute>
+                    <BillingPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/billing/closeout"
+                element={
+                  <ProtectedRoute>
+                    <ShiftCloseoutPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/tenants"
+                element={
+                  <ProtectedRoute>
+                    <PlatformAdminPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/dashboard"
+                element={
+                  <ProtectedRoute>
+                    <PlatformAdminPage />
                   </ProtectedRoute>
                 }
               />

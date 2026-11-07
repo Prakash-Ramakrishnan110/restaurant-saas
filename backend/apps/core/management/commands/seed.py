@@ -593,6 +593,7 @@ class Command(BaseCommand):
         )
 
         self._seed_menus(t1, b1, t2, b2, t3, b3, t4, b4, t5, b5)
+        self._seed_orders(t1, b1, t3, b3)
 
         # Print Seed Summary Table
         self.stdout.write("\n" + "=" * 90)
@@ -1025,3 +1026,136 @@ class Command(BaseCommand):
             },
         )
         _attach_image_if_missing(t5, fried_rice, FoodType.VEG)
+
+    def _seed_orders(self, t1, b1, t3, b3):
+        from apps.orders.models import CourseType, Order, OrderItem, OrderStatus, OrderWorkflow
+        from apps.venues.models import DiningTable, TableSession, TableStatus
+
+        # Seed Spice Garden (t3) Dine-in Orders
+        set_current_tenant(t3)
+        t1_tbl = DiningTable.objects.filter(tenant=t3, branch=b3, label="T1").first()
+        if t1_tbl:
+            s1, _ = TableSession.objects.get_or_create(
+                tenant=t3,
+                branch=b3,
+                table=t1_tbl,
+                status="OPEN",
+                defaults={"session_code": "SG-T1-DEMO", "guest_count": 4},
+            )
+            t1_tbl.status = TableStatus.OCCUPIED
+            t1_tbl.save(update_fields=["status"])
+
+            if not Order.objects.filter(table_session=s1).exists():
+                butter_chick = MenuItem.objects.filter(
+                    tenant=t3, name="Butter Chicken Royal"
+                ).first()
+                kebab = MenuItem.objects.filter(tenant=t3, name="Murgh Malai Kebab").first()
+                if butter_chick and kebab:
+                    o1 = Order.objects.create(
+                        tenant=t3,
+                        branch=b3,
+                        table_session=s1,
+                        order_workflow=OrderWorkflow.TABLE_SERVICE,
+                        status=OrderStatus.PLACED,
+                        notes="Table 1: Please make the gravy extra rich.",
+                    )
+                    OrderItem.objects.create(
+                        order=o1,
+                        menu_item=butter_chick,
+                        item_name=butter_chick.name,
+                        quantity=2,
+                        unit_price_paise=butter_chick.base_price_paise,
+                        subtotal_paise=butter_chick.base_price_paise * 2,
+                        course=CourseType.MAIN,
+                        station="MAIN_KITCHEN",
+                        is_fired=True,
+                        status="COOKING",
+                    )
+                    OrderItem.objects.create(
+                        order=o1,
+                        menu_item=kebab,
+                        item_name=kebab.name,
+                        quantity=1,
+                        unit_price_paise=kebab.base_price_paise,
+                        subtotal_paise=kebab.base_price_paise,
+                        course=CourseType.STARTER,
+                        station="TANDOOR",
+                        is_fired=True,
+                        status="COOKING",
+                    )
+
+        t2_tbl = DiningTable.objects.filter(tenant=t3, branch=b3, label="T2").first()
+        if t2_tbl:
+            s2, _ = TableSession.objects.get_or_create(
+                tenant=t3,
+                branch=b3,
+                table=t2_tbl,
+                status="OPEN",
+                defaults={"session_code": "SG-T2-DEMO", "guest_count": 2},
+            )
+            t2_tbl.status = TableStatus.OCCUPIED
+            t2_tbl.save(update_fields=["status"])
+
+            if not Order.objects.filter(table_session=s2).exists():
+                paneer = MenuItem.objects.filter(tenant=t3, name="Paneer Tikka Angare").first()
+                dal = MenuItem.objects.filter(tenant=t3, name="Dal Makhani Heritage").first()
+                if paneer and dal:
+                    o2 = Order.objects.create(
+                        tenant=t3,
+                        branch=b3,
+                        table_session=s2,
+                        order_workflow=OrderWorkflow.TABLE_SERVICE,
+                        status=OrderStatus.PREPARING,
+                        notes="Less spicy for dal",
+                    )
+                    OrderItem.objects.create(
+                        order=o2,
+                        menu_item=paneer,
+                        item_name=paneer.name,
+                        quantity=1,
+                        unit_price_paise=paneer.base_price_paise,
+                        subtotal_paise=paneer.base_price_paise,
+                        course=CourseType.STARTER,
+                        station="TANDOOR",
+                        is_fired=True,
+                        status="COOKING",
+                    )
+                    OrderItem.objects.create(
+                        order=o2,
+                        menu_item=dal,
+                        item_name=dal.name,
+                        quantity=1,
+                        unit_price_paise=dal.base_price_paise,
+                        subtotal_paise=dal.base_price_paise,
+                        course=CourseType.MAIN,
+                        station="MAIN_KITCHEN",
+                        is_fired=True,
+                        status="COOKING",
+                    )
+
+        # Seed Chai Corner (t1) Counter Token Order
+        set_current_tenant(t1)
+        if not Order.objects.filter(tenant=t1, token_number=101).exists():
+            chai = MenuItem.objects.filter(tenant=t1, name="Masala Chai").first()
+            if chai:
+                o_tok = Order.objects.create(
+                    tenant=t1,
+                    branch=b1,
+                    order_workflow=OrderWorkflow.COUNTER_TOKEN,
+                    token_number=101,
+                    status=OrderStatus.PREPARING,
+                    notes="Counter token order: 2x hot cutting chai",
+                )
+                OrderItem.objects.create(
+                    order=o_tok,
+                    menu_item=chai,
+                    item_name=chai.name,
+                    quantity=2,
+                    unit_price_paise=chai.base_price_paise,
+                    subtotal_paise=chai.base_price_paise * 2,
+                    course=CourseType.BEVERAGE,
+                    station="CHAI_BAR",
+                    is_fired=True,
+                    status="COOKING",
+                )
+        set_current_tenant(None)

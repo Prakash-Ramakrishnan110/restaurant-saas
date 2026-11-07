@@ -1332,6 +1332,589 @@ paths:
               schema:
                 $ref: '#/components/schemas/OnboardingStatus'
           description: ''
+  /api/v1/orders/:
+    get:
+      operationId: orders_list
+      description: Production ViewSet for placing, tracking, and cancelling orders.
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      tags:
+      - orders
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedOrderList'
+          description: ''
+    post:
+      operationId: orders_create
+      description: Production ViewSet for placing, tracking, and cancelling orders.
+      tags:
+      - orders
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OrderRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/OrderRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/OrderRequest'
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Order'
+          description: ''
+  /api/v1/orders/{id}/:
+    get:
+      operationId: orders_retrieve
+      description: Production ViewSet for placing, tracking, and cancelling orders.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this order.
+        required: true
+      tags:
+      - orders
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Order'
+          description: ''
+    put:
+      operationId: orders_update
+      description: Production ViewSet for placing, tracking, and cancelling orders.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this order.
+        required: true
+      tags:
+      - orders
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OrderRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/OrderRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/OrderRequest'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Order'
+          description: ''
+    patch:
+      operationId: orders_partial_update
+      description: Production ViewSet for placing, tracking, and cancelling orders.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this order.
+        required: true
+      tags:
+      - orders
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedOrderRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedOrderRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedOrderRequest'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Order'
+          description: ''
+    delete:
+      operationId: orders_destroy
+      description: Production ViewSet for placing, tracking, and cancelling orders.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this order.
+        required: true
+      tags:
+      - orders
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/v1/orders/{id}/cancel/:
+    post:
+      operationId: orders_cancel_create
+      description: Production ViewSet for placing, tracking, and cancelling orders.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this order.
+        required: true
+      tags:
+      - orders
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OrderRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/OrderRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/OrderRequest'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Order'
+          description: ''
+  /api/v1/orders/{id}/fire-mains/:
+    post:
+      operationId: orders_fire_mains_create
+      description: Production ViewSet for placing, tracking, and cancelling orders.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this order.
+        required: true
+      tags:
+      - orders
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OrderRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/OrderRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/OrderRequest'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Order'
+          description: ''
+  /api/v1/orders/billing/invoices/:
+    get:
+      operationId: orders_billing_invoices_retrieve
+      description: Cashier billing, split payment, and invoice generation.
+      tags:
+      - orders
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BillInvoice'
+          description: ''
+  /api/v1/orders/billing/session/{session_id}/:
+    get:
+      operationId: orders_billing_session_retrieve
+      description: Cashier billing, split payment, and invoice generation.
+      parameters:
+      - in: path
+        name: session_id
+        schema:
+          type: string
+        required: true
+      tags:
+      - orders
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BillInvoice'
+          description: ''
+  /api/v1/orders/billing/session/{session_id}/settle/:
+    post:
+      operationId: orders_billing_session_settle_create
+      description: Cashier billing, split payment, and invoice generation.
+      parameters:
+      - in: path
+        name: session_id
+        schema:
+          type: string
+        required: true
+      tags:
+      - orders
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BillInvoiceRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/BillInvoiceRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/BillInvoiceRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BillInvoice'
+          description: ''
+  /api/v1/orders/kds/:
+    get:
+      operationId: orders_kds_list
+      description: Kitchen Display System real-time ticket queue.
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      tags:
+      - orders
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedKDSTicketList'
+          description: ''
+  /api/v1/orders/kds/{id}/:
+    get:
+      operationId: orders_kds_retrieve
+      description: Kitchen Display System real-time ticket queue.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this order.
+        required: true
+      tags:
+      - orders
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/KDSTicket'
+          description: ''
+  /api/v1/orders/kds/{id}/bump/:
+    post:
+      operationId: orders_kds_bump_create
+      description: Kitchen Display System real-time ticket queue.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this order.
+        required: true
+      tags:
+      - orders
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/KDSTicketRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/KDSTicketRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/KDSTicketRequest'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/KDSTicket'
+          description: ''
+  /api/v1/orders/service-requests/:
+    get:
+      operationId: orders_service_requests_list
+      description: Customer Call Bell and service requests.
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      tags:
+      - orders
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedServiceRequestList'
+          description: ''
+    post:
+      operationId: orders_service_requests_create
+      description: Customer Call Bell and service requests.
+      tags:
+      - orders
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ServiceRequestRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ServiceRequestRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ServiceRequestRequest'
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ServiceRequest'
+          description: ''
+  /api/v1/orders/service-requests/{id}/:
+    get:
+      operationId: orders_service_requests_retrieve
+      description: Customer Call Bell and service requests.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this service request.
+        required: true
+      tags:
+      - orders
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ServiceRequest'
+          description: ''
+    put:
+      operationId: orders_service_requests_update
+      description: Customer Call Bell and service requests.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this service request.
+        required: true
+      tags:
+      - orders
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ServiceRequestRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ServiceRequestRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ServiceRequestRequest'
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ServiceRequest'
+          description: ''
+    patch:
+      operationId: orders_service_requests_partial_update
+      description: Customer Call Bell and service requests.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this service request.
+        required: true
+      tags:
+      - orders
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedServiceRequestRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedServiceRequestRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedServiceRequestRequest'
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ServiceRequest'
+          description: ''
+    delete:
+      operationId: orders_service_requests_destroy
+      description: Customer Call Bell and service requests.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this service request.
+        required: true
+      tags:
+      - orders
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '204':
+          description: No response body
+  /api/v1/orders/service-requests/{id}/acknowledge/:
+    post:
+      operationId: orders_service_requests_acknowledge_create
+      description: Customer Call Bell and service requests.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this service request.
+        required: true
+      tags:
+      - orders
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ServiceRequestRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ServiceRequestRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ServiceRequestRequest'
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ServiceRequest'
+          description: ''
   /api/v1/public/qr/{token}/:
     get:
       operationId: public_qr_retrieve
@@ -2691,6 +3274,137 @@ components:
       - memberships
       - permissions
       - user
+    BillInvoice:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        branch_id:
+          type: string
+          format: uuid
+          readOnly: true
+        table_session_id:
+          type: string
+          format: uuid
+          nullable: true
+          readOnly: true
+        table_label:
+          type: string
+          readOnly: true
+        invoice_number:
+          type: string
+          maxLength: 64
+        subtotal_paise:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: -9223372036854775808
+          format: int64
+        cgst_paise:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: -9223372036854775808
+          format: int64
+          description: 2.5% Central GST in paise
+        sgst_paise:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: -9223372036854775808
+          format: int64
+          description: 2.5% State GST in paise
+        discount_paise:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: -9223372036854775808
+          format: int64
+        total_paise:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: -9223372036854775808
+          format: int64
+        payment_method:
+          $ref: '#/components/schemas/PaymentMethodEnum'
+        amount_tendered_paise:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: -9223372036854775808
+          format: int64
+        change_due_paise:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: -9223372036854775808
+          format: int64
+        is_settled:
+          type: boolean
+        settled_at:
+          type: string
+          format: date-time
+          nullable: true
+        notes:
+          type: string
+      required:
+      - branch_id
+      - id
+      - invoice_number
+      - table_label
+      - table_session_id
+    BillInvoiceRequest:
+      type: object
+      properties:
+        invoice_number:
+          type: string
+          minLength: 1
+          maxLength: 64
+        subtotal_paise:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: -9223372036854775808
+          format: int64
+        cgst_paise:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: -9223372036854775808
+          format: int64
+          description: 2.5% Central GST in paise
+        sgst_paise:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: -9223372036854775808
+          format: int64
+          description: 2.5% State GST in paise
+        discount_paise:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: -9223372036854775808
+          format: int64
+        total_paise:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: -9223372036854775808
+          format: int64
+        payment_method:
+          $ref: '#/components/schemas/PaymentMethodEnum'
+        amount_tendered_paise:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: -9223372036854775808
+          format: int64
+        change_due_paise:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: -9223372036854775808
+          format: int64
+        is_settled:
+          type: boolean
+        settled_at:
+          type: string
+          format: date-time
+          nullable: true
+        notes:
+          type: string
+      required:
+      - invoice_number
     Branch:
       type: object
       properties:
@@ -3072,6 +3786,18 @@ components:
       required:
       - current_password
       - new_password
+    CourseEnum:
+      enum:
+      - STARTER
+      - MAIN
+      - DESSERT
+      - BEVERAGE
+      type: string
+      description: |-
+        * `STARTER` - Starter
+        * `MAIN` - Main Course
+        * `DESSERT` - Dessert
+        * `BEVERAGE` - Beverage
     DiningTable:
       type: object
       properties:
@@ -3272,6 +3998,73 @@ components:
       required:
       - name
       - price_paise
+    KDSTicket:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        branch_id:
+          type: string
+          format: uuid
+          readOnly: true
+        table_session_id:
+          type: string
+          format: uuid
+          nullable: true
+          readOnly: true
+        table_label:
+          type: string
+          readOnly: true
+        order_workflow:
+          $ref: '#/components/schemas/OrderWorkflowDafEnum'
+        token_number:
+          type: integer
+          maximum: 2147483647
+          minimum: 0
+          nullable: true
+          description: Sequential daily token number for counter service
+        status:
+          $ref: '#/components/schemas/StatusC2bEnum'
+        placed_at:
+          type: string
+          format: date-time
+        elapsed_minutes:
+          type: integer
+          readOnly: true
+        notes:
+          type: string
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/OrderItem'
+          readOnly: true
+      required:
+      - branch_id
+      - elapsed_minutes
+      - id
+      - items
+      - table_label
+      - table_session_id
+    KDSTicketRequest:
+      type: object
+      properties:
+        order_workflow:
+          $ref: '#/components/schemas/OrderWorkflowDafEnum'
+        token_number:
+          type: integer
+          maximum: 2147483647
+          minimum: 0
+          nullable: true
+          description: Sequential daily token number for counter service
+        status:
+          $ref: '#/components/schemas/StatusC2bEnum'
+        placed_at:
+          type: string
+          format: date-time
+        notes:
+          type: string
     LayoutTemplateApplyResponse:
       type: object
       properties:
@@ -3770,6 +4563,194 @@ components:
           minimum: 0
       required:
       - name
+    Order:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        branch_id:
+          type: string
+          format: uuid
+          readOnly: true
+        table_session_id:
+          type: string
+          format: uuid
+          nullable: true
+          readOnly: true
+        table_label:
+          type: string
+          nullable: true
+          readOnly: true
+        order_workflow:
+          $ref: '#/components/schemas/OrderWorkflowDafEnum'
+        token_number:
+          type: integer
+          maximum: 2147483647
+          minimum: 0
+          nullable: true
+          description: Sequential daily token number for counter service
+        status:
+          $ref: '#/components/schemas/StatusC2bEnum'
+        placed_at:
+          type: string
+          format: date-time
+        ready_at:
+          type: string
+          format: date-time
+          nullable: true
+        served_at:
+          type: string
+          format: date-time
+          nullable: true
+        notes:
+          type: string
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/OrderItem'
+          readOnly: true
+        total_paise:
+          type: integer
+          readOnly: true
+      required:
+      - branch_id
+      - id
+      - items
+      - table_label
+      - table_session_id
+      - total_paise
+    OrderItem:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        menu_item_id:
+          type: string
+          format: uuid
+          readOnly: true
+        item_name:
+          type: string
+          maxLength: 255
+        quantity:
+          type: integer
+          maximum: 2147483647
+          minimum: 0
+        unit_price_paise:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: -9223372036854775808
+          format: int64
+          description: Snapshot unit price in paise at order time
+        subtotal_paise:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: -9223372036854775808
+          format: int64
+          description: quantity * unit_price_paise in paise
+        course:
+          $ref: '#/components/schemas/CourseEnum'
+        is_fired:
+          type: boolean
+          description: True if dispatched to kitchen; False if on HOLD for pacing
+        station:
+          type: string
+          description: Kitchen station routing tag (e.g. MAIN_KITCHEN, TANDOOR, BAR)
+          maxLength: 50
+        notes:
+          type: string
+          maxLength: 255
+        status:
+          $ref: '#/components/schemas/OrderItemStatusEnum'
+      required:
+      - id
+      - item_name
+      - menu_item_id
+      - subtotal_paise
+      - unit_price_paise
+    OrderItemRequest:
+      type: object
+      properties:
+        item_name:
+          type: string
+          minLength: 1
+          maxLength: 255
+        quantity:
+          type: integer
+          maximum: 2147483647
+          minimum: 0
+        unit_price_paise:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: -9223372036854775808
+          format: int64
+          description: Snapshot unit price in paise at order time
+        subtotal_paise:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: -9223372036854775808
+          format: int64
+          description: quantity * unit_price_paise in paise
+        course:
+          $ref: '#/components/schemas/CourseEnum'
+        is_fired:
+          type: boolean
+          description: True if dispatched to kitchen; False if on HOLD for pacing
+        station:
+          type: string
+          minLength: 1
+          description: Kitchen station routing tag (e.g. MAIN_KITCHEN, TANDOOR, BAR)
+          maxLength: 50
+        notes:
+          type: string
+          maxLength: 255
+        status:
+          $ref: '#/components/schemas/OrderItemStatusEnum'
+      required:
+      - item_name
+      - subtotal_paise
+      - unit_price_paise
+    OrderItemStatusEnum:
+      enum:
+      - PENDING
+      - COOKING
+      - READY
+      - SERVED
+      type: string
+      description: |-
+        * `PENDING` - Pending
+        * `COOKING` - Cooking
+        * `READY` - Ready
+        * `SERVED` - Served
+    OrderRequest:
+      type: object
+      properties:
+        order_workflow:
+          $ref: '#/components/schemas/OrderWorkflowDafEnum'
+        token_number:
+          type: integer
+          maximum: 2147483647
+          minimum: 0
+          nullable: true
+          description: Sequential daily token number for counter service
+        status:
+          $ref: '#/components/schemas/StatusC2bEnum'
+        placed_at:
+          type: string
+          format: date-time
+        ready_at:
+          type: string
+          format: date-time
+          nullable: true
+        served_at:
+          type: string
+          format: date-time
+          nullable: true
+        notes:
+          type: string
     OrderWorkflow:
       enum:
       - COUNTER_TOKEN
@@ -3782,6 +4763,18 @@ components:
         * `TABLE_SERVICE` - Table Service
         * `BAR_TAB` - Bar Tab
         * `ROOM_SERVICE` - Room Service
+    OrderWorkflowDafEnum:
+      enum:
+      - TABLE_SERVICE
+      - COUNTER_TOKEN
+      - ROOM_SERVICE
+      - BAR_TAB
+      type: string
+      description: |-
+        * `TABLE_SERVICE` - Table Service
+        * `COUNTER_TOKEN` - Counter Token
+        * `ROOM_SERVICE` - Room Service
+        * `BAR_TAB` - Bar Tab
     PaginatedBranchItemAvailabilityList:
       type: object
       required:
@@ -3851,6 +4844,29 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/DiningTable'
+    PaginatedKDSTicketList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/KDSTicket'
     PaginatedMenuCategoryList:
       type: object
       required:
@@ -3920,6 +4936,29 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/OptionGroup'
+    PaginatedOrderList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Order'
     PaginatedQRCodeList:
       type: object
       required:
@@ -3989,6 +5028,29 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/ServiceArea'
+    PaginatedServiceRequestList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/ServiceRequest'
     PaginatedStaffDetailList:
       type: object
       required:
@@ -4341,6 +5403,32 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/OptionRequest'
+    PatchedOrderRequest:
+      type: object
+      properties:
+        order_workflow:
+          $ref: '#/components/schemas/OrderWorkflowDafEnum'
+        token_number:
+          type: integer
+          maximum: 2147483647
+          minimum: 0
+          nullable: true
+          description: Sequential daily token number for counter service
+        status:
+          $ref: '#/components/schemas/StatusC2bEnum'
+        placed_at:
+          type: string
+          format: date-time
+        ready_at:
+          type: string
+          format: date-time
+          nullable: true
+        served_at:
+          type: string
+          format: date-time
+          nullable: true
+        notes:
+          type: string
     PatchedSectionRequest:
       type: object
       properties:
@@ -4400,6 +5488,20 @@ components:
         operating_hours:
           nullable: true
           description: Null indicates inheritance from branch operating hours
+    PatchedServiceRequestRequest:
+      type: object
+      properties:
+        request_type:
+          $ref: '#/components/schemas/RequestTypeEnum'
+        status:
+          $ref: '#/components/schemas/StatusDb8Enum'
+        created_at:
+          type: string
+          format: date-time
+        acknowledged_at:
+          type: string
+          format: date-time
+          nullable: true
     PatchedStaffDetailRequest:
       type: object
       properties:
@@ -4409,6 +5511,20 @@ components:
           maxLength: 32
         is_active:
           type: boolean
+    PaymentMethodEnum:
+      enum:
+      - CASH
+      - UPI
+      - CARD
+      - ROOM_FOLIO
+      - SPLIT
+      type: string
+      description: |-
+        * `CASH` - Cash
+        * `UPI` - UPI QR
+        * `CARD` - Debit / Credit Card
+        * `ROOM_FOLIO` - Room Folio Charge
+        * `SPLIT` - Split Tender
     PaymentTiming:
       enum:
       - PAY_FIRST
@@ -4614,6 +5730,18 @@ components:
       description: |-
         * `CUSTOMER_CAN_OPEN` - Customer Can Open
         * `STAFF_ONLY` - Staff Only
+    RequestTypeEnum:
+      enum:
+      - WATER
+      - NAPKINS
+      - CALL_WAITER
+      - BILL
+      type: string
+      description: |-
+        * `WATER` - Water
+        * `NAPKINS` - Extra Napkins
+        * `CALL_WAITER` - Call Waiter
+        * `BILL` - Request Bill
     Section:
       type: object
       properties:
@@ -4785,6 +5913,56 @@ components:
       required:
       - branch
       - name
+    ServiceRequest:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        table_id:
+          type: string
+          format: uuid
+          nullable: true
+          readOnly: true
+        table_session_id:
+          type: string
+          format: uuid
+          nullable: true
+          readOnly: true
+        table_label:
+          type: string
+          readOnly: true
+        request_type:
+          $ref: '#/components/schemas/RequestTypeEnum'
+        status:
+          $ref: '#/components/schemas/StatusDb8Enum'
+        created_at:
+          type: string
+          format: date-time
+        acknowledged_at:
+          type: string
+          format: date-time
+          nullable: true
+      required:
+      - id
+      - table_id
+      - table_label
+      - table_session_id
+    ServiceRequestRequest:
+      type: object
+      properties:
+        request_type:
+          $ref: '#/components/schemas/RequestTypeEnum'
+        status:
+          $ref: '#/components/schemas/StatusDb8Enum'
+        created_at:
+          type: string
+          format: date-time
+        acknowledged_at:
+          type: string
+          format: date-time
+          nullable: true
     SessionStatus:
       enum:
       - OPEN
@@ -4903,6 +6081,32 @@ components:
       - branch
       - membership
       - section
+    StatusC2bEnum:
+      enum:
+      - PLACED
+      - PREPARING
+      - READY
+      - SERVED
+      - COMPLETED
+      - CANCELLED
+      type: string
+      description: |-
+        * `PLACED` - Placed
+        * `PREPARING` - Preparing
+        * `READY` - Ready to Serve
+        * `SERVED` - Served
+        * `COMPLETED` - Completed
+        * `CANCELLED` - Cancelled
+    StatusDb8Enum:
+      enum:
+      - PENDING
+      - ACKNOWLEDGED
+      - RESOLVED
+      type: string
+      description: |-
+        * `PENDING` - Pending
+        * `ACKNOWLEDGED` - Acknowledged
+        * `RESOLVED` - Resolved
     TableGroup:
       type: object
       properties:

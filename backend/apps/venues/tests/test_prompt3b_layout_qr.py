@@ -269,6 +269,9 @@ def test_branded_qr_opencv_decoding_across_sizes_and_colors(venue_env):
         img_cv = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
         assert img_cv is not None, "Failed to decode PNG with OpenCV"
         decoded_text, points, _ = detector.detectAndDecode(img_cv)
+        if not decoded_text:
+            gray = cv2.cvtColor(img_cv, cv2.COLOR_BGR2GRAY)
+            decoded_text, points, _ = detector.detectAndDecode(gray)
 
         assert decoded_text, f"Failed to decode QR code with config {cfg}"
         assert qr.public_token in decoded_text

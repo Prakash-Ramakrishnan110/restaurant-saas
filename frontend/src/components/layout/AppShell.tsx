@@ -24,6 +24,9 @@ import {
   Zap,
   UtensilsCrossed,
   Clock,
+  ChefHat,
+  Receipt,
+  ShieldCheck,
 } from "lucide-react";
 import { BrandLogo } from "../brand/BrandLogo";
 import { Button } from "../ui/button";
@@ -114,6 +117,9 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
       label: "Daily work",
       items: [
         { label: "Dashboard", path: "/dashboard", icon: LayoutDashboard },
+        { label: "Floor POS", path: "/pos", icon: Utensils, permission: "order.create" },
+        { label: "Kitchen KDS", path: "/kds", icon: ChefHat, permission: "menu.availability" },
+        { label: "Cashier Billing", path: "/billing", icon: Receipt, permission: "order.create" },
         { label: "Menu", path: "/menu", icon: UtensilsCrossed, permission: "menu.view" },
         {
           label: "Today's Availability",
@@ -166,6 +172,14 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
         { label: "Settings", path: "/settings/venue", icon: Sliders, permission: "business.view" },
       ],
     },
+    ...(user?.is_platform_admin
+      ? [
+          {
+            label: "Super Admin",
+            items: [{ label: "Tenants Directory", path: "/admin/tenants", icon: ShieldCheck }],
+          },
+        ]
+      : []),
   ];
 
   const visibleNavGroups = navGroups
