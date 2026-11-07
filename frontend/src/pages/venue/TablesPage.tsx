@@ -129,6 +129,7 @@ export const TablesPage: React.FC = () => {
 
   useEffect(() => {
     fetchData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedAreaId, selectedSectionId, selectedStatus, searchQuery, activeTenant?.tenant_id]);
 
   // Bulk label preview computation

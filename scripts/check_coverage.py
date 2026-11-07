@@ -24,6 +24,8 @@ THRESHOLDS = {
     "apps/accounts/services.py": 95.0,
     "apps/tenants/views.py": 90.0,
     "apps/venues/views.py": 90.0,
+    "apps/menu/services.py": 90.0,
+    "apps/menu/models.py": 90.0,
 }
 TOTAL_THRESHOLD = 90.0
 

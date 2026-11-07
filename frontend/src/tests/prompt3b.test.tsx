@@ -164,7 +164,7 @@ describe("Prompt 3B Frontend: Public QR Landing Page", () => {
     ).toBeDefined();
 
     // Check powered by footer
-    expect(screen.getByText("Powered by ServeMyFood")).toBeDefined();
+    expect(screen.getByText(/Powered by ServeMyFood/i)).toBeDefined();
   });
 
   it("renders friendly not found page when QR token is invalid or inactive", async () => {

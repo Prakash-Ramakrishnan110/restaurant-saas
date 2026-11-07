@@ -3,20 +3,24 @@ import { configDefaults, defineConfig } from "vitest/config";
 import react from "@vitejs/plugin-react";
 import path from "path";
 import { execSync } from "child_process";
-import pkg from "./package.json";
 
-let gitHash = "6caba5a";
+// Build-time git version: use `git describe --tags --always` for a human-readable tag
+let gitVersion = "dev";
 try {
-  gitHash = execSync("git rev-parse --short HEAD").toString().trim();
+  gitVersion = execSync("git describe --tags --always").toString().trim();
 } catch {
-  // fallback
+  try {
+    gitVersion = execSync("git rev-parse --short HEAD").toString().trim();
+  } catch {
+    // fallback
+  }
 }
 
 export default defineConfig({
   plugins: [react()],
   define: {
-    __APP_VERSION__: JSON.stringify(pkg.version),
-    __GIT_HASH__: JSON.stringify(gitHash),
+    __APP_VERSION__: JSON.stringify(gitVersion),
+    __GIT_HASH__: JSON.stringify(gitVersion),
   },
   resolve: {
     alias: {
@@ -27,6 +31,7 @@ export default defineConfig({
     globals: true,
     environment: "jsdom",
     setupFiles: ["./src/tests/setup.ts"],
+    testTimeout: 15000,
     include: ["src/**/*.{test,spec}.{ts,tsx}"],
     exclude: [...configDefaults.exclude, "e2e/**", "**/e2e/**"],
     coverage: {

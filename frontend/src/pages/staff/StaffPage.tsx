@@ -101,6 +101,7 @@ export const StaffPage: React.FC = () => {
 
   useEffect(() => {
     fetchStaff();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [roleFilter, statusFilter, branchFilter, activeTenant?.tenant_id]);
 
   // Allowed roles based on caller's rank

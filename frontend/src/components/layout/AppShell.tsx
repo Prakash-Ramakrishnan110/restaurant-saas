@@ -107,7 +107,7 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
         }
       })
       .catch(() => {});
-  }, [activeTenant?.tenant_id]);
+  }, [activeTenant]);
 
   const navGroups: NavGroup[] = [
     {
@@ -119,7 +119,7 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
           label: "Today's Availability",
           path: "/menu/availability",
           icon: Clock,
-          permission: "menu.view",
+          permission: "menu.availability",
         },
         { label: "QR Codes", path: "/qr", icon: QrCode, permission: "qr.view" },
       ],
@@ -366,8 +366,7 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
               <span className="text-[#C2410C] font-semibold">Active</span>
             </div>
             <div className="text-[10px] text-muted-foreground/75 mt-1 font-mono">
-              ServeMyFood v{typeof __APP_VERSION__ !== "undefined" ? __APP_VERSION__ : "0.4.1"} (
-              {typeof __GIT_HASH__ !== "undefined" ? __GIT_HASH__ : "e0387e9"})
+              ServeMyFood {typeof __APP_VERSION__ !== "undefined" ? __APP_VERSION__ : "dev"}
             </div>
           </div>
         </aside>

@@ -77,7 +77,6 @@ ROLE_PERMISSIONS: dict[str, set[str]] = {
         Permission.TABLE_SESSION_CLOSE,
         Permission.TABLE_MERGE,
         Permission.MENU_VIEW,
-        Permission.MENU_AVAILABILITY,
         Permission.ORDER_CREATE,
         Permission.PRINTER_REPRINT,
     },

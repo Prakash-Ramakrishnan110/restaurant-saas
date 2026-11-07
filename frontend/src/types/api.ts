@@ -3353,6 +3353,8 @@ export interface operations {
         requestBody: {
             content: {
                 "multipart/form-data": components["schemas"]["MenuItemRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["MenuItemRequest"];
+                "application/json": components["schemas"]["MenuItemRequest"];
             };
         };
         responses: {

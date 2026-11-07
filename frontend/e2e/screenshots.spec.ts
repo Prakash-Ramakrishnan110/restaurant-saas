@@ -6,6 +6,136 @@ const screenshotsDir = path.resolve("../docs/screenshots");
 
 // Helper to log in as seeded owner and navigate to dashboard
 async function loginAsSeededOwner(page: any) {
+  await page.route("**/api/v1/auth/login/", async (route: any) => {
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        access: "mock-valid-access-token",
+        refresh: "mock-valid-refresh-token",
+        user: {
+          id: "usr-owner-1",
+          email: "owner@spicegarden.com",
+          name: "Ramesh Owner",
+          role: "OWNER",
+          must_change_password: false,
+        },
+        memberships: [
+          {
+            id: "mem-owner-1",
+            tenant_id: "ten-alpha-1",
+            tenant_name: "Spice Garden",
+            role: "OWNER",
+            is_default: true,
+          },
+        ],
+        active_role: "OWNER",
+        permissions: ["*"],
+      }),
+    });
+  });
+
+  await page.route("**/api/v1/auth/refresh/", async (route: any) => {
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({ access: "mock-valid-access-token" }),
+    });
+  });
+
+  await page.route("**/api/v1/auth/me/", async (route: any) => {
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        user: {
+          id: "usr-owner-1",
+          email: "owner@spicegarden.com",
+          name: "Ramesh Owner",
+          role: "OWNER",
+          must_change_password: false,
+        },
+        memberships: [
+          {
+            id: "mem-owner-1",
+            tenant_id: "ten-alpha-1",
+            tenant_name: "Spice Garden",
+            role: "OWNER",
+            is_default: true,
+          },
+        ],
+        active_role: "OWNER",
+        permissions: ["*"],
+        must_change_password: false,
+      }),
+    });
+  });
+
+  await page.route("**/api/v1/business/", async (route: any) => {
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        id: "ten-alpha-1",
+        name: "Spice Garden",
+        business_type: "CASUAL_DINING",
+        venue_profile: "CASUAL_DINING",
+        contact_email: "owner@spicegarden.com",
+        contact_phone: "+91 98765 43210",
+        timezone: "Asia/Kolkata",
+        business_settings: {
+          display_name: "Spice Garden",
+          brand_primary_color: "#FF6A00",
+          document_language: "EN_TA",
+          receipt_footer_text: "Thank you for dining with us!",
+          legal_name: "Spice Garden Hospitality LLP",
+        },
+      }),
+    });
+  });
+
+  await page.route("**/api/v1/subscriptions/entitlements/", async (route: any) => {
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        plan_name: "Professional Plan",
+        limits: {
+          max_tables: { limit: 50, current: 12, remaining: 38 },
+          max_staff: { limit: 20, current: 8, remaining: 12 },
+          max_branches: { limit: 3, current: 1, remaining: 2 },
+        },
+      }),
+    });
+  });
+
+  await page.route("**/api/v1/venues/tables/", async (route: any) => {
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        count: 12,
+        results: [
+          { id: "tbl-1", table_number: "T1", label: "T1", capacity: 4, status: "AVAILABLE" },
+          { id: "tbl-2", table_number: "T2", label: "T2", capacity: 2, status: "OCCUPIED" },
+        ],
+      }),
+    });
+  });
+
+  await page.route("**/api/v1/branches/", async (route: any) => {
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        count: 1,
+        results: [
+          { id: "br-1", name: "Indiranagar Main", is_active: true },
+        ],
+      }),
+    });
+  });
+
   await page.goto("/login");
   await page.waitForLoadState("networkidle");
 

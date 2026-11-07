@@ -89,6 +89,7 @@ export const MenuAvailabilityPage: React.FC = () => {
 
   useEffect(() => {
     loadData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTenant?.tenant_id]);
 
   const handleBranchChange = async (bId: string) => {
@@ -263,22 +264,24 @@ export const MenuAvailabilityPage: React.FC = () => {
                 </div>
 
                 {canEditAvailability && (
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1 flex-shrink-0">
                     <Button
                       variant="ghost"
                       size="sm"
                       onClick={() => handleBulkCategoryToggle(cat.id, true)}
-                      className="h-7 text-[11px] px-2 text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-950/20"
+                      className="h-7 text-[11px] px-2 text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-950/20 whitespace-nowrap"
                     >
-                      <Check className="w-3 h-3 mr-1" /> All Available
+                      <Check className="w-3 h-3 mr-1 flex-shrink-0" />
+                      <span className="hidden sm:inline">All </span>Available
                     </Button>
                     <Button
                       variant="ghost"
                       size="sm"
                       onClick={() => handleBulkCategoryToggle(cat.id, false)}
-                      className="h-7 text-[11px] px-2 text-destructive hover:bg-destructive/10"
+                      className="h-7 text-[11px] px-2 text-destructive hover:bg-destructive/10 whitespace-nowrap"
                     >
-                      <X className="w-3 h-3 mr-1" /> All Sold Out
+                      <X className="w-3 h-3 mr-1 flex-shrink-0" />
+                      <span className="hidden sm:inline">All </span>Sold Out
                     </Button>
                   </div>
                 )}
@@ -306,13 +309,15 @@ export const MenuAvailabilityPage: React.FC = () => {
                       </div>
 
                       <div>
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2 flex-wrap">
                           <FoodTypeBadge type={item.food_type} showLabel={false} />
-                          <h4 className="font-semibold text-sm text-foreground">{item.name}</h4>
-                          {item.name_ta && (
-                            <span className="text-xs text-muted-foreground">({item.name_ta})</span>
-                          )}
+                          <h4 className="font-semibold text-sm text-foreground break-words">
+                            {item.name}
+                          </h4>
                         </div>
+                        {item.name_ta && (
+                          <div className="text-xs text-muted-foreground mt-0.5">{item.name_ta}</div>
+                        )}
                         <span className="font-mono text-xs text-muted-foreground font-medium">
                           {formatPaise(item.base_price_paise)}
                         </span>

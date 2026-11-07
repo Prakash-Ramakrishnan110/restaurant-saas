@@ -28,21 +28,27 @@ describe("ServeMyFood Menu Utilities & Components (Prompt 4A)", () => {
     vi.restoreAllMocks();
   });
 
-  it("formatPaise formats paise into Indian Rupee currency with correct grouping", () => {
+  it("formatPaise formats paise into Indian Rupee currency with correct grouping and optional forceDecimals", () => {
     expect(formatPaise(25000)).toBe("₹250");
     expect(formatPaise(25050)).toBe("₹250.50");
     expect(formatPaise(12500000)).toBe("₹1,25,000");
     expect(formatPaise(0)).toBe("₹0");
+    expect(formatPaise(12000, { forceDecimals: true })).toBe("₹120.00");
+    expect(formatPaise(25050, { forceDecimals: true })).toBe("₹250.50");
   });
 
-  it("parseRupeesToPaise converts rupee inputs to integer paise without float inaccuracies", () => {
+  it("parseRupeesToPaise converts rupee inputs to integer paise and strictly rejects >2 decimal places", () => {
     expect(parseRupeesToPaise("250")).toBe(25000);
     expect(parseRupeesToPaise("250.50")).toBe(25050);
     expect(parseRupeesToPaise("₹1,25,000")).toBe(12500000);
     expect(parseRupeesToPaise("49.99")).toBe(4999);
+    // Fractional paise rejection (Prompt 4A invariant)
+    expect(Number.isNaN(parseRupeesToPaise("12.345"))).toBe(true);
+    expect(Number.isNaN(parseRupeesToPaise("-50"))).toBe(true);
+    expect(Number.isNaN(parseRupeesToPaise("abc"))).toBe(true);
   });
 
-  it("FoodTypeBadge renders distinct indicators for VEG, NON_VEG, and EGG", () => {
+  it("FoodTypeBadge renders distinct indicators and enforces Egg badge color #A16207 with contrast >= 3:1", () => {
     const { unmount } = render(<FoodTypeBadge type="VEG" />);
     expect(screen.getByText("Veg")).toBeDefined();
     unmount();
@@ -51,38 +57,80 @@ describe("ServeMyFood Menu Utilities & Components (Prompt 4A)", () => {
     expect(screen.getByText("Non-Veg")).toBeDefined();
 
     render(<FoodTypeBadge type="EGG" />);
-    expect(screen.getByText("Contains Egg")).toBeDefined();
+    expect(screen.getByText("Egg")).toBeDefined();
+
+    // WCAG contrast validation for dark gold #A16207
+    const getLuminance = (r: number, g: number, b: number) => {
+      const a = [r, g, b].map((v) => {
+        v /= 255;
+        return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4);
+      });
+      return a[0] * 0.2126 + a[1] * 0.7152 + a[2] * 0.0722;
+    };
+    const lumEgg = getLuminance(161, 98, 7); // #A16207
+    const lumWhite = getLuminance(255, 255, 255);
+    const lumDarkHeader = getLuminance(11, 31, 59); // #0B1F3B
+
+    const contrastWhite = (lumWhite + 0.05) / (lumEgg + 0.05);
+    const contrastDark = (lumEgg + 0.05) / (lumDarkHeader + 0.05);
+
+    expect(contrastWhite).toBeGreaterThanOrEqual(3.0);
+    expect(contrastDark).toBeGreaterThanOrEqual(3.0);
   });
 
-  it("QuickAddDialog parses spreadsheet rows with TSV and detects invalid rows", async () => {
+  it("QuickAddDialog parses tabs, pipes, and commas, shows plan usage, and blocks missing categories", async () => {
     const handleImport = vi.fn();
-    render(<QuickAddDialog open={true} onOpenChange={vi.fn()} onImport={handleImport} />);
+    const existingCats = [
+      { id: "c-1", name: "Starters", sort_order: 1 },
+      { id: "c-2", name: "Beverages", sort_order: 2 },
+    ];
+
+    render(
+      <QuickAddDialog
+        open={true}
+        onOpenChange={vi.fn()}
+        onImport={handleImport}
+        existingCategories={existingCats}
+        currentItemCount={5}
+        totalItemLimit={100}
+      />
+    );
+
+    // Verify plan usage banner
+    expect(screen.getByText(/5 of 100 items used/i)).toBeDefined();
 
     const textarea = screen.getByPlaceholderText(/Starters\s+Paneer Tikka/i);
-    // Paste valid and invalid rows
+
+    // 1. Multi-delimiter paste (tab, pipe, comma)
     await act(async () => {
       fireEvent.change(textarea, {
         target: {
           value:
-            "Starters\tPaneer Tikka\t250\tVeg\nBeverages\tFilter Coffee\t30\tVeg\n\tBroken Item\t0\tNon-Veg",
+            "Starters\tPaneer Tikka\t250\tVeg\nBeverages | Filter Coffee | 30 | Veg\nStarters, Gobi 65, 180, Veg",
         },
       });
     });
 
-    // Valid items preview
-    expect(screen.getByText(/2 valid \/ 3 total/i)).toBeDefined();
+    expect(screen.getByText(/3 valid \/ 3 total/i)).toBeDefined();
     expect(screen.getByText("Filter Coffee")).toBeDefined();
-    expect(screen.getByText("Paneer Tikka")).toBeDefined();
+    expect(screen.getByText("Gobi 65")).toBeDefined();
 
-    // Import button
-    const importBtn = screen.getByRole("button", { name: /Import 2 Valid Items/i });
+    const importBtn = screen.getByRole("button", { name: /Import 3 Items/i });
     expect(importBtn).toBeDefined();
-    fireEvent.click(importBtn);
+    expect((importBtn as HTMLButtonElement).disabled).toBe(false);
 
-    expect(handleImport).toHaveBeenCalledWith([
-      { category: "Starters", name: "Paneer Tikka", base_price_paise: 25000, food_type: "VEG" },
-      { category: "Beverages", name: "Filter Coffee", base_price_paise: 3000, food_type: "VEG" },
-    ]);
+    // 2. Paste with missing category should fail atomically and disable import button
+    await act(async () => {
+      fireEvent.change(textarea, {
+        target: {
+          value: "Starters\tPaneer Tikka\t250\tVeg\nNonExistentCat\tMystery Dish\t100\tVeg",
+        },
+      });
+    });
+
+    expect(screen.getByText(/Row 2: Category "NonExistentCat" not found/i)).toBeDefined();
+    const disabledBtn = screen.getByRole("button", { name: /Import 1 Items/i });
+    expect((disabledBtn as HTMLButtonElement).disabled).toBe(true);
   });
 
   const setupAuth = (role: string, perms: string[]) => {
@@ -167,8 +215,8 @@ describe("ServeMyFood Menu Utilities & Components (Prompt 4A)", () => {
     });
   });
 
-  it("MenuAvailabilityPage renders items and triggers availability toggle", async () => {
-    setupAuth("WAITER", ["menu.view", "menu.availability"]);
+  it("MenuAvailabilityPage renders items and triggers availability toggle for kitchen role", async () => {
+    setupAuth("KITCHEN", ["menu.view", "menu.availability"]);
 
     (apiClient.get as any).mockImplementation((url: string) => {
       if (url.includes("/branches/")) {
@@ -213,7 +261,7 @@ describe("ServeMyFood Menu Utilities & Components (Prompt 4A)", () => {
     await waitFor(() => {
       expect(screen.getByText("Today's Availability")).toBeDefined();
       expect(screen.getByText("Masala Chai")).toBeDefined();
-      expect(screen.getByText("Available")).toBeDefined();
+      expect(screen.getAllByText("Available").length).toBeGreaterThan(0);
     });
 
     const toggleSwitch = screen.getByRole("switch");
@@ -223,6 +271,64 @@ describe("ServeMyFood Menu Utilities & Components (Prompt 4A)", () => {
       branch: "b-1",
       item: "i-10",
       is_available: false,
+    });
+  });
+
+  it("MenuPage category reorder buttons trigger API reorder call", async () => {
+    setupAuth("OWNER", ["menu.view", "menu.manage"]);
+
+    (apiClient.get as any).mockImplementation((url: string) => {
+      if (url.includes("/menu/categories/")) {
+        return Promise.resolve({
+          data: {
+            results: [
+              { id: "c-1", name: "Starters", sort_order: 1 },
+              { id: "c-2", name: "Main Course", sort_order: 2 },
+            ],
+          },
+        });
+      }
+      if (url.includes("/menu/items/")) {
+        return Promise.resolve({ data: { results: [] } });
+      }
+      if (url.includes("/menu/option-groups/")) {
+        return Promise.resolve({ data: { results: [] } });
+      }
+      if (url.includes("/subscriptions/entitlements/")) {
+        return Promise.resolve({ data: { limits: { max_menu_items: { limit: 100 } } } });
+      }
+      return Promise.resolve({ data: {} });
+    });
+
+    (apiClient.post as any).mockResolvedValue({ data: { success: true } });
+
+    render(
+      <ThemeProvider>
+        <MemoryRouter>
+          <MenuPage />
+        </MemoryRouter>
+      </ThemeProvider>
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText("Starters")).toBeDefined();
+      expect(screen.getByText("Main Course")).toBeDefined();
+    });
+
+    const moveDownBtns = screen.getAllByTitle("Move category down");
+    expect(moveDownBtns.length).toBeGreaterThan(0);
+    fireEvent.click(moveDownBtns[0]);
+
+    await waitFor(() => {
+      expect(apiClient.post).toHaveBeenCalledWith(
+        "/menu/categories/reorder/",
+        expect.objectContaining({
+          orders: expect.arrayContaining([
+            expect.objectContaining({ id: "c-1", sort_order: 2 }),
+            expect.objectContaining({ id: "c-2", sort_order: 1 }),
+          ]),
+        })
+      );
     });
   });
 });

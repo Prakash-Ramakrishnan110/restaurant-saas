@@ -6,6 +6,8 @@ import { apiClient } from "../../api/client";
 import { evaluateBrandColor } from "../../lib/colorUtils";
 import { useTranslation } from "react-i18next";
 
+declare const __APP_VERSION__: string;
+
 interface PublicQRResponse {
   valid: boolean;
   tenant_name: string;
@@ -160,7 +162,9 @@ export const PublicQRPage: React.FC = () => {
 
       {/* Footer - B6: Exact string */}
       <footer className="w-full max-w-lg py-4 text-center">
-        <p className="text-xs text-slate-400">Powered by ServeMyFood</p>
+        <p className="text-xs text-slate-400">
+          Powered by ServeMyFood {typeof __APP_VERSION__ !== "undefined" ? __APP_VERSION__ : "dev"}
+        </p>
       </footer>
     </div>
   );

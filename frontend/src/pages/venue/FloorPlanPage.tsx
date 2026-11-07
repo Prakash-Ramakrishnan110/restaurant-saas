@@ -76,6 +76,7 @@ export const FloorPlanPage: React.FC = () => {
 
   useEffect(() => {
     fetchData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTenant?.tenant_id]);
 
   const activeSectionTables = tables.filter(

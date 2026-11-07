@@ -1,8 +1,11 @@
+import io
 from typing import Any
 
 from django.contrib.auth import get_user_model
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.core.management.base import BaseCommand
 from django.db import transaction
+from PIL import Image, ImageDraw
 
 from apps.accounts.models import Membership
 from apps.core.context import set_current_tenant
@@ -15,6 +18,7 @@ from apps.menu.models import (
     Option,
     OptionGroup,
 )
+from apps.menu.services import process_and_store_menu_image
 from apps.rbac.constants import Role
 from apps.subscriptions.constants import SubscriptionStatus
 from apps.subscriptions.models import Plan, Subscription
@@ -36,6 +40,47 @@ from apps.venues.models import (
 from apps.venues.services import apply_preset, generate_qr_code, next_token
 
 User = get_user_model()
+
+
+def _generate_dish_image(name: str, color_hex: str) -> SimpleUploadedFile:
+    img = Image.new("RGB", (800, 600), color="#0F172A")
+    draw = ImageDraw.Draw(img)
+    # Plate rim
+    draw.ellipse([140, 40, 660, 560], fill="#F8FAFC", outline="#CBD5E1", width=6)
+    # Inner plate well
+    draw.ellipse([190, 90, 610, 510], fill="#E2E8F0")
+    # Food center with rich dish color
+    draw.ellipse([230, 130, 570, 470], fill=color_hex)
+    # Garnish / texture accent
+    draw.ellipse([370, 270, 430, 330], fill="#FFFFFF")
+    buf = io.BytesIO()
+    img.save(buf, format="JPEG", quality=90)
+    safe_slug = "".join(c if c.isalnum() else "_" for c in name.lower())
+    return SimpleUploadedFile(f"{safe_slug}.jpg", buf.getvalue(), content_type="image/jpeg")
+
+
+DISH_COLORS = {
+    "Masala Chai": "#B45309",
+    "Ginger Cardamom Chai": "#D97706",
+    "South Indian Filter Coffee": "#78350F",
+    "Bun Maska": "#FDE047",
+    "Osmania Biscuits": "#F59E0B",
+    "Vegetable Samosa (2 pcs)": "#CA8A04",
+    "Artisan Cappuccino": "#854D0E",
+    "Cold Brew Nitro": "#451A03",
+    "Butter Croissant": "#EAB308",
+    "Egg & Bacon Brioche": "#F59E0B",
+    "Paneer Tikka Angare": "#EA580C",
+    "Murgh Malai Kebab": "#FBBF24",
+    "Dal Makhani Heritage": "#7C2D12",
+    "Butter Chicken Royal": "#C2410C",
+    "Dum Pukht Biryani": "#B45309",
+    "Ghee Roast Dosa": "#CA8A04",
+    "Idli Vada Combo": "#E2E8F0",
+    "Continental Breakfast Platter": "#B91C1C",
+    "Burger & Fries Combo": "#DC2626",
+    "Veg Fried Rice Combo": "#059669",
+}
 
 
 class Command(BaseCommand):
@@ -582,6 +627,20 @@ class Command(BaseCommand):
         )
 
     def _seed_menus(self, t1, b1, t2, b2, t3, b3, t4, b4, t5, b5):
+        def _attach_image_if_missing(tenant, item, food_type):
+            if not item.image_card:
+                color = DISH_COLORS.get(
+                    item.name,
+                    "#15803D"
+                    if food_type == FoodType.VEG
+                    else ("#D97706" if food_type == FoodType.EGG else "#B91C1C"),
+                )
+                img_file = _generate_dish_image(item.name, color)
+                u = User.objects.filter(memberships__tenant=tenant).first()
+                process_and_store_menu_image(
+                    tenant=tenant, item=item, file_obj=img_file, focus_x=0.5, focus_y=0.5, user=u
+                )
+
         # 1. Chai Corner (Tea Shop)
         set_current_tenant(t1)
         cat_c1, _ = MenuCategory.objects.get_or_create(
@@ -664,7 +723,7 @@ class Command(BaseCommand):
             ),
         ]
         for cat, name, name_ta, desc, price, food, prep, best in chai_items:
-            MenuItem.objects.get_or_create(
+            m_itm, _ = MenuItem.objects.get_or_create(
                 tenant=t1,
                 category=cat,
                 name=name,
@@ -677,6 +736,7 @@ class Command(BaseCommand):
                     "is_bestseller": best,
                 },
             )
+            _attach_image_if_missing(t1, m_itm, food)
 
         # 2. Bean & Bloom (Cafe)
         set_current_tenant(t2)
@@ -721,6 +781,7 @@ class Command(BaseCommand):
                 "is_bestseller": True,
             },
         )
+        _attach_image_if_missing(t2, cappuccino, FoodType.VEG)
         ItemOptionGroup.objects.get_or_create(item=cappuccino, group=opt_milk)
         ItemVariant.objects.get_or_create(
             item=cappuccino,
@@ -733,7 +794,7 @@ class Command(BaseCommand):
             defaults={"price_paise": 21000, "is_default": False, "sort_order": 2},
         )
 
-        MenuItem.objects.get_or_create(
+        cold_brew, _ = MenuItem.objects.get_or_create(
             tenant=t2,
             category=cat_b1,
             name="Cold Brew Nitro",
@@ -746,7 +807,9 @@ class Command(BaseCommand):
                 "is_bestseller": False,
             },
         )
-        MenuItem.objects.get_or_create(
+        _attach_image_if_missing(t2, cold_brew, FoodType.VEG)
+
+        croissant, _ = MenuItem.objects.get_or_create(
             tenant=t2,
             category=cat_b2,
             name="Butter Croissant",
@@ -759,7 +822,9 @@ class Command(BaseCommand):
                 "is_bestseller": True,
             },
         )
-        MenuItem.objects.get_or_create(
+        _attach_image_if_missing(t2, croissant, FoodType.VEG)
+
+        brioche, _ = MenuItem.objects.get_or_create(
             tenant=t2,
             category=cat_b2,
             name="Egg & Bacon Brioche",
@@ -772,6 +837,7 @@ class Command(BaseCommand):
                 "is_bestseller": False,
             },
         )
+        _attach_image_if_missing(t2, brioche, FoodType.NON_VEG)
 
         # 3. Copper Chimney (Fine Dining)
         set_current_tenant(t3)
@@ -791,7 +857,7 @@ class Command(BaseCommand):
             defaults={"name_ta": "பிரியாணி வகைகள்", "sort_order": 3},
         )
 
-        MenuItem.objects.get_or_create(
+        paneer_tikka, _ = MenuItem.objects.get_or_create(
             tenant=t3,
             category=cat_d1,
             name="Paneer Tikka Angare",
@@ -804,7 +870,9 @@ class Command(BaseCommand):
                 "is_bestseller": True,
             },
         )
-        MenuItem.objects.get_or_create(
+        _attach_image_if_missing(t3, paneer_tikka, FoodType.VEG)
+
+        kebab, _ = MenuItem.objects.get_or_create(
             tenant=t3,
             category=cat_d1,
             name="Murgh Malai Kebab",
@@ -817,7 +885,9 @@ class Command(BaseCommand):
                 "is_bestseller": True,
             },
         )
-        MenuItem.objects.get_or_create(
+        _attach_image_if_missing(t3, kebab, FoodType.NON_VEG)
+
+        dal, _ = MenuItem.objects.get_or_create(
             tenant=t3,
             category=cat_d2,
             name="Dal Makhani Heritage",
@@ -830,7 +900,9 @@ class Command(BaseCommand):
                 "is_bestseller": True,
             },
         )
-        MenuItem.objects.get_or_create(
+        _attach_image_if_missing(t3, dal, FoodType.VEG)
+
+        butter_chicken, _ = MenuItem.objects.get_or_create(
             tenant=t3,
             category=cat_d2,
             name="Butter Chicken Royal",
@@ -843,6 +915,8 @@ class Command(BaseCommand):
                 "is_bestseller": True,
             },
         )
+        _attach_image_if_missing(t3, butter_chicken, FoodType.NON_VEG)
+
         biryani, _ = MenuItem.objects.get_or_create(
             tenant=t3,
             category=cat_d3,
@@ -856,6 +930,8 @@ class Command(BaseCommand):
                 "is_bestseller": True,
             },
         )
+        _attach_image_if_missing(t3, biryani, FoodType.NON_VEG)
+
         ItemVariant.objects.get_or_create(
             item=biryani,
             name="Subz Paneer Veg",
@@ -880,7 +956,7 @@ class Command(BaseCommand):
         cat_g2, _ = MenuCategory.objects.get_or_create(
             tenant=t4, name="Buffet Specials", defaults={"sort_order": 2}
         )
-        MenuItem.objects.get_or_create(
+        dosa, _ = MenuItem.objects.get_or_create(
             tenant=t4,
             category=cat_g1,
             name="Ghee Roast Dosa",
@@ -891,7 +967,9 @@ class Command(BaseCommand):
                 "is_bestseller": True,
             },
         )
-        MenuItem.objects.get_or_create(
+        _attach_image_if_missing(t4, dosa, FoodType.VEG)
+
+        idli, _ = MenuItem.objects.get_or_create(
             tenant=t4,
             category=cat_g1,
             name="Idli Vada Combo",
@@ -902,7 +980,9 @@ class Command(BaseCommand):
                 "is_bestseller": False,
             },
         )
-        MenuItem.objects.get_or_create(
+        _attach_image_if_missing(t4, idli, FoodType.VEG)
+
+        platter, _ = MenuItem.objects.get_or_create(
             tenant=t4,
             category=cat_g2,
             name="Continental Breakfast Platter",
@@ -913,13 +993,14 @@ class Command(BaseCommand):
                 "is_bestseller": False,
             },
         )
+        _attach_image_if_missing(t4, platter, FoodType.EGG)
 
         # 5. Foodie Plaza
         set_current_tenant(t5)
         cat_f1, _ = MenuCategory.objects.get_or_create(
             tenant=t5, name="Combos & Meals", defaults={"sort_order": 1}
         )
-        MenuItem.objects.get_or_create(
+        burger, _ = MenuItem.objects.get_or_create(
             tenant=t5,
             category=cat_f1,
             name="Burger & Fries Combo",
@@ -930,7 +1011,9 @@ class Command(BaseCommand):
                 "is_bestseller": True,
             },
         )
-        MenuItem.objects.get_or_create(
+        _attach_image_if_missing(t5, burger, FoodType.NON_VEG)
+
+        fried_rice, _ = MenuItem.objects.get_or_create(
             tenant=t5,
             category=cat_f1,
             name="Veg Fried Rice Combo",
@@ -941,3 +1024,4 @@ class Command(BaseCommand):
                 "is_bestseller": True,
             },
         )
+        _attach_image_if_missing(t5, fried_rice, FoodType.VEG)

@@ -45,18 +45,32 @@ export const FoodTypeBadge: React.FC<FoodTypeBadgeProps> = ({
     );
   }
 
-  // EGG
+  // EGG — dark gold (#A16207) for WCAG ≥ 3:1 on white and dark backgrounds
   return (
     <span
-      className={`inline-flex items-center gap-1.5 text-xs font-medium text-amber-700 dark:text-amber-400 ${className}`}
+      className={`inline-flex items-center gap-1.5 text-xs font-medium ${className}`}
+      style={{ color: "#A16207" }}
     >
       <span
-        className="inline-flex items-center justify-center w-4 h-4 rounded-sm border border-amber-600 bg-amber-50 dark:bg-amber-950/40"
+        className="inline-flex items-center justify-center w-4 h-4 rounded-sm"
+        style={{
+          border: "1px solid #A16207",
+          backgroundColor: "rgba(161,98,7,0.08)",
+        }}
         aria-hidden="true"
       >
-        <span className="w-2.5 h-2.5 rounded-full bg-amber-500" />
+        {/* Egg-shaped diamond marker */}
+        <span
+          style={{
+            display: "block",
+            width: 8,
+            height: 8,
+            borderRadius: "50% 50% 50% 50% / 60% 60% 40% 40%",
+            backgroundColor: "#A16207",
+          }}
+        />
       </span>
-      {showLabel && <span>Contains Egg</span>}
+      {showLabel && <span>Egg</span>}
     </span>
   );
 };

@@ -144,7 +144,7 @@ def test_menu_rbac_permissions(menu_api_env):
     )
     assert res_owner_create.status_code == 201
 
-    # 4. Waiter CAN toggle item availability (menu.availability permission)
+    # 4. Waiter CANNOT toggle item availability (Waiter has no menu.availability permission -> 403)
     res_avail = client_waiter.post(
         "/api/v1/menu/availability/toggle/",
         {
@@ -153,8 +153,19 @@ def test_menu_rbac_permissions(menu_api_env):
             "is_available": False,
         },
     )
-    assert res_avail.status_code == 200
-    assert res_avail.data["is_available"] is False
+    assert res_avail.status_code == 403
+
+    # 5. Owner CAN toggle item availability
+    res_owner_avail = client_owner.post(
+        "/api/v1/menu/availability/toggle/",
+        {
+            "branch": str(menu_api_env["b_a"].id),
+            "item": str(menu_api_env["item_a"].id),
+            "is_available": False,
+        },
+    )
+    assert res_owner_avail.status_code == 200
+    assert res_owner_avail.data["is_available"] is False
 
 
 @pytest.mark.django_db
@@ -280,3 +291,103 @@ def test_item_image_endpoints(menu_api_env):
     # Delete image endpoint
     res_del = client.delete(f"/api/v1/menu/items/{item.id}/image/")
     assert res_del.status_code == 200
+
+
+@pytest.mark.django_db
+def test_menu_cross_tenant_body_id_isolation(menu_api_env):
+    client_a = make_client(menu_api_env["u_owner"], menu_api_env["t_a"])
+
+    # Attempt to create an item in Tenant A using Tenant B's category ID
+    res = client_a.post(
+        "/api/v1/menu/items/",
+        {
+            "category": str(menu_api_env["cat_b"].id),
+            "name": "Malicious Cross Tenant Item",
+            "base_price_paise": 15000,
+            "food_type": "VEG",
+        },
+    )
+    assert res.status_code == 400
+
+
+@pytest.mark.django_db
+def test_menu_item_price_update_audit_log(menu_api_env):
+    from apps.audit.models import AuditLog
+
+    client = make_client(menu_api_env["u_owner"], menu_api_env["t_a"])
+    item = menu_api_env["item_a"]
+    old_price = item.base_price_paise
+
+    res = client.patch(f"/api/v1/menu/items/{item.id}/", {"base_price_paise": 35000})
+    assert res.status_code == 200
+
+    log = (
+        AuditLog.objects.filter(
+            tenant=menu_api_env["t_a"],
+            action="menu.item.update",
+            entity_id=str(item.id),
+        )
+        .order_by("-timestamp")
+        .first()
+    )
+
+    assert log is not None
+    assert log.after_state["old_price_paise"] == old_price
+    assert log.after_state["new_price_paise"] == 35000
+
+
+@pytest.mark.django_db
+def test_menu_item_tamil_text_search(menu_api_env):
+    client = make_client(menu_api_env["u_owner"], menu_api_env["t_a"])
+    cat = menu_api_env["cat_a"]
+
+    MenuItem.objects.create(
+        tenant=menu_api_env["t_a"],
+        category=cat,
+        name="Masala Dosa",
+        name_ta="மசாலா தோசை",
+        base_price_paise=10000,
+        food_type=FoodType.VEG,
+    )
+
+    # Search by English
+    res_en = client.get("/api/v1/menu/items/?search=dosa")
+    assert res_en.status_code == 200
+    names_en = [i["name"] for i in res_en.data["results"]]
+    assert "Masala Dosa" in names_en
+
+    # Search by Tamil
+    res_ta = client.get("/api/v1/menu/items/?search=தோசை")
+    assert res_ta.status_code == 200
+    names_ta = [i["name"] for i in res_ta.data["results"]]
+    assert "Masala Dosa" in names_ta
+
+
+@pytest.mark.django_db
+def test_menu_full_constant_query_count(menu_api_env, django_assert_num_queries):
+    client = make_client(menu_api_env["u_owner"], menu_api_env["t_a"])
+    t = menu_api_env["t_a"]
+    b = menu_api_env["b_a"]
+
+    # Create 5 categories and 200 items in bulk
+    cats = [MenuCategory.objects.create(tenant=t, name=f"Bulk Category {c}") for c in range(5)]
+    items_to_create = []
+    for i in range(200):
+        items_to_create.append(
+            MenuItem(
+                tenant=t,
+                category=cats[i % 5],
+                name=f"Bulk Item {i}",
+                base_price_paise=10000 + i * 50,
+                food_type=FoodType.VEG,
+                is_active=True,
+            )
+        )
+    MenuItem.objects.bulk_create(items_to_create)
+
+    # Full menu view with 200+ items must execute in constant O(1) query count (8 queries including auth & tenant)
+    with django_assert_num_queries(8):
+        res = client.get(f"/api/v1/menu/full/?branch={b.id}")
+        assert res.status_code == 200
+        total_items = sum(len(c["items"]) for c in res.data["categories"])
+        assert total_items >= 201

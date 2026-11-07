@@ -277,7 +277,11 @@ export const ItemEditorSheet: React.FC<ItemEditorSheetProps> = ({
             <FormField
               label="Base Price (₹)"
               required
-              helperText={`Stored as ${formatPaise(parseRupeesToPaise(priceRupees))}`}
+              helperText={
+                parseRupeesToPaise(priceRupees) > 0
+                  ? `Guests will pay ${formatPaise(parseRupeesToPaise(priceRupees), { forceDecimals: true })}`
+                  : "Enter price in rupees"
+              }
             >
               <Input
                 type="number"

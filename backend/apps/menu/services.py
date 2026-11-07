@@ -12,6 +12,8 @@ from apps.menu.constants import (
     CARD_IMAGE_SIZE,
     MAX_IMAGE_DIMENSION,
     MAX_IMAGE_UPLOAD_BYTES,
+    MIN_IMAGE_HEIGHT,
+    MIN_IMAGE_WIDTH,
     THUMB_IMAGE_SIZE,
 )
 from apps.menu.models import (
@@ -103,6 +105,17 @@ def process_and_store_menu_image(
             status_code=400,
         )
 
+    # 1. Enforce file extension check
+    filename = getattr(file_obj, "name", "") or ""
+    if "." in filename:
+        ext = filename.rsplit(".", 1)[-1].lower()
+        if ext not in {"jpg", "jpeg", "png", "webp"}:
+            raise BusinessRuleError(
+                "INVALID_IMAGE_EXTENSION",
+                f"Invalid file extension '.{ext}'. Only .jpg, .jpeg, .png, and .webp are accepted.",
+                status_code=400,
+            )
+
     try:
         raw_bytes = file_obj.read()
         pil_img = Image.open(io.BytesIO(raw_bytes))
@@ -113,10 +126,23 @@ def process_and_store_menu_image(
                 f"Unsupported image format '{format_name}'. Only JPEG, PNG, and WebP are accepted.",
                 status_code=400,
             )
+        # Reject animated images (GIF, APNG, animated WebP)
+        if getattr(pil_img, "is_animated", False):
+            raise BusinessRuleError(
+                "ANIMATED_IMAGE_REJECTED",
+                "Animated images are not supported.",
+                status_code=400,
+            )
         # Verify image integrity
         pil_img.verify()
         # Re-open after verify()
         pil_img = Image.open(io.BytesIO(raw_bytes))
+    except Image.DecompressionBombError as exc:
+        raise BusinessRuleError(
+            "DECOMPRESSION_BOMB",
+            "Image exceeds maximum allowed pixel count (decompression bomb detected).",
+            status_code=400,
+        ) from exc
     except BusinessRuleError:
         raise
     except Exception as exc:
@@ -125,6 +151,15 @@ def process_and_store_menu_image(
             f"Could not decode image file: {exc}",
             status_code=400,
         ) from exc
+
+    # Enforce minimum resolution
+    orig_w, orig_h = pil_img.size
+    if orig_w < MIN_IMAGE_WIDTH or orig_h < MIN_IMAGE_HEIGHT:
+        raise BusinessRuleError(
+            "IMAGE_TOO_SMALL",
+            f"Image dimensions ({orig_w}x{orig_h}) are below minimum required resolution of {MIN_IMAGE_WIDTH}x{MIN_IMAGE_HEIGHT}px.",
+            status_code=400,
+        )
 
     # Strip metadata by converting to clean RGB/RGBA mode
     if pil_img.mode in ("RGBA", "LA") or (pil_img.mode == "P" and "transparency" in pil_img.info):
@@ -311,11 +346,23 @@ def bulk_create_menu_items(
                 )
 
             if cat_name not in cat_cache:
-                cat, _ = MenuCategory.objects.get_or_create(
-                    tenant=tenant,
-                    name=cat_name.strip(),
-                    defaults={"sort_order": len(cat_cache)},
-                )
+                cat = MenuCategory.objects.filter(
+                    tenant=tenant, name__iexact=cat_name.strip()
+                ).first()
+                if not cat:
+                    try:
+                        import uuid
+
+                        cat_uuid = uuid.UUID(cat_name.strip())
+                        cat = MenuCategory.objects.filter(tenant=tenant, id=cat_uuid).first()
+                    except (ValueError, TypeError, AttributeError):
+                        pass
+                if not cat:
+                    raise BusinessRuleError(
+                        "CATEGORY_NOT_FOUND",
+                        f"Row {idx + 1}: Category '{cat_name}' not found.",
+                        status_code=400,
+                    )
                 cat_cache[cat_name] = cat
             category = cat_cache[cat_name]
 

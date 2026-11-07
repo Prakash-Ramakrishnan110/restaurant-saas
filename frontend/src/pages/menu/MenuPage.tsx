@@ -27,6 +27,8 @@ import {
   CheckCircle2,
   AlertCircle,
   Flame,
+  ChevronUp,
+  ChevronDown,
 } from "lucide-react";
 
 export const MenuPage: React.FC = () => {
@@ -89,7 +91,36 @@ export const MenuPage: React.FC = () => {
 
   useEffect(() => {
     fetchData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTenant?.tenant_id]);
+
+  const handleReorderCategory = async (
+    e: React.MouseEvent,
+    index: number,
+    direction: "up" | "down"
+  ) => {
+    e.stopPropagation();
+    const targetIndex = direction === "up" ? index - 1 : index + 1;
+    if (targetIndex < 0 || targetIndex >= categories.length) return;
+
+    const newCats = [...categories];
+    const temp = newCats[index];
+    newCats[index] = newCats[targetIndex];
+    newCats[targetIndex] = temp;
+
+    setCategories(newCats);
+
+    const orders = newCats.map((cat, idx) => ({
+      id: cat.id,
+      sort_order: idx + 1,
+    }));
+
+    try {
+      await apiClient.post("/menu/categories/reorder/", { orders });
+    } catch {
+      await fetchData();
+    }
+  };
 
   const handleSaveCategory = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -253,18 +284,29 @@ export const MenuPage: React.FC = () => {
             Menu Management
           </h1>
           <p className="text-xs text-muted-foreground mt-1">
-            Organize categories, prices in paise, portions, FSSAI diet tags, and photo crops.
+            Add your dishes, prices, photos and veg or non-veg marks.
           </p>
         </div>
 
         <div className="flex items-center gap-2 flex-wrap">
-          {/* Plan Usage Indicator */}
-          <div className="text-xs font-semibold px-3 py-1.5 rounded-full border border-border bg-muted/40 text-foreground flex items-center gap-1.5">
-            <span className="w-2 h-2 rounded-full bg-[#FF6A00]" />
-            <span>
-              {currentItemCount} of {totalItemLimit} items used
-            </span>
-          </div>
+          {/* Plan Usage Indicator — neutral below 80%, amber 80-99%, red 100%+ */}
+          {(() => {
+            const usagePct = totalItemLimit > 0 ? (currentItemCount / totalItemLimit) * 100 : 0;
+            const dotColor =
+              usagePct >= 100
+                ? "bg-red-500"
+                : usagePct >= 80
+                  ? "bg-amber-500"
+                  : "bg-muted-foreground";
+            return (
+              <div className="text-xs font-semibold px-3 py-1.5 rounded-full border border-border bg-muted/40 text-foreground flex items-center gap-1.5">
+                <span className={`w-2 h-2 rounded-full ${dotColor}`} />
+                <span>
+                  {currentItemCount} of {totalItemLimit} items used
+                </span>
+              </div>
+            );
+          })()}
 
           {canManage && (
             <>
@@ -357,7 +399,7 @@ export const MenuPage: React.FC = () => {
               <span className="text-[11px] opacity-80">{items.length}</span>
             </button>
 
-            {categories.map((cat) => {
+            {categories.map((cat, idx) => {
               const count = items.filter((it) => it.category === cat.id).length;
               const isSelected = selectedCategoryId === cat.id;
               return (
@@ -380,24 +422,52 @@ export const MenuPage: React.FC = () => {
                       </span>
                     )}
                   </div>
-                  <div className="flex items-center gap-1.5">
-                    <span className="text-[11px] opacity-80">{count}</span>
+                  <div className="flex items-center gap-1">
+                    <span className="text-[11px] opacity-80 mr-1">{count}</span>
                     {canManage && (
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setEditingCategory(cat);
-                          setCatName(cat.name);
-                          setCatNameTa(cat.name_ta || "");
-                          setCategoryModalOpen(true);
-                        }}
-                        className={`opacity-0 group-hover:opacity-100 p-1 hover:text-foreground ${
-                          isSelected ? "text-[#0B1F3B]" : "text-muted-foreground"
-                        }`}
-                        title="Edit category"
-                      >
-                        <Edit2 className="w-3 h-3" />
-                      </button>
+                      <div className="flex items-center gap-0.5">
+                        <button
+                          type="button"
+                          disabled={idx === 0}
+                          onClick={(e) => handleReorderCategory(e, idx, "up")}
+                          className={`p-1 hover:text-foreground disabled:opacity-20 disabled:cursor-not-allowed ${
+                            isSelected ? "text-[#0B1F3B]" : "text-muted-foreground"
+                          }`}
+                          title="Move category up"
+                          aria-label="Move category up"
+                        >
+                          <ChevronUp className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          type="button"
+                          disabled={idx === categories.length - 1}
+                          onClick={(e) => handleReorderCategory(e, idx, "down")}
+                          className={`p-1 hover:text-foreground disabled:opacity-20 disabled:cursor-not-allowed ${
+                            isSelected ? "text-[#0B1F3B]" : "text-muted-foreground"
+                          }`}
+                          title="Move category down"
+                          aria-label="Move category down"
+                        >
+                          <ChevronDown className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setEditingCategory(cat);
+                            setCatName(cat.name);
+                            setCatNameTa(cat.name_ta || "");
+                            setCategoryModalOpen(true);
+                          }}
+                          className={`p-1 hover:text-foreground ${
+                            isSelected ? "text-[#0B1F3B]" : "text-muted-foreground"
+                          }`}
+                          title="Edit category"
+                          aria-label="Edit category"
+                        >
+                          <Edit2 className="w-3 h-3" />
+                        </button>
+                      </div>
                     )}
                   </div>
                 </div>
@@ -625,6 +695,9 @@ export const MenuPage: React.FC = () => {
         onOpenChange={setQuickAddOpen}
         onImport={handleBulkImport}
         isLoading={isLoading}
+        existingCategories={categories}
+        currentItemCount={currentItemCount}
+        totalItemLimit={totalItemLimit}
       />
 
       {/* Delete Item Confirmation Dialog */}

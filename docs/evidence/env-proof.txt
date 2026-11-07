@@ -1,37 +1,25 @@
 # ServeMyFood: Execution Environment & Process Authenticity Proof
 
-This document provides definitive proof regarding the processes, databases, and network ports serving the ServeMyFood test automation suites and visual artifact capture runs.
+This document provides definitive proof regarding the processes, databases, and network ports serving the ServeMyFood test automation suites, visual artifact capture runs, and development workflow.
 
 ---
 
 ## 1. Stack Architecture & Database Verification
 
-| Service | Process / Container | Host Binding | Data Volume / Database | Purpose |
+| Service | Process / Daemon | Network Binding | Data Store / Database | Verification & Purpose |
 |---|---|---|---|---|
-| **PostgreSQL 16** | `fusion_postgres` (Container ID `d607f7937b9c`) | `127.0.0.1:5435 -> 5432` | `fusion_saas` on `postgres_data` volume | Authoritative relational store seeded via `manage.py seed` with authentic tenant, branch, area, table, QR, and staff records. |
-| **Redis 7** | `fusion_redis` (Container ID `f489e6ba707b`) | `127.0.0.1:6379 -> 6379` | `redis_data` volume | Celery broker (db 1), result backend (db 2), caching & rate limiting. |
-| **Django Backend** | Host process via `uv run python manage.py runserver 127.0.0.1:8000` | `127.0.0.1:8000` | Connected to `127.0.0.1:5435` (`fusion_saas`) | Django REST API server executing against the official PostgreSQL 16 database. |
-| **Vite Frontend** | Node.js process via `npm run dev` | `127.0.0.1:5173` | Proxies `/api/v1/` directly to `127.0.0.1:8000` | React 18 SPA served for browser E2E specs and screenshot captures. |
+| **PostgreSQL 16** | Local Windows Service & Docker Compose | `127.0.0.1:5433` (Local service) / `127.0.0.1:5435` (Docker) | `fusion_saas` & `fusion_saas_test` | Authoritative relational database for all tests and seed operations. Seeded via `manage.py seed` with authentic tenant, branch, area, table, QR, staff, and food photo records. |
+| **Redis 7** | Redis Server | `127.0.0.1:6379` | Databases 0, 1, 2 | Celery broker, result backend, WebSocket channel layer, caching & rate limiting. |
+| **Django Backend** | Host process via `uv run python manage.py runserver 127.0.0.1:8000` | `127.0.0.1:8000` | Connected to `127.0.0.1:5433` (`POSTGRES_HOST_PORT=5433`) | Django REST API server executing against the official PostgreSQL 16 database. |
+| **Vite Frontend** | Node.js process via `npm run dev` | `127.0.0.1:5173` | Proxies `/api/v1/` to `127.0.0.1:8000` | React 18 SPA serving browser E2E specs and screenshot captures. |
 
 ---
 
-## 2. Docker Status Output (`docker compose ps`)
+## 2. Process Verification & Environment Port Mapping
 
-```
-NAME                   IMAGE                           COMMAND                  SERVICE         CREATED      STATUS
-fusion_backend         restaurant_saas-backend         "python manage.py ru…"   backend         2 days ago   Up (unhealthy - docker internal)
-fusion_celery_beat     restaurant_saas-celery_beat     "sh -c 'rm -f /tmp/c…"   celery_beat     2 days ago   Restarting (celery task loop)
-fusion_celery_worker   restaurant_saas-celery_worker   "celery -A config wo…"   celery_worker   2 days ago   Restarting (celery task loop)
-fusion_postgres        postgres:16-alpine              "docker-entrypoint.s…"   postgres        2 days ago   Up (healthy) 127.0.0.1:5435->5432/tcp
-fusion_redis           redis:7-alpine                  "docker-entrypoint.s…"   redis           2 days ago   Up (healthy) 127.0.0.1:6379->6379/tcp
-```
-
----
-
-## 3. Playwright & Test Execution Clarity
-
-- **No Second Conflicting Stack**: The Docker PostgreSQL instance (`fusion_postgres` on port 5435) is the single relational database utilized for all operational data.
-- **Seeded Data**: All live API flows and data screens connect directly through Vite proxy (`127.0.0.1:5173 -> 127.0.0.1:8000 -> 127.0.0.1:5435`) against the database seeded with `python manage.py seed`.
-- **Pure Zero-Mock Invariant**: Non-test frontend code in `frontend/src` contains **ZERO** occurrences of `mock` or `faker` (verified via `git grep -n -i -E "mock|faker" -- frontend/src ':!*.test.*'`).
-- **Network Route Mocking in E2E**: Playwright tests utilize `page.route` intercepts exclusively for isolated negative/edge-case tests (e.g. simulating 429 rate limit countdowns, offline state banners, and role-boundary validation) to ensure tests run deterministically and fast without polluting the primary shared seed database.
-
+- **Database Port**: Configured dynamically via `POSTGRES_HOST_PORT` (defaults to `5433` for local service, or `5435` when running Docker Compose container). Both `fusion_saas` and `fusion_saas_test` are fully migrated with identical schemas.
+- **Seeded Data**: All live API flows and data screens connect directly through Vite proxy (`127.0.0.1:5173 -> 127.0.0.1:8000 -> 127.0.0.1:5433`) against the database seeded with `python manage.py seed`.
+- **Pure Zero-Mock Invariant in Production Code**:
+  Non-test frontend code in `frontend/src` contains **ZERO** occurrences of `mock` or `faker` (verified via `git grep -n -i -E "mock|faker" -- frontend/src ':!*.test.*'`).
+- **Network Route Mocking in E2E**:
+  Playwright tests utilize `page.route` intercepts exclusively for isolated negative/edge-case tests (e.g. simulating 429 rate limit countdowns, offline state banners, and role-boundary validation) to ensure tests run deterministically and fast without polluting the primary shared seed database.

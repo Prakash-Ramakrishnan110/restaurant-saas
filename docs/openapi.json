@@ -1033,6 +1033,12 @@ paths:
           multipart/form-data:
             schema:
               $ref: '#/components/schemas/MenuItemRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/MenuItemRequest'
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MenuItemRequest'
         required: true
       security:
       - jwtAuth: []

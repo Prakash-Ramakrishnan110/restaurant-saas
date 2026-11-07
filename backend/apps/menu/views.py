@@ -2,6 +2,7 @@ import json
 import uuid
 from typing import Any
 
+from django.db.models import Q
 from drf_spectacular.utils import extend_schema
 from rest_framework import serializers, status, viewsets
 from rest_framework.decorators import action
@@ -171,7 +172,7 @@ class MenuItemViewSet(viewsets.ModelViewSet):
 
         search = self.request.query_params.get("search")
         if search:
-            qs = qs.filter(name__icontains=search)
+            qs = qs.filter(Q(name__icontains=search) | Q(name_ta__icontains=search))
 
         return qs
 
@@ -184,6 +185,12 @@ class MenuItemViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         tenant = self.request.tenant
+        category = serializer.validated_data.get("category")
+        if category and category.tenant_id != tenant.id:
+            raise BusinessRuleError(
+                "CATEGORY_NOT_FOUND", "Category does not belong to this tenant.", status_code=400
+            )
+
         current_count = MenuItem.objects.filter(tenant=tenant).count()
         enforce_limit(tenant, "max_menu_items", current_count)
 
@@ -203,6 +210,12 @@ class MenuItemViewSet(viewsets.ModelViewSet):
 
     def perform_update(self, serializer):
         tenant = self.request.tenant
+        category = serializer.validated_data.get("category")
+        if category and category.tenant_id != tenant.id:
+            raise BusinessRuleError(
+                "CATEGORY_NOT_FOUND", "Category does not belong to this tenant.", status_code=400
+            )
+
         old_item = self.get_object()
         old_price = old_item.base_price_paise
 
@@ -429,8 +442,8 @@ class BranchItemAvailabilityViewSet(viewsets.ModelViewSet):
     serializer_class = BranchItemAvailabilitySerializer
     permission_classes = [IsAuthenticated, ActionPermission]
     required_permissions = {
-        "list": Permission.MENU_VIEW,
-        "retrieve": Permission.MENU_VIEW,
+        "list": Permission.MENU_AVAILABILITY,
+        "retrieve": Permission.MENU_AVAILABILITY,
         "create": Permission.MENU_AVAILABILITY,
         "update": Permission.MENU_AVAILABILITY,
         "partial_update": Permission.MENU_AVAILABILITY,
@@ -449,7 +462,7 @@ class BranchItemAvailabilityViewSet(viewsets.ModelViewSet):
         branch_id = self.request.query_params.get("branch")
         if branch_id:
             qs = qs.filter(branch_id=branch_id)
-        return qs
+        return qs.order_by("id")
 
     @action(detail=False, methods=["post"], url_path="toggle")
     def toggle(self, request):
