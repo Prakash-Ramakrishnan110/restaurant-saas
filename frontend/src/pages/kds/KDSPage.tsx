@@ -38,7 +38,8 @@ export const KDSPage: React.FC = () => {
     try {
       const station = selectedStation === "ALL" ? undefined : selectedStation;
       const res = await ordersApi.getKDSTickets(station);
-      const newTickets = res.data || [];
+      const raw = (res.data as any)?.results || res.data || [];
+      const newTickets = Array.isArray(raw) ? raw : [];
 
       // Check if new tickets arrived to sound alert
       if (newTickets.length > previousTicketCount.current && previousTicketCount.current > 0) {
@@ -74,6 +75,8 @@ export const KDSPage: React.FC = () => {
     { id: "BAR", label: "Bar & Drinks" },
     { id: "CHAI_BAR", label: "Chai & Snacks" },
   ];
+
+  const ticketList = Array.isArray(tickets) ? tickets : [];
 
   return (
     <div className="flex flex-col h-[calc(100vh-4rem)] bg-background font-sans overflow-hidden">
@@ -138,14 +141,14 @@ export const KDSPage: React.FC = () => {
           </Button>
 
           <Badge variant="outline" className="text-xs px-2.5 py-1 font-bold">
-            {tickets.length} Active Tickets
+            {ticketList.length} Active Tickets
           </Badge>
         </div>
       </div>
 
       {/* Ticket Cards Grid */}
       <div className="flex-1 overflow-x-auto p-4 flex gap-4 items-start">
-        {tickets.length === 0 ? (
+        {ticketList.length === 0 ? (
           <div className="w-full h-full flex flex-col items-center justify-center text-center p-12 text-muted-foreground">
             <CheckCircle2 className="h-12 w-12 text-emerald-500/40 mb-3" />
             <h3 className="text-base font-bold text-foreground">Kitchen Queue Clear!</h3>
@@ -154,7 +157,7 @@ export const KDSPage: React.FC = () => {
             </p>
           </div>
         ) : (
-          tickets.map((t) => {
+          ticketList.map((t) => {
             const isLate = t.elapsed_minutes >= 20;
             const isWarning = t.elapsed_minutes >= 10 && t.elapsed_minutes < 20;
 

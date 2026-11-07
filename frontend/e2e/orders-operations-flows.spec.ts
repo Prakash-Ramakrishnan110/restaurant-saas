@@ -387,6 +387,42 @@ async function setupOperationsMock(
     });
   });
 
+  await page.route("**/api/v1/invoices/**", async (route: any) => {
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        count: 1,
+        next: null,
+        previous: null,
+        results: [
+          {
+            id: "inv-5001",
+            invoice_number: "INV-2026-5001",
+            table_label: "T2",
+            table_number: "T2",
+            subtotal_paise: 52000,
+            discount_paise: 0,
+            total_paise: 52000,
+            payment_method: "CASH",
+            settled_at: new Date().toISOString(),
+            is_settled: true,
+            notes: "",
+            items: [
+              {
+                id: "ii-1",
+                item_name: "Paneer Tikka Angare",
+                quantity: 1,
+                unit_price_paise: 28000,
+                subtotal_paise: 28000,
+              },
+            ],
+          },
+        ],
+      }),
+    });
+  });
+
   // Mock general orders create
   await page.route("**/api/v1/orders/", async (route: any) => {
     if (route.request().method() === "POST") {
@@ -405,7 +441,7 @@ async function setupOperationsMock(
       await route.fulfill({
         status: 200,
         contentType: "application/json",
-        body: JSON.stringify([]),
+        body: JSON.stringify({ count: 0, next: null, previous: null, results: [] }),
       });
     }
   });
@@ -623,5 +659,142 @@ test.describe("Production Operational & Sidebar Suite", () => {
     // Verify tenants in directory table
     await expect(page.getByRole("table").getByText("Grand Spice Haven")).toBeVisible();
     await expect(page.getByRole("table").getByText("Chai Express Central")).toBeVisible();
+  });
+
+  test("Option 7: Ready to Serve Pickup Queue & Mark Served (DRF Paginated)", async ({
+    page,
+  }) => {
+    await setupOperationsMock(page, "WAITER", false);
+
+    // Mock ready orders paginated response
+    await page.route("**/api/v1/orders/?status=READY", async (route: any) => {
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({
+          count: 1,
+          next: null,
+          previous: null,
+          results: [
+            {
+              id: "ord-ready-101",
+              order_number: "ORD-RDY-101",
+              table_number: "T3",
+              status: "READY",
+              placed_at: new Date(Date.now() - 5 * 60000).toISOString(),
+              ready_at: new Date().toISOString(),
+              items: [
+                {
+                  id: "item-101",
+                  item_name: "Paneer Tikka Angare",
+                  quantity: 1,
+                  notes: "Hot",
+                },
+              ],
+            },
+          ],
+        }),
+      });
+    });
+
+    await page.route("**/api/v1/orders/ord-ready-101/serve/", async (route: any) => {
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({ status: "SERVED", order_id: "ord-ready-101" }),
+      });
+    });
+
+    await page.goto("/orders/ready");
+    await page.waitForLoadState("networkidle");
+
+    // Header & Queue verification
+    await expect(page.getByRole("heading", { name: /Ready to Serve/i })).toBeVisible();
+    await expect(page.getByText("Table T3")).toBeVisible();
+    await expect(page.getByText("ORD-RDY-101")).toBeVisible();
+    await expect(page.getByText("Paneer Tikka Angare")).toBeVisible();
+
+    // Mark Served to Guest action
+    const serveBtn = page.getByRole("button", { name: /Mark Served to Guest/i });
+    await expect(serveBtn).toBeVisible();
+    await serveBtn.click();
+  });
+
+  test("Option 8: Live Orders Management & Order Details Drawer (DRF Paginated)", async ({
+    page,
+  }) => {
+    await setupOperationsMock(page, "WAITER", false);
+
+    await page.route("**/api/v1/orders/", async (route: any) => {
+      if (route.request().method() === "GET") {
+        await route.fulfill({
+          status: 200,
+          contentType: "application/json",
+          body: JSON.stringify({
+            count: 1,
+            next: null,
+            previous: null,
+            results: [
+              {
+                id: "ord-live-201",
+                order_number: "ORD-LIVE-201",
+                table_number: "T1",
+                status: "PREPARING",
+                placed_at: new Date().toISOString(),
+                items_count: 2,
+                total_paise: 52000,
+                items: [
+                  {
+                    id: "oi-201",
+                    item_name: "Paneer Tikka Angare",
+                    quantity: 1,
+                    unit_price_paise: 28000,
+                    subtotal_paise: 28000,
+                    course: "STARTER",
+                    status: "PREPARING",
+                  },
+                ],
+              },
+            ],
+          }),
+        });
+      } else {
+        await route.fallback();
+      }
+    });
+
+    await page.goto("/orders");
+    await page.waitForLoadState("networkidle");
+
+    // Header & Orders list verification
+    await expect(page.getByRole("heading", { name: /Live Orders/i })).toBeVisible();
+    await expect(page.getByText("ORD-LIVE-201")).toBeVisible();
+    await expect(page.getByText("Table T1")).toBeVisible();
+
+    // Click order row to open detail drawer
+    await page.getByText("ORD-LIVE-201").click();
+    await expect(page.getByText("Order Items")).toBeVisible();
+    await expect(page.getByText("Current Status")).toBeVisible();
+    await expect(page.getByText("Paneer Tikka Angare").first()).toBeVisible();
+  });
+
+  test("Option 9: Invoices History & Reprint Receipt (DRF Paginated)", async ({ page }) => {
+    await setupOperationsMock(page, "CASHIER", false);
+
+    await page.goto("/billing/invoices");
+    await page.waitForLoadState("networkidle");
+
+    // Header & Invoices table
+    await expect(page.getByRole("heading", { name: /Bills & Receipts History/i })).toBeVisible();
+    await expect(page.getByText("INV-2026-5001")).toBeVisible();
+
+    // Click Reprint
+    const reprintBtn = page.getByRole("button", { name: /Reprint/i }).first();
+    await expect(reprintBtn).toBeVisible();
+    await reprintBtn.click();
+
+    // Verify 80mm Receipt dialog
+    await expect(page.getByText("DEMO RECEIPT - NOT A TAX INVOICE")).toBeVisible();
+    await expect(page.getByText("INV-2026-5001").first()).toBeVisible();
   });
 });

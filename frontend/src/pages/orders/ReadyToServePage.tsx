@@ -13,7 +13,8 @@ export const ReadyToServePage: React.FC = () => {
     try {
       setLoading(true);
       const res = await ordersApi.getOrders({ status: "READY" });
-      setOrders(res.data || []);
+      const raw = (res.data as any)?.results || res.data || [];
+      setOrders(Array.isArray(raw) ? raw : []);
     } catch (err) {
       console.error("Failed to fetch ready orders", err);
     } finally {
@@ -39,6 +40,8 @@ export const ReadyToServePage: React.FC = () => {
     }
   };
 
+  const orderList = Array.isArray(orders) ? orders : [];
+
   return (
     <div className="space-y-6 max-w-5xl mx-auto">
       {/* Header */}
@@ -49,9 +52,9 @@ export const ReadyToServePage: React.FC = () => {
               <CheckCircle2 className="h-6 w-6 text-emerald-600" />
               Ready to Serve
             </h1>
-            {orders.length > 0 && (
+            {orderList.length > 0 && (
               <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-300 dark:bg-emerald-950 dark:text-emerald-300 dark:border-emerald-800 animate-pulse">
-                {orders.length} Ready
+                {orderList.length} Ready
               </span>
             )}
           </div>
@@ -73,12 +76,12 @@ export const ReadyToServePage: React.FC = () => {
       </div>
 
       {/* Main Pickup Queue */}
-      {loading && orders.length === 0 ? (
+      {loading && orderList.length === 0 ? (
         <div className="p-12 text-center text-muted-foreground text-xs flex flex-col items-center gap-2">
           <div className="w-6 h-6 border-2 border-emerald-600 border-t-transparent rounded-full animate-spin" />
           Checking ready orders...
         </div>
-      ) : orders.length === 0 ? (
+      ) : orderList.length === 0 ? (
         <Card className="p-12 text-center text-muted-foreground border-dashed">
           <CheckCircle2 className="h-12 w-12 mx-auto text-emerald-500/40 mb-3" />
           <h3 className="text-sm font-bold text-foreground">All Orders Served</h3>
@@ -88,7 +91,7 @@ export const ReadyToServePage: React.FC = () => {
         </Card>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {orders.map((ord) => (
+          {orderList.map((ord) => (
             <Card
               key={ord.id}
               className="border-emerald-300 dark:border-emerald-800 bg-emerald-50/20 dark:bg-emerald-950/10 shadow-sm"

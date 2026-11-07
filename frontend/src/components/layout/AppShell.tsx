@@ -109,7 +109,8 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
     const pollCounts = async () => {
       try {
         const res = await ordersApi.getOrders();
-        const orders = res.data || [];
+        const raw = (res.data as any)?.results || res.data || [];
+        const orders = Array.isArray(raw) ? raw : [];
         const active = orders.filter((o) => o.status === "NEW" || o.status === "PREPARING").length;
         const ready = orders.filter((o) => o.status === "READY").length;
         setActiveOrdersCount(active);

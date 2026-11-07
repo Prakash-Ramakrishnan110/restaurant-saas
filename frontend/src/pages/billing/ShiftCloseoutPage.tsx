@@ -21,20 +21,25 @@ export const ShiftCloseoutPage: React.FC = () => {
   useEffect(() => {
     ordersApi
       .getInvoices()
-      .then((res) => setInvoices(res.data || []))
-      .catch(() => {});
+      .then((res) => {
+        const raw = (res.data as any)?.results || res.data || [];
+        setInvoices(Array.isArray(raw) ? raw : []);
+      })
+      .catch(() => setInvoices([]));
   }, [activeTenant?.tenant_id]);
 
+  const invoiceList = Array.isArray(invoices) ? invoices : [];
+
   // Aggregate today's settlements
-  const cashTotal = invoices
+  const cashTotal = invoiceList
     .filter((inv) => inv.payment_method === "CASH")
     .reduce((sum, inv) => sum + inv.total_paise, 0);
 
-  const upiTotal = invoices
+  const upiTotal = invoiceList
     .filter((inv) => inv.payment_method === "UPI")
     .reduce((sum, inv) => sum + inv.total_paise, 0);
 
-  const cardTotal = invoices
+  const cardTotal = invoiceList
     .filter((inv) => inv.payment_method === "CARD")
     .reduce((sum, inv) => sum + inv.total_paise, 0);
 

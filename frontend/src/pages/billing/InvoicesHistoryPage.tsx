@@ -29,7 +29,8 @@ export const InvoicesHistoryPage: React.FC = () => {
     try {
       setLoading(true);
       const res = await ordersApi.getInvoices();
-      setInvoices(res.data || []);
+      const raw = (res.data as any)?.results || res.data || [];
+      setInvoices(Array.isArray(raw) ? raw : []);
     } catch (err) {
       console.error("Failed to fetch invoices", err);
     } finally {
@@ -41,7 +42,8 @@ export const InvoicesHistoryPage: React.FC = () => {
     fetchInvoices();
   }, []);
 
-  const filteredInvoices = invoices.filter((inv) => {
+  const invoiceList = Array.isArray(invoices) ? invoices : [];
+  const filteredInvoices = invoiceList.filter((inv) => {
     if (methodFilter !== "ALL" && inv.payment_method !== methodFilter) return false;
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase();
@@ -113,7 +115,7 @@ export const InvoicesHistoryPage: React.FC = () => {
       </div>
 
       {/* Invoices Table / List */}
-      {loading && invoices.length === 0 ? (
+      {loading && invoiceList.length === 0 ? (
         <div className="p-12 text-center text-muted-foreground text-xs flex flex-col items-center gap-2">
           <div className="w-6 h-6 border-2 border-[#FF6A00] border-t-transparent rounded-full animate-spin" />
           Loading invoices history...

@@ -54,7 +54,8 @@ export const LiveOrdersPage: React.FC = () => {
     try {
       setLoading(true);
       const res = await ordersApi.getOrders();
-      setOrders(res.data || []);
+      const raw = (res.data as any)?.results || res.data || [];
+      setOrders(Array.isArray(raw) ? raw : []);
     } catch (err) {
       console.error("Failed to load orders", err);
     } finally {
@@ -110,7 +111,8 @@ export const LiveOrdersPage: React.FC = () => {
     }
   };
 
-  const filteredOrders = orders.filter((ord) => {
+  const orderList = Array.isArray(orders) ? orders : [];
+  const filteredOrders = orderList.filter((ord) => {
     if (filterStatus !== "ALL" && ord.status !== filterStatus) return false;
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase();
@@ -187,7 +189,7 @@ export const LiveOrdersPage: React.FC = () => {
       </div>
 
       {/* Orders Grid / List */}
-      {loading && orders.length === 0 ? (
+      {loading && orderList.length === 0 ? (
         <div className="p-12 text-center text-muted-foreground text-xs flex flex-col items-center gap-2">
           <div className="w-6 h-6 border-2 border-[#FF6A00] border-t-transparent rounded-full animate-spin" />
           Loading active orders...

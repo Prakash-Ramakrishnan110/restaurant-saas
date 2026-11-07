@@ -166,7 +166,10 @@ export const FloorPOSPage: React.FC = () => {
     const interval = setInterval(() => {
       ordersApi
         .getServiceRequests("PENDING")
-        .then((res) => setServiceRequests(res.data || []))
+        .then((res) => {
+          const raw = (res.data as any)?.results || res.data || [];
+          setServiceRequests(Array.isArray(raw) ? raw : []);
+        })
         .catch(() => {});
     }, 10000);
     return () => clearInterval(interval);
