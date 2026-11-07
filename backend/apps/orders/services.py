@@ -3,7 +3,7 @@ from typing import Any
 
 from django.db import transaction
 from django.utils import timezone
-from rest_framework.exceptions import NotFound, PermissionDenied, ValidationError
+from rest_framework.exceptions import ValidationError
 
 from apps.accounts.models import Membership
 from apps.core.context import get_current_tenant, reset_current_tenant, set_current_tenant
@@ -103,7 +103,9 @@ def create_order(
         # Validate table session or counter token
         if order_workflow == OrderWorkflow.TABLE_SERVICE and not table_session:
             raise ValidationError(
-                {"table_session": "Table service orders must be anchored to an active TableSession."}
+                {
+                    "table_session": "Table service orders must be anchored to an active TableSession."
+                }
             )
 
         if table_session and table_session.status != "OPEN":
@@ -413,9 +415,7 @@ def settle_order_bill(
 
         prefix = getattr(order.branch, "invoice_prefix", "INV") or "INV"
         today_str = timezone.now().strftime("%Y%m")
-        inv_count = (
-            BillInvoice.objects.filter(tenant=order.tenant, branch=order.branch).count() + 1
-        )
+        inv_count = BillInvoice.objects.filter(tenant=order.tenant, branch=order.branch).count() + 1
         invoice_number = f"{prefix}-{today_str}-{inv_count:04d}"
 
         snapshot_lines = [
@@ -594,4 +594,3 @@ def transfer_table_session(
         old_table.save(update_fields=["status"])
 
     return table_session
-

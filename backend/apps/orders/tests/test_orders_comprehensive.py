@@ -1,20 +1,18 @@
 import concurrent.futures
 import re
 from pathlib import Path
-from typing import Any
 
-from django.db import connection, transaction
+import pytest
+from django.db import connection
 from rest_framework import status
 from rest_framework.test import APIClient
 from rest_framework_simplejwt.tokens import RefreshToken
 
-import pytest
 from apps.accounts.models import Membership, User
 from apps.core.context import set_current_tenant
 from apps.core.exceptions import BusinessRuleError
 from apps.menu.models import BranchItemAvailability, MenuCategory, MenuItem
 from apps.orders.models import (
-    BillInvoice,
     Order,
     OrderEvent,
     OrderEventType,
@@ -35,33 +33,55 @@ from apps.subscriptions.constants import SubscriptionStatus
 from apps.subscriptions.models import Plan, Subscription
 from apps.tenants.models import Branch, BusinessSettings, Tenant
 from apps.venues.constants import AreaType, SectionType
-from apps.venues.models import DiningTable, Section, ServiceArea, TableSession, TableStatus
+from apps.venues.models import DiningTable, Section, ServiceArea, TableSession
 
 
 @pytest.fixture
 def comp_env():
     # Setup Tenant A
-    t_a = Tenant.objects.create(name="Cafe Alpha", slug="cafe-alpha-test", status=Tenant.Status.ACTIVE)
+    t_a = Tenant.objects.create(
+        name="Cafe Alpha", slug="cafe-alpha-test", status=Tenant.Status.ACTIVE
+    )
     BusinessSettings.objects.create(tenant=t_a, tax_mode="INCLUSIVE", invoice_prefix="ALP-")
-    plan = Plan.objects.create(name="Pro Plan", slug="pro-comp-plan", entitlements={"max_tables": 50})
+    plan = Plan.objects.create(
+        name="Pro Plan", slug="pro-comp-plan", entitlements={"max_tables": 50}
+    )
     Subscription.objects.create(tenant=t_a, plan=plan, status=SubscriptionStatus.ACTIVE)
 
     branch_a = Branch.objects.create(tenant=t_a, name="Alpha Main Branch", is_active=True)
     branch_a2 = Branch.objects.create(tenant=t_a, name="Alpha Secondary Branch", is_active=True)
 
-    sa = ServiceArea.objects.create(tenant=t_a, branch=branch_a, name="Indoor Hall", area_type=AreaType.DINING)
-    sec = Section.objects.create(tenant=t_a, branch=branch_a, service_area=sa, name="Ground", section_type=SectionType.INDOOR)
-    table_1 = DiningTable.objects.create(tenant=t_a, branch=branch_a, section=sec, label="T1", capacity=4)
-    table_2 = DiningTable.objects.create(tenant=t_a, branch=branch_a, section=sec, label="T2", capacity=2)
+    sa = ServiceArea.objects.create(
+        tenant=t_a, branch=branch_a, name="Indoor Hall", area_type=AreaType.DINING
+    )
+    sec = Section.objects.create(
+        tenant=t_a, branch=branch_a, service_area=sa, name="Ground", section_type=SectionType.INDOOR
+    )
+    table_1 = DiningTable.objects.create(
+        tenant=t_a, branch=branch_a, section=sec, label="T1", capacity=4
+    )
+    table_2 = DiningTable.objects.create(
+        tenant=t_a, branch=branch_a, section=sec, label="T2", capacity=2
+    )
 
     cat = MenuCategory.objects.create(tenant=t_a, name="Beverages")
-    item_coffee = MenuItem.objects.create(tenant=t_a, category=cat, name="Filter Coffee", base_price_paise=4500, is_active=True)
-    item_tea = MenuItem.objects.create(tenant=t_a, category=cat, name="Masala Chai", base_price_paise=3000, is_active=True)
-    item_disabled = MenuItem.objects.create(tenant=t_a, category=cat, name="Seasonal Drink", base_price_paise=8000, is_active=False)
-    item_soldout = MenuItem.objects.create(tenant=t_a, category=cat, name="Cardamom Milk", base_price_paise=5000, is_active=True)
+    item_coffee = MenuItem.objects.create(
+        tenant=t_a, category=cat, name="Filter Coffee", base_price_paise=4500, is_active=True
+    )
+    item_tea = MenuItem.objects.create(
+        tenant=t_a, category=cat, name="Masala Chai", base_price_paise=3000, is_active=True
+    )
+    item_disabled = MenuItem.objects.create(
+        tenant=t_a, category=cat, name="Seasonal Drink", base_price_paise=8000, is_active=False
+    )
+    item_soldout = MenuItem.objects.create(
+        tenant=t_a, category=cat, name="Cardamom Milk", base_price_paise=5000, is_active=True
+    )
 
     # 86'd item in branch_a
-    BranchItemAvailability.objects.create(tenant=t_a, branch=branch_a, item=item_soldout, is_available=False)
+    BranchItemAvailability.objects.create(
+        tenant=t_a, branch=branch_a, item=item_soldout, is_available=False
+    )
 
     # Setup 6 Users for role matrix
     users = {}
@@ -88,14 +108,20 @@ def comp_env():
         tokens[r] = str(RefreshToken.for_user(u).access_token)
 
     # Open Table Session on T1
-    session_1 = TableSession.objects.create(tenant=t_a, branch=branch_a, table=table_1, status="OPEN", session_code="SES-T1-100")
+    session_1 = TableSession.objects.create(
+        tenant=t_a, branch=branch_a, table=table_1, status="OPEN", session_code="SES-T1-100"
+    )
 
     # Setup Tenant B (Isolation testing)
-    t_b = Tenant.objects.create(name="Bistro Beta", slug="bistro-beta-test", status=Tenant.Status.ACTIVE)
+    t_b = Tenant.objects.create(
+        name="Bistro Beta", slug="bistro-beta-test", status=Tenant.Status.ACTIVE
+    )
     BusinessSettings.objects.create(tenant=t_b, tax_mode="INCLUSIVE", invoice_prefix="BET-")
     branch_b = Branch.objects.create(tenant=t_b, name="Beta Branch", is_active=True)
-    u_b = User.objects.create_user(email="owner@beta.com", password="Password123!", full_name="Beta Owner")
-    m_b = Membership.objects.create(user=u_b, tenant=t_b, role=Role.OWNER, is_active=True)
+    u_b = User.objects.create_user(
+        email="owner@beta.com", password="Password123!", full_name="Beta Owner"
+    )
+    Membership.objects.create(user=u_b, tenant=t_b, role=Role.OWNER, is_active=True)
     token_b = str(RefreshToken.for_user(u_b).access_token)
 
     set_current_tenant(t_a)
@@ -120,7 +146,9 @@ def comp_env():
     }
 
 
-def make_client(token: str, tenant_id: str | None = None, branch_id: str | None = None) -> APIClient:
+def make_client(
+    token: str, tenant_id: str | None = None, branch_id: str | None = None
+) -> APIClient:
     c = APIClient()
     headers = {"HTTP_AUTHORIZATION": f"Bearer {token}"}
     if tenant_id:
@@ -146,7 +174,7 @@ def test_tampered_prices_ignored(comp_env):
                 "menu_item_id": str(env["item_coffee"].id),
                 "quantity": 2,
                 "unit_price_paise": 100,  # Tampered: says ₹1 instead of ₹45
-                "subtotal_paise": 200,    # Tampered
+                "subtotal_paise": 200,  # Tampered
             }
         ],
     }
@@ -307,13 +335,15 @@ def test_concurrency_20_threads_order_and_invoice_numbers(comp_env):
     branch = env["branch_a"]
 
     def create_one_order(seq: int):
-        # Establish individual DB connection if needed
-        return create_order(
-            branch=branch,
-            token_number=100 + seq,
-            order_workflow=OrderWorkflow.COUNTER_TOKEN,
-            items_data=[{"menu_item_id": env["item_tea"].id, "quantity": 1}],
-        )
+        try:
+            return create_order(
+                branch=branch,
+                token_number=100 + seq,
+                order_workflow=OrderWorkflow.COUNTER_TOKEN,
+                items_data=[{"menu_item_id": env["item_tea"].id, "quantity": 1}],
+            )
+        finally:
+            connection.close()
 
     with concurrent.futures.ThreadPoolExecutor(max_workers=20) as executor:
         futures = [executor.submit(create_one_order, i) for i in range(20)]
@@ -325,7 +355,10 @@ def test_concurrency_20_threads_order_and_invoice_numbers(comp_env):
 
     # Settle all 20 counter orders concurrently
     def settle_one_order(order_obj: Order):
-        return settle_order_bill(order_obj, payment_method=PaymentMethod.UPI)
+        try:
+            return settle_order_bill(order_obj, payment_method=PaymentMethod.UPI)
+        finally:
+            connection.close()
 
     with concurrent.futures.ThreadPoolExecutor(max_workers=20) as executor:
         inv_futures = [executor.submit(settle_one_order, o) for o in orders]
@@ -340,7 +373,7 @@ def test_concurrency_20_threads_order_and_invoice_numbers(comp_env):
 def test_payment_amount_mismatch_and_double_payment(comp_env):
     """Tendering less than total or settling twice is strictly rejected."""
     env = comp_env
-    order = create_order(
+    create_order(
         branch=env["branch_a"],
         table_session=env["session_1"],
         user_membership=env["users"][Role.WAITER][1],
@@ -352,6 +385,7 @@ def test_payment_amount_mismatch_and_double_payment(comp_env):
 
     # 1. Tender less than total
     from rest_framework.exceptions import ValidationError
+
     with pytest.raises(ValidationError):
         settle_bill(
             table_session=env["session_1"],
@@ -390,7 +424,9 @@ def test_order_events_audit_log(comp_env):
     # PLACED event created
     assert OrderEvent.objects.filter(order=order, event_type=OrderEventType.CREATED).exists()
 
-    transition_order_status(order, OrderStatus.PREPARING, user_membership=env["users"][Role.KITCHEN][1])
+    transition_order_status(
+        order, OrderStatus.PREPARING, user_membership=env["users"][Role.KITCHEN][1]
+    )
     transition_order_status(order, OrderStatus.READY, user_membership=env["users"][Role.KITCHEN][1])
     transition_order_status(order, OrderStatus.SERVED, user_membership=env["users"][Role.WAITER][1])
 
@@ -432,6 +468,16 @@ def test_today_report_calculations(comp_env):
     # Top items: Filter Coffee (3), Masala Chai (2)
     assert len(report["top_items"]) >= 2
     assert report["top_items"][0]["item_name"] == "Filter Coffee"
+
+    # API endpoint coverage
+    client = make_client(env["tokens"][Role.OWNER], env["tenant_a"].id, env["branch_a"].id)
+    res_api = client.get("/api/v1/reports/today/")
+    assert res_api.status_code == status.HTTP_200_OK
+    assert res_api.data["sales_paise"] == 19500
+
+    res_api_br = client.get("/api/v1/reports/today/", {"branch_id": str(env["branch_a"].id)})
+    assert res_api_br.status_code == status.HTTP_200_OK
+    assert res_api_br.data["sales_paise"] == 19500
     assert report["top_items"][0]["quantity"] == 3
 
 
@@ -490,7 +536,12 @@ def test_order_serve_and_fire_mains_actions(comp_env):
         table_session=env["session_1"],
         user_membership=env["users"][Role.WAITER][1],
         items_data=[
-            {"menu_item_id": env["item_coffee"].id, "quantity": 1, "course": "MAIN", "hold_mains": True}
+            {
+                "menu_item_id": env["item_coffee"].id,
+                "quantity": 1,
+                "course": "MAIN",
+                "hold_mains": True,
+            }
         ],
     )
 
@@ -516,7 +567,7 @@ def test_order_viewset_filters_and_billing_session_api(comp_env):
     client = make_client(env["tokens"][Role.OWNER], env["tenant_a"].id, env["branch_a"].id)
 
     # 1. Create order on session 1
-    order = create_order(
+    create_order(
         branch=env["branch_a"],
         table_session=env["session_1"],
         user_membership=env["users"][Role.WAITER][1],
@@ -560,6 +611,7 @@ def test_service_request_lifecycle(comp_env):
     """Tests ServiceRequest list and acknowledge endpoints."""
     env = comp_env
     from apps.orders.models import ServiceRequest
+
     sr = ServiceRequest.objects.create(
         tenant=env["tenant_a"],
         branch=env["branch_a"],
@@ -570,6 +622,13 @@ def test_service_request_lifecycle(comp_env):
     )
 
     client = make_client(env["tokens"][Role.WAITER], env["tenant_a"].id, env["branch_a"].id)
+    res_create = client.post(
+        "/api/v1/orders/service-requests/",
+        {"table_id": str(env["table_1"].id), "request_type": "CALL_WAITER"},
+        format="json",
+    )
+    assert res_create.status_code == status.HTTP_201_CREATED
+
     res_list = client.get("/api/v1/orders/service-requests/")
     assert res_list.status_code == status.HTTP_200_OK
 
@@ -581,10 +640,7 @@ def test_service_request_lifecycle(comp_env):
 def test_zero_float_usage_in_orders_codebase():
     """Verifies no float literals, float() or round() exist on monetary calculations in apps/orders/."""
     orders_dir = Path(__file__).resolve().parent.parent
-    py_files = [
-        f for f in orders_dir.glob("*.py")
-        if f.name not in ["__init__.py", "apps.py"]
-    ]
+    py_files = [f for f in orders_dir.glob("*.py") if f.name not in ["__init__.py", "apps.py"]]
 
     forbidden_patterns = [
         (re.compile(r"\bfloat\s*\("), "float() conversion"),

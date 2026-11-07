@@ -20,6 +20,10 @@ import { MenuAvailabilityPage } from "./pages/menu/MenuAvailabilityPage";
 import { VenueSettingsPage } from "./pages/settings/VenueSettingsPage";
 import { BrandingSettingsPage } from "./pages/settings/BrandingSettingsPage";
 import { FloorPOSPage } from "./pages/orders/FloorPOSPage";
+import { LiveOrdersPage } from "./pages/orders/LiveOrdersPage";
+import { ReadyToServePage } from "./pages/orders/ReadyToServePage";
+import { InvoicesHistoryPage } from "./pages/billing/InvoicesHistoryPage";
+import { AccountPage } from "./pages/settings/AccountPage";
 import { KDSPage } from "./pages/kds/KDSPage";
 import { BillingPage } from "./pages/billing/BillingPage";
 import { ShiftCloseoutPage } from "./pages/billing/ShiftCloseoutPage";
@@ -121,7 +125,23 @@ export const App: React.FC = () => {
                 path="/orders"
                 element={
                   <ProtectedRoute>
-                    <FloorPOSPage />
+                    <LiveOrdersPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/orders/live"
+                element={
+                  <ProtectedRoute>
+                    <LiveOrdersPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/orders/ready"
+                element={
+                  <ProtectedRoute>
+                    <ReadyToServePage />
                   </ProtectedRoute>
                 }
               />
@@ -154,6 +174,14 @@ export const App: React.FC = () => {
                 element={
                   <ProtectedRoute>
                     <BillingPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/billing/invoices"
+                element={
+                  <ProtectedRoute>
+                    <InvoicesHistoryPage />
                   </ProtectedRoute>
                 }
               />
@@ -290,6 +318,14 @@ export const App: React.FC = () => {
                 element={
                   <ProtectedRoute>
                     <BrandingSettingsPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/settings/account"
+                element={
+                  <ProtectedRoute>
+                    <AccountPage />
                   </ProtectedRoute>
                 }
               />

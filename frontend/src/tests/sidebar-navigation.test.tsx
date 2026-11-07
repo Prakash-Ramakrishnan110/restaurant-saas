@@ -192,11 +192,13 @@ describe("AppShell Sidebar Navigation Structure & Role Filtering", () => {
       </ThemeProvider>
     );
 
-    // Waiter has table.view -> sees Tables
-    expect(screen.getAllByText("Tables").length).toBeGreaterThanOrEqual(1);
-    expect(screen.getAllByText("Dashboard").length).toBeGreaterThanOrEqual(1);
+    // Waiter in v0.8.0 sees Floor Service items: Tables and Orders, Live Orders, Ready to Serve, Menu
+    expect(screen.getAllByText("Tables and Orders").length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText("Live Orders").length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText("Ready to Serve").length).toBeGreaterThanOrEqual(1);
 
-    // Waiter does NOT see management links
+    // Waiter does NOT see management links or dashboard
+    expect(screen.queryByText("Dashboard")).toBeNull();
     expect(screen.queryByText("Onboarding")).toBeNull();
     expect(screen.queryByText("Branches")).toBeNull();
     expect(screen.queryByText("Staff")).toBeNull();

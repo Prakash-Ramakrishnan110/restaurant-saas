@@ -238,7 +238,9 @@ export const DashboardPage: React.FC = () => {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <TrendingUp className="h-5 w-5 text-[#FF6A00]" />
-            <h2 className="text-xl font-bold font-heading text-foreground">Today's Sales & Operations</h2>
+            <h2 className="text-xl font-bold font-heading text-foreground">
+              Today's Sales & Operations
+            </h2>
           </div>
           <span className="text-xs text-muted-foreground font-medium">
             Live updates · {todayReport?.date || new Date().toISOString().split("T")[0]}
@@ -250,13 +252,18 @@ export const DashboardPage: React.FC = () => {
           <Card className="border border-border">
             <CardContent className="p-5">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Today's Sales</span>
+                <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                  Today's Sales
+                </span>
                 <div className="p-2 rounded-lg bg-[#FF6A00]/10 text-[#FF6A00]">
                   <IndianRupee className="h-4 w-4" />
                 </div>
               </div>
               <div className="mt-3">
-                <div className="text-2xl font-black font-heading text-foreground" data-testid="metric-today-sales">
+                <div
+                  className="text-2xl font-black font-heading text-foreground"
+                  data-testid="metric-today-sales"
+                >
                   {todayReport ? formatRupees(todayReport.sales_paise) : "₹0.00"}
                 </div>
                 <p className="text-xs text-muted-foreground mt-1">
@@ -269,13 +276,18 @@ export const DashboardPage: React.FC = () => {
           <Card className="border border-border">
             <CardContent className="p-5">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Total Orders</span>
+                <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                  Total Orders
+                </span>
                 <div className="p-2 rounded-lg bg-blue-500/10 text-blue-500">
                   <ShoppingBag className="h-4 w-4" />
                 </div>
               </div>
               <div className="mt-3">
-                <div className="text-2xl font-black font-heading text-foreground" data-testid="metric-today-orders">
+                <div
+                  className="text-2xl font-black font-heading text-foreground"
+                  data-testid="metric-today-orders"
+                >
                   {todayReport?.orders_count ?? 0}
                 </div>
                 <p className="text-xs text-muted-foreground mt-1">
@@ -288,7 +300,9 @@ export const DashboardPage: React.FC = () => {
           <Card className="border border-border">
             <CardContent className="p-5">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Avg Order Value</span>
+                <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                  Avg Order Value
+                </span>
                 <div className="p-2 rounded-lg bg-emerald-500/10 text-emerald-500">
                   <Receipt className="h-4 w-4" />
                 </div>
@@ -305,7 +319,9 @@ export const DashboardPage: React.FC = () => {
           <Card className="border border-border">
             <CardContent className="p-5">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Kitchen Queue</span>
+                <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                  Kitchen Queue
+                </span>
                 <div className="p-2 rounded-lg bg-purple-500/10 text-purple-500">
                   <Utensils className="h-4 w-4" />
                 </div>
@@ -363,7 +379,9 @@ export const DashboardPage: React.FC = () => {
                   {todayReport.top_items.map((item, idx) => (
                     <div key={idx} className="py-2.5 flex items-center justify-between">
                       <div className="flex items-center gap-3">
-                        <span className="text-xs font-black w-5 text-muted-foreground">#{idx + 1}</span>
+                        <span className="text-xs font-black w-5 text-muted-foreground">
+                          #{idx + 1}
+                        </span>
                         <div>
                           <p className="text-sm font-semibold text-foreground">{item.item_name}</p>
                           <p className="text-xs text-muted-foreground">{item.quantity} orders</p>

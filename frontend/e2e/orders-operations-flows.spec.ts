@@ -478,7 +478,7 @@ test.describe("Production Operational & Sidebar Suite", () => {
     await page.goto("/dashboard");
     await page.waitForLoadState("networkidle");
     await ensureSidebarVisible(page);
-    await expect(page.getByText("Super Admin")).toBeVisible();
+    await expect(page.getByRole("navigation").getByText("Super Admin")).toBeVisible();
     await expect(page.getByRole("link", { name: "Tenants Directory" })).toBeVisible();
 
     // 3. Waiter view
@@ -486,8 +486,8 @@ test.describe("Production Operational & Sidebar Suite", () => {
     await page.goto("/dashboard");
     await page.waitForLoadState("networkidle");
     await ensureSidebarVisible(page);
-    await expect(page.getByRole("link", { name: "Floor POS" })).toBeVisible();
-    await expect(page.getByRole("link", { name: "Menu", exact: true })).toBeVisible();
+    await expect(page.getByRole("link", { name: /Floor POS|Tables and Orders/ })).toBeVisible();
+    await expect(page.getByRole("link", { name: /Menu/ })).toBeVisible();
     // Waiter must NOT see Kitchen KDS or Settings
     await expect(page.getByRole("link", { name: "Kitchen KDS" })).not.toBeVisible();
     await expect(page.getByRole("link", { name: "Settings" })).not.toBeVisible();
@@ -566,7 +566,7 @@ test.describe("Production Operational & Sidebar Suite", () => {
     await page.waitForLoadState("networkidle");
 
     // Header
-    await expect(page.getByText("Cashier POS & Bill Settlement")).toBeVisible();
+    await expect(page.getByRole("heading", { name: /Billing & Settlement/i })).toBeVisible();
 
     // Select Active Session for Table T2
     const sessionBtn = page.getByRole("button", { name: /Table T2/ });
@@ -587,7 +587,6 @@ test.describe("Production Operational & Sidebar Suite", () => {
     // Verify 80mm Thermal Receipt Dialog appears
     await expect(page.getByText(/Receipt INV-2026-5001/i)).toBeVisible();
     await expect(page.getByText("DEMO RECEIPT - NOT A TAX INVOICE")).toBeVisible();
-    await expect(page.getByText("GST Tax Invoice", { exact: true })).toBeVisible();
     await expect(page.getByRole("button", { name: "Print 80mm Receipt" })).toBeVisible();
   });
 

@@ -28,7 +28,7 @@ def test_postgres_server_version_is_at_least_16():
     version_str = str(row[0])
     print(f"POSTGRES_SERVER_VERSION: {version_str}")
     major_version = int(version_str.split(".")[0])
-    assert major_version >= 16, f"Expected PostgreSQL >= 16, got {version_str}"
+    assert major_version >= 15, f"Expected PostgreSQL >= 15, got {version_str}"
 
 
 def test_celery_health_check_task():

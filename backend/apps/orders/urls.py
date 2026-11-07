@@ -7,7 +7,6 @@ from apps.orders.views import (
     KDSViewSet,
     OrderViewSet,
     ServiceRequestViewSet,
-    TodayReportView,
 )
 
 router = DefaultRouter()

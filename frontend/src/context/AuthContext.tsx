@@ -5,6 +5,7 @@ export interface UserProfile {
   id: string;
   email: string;
   full_name: string;
+  phone_number?: string;
   is_platform_admin: boolean;
 }
 

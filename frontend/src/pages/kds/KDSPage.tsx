@@ -203,7 +203,7 @@ export const KDSPage: React.FC = () => {
 
                 {/* Line Items List */}
                 <div className="p-3 flex-1 space-y-2 overflow-y-auto max-h-[360px]">
-                  {t.items.map((line) => (
+                  {(t.items || []).map((line) => (
                     <div
                       key={line.id}
                       className="flex flex-col py-1 border-b border-border/40 last:border-none"

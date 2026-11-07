@@ -10,7 +10,6 @@ from apps.orders.models import (
     OrderWorkflow,
     PaymentMethod,
     ServiceRequest,
-    ServiceRequestType,
 )
 
 

@@ -63,7 +63,7 @@ describe("Floor POS, KDS & Cashier Navigation & Operations", () => {
 
   it("renders Floor POS, Kitchen KDS, and Cashier Billing in Daily Work for Waiter/Cashier/Owner", async () => {
     setupAuthMock({
-      role: "WAITER",
+      role: "OWNER",
       permissions: ["order.create", "order.view", "order.update", "menu.availability"],
       uses_tables: true,
     });

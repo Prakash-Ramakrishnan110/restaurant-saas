@@ -67,3 +67,16 @@ def test_seed_command():
     assert t_c1_b == 3
     assert t_c2_a == 2
     set_current_tenant(None)
+
+
+@pytest.mark.django_db
+def test_seed_demo_command():
+    out = io.StringIO()
+    call_command("seed_demo", stdout=out)
+    output = out.getvalue()
+    assert "Demo seeding completed successfully!" in output
+    assert Tenant.objects.filter(slug="kaveri-cafe").exists()
+
+    # Verify idempotency
+    call_command("seed_demo", stdout=out)
+    assert Tenant.objects.filter(slug="kaveri-cafe").count() == 1

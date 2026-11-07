@@ -37,7 +37,9 @@ export const BillingPage: React.FC = () => {
   const [settling, setSettling] = useState<boolean>(false);
 
   // Settlement Form (Full Payment Only)
-  const [paymentMethod, setPaymentMethod] = useState<"CASH" | "UPI" | "CARD" | "ROOM_FOLIO">("CASH");
+  const [paymentMethod, setPaymentMethod] = useState<"CASH" | "UPI" | "CARD" | "ROOM_FOLIO">(
+    "CASH"
+  );
   const [amountTendered, setAmountTendered] = useState<string>("");
   const [discountPaise] = useState<number>(0);
   const [notes] = useState<string>("");
@@ -325,7 +327,9 @@ export const BillingPage: React.FC = () => {
                 {paymentMethod === "CASH" && (
                   <div className="p-3.5 rounded-lg border border-border bg-muted/20 space-y-3 text-xs">
                     <div className="flex items-center justify-between">
-                      <span className="font-semibold text-muted-foreground">Amount Tendered (₹):</span>
+                      <span className="font-semibold text-muted-foreground">
+                        Amount Tendered (₹):
+                      </span>
                       <div className="w-36">
                         <Input
                           type="number"
@@ -351,7 +355,9 @@ export const BillingPage: React.FC = () => {
                   onClick={handleSettle}
                 >
                   <Receipt className="h-5 w-5" />
-                  {settling ? "Settling..." : `Settle & Print Receipt (${formatRupees(grandTotalPaise)})`}
+                  {settling
+                    ? "Settling..."
+                    : `Settle & Print Receipt (${formatRupees(grandTotalPaise)})`}
                 </Button>
               </div>
             </div>
@@ -370,7 +376,9 @@ export const BillingPage: React.FC = () => {
               <h2 className="font-black text-sm uppercase">
                 {activeTenant?.tenant_name || "ServeMyFood"}
               </h2>
-              <p className="text-[10px] text-gray-600 font-bold">DEMO RECEIPT - NOT A TAX INVOICE</p>
+              <p className="text-[10px] text-gray-600 font-bold">
+                DEMO RECEIPT - NOT A TAX INVOICE
+              </p>
               <p className="text-[10px] text-gray-500">Invoice: {settledInvoice?.invoice_number}</p>
               <p className="text-[10px] text-gray-500">
                 Table: {settledInvoice?.table_label} • {new Date().toLocaleTimeString()}
@@ -378,12 +386,14 @@ export const BillingPage: React.FC = () => {
             </div>
 
             <div className="py-2 border-b border-dashed border-gray-400 space-y-1">
-              {(billData?.items || settledInvoice?.items || []).map((it, i) => (
+              {(billData?.items || settledInvoice?.items || []).map((it: any, i: number) => (
                 <div key={i} className="flex justify-between text-[11px]">
                   <span>
                     {it.quantity}x {it.item_name}
                   </span>
-                  <span>{formatRupees(it.subtotal_paise)}</span>
+                  <span>
+                    {formatRupees(it.subtotal_paise || it.unit_price_paise * it.quantity)}
+                  </span>
                 </div>
               ))}
             </div>

@@ -1,3 +1,5 @@
+from typing import Any
+
 from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
@@ -7,7 +9,6 @@ from drf_spectacular.views import (
     SpectacularAPIView,
     SpectacularSwaggerView,
 )
-
 from rest_framework.routers import DefaultRouter
 
 from apps.core.views import HealthCheckView
@@ -23,7 +24,7 @@ class HealthCheckNoSlashView(HealthCheckView):
 invoice_router = DefaultRouter()
 invoice_router.register(r"", InvoiceViewSet, basename="invoices-standalone")
 
-api_v1_patterns = [
+api_v1_patterns: list[Any] = [
     path("", include("apps.accounts.urls")),
     path("", include("apps.tenants.urls")),
     path("", include("apps.venues.urls")),

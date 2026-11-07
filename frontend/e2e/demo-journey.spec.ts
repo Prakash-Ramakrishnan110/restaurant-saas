@@ -691,6 +691,8 @@ test.describe("ServeMyFood: 5-Minute End-to-End Live Demo Journey (D1)", () => {
             items: [{ item_name: "Ghee Roast Masala Dosa", price_paise: 13500 }],
           }),
         });
+      } else {
+        await route.continue();
       }
     });
 

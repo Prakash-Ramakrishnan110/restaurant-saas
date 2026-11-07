@@ -124,3 +124,21 @@ def test_branch_viewset_crud_and_404(admin_setup):
     # Delete branch
     res_del = client.delete(f"/api/v1/branches/{branch.id}/")
     assert res_del.status_code == 200
+
+
+@pytest.mark.django_db
+def test_platform_summary_view(admin_setup):
+    admin_client = admin_setup["client"]
+    res = admin_client.get("/api/v1/platform/summary/")
+    assert res.status_code == 200
+    assert "total_tenants" in res.data
+    assert "active_tenants" in res.data
+    assert "plan_distribution" in res.data
+
+    # Non-platform admin forbidden
+    owner = admin_setup["owner"]
+    owner_client = APIClient()
+    owner_token = str(RefreshToken.for_user(owner).access_token)
+    owner_client.credentials(HTTP_AUTHORIZATION=f"Bearer {owner_token}")
+    res_forbid = owner_client.get("/api/v1/platform/summary/")
+    assert res_forbid.status_code == 403

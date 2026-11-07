@@ -4,6 +4,23 @@
  */
 
 export interface paths {
+    "/api/v1/audit-logs/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description List audit log records for the tenant, with sensitive fields redacted. */
+        get: operations["audit_logs_list"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/auth/change-password/": {
         parameters: {
             query?: never;
@@ -72,7 +89,8 @@ export interface paths {
         delete?: never;
         options?: never;
         head?: never;
-        patch?: never;
+        /** @description Returns profile of the authenticated user, all memberships, and permissions for active tenant. */
+        patch: operations["auth_me_partial_update"];
         trace?: never;
     };
     "/api/v1/auth/refresh/": {
@@ -227,6 +245,40 @@ export interface paths {
          * @description Returns plan name, subscription status, numeric limits with remaining headroom, and feature flags.
          */
         get: operations["entitlements_retrieve"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/invoices/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description Authoritative Invoices directory and detail endpoint. */
+        get: operations["invoices_list"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/invoices/{id}/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description Authoritative Invoices directory and detail endpoint. */
+        get: operations["invoices_retrieve"];
         put?: never;
         post?: never;
         delete?: never;
@@ -539,10 +591,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** @description Production ViewSet for placing, tracking, and cancelling orders. */
+        /** @description Production ViewSet for placing, tracking, serving, and cancelling orders. */
         get: operations["orders_list"];
         put?: never;
-        /** @description Production ViewSet for placing, tracking, and cancelling orders. */
+        /** @description Production ViewSet for placing, tracking, serving, and cancelling orders. */
         post: operations["orders_create"];
         delete?: never;
         options?: never;
@@ -557,16 +609,16 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** @description Production ViewSet for placing, tracking, and cancelling orders. */
+        /** @description Production ViewSet for placing, tracking, serving, and cancelling orders. */
         get: operations["orders_retrieve"];
-        /** @description Production ViewSet for placing, tracking, and cancelling orders. */
+        /** @description Production ViewSet for placing, tracking, serving, and cancelling orders. */
         put: operations["orders_update"];
         post?: never;
-        /** @description Production ViewSet for placing, tracking, and cancelling orders. */
+        /** @description Production ViewSet for placing, tracking, serving, and cancelling orders. */
         delete: operations["orders_destroy"];
         options?: never;
         head?: never;
-        /** @description Production ViewSet for placing, tracking, and cancelling orders. */
+        /** @description Production ViewSet for placing, tracking, serving, and cancelling orders. */
         patch: operations["orders_partial_update"];
         trace?: never;
     };
@@ -579,7 +631,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** @description Production ViewSet for placing, tracking, and cancelling orders. */
+        /** @description Production ViewSet for placing, tracking, serving, and cancelling orders. */
         post: operations["orders_cancel_create"];
         delete?: never;
         options?: never;
@@ -596,8 +648,25 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** @description Production ViewSet for placing, tracking, and cancelling orders. */
+        /** @description Production ViewSet for placing, tracking, serving, and cancelling orders. */
         post: operations["orders_fire_mains_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/orders/{id}/serve/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** @description Production ViewSet for placing, tracking, serving, and cancelling orders. */
+        post: operations["orders_serve_create"];
         delete?: never;
         options?: never;
         head?: never;
@@ -611,10 +680,27 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** @description Cashier billing, split payment, and invoice generation. */
+        /** @description Cashier billing and table session checkout. */
         get: operations["orders_billing_invoices_retrieve"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/orders/billing/order/{order_id}/settle/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** @description Cashier billing and table session checkout. */
+        post: operations["orders_billing_order_settle_create"];
         delete?: never;
         options?: never;
         head?: never;
@@ -628,7 +714,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** @description Cashier billing, split payment, and invoice generation. */
+        /** @description Cashier billing and table session checkout. */
         get: operations["orders_billing_session_retrieve"];
         put?: never;
         post?: never;
@@ -647,8 +733,42 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** @description Cashier billing, split payment, and invoice generation. */
+        /** @description Cashier billing and table session checkout. */
         post: operations["orders_billing_session_settle_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/orders/invoices/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description Authoritative Invoices directory and detail endpoint. */
+        get: operations["orders_invoices_list"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/orders/invoices/{id}/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description Authoritative Invoices directory and detail endpoint. */
+        get: operations["orders_invoices_retrieve"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -755,6 +875,23 @@ export interface paths {
         put?: never;
         /** @description Customer Call Bell and service requests. */
         post: operations["orders_service_requests_acknowledge_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/platform/summary/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description GET /api/v1/platform/summary/ (PLATFORM_ADMIN only; aggregated counts only). */
+        get: operations["platform_summary_retrieve"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -893,6 +1030,23 @@ export interface paths {
          * @description Returns list of active QR codes with table, area, section names, and public URLs.
          */
         get: operations["qr_codes_sheet_data_list"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/reports/today/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description GET /api/v1/reports/today/ returning sales, orders, and payment totals. */
+        get: operations["reports_today_retrieve"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1405,6 +1559,20 @@ export interface components {
          * @enum {string}
          */
         AreaType: "DINING" | "BAR" | "COUNTER" | "OUTDOOR" | "ROOM_SERVICE" | "BANQUET" | "FOOD_COURT_COUNTER" | "TAKEAWAY";
+        AuditLog: {
+            /** Format: uuid */
+            readonly id: string;
+            action: string;
+            entity_type: string;
+            entity_id: string;
+            readonly before_state: unknown;
+            readonly after_state: unknown;
+            ip_address?: string | null;
+            /** Format: date-time */
+            timestamp?: string;
+            readonly actor_name: string;
+            readonly actor_email: string;
+        };
         AuthMeResponse: {
             user: components["schemas"]["User"];
             memberships: components["schemas"]["MembershipSummary"][];
@@ -1428,6 +1596,7 @@ export interface components {
             discount_paise?: number;
             /** Format: int64 */
             total_paise?: number;
+            snapshot_lines?: unknown;
             payment_method?: components["schemas"]["PaymentMethodEnum"];
             /** Format: int64 */
             amount_tendered_paise?: number;
@@ -1446,6 +1615,7 @@ export interface components {
             discount_paise?: number;
             /** Format: int64 */
             total_paise?: number;
+            snapshot_lines?: unknown;
             payment_method?: components["schemas"]["PaymentMethodEnum"];
             /** Format: int64 */
             amount_tendered_paise?: number;
@@ -1686,6 +1856,15 @@ export interface components {
          */
         DocumentLanguageEnum: "EN" | "EN_TA";
         /**
+         * @description * `CREATED` - Order Created
+         *     * `STATUS_CHANGED` - Status Changed
+         *     * `ITEM_FIRED` - Item Fired
+         *     * `CANCELLED` - Order Cancelled
+         *     * `COMPLETED` - Order Completed
+         * @enum {string}
+         */
+        EventTypeEnum: "CREATED" | "STATUS_CHANGED" | "ITEM_FIRED" | "CANCELLED" | "COMPLETED";
+        /**
          * @description * `VEG` - Vegetarian
          *     * `NON_VEG` - Non-Vegetarian
          *     * `EGG` - Contains Egg
@@ -1711,6 +1890,8 @@ export interface components {
         KDSTicket: {
             /** Format: uuid */
             readonly id: string;
+            /** @description Unique human-readable order identifier */
+            order_number?: string;
             /** Format: uuid */
             readonly branch_id: string;
             /** Format: uuid */
@@ -1727,6 +1908,8 @@ export interface components {
             readonly items: components["schemas"]["OrderItem"][];
         };
         KDSTicketRequest: {
+            /** @description Unique human-readable order identifier */
+            order_number?: string;
             order_workflow?: components["schemas"]["OrderWorkflowDafEnum"];
             /** @description Sequential daily token number for counter service */
             token_number?: number | null;
@@ -1797,6 +1980,10 @@ export interface components {
             readonly tenant_status: string;
             role: string;
             readonly branches: components["schemas"]["BranchSummary"][];
+            is_active?: boolean;
+        };
+        MembershipSummaryRequest: {
+            role: string;
             is_active?: boolean;
         };
         MenuCategory: {
@@ -1932,6 +2119,8 @@ export interface components {
         Order: {
             /** Format: uuid */
             readonly id: string;
+            /** @description Unique human-readable order identifier */
+            order_number?: string;
             /** Format: uuid */
             readonly branch_id: string;
             /** Format: uuid */
@@ -1949,7 +2138,25 @@ export interface components {
             served_at?: string | null;
             notes?: string;
             readonly items: components["schemas"]["OrderItem"][];
+            readonly events: components["schemas"]["OrderEvent"][];
             readonly total_paise: number;
+        };
+        OrderEvent: {
+            /** Format: uuid */
+            readonly id: string;
+            event_type?: components["schemas"]["EventTypeEnum"];
+            from_status?: string;
+            to_status?: string;
+            /** Format: date-time */
+            readonly created_at: string;
+            readonly user_name: string;
+            notes?: string;
+        };
+        OrderEventRequest: {
+            event_type?: components["schemas"]["EventTypeEnum"];
+            from_status?: string;
+            to_status?: string;
+            notes?: string;
         };
         OrderItem: {
             /** Format: uuid */
@@ -2006,6 +2213,8 @@ export interface components {
          */
         OrderItemStatusEnum: "PENDING" | "COOKING" | "READY" | "SERVED";
         OrderRequest: {
+            /** @description Unique human-readable order identifier */
+            order_number?: string;
             order_workflow?: components["schemas"]["OrderWorkflowDafEnum"];
             /** @description Sequential daily token number for counter service */
             token_number?: number | null;
@@ -2034,6 +2243,36 @@ export interface components {
          * @enum {string}
          */
         OrderWorkflowDafEnum: "TABLE_SERVICE" | "COUNTER_TOKEN" | "ROOM_SERVICE" | "BAR_TAB";
+        PaginatedAuditLogList: {
+            /** @example 123 */
+            count: number;
+            /**
+             * Format: uri
+             * @example http://api.example.org/accounts/?page=4
+             */
+            next?: string | null;
+            /**
+             * Format: uri
+             * @example http://api.example.org/accounts/?page=2
+             */
+            previous?: string | null;
+            results: components["schemas"]["AuditLog"][];
+        };
+        PaginatedBillInvoiceList: {
+            /** @example 123 */
+            count: number;
+            /**
+             * Format: uri
+             * @example http://api.example.org/accounts/?page=4
+             */
+            next?: string | null;
+            /**
+             * Format: uri
+             * @example http://api.example.org/accounts/?page=2
+             */
+            previous?: string | null;
+            results: components["schemas"]["BillInvoice"][];
+        };
         PaginatedBranchItemAvailabilityList: {
             /** @example 123 */
             count: number;
@@ -2289,6 +2528,13 @@ export interface components {
             previous?: string | null;
             results: components["schemas"]["Tenant"][];
         };
+        PatchedAuthMeResponseRequest: {
+            memberships?: components["schemas"]["MembershipSummaryRequest"][];
+            /** Format: uuid */
+            active_tenant_id?: string | null;
+            active_role?: string | null;
+            permissions?: string[];
+        };
         PatchedBranchCapabilitiesRequest: {
             uses_tables?: boolean;
             uses_kds?: boolean;
@@ -2398,6 +2644,8 @@ export interface components {
             options?: components["schemas"]["OptionRequest"][];
         };
         PatchedOrderRequest: {
+            /** @description Unique human-readable order identifier */
+            order_number?: string;
             order_workflow?: components["schemas"]["OrderWorkflowDafEnum"];
             /** @description Sequential daily token number for counter service */
             token_number?: number | null;
@@ -2452,10 +2700,9 @@ export interface components {
          *     * `UPI` - UPI QR
          *     * `CARD` - Debit / Credit Card
          *     * `ROOM_FOLIO` - Room Folio Charge
-         *     * `SPLIT` - Split Tender
          * @enum {string}
          */
-        PaymentMethodEnum: "CASH" | "UPI" | "CARD" | "ROOM_FOLIO" | "SPLIT";
+        PaymentMethodEnum: "CASH" | "UPI" | "CARD" | "ROOM_FOLIO";
         /**
          * @description * `PAY_FIRST` - Pay First
          *     * `PAY_LATER` - Pay Later
@@ -2626,6 +2873,8 @@ export interface components {
         ServiceRequest: {
             /** Format: uuid */
             readonly id: string;
+            /** Format: uuid */
+            readonly branch_id: string;
             /** Format: uuid */
             readonly table_id: string | null;
             /** Format: uuid */
@@ -2867,6 +3116,30 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+    audit_logs_list: {
+        parameters: {
+            query?: {
+                /** @description A page number within the paginated result set. */
+                page?: number;
+                /** @description Number of results to return per page. */
+                page_size?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaginatedAuditLogList"];
+                };
+            };
+        };
+    };
     auth_change_password_create: {
         parameters: {
             query?: never;
@@ -2963,6 +3236,31 @@ export interface operations {
             cookie?: never;
         };
         requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AuthMeResponse"];
+                };
+            };
+        };
+    };
+    auth_me_partial_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["PatchedAuthMeResponseRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["PatchedAuthMeResponseRequest"];
+                "multipart/form-data": components["schemas"]["PatchedAuthMeResponseRequest"];
+            };
+        };
         responses: {
             200: {
                 headers: {
@@ -3304,6 +3602,52 @@ export interface operations {
                     "application/json": {
                         [key: string]: unknown;
                     };
+                };
+            };
+        };
+    };
+    invoices_list: {
+        parameters: {
+            query?: {
+                /** @description A page number within the paginated result set. */
+                page?: number;
+                /** @description Number of results to return per page. */
+                page_size?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaginatedBillInvoiceList"];
+                };
+            };
+        };
+    };
+    invoices_retrieve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description A UUID string identifying this bill invoice. */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BillInvoice"];
                 };
             };
         };
@@ -4368,6 +4712,34 @@ export interface operations {
             };
         };
     };
+    orders_serve_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description A UUID string identifying this order. */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["OrderRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["OrderRequest"];
+                "multipart/form-data": components["schemas"]["OrderRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Order"];
+                };
+            };
+        };
+    };
     orders_billing_invoices_retrieve: {
         parameters: {
             query?: never;
@@ -4376,6 +4748,33 @@ export interface operations {
             cookie?: never;
         };
         requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BillInvoice"];
+                };
+            };
+        };
+    };
+    orders_billing_order_settle_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                order_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BillInvoiceRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["BillInvoiceRequest"];
+                "multipart/form-data": components["schemas"]["BillInvoiceRequest"];
+            };
+        };
         responses: {
             200: {
                 headers: {
@@ -4424,6 +4823,52 @@ export interface operations {
                 "multipart/form-data": components["schemas"]["BillInvoiceRequest"];
             };
         };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BillInvoice"];
+                };
+            };
+        };
+    };
+    orders_invoices_list: {
+        parameters: {
+            query?: {
+                /** @description A page number within the paginated result set. */
+                page?: number;
+                /** @description Number of results to return per page. */
+                page_size?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaginatedBillInvoiceList"];
+                };
+            };
+        };
+    };
+    orders_invoices_retrieve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description A UUID string identifying this bill invoice. */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
         responses: {
             200: {
                 headers: {
@@ -4685,6 +5130,27 @@ export interface operations {
             };
         };
     };
+    platform_summary_retrieve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+        };
+    };
     public_qr_retrieve: {
         parameters: {
             query?: never;
@@ -4889,6 +5355,27 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["QRCodeSheetItem"][];
+                };
+            };
+        };
+    };
+    reports_today_retrieve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
                 };
             };
         };

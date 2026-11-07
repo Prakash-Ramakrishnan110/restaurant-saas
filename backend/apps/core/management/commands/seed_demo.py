@@ -1,4 +1,5 @@
-import zoneinfo
+from datetime import timedelta
+
 from django.contrib.auth import get_user_model
 from django.core.management.base import BaseCommand
 from django.db import transaction
@@ -17,7 +18,6 @@ from apps.orders.models import (
     OrderItem,
     OrderStatus,
     OrderWorkflow,
-    PaymentMethod,
 )
 from apps.rbac.constants import Role
 from apps.subscriptions.constants import SubscriptionStatus
@@ -87,35 +87,45 @@ class Command(BaseCommand):
 
         # Areas & Tables
         sa_hall, _ = ServiceArea.objects.get_or_create(
-            tenant=t, branch=b, name="AC Dining Hall",
-            defaults={"area_type": AreaType.DINING}
+            tenant=t, branch=b, name="AC Dining Hall", defaults={"area_type": AreaType.DINING}
         )
         sec_indoor, _ = Section.objects.get_or_create(
-            tenant=t, branch=b, service_area=sa_hall, name="Ground Indoor",
-            defaults={"section_type": SectionType.INDOOR}
+            tenant=t,
+            branch=b,
+            service_area=sa_hall,
+            name="Ground Indoor",
+            defaults={"section_type": SectionType.INDOOR},
         )
 
         sa_terrace, _ = ServiceArea.objects.get_or_create(
-            tenant=t, branch=b, name="Open Terrace",
-            defaults={"area_type": AreaType.OUTDOOR}
+            tenant=t, branch=b, name="Open Terrace", defaults={"area_type": AreaType.OUTDOOR}
         )
         sec_outdoor, _ = Section.objects.get_or_create(
-            tenant=t, branch=b, service_area=sa_terrace, name="Rooftop Lawn",
-            defaults={"section_type": SectionType.OUTDOOR}
+            tenant=t,
+            branch=b,
+            service_area=sa_terrace,
+            name="Rooftop Lawn",
+            defaults={"section_type": SectionType.OUTDOOR},
         )
 
         tables = []
         for i in range(1, 9):
             tbl, _ = DiningTable.objects.get_or_create(
-                tenant=t, branch=b, section=sec_indoor, label=f"T{i}",
-                defaults={"capacity": 4 if i <= 6 else 6, "status": TableStatus.AVAILABLE}
+                tenant=t,
+                branch=b,
+                section=sec_indoor,
+                label=f"T{i}",
+                defaults={"capacity": 4 if i <= 6 else 6, "status": TableStatus.AVAILABLE},
             )
             tables.append(tbl)
 
         for i in range(9, 13):
             tbl, _ = DiningTable.objects.get_or_create(
-                tenant=t, branch=b, section=sec_outdoor, label=f"T{i}",
-                defaults={"capacity": 4, "status": TableStatus.AVAILABLE}
+                tenant=t,
+                branch=b,
+                section=sec_outdoor,
+                label=f"T{i}",
+                defaults={"capacity": 4, "status": TableStatus.AVAILABLE},
             )
             tables.append(tbl)
 
@@ -132,58 +142,71 @@ class Command(BaseCommand):
         for email, full_name, role in staff_defs:
             user = User.objects.filter(email=email).first()
             if not user:
-                user = User.objects.create_user(email=email, password="Password123!", full_name=full_name)
+                user = User.objects.create_user(
+                    email=email, password="Password123!", full_name=full_name
+                )
             else:
                 user.set_password("Password123!")
                 user.full_name = full_name
                 user.save()
 
             m, _ = Membership.objects.get_or_create(
-                user=user, tenant=t,
-                defaults={"role": role, "is_active": True}
+                user=user, tenant=t, defaults={"role": role, "is_active": True}
             )
             users_map[role] = (user, m)
 
         # 30 Menu Items across 4 Categories
         menu_catalog = [
-            ("Hot Beverages", [
-                ("South Indian Filter Coffee", 4500, FoodType.VEG),
-                ("Masala Chai", 3500, FoodType.VEG),
-                ("Ginger Cardamom Tea", 3500, FoodType.VEG),
-                ("Sukku Coffee (Herbal)", 5000, FoodType.VEG),
-                ("Badam Milk (Hot)", 6500, FoodType.VEG),
-                ("Artisan Cappuccino", 9500, FoodType.VEG),
-                ("Cold Brew Nitro", 12000, FoodType.VEG),
-            ]),
-            ("Tiffins & Starters", [
-                ("Ghee Podi Idli (2 pcs)", 9500, FoodType.VEG),
-                ("Crispy Medu Vada (2 pcs)", 7500, FoodType.VEG),
-                ("Plain Dosa", 8500, FoodType.VEG),
-                ("Ghee Roast Masala Dosa", 13500, FoodType.VEG),
-                ("Onion Rava Dosa", 12500, FoodType.VEG),
-                ("Podi Onion Uttapam", 11500, FoodType.VEG),
-                ("Vegetable Cutlet (2 pcs)", 7000, FoodType.VEG),
-                ("Paneer 65 Crispy", 18500, FoodType.VEG),
-            ]),
-            ("Mains & Traditional Meals", [
-                ("Mini Tiffin Sampler", 19500, FoodType.VEG),
-                ("Bisi Bele Bath with Boondi", 14500, FoodType.VEG),
-                ("Traditional Sambar Rice", 13000, FoodType.VEG),
-                ("Curd Rice with Pomegranate", 11000, FoodType.VEG),
-                ("Paneer Butter Masala", 24000, FoodType.VEG),
-                ("Dal Tadka", 18000, FoodType.VEG),
-                ("Malabar Parotta (2 pcs)", 8000, FoodType.VEG),
-                ("Butter Naan", 6000, FoodType.VEG),
-            ]),
-            ("Desserts & Coolers", [
-                ("Elaneer Payasam", 12000, FoodType.VEG),
-                ("Hot Gulab Jamun (2 pcs)", 8500, FoodType.VEG),
-                ("Traditional Mysore Pak", 9000, FoodType.VEG),
-                ("Madurai Jigarthanda Special", 14000, FoodType.VEG),
-                ("Fresh Mango Lassi", 11000, FoodType.VEG),
-                ("Fresh Lime Soda (Sweet/Salt)", 6000, FoodType.VEG),
-                ("Rose Milk Kulukki", 8000, FoodType.VEG),
-            ]),
+            (
+                "Hot Beverages",
+                [
+                    ("South Indian Filter Coffee", 4500, FoodType.VEG),
+                    ("Masala Chai", 3500, FoodType.VEG),
+                    ("Ginger Cardamom Tea", 3500, FoodType.VEG),
+                    ("Sukku Coffee (Herbal)", 5000, FoodType.VEG),
+                    ("Badam Milk (Hot)", 6500, FoodType.VEG),
+                    ("Artisan Cappuccino", 9500, FoodType.VEG),
+                    ("Cold Brew Nitro", 12000, FoodType.VEG),
+                ],
+            ),
+            (
+                "Tiffins & Starters",
+                [
+                    ("Ghee Podi Idli (2 pcs)", 9500, FoodType.VEG),
+                    ("Crispy Medu Vada (2 pcs)", 7500, FoodType.VEG),
+                    ("Plain Dosa", 8500, FoodType.VEG),
+                    ("Ghee Roast Masala Dosa", 13500, FoodType.VEG),
+                    ("Onion Rava Dosa", 12500, FoodType.VEG),
+                    ("Podi Onion Uttapam", 11500, FoodType.VEG),
+                    ("Vegetable Cutlet (2 pcs)", 7000, FoodType.VEG),
+                    ("Paneer 65 Crispy", 18500, FoodType.VEG),
+                ],
+            ),
+            (
+                "Mains & Traditional Meals",
+                [
+                    ("Mini Tiffin Sampler", 19500, FoodType.VEG),
+                    ("Bisi Bele Bath with Boondi", 14500, FoodType.VEG),
+                    ("Traditional Sambar Rice", 13000, FoodType.VEG),
+                    ("Curd Rice with Pomegranate", 11000, FoodType.VEG),
+                    ("Paneer Butter Masala", 24000, FoodType.VEG),
+                    ("Dal Tadka", 18000, FoodType.VEG),
+                    ("Malabar Parotta (2 pcs)", 8000, FoodType.VEG),
+                    ("Butter Naan", 6000, FoodType.VEG),
+                ],
+            ),
+            (
+                "Desserts & Coolers",
+                [
+                    ("Elaneer Payasam", 12000, FoodType.VEG),
+                    ("Hot Gulab Jamun (2 pcs)", 8500, FoodType.VEG),
+                    ("Traditional Mysore Pak", 9000, FoodType.VEG),
+                    ("Madurai Jigarthanda Special", 14000, FoodType.VEG),
+                    ("Fresh Mango Lassi", 11000, FoodType.VEG),
+                    ("Fresh Lime Soda (Sweet/Salt)", 6000, FoodType.VEG),
+                    ("Rose Milk Kulukki", 8000, FoodType.VEG),
+                ],
+            ),
         ]
 
         items_map = {}
@@ -191,8 +214,10 @@ class Command(BaseCommand):
             cat, _ = MenuCategory.objects.get_or_create(tenant=t, name=cat_name)
             for dish_name, price, ftype in dishes:
                 item, _ = MenuItem.objects.get_or_create(
-                    tenant=t, category=cat, name=dish_name,
-                    defaults={"base_price_paise": price, "food_type": ftype, "is_active": True}
+                    tenant=t,
+                    category=cat,
+                    name=dish_name,
+                    defaults={"base_price_paise": price, "food_type": ftype, "is_active": True},
                 )
                 items_map[dish_name] = item
 
@@ -202,14 +227,22 @@ class Command(BaseCommand):
             ("CASH", [("South Indian Filter Coffee", 4), ("Ghee Podi Idli (2 pcs)", 2)], 15),
             ("UPI", [("Ghee Roast Masala Dosa", 2), ("South Indian Filter Coffee", 2)], 35),
             ("UPI", [("Mini Tiffin Sampler", 2), ("Masala Chai", 2)], 55),
-            ("CARD", [("Paneer Butter Masala", 1), ("Malabar Parotta (2 pcs)", 2), ("Elaneer Payasam", 2)], 90),
+            (
+                "CARD",
+                [
+                    ("Paneer Butter Masala", 1),
+                    ("Malabar Parotta (2 pcs)", 2),
+                    ("Elaneer Payasam", 2),
+                ],
+                90,
+            ),
             ("CASH", [("Onion Rava Dosa", 2), ("Fresh Mango Lassi", 2)], 120),
             ("UPI", [("Bisi Bele Bath with Boondi", 3), ("South Indian Filter Coffee", 3)], 180),
         ]
 
         inv_idx = 1
         for p_method, lines, minutes_ago in historical_bills:
-            bill_time = now - timezone.timedelta(minutes=minutes_ago)
+            bill_time = now - timedelta(minutes=minutes_ago)
             inv_num = f"GKC-{now.strftime('%Y%m')}-{inv_idx:04d}"
             subtotal = sum(items_map[name].base_price_paise * q for name, q in lines)
 
@@ -224,7 +257,8 @@ class Command(BaseCommand):
             ]
 
             BillInvoice.objects.get_or_create(
-                tenant=t, invoice_number=inv_num,
+                tenant=t,
+                invoice_number=inv_num,
                 defaults={
                     "branch": b,
                     "subtotal_paise": subtotal,
@@ -236,7 +270,7 @@ class Command(BaseCommand):
                     "is_settled": True,
                     "settled_at": bill_time,
                     "snapshot_lines": snap_lines,
-                }
+                },
             )
             inv_idx += 1
 
@@ -246,8 +280,10 @@ class Command(BaseCommand):
         t1.save()
 
         sess_t1, _ = TableSession.objects.get_or_create(
-            tenant=t, table=t1, status="OPEN",
-            defaults={"branch": b, "session_code": "SES-T1-DEMO", "guest_count": 2}
+            tenant=t,
+            table=t1,
+            status="OPEN",
+            defaults={"branch": b, "session_code": "SES-T1-DEMO", "guest_count": 2},
         )
 
         # Place live demo order on T1
@@ -330,11 +366,15 @@ class Command(BaseCommand):
         ]:
             user = User.objects.filter(email=email).first()
             if not user:
-                user = User.objects.create_user(email=email, password="Password123!", full_name=full_name)
+                user = User.objects.create_user(
+                    email=email, password="Password123!", full_name=full_name
+                )
             else:
                 user.set_password("Password123!")
                 user.save()
-            Membership.objects.get_or_create(user=user, tenant=t, defaults={"role": role, "is_active": True})
+            Membership.objects.get_or_create(
+                user=user, tenant=t, defaults={"role": role, "is_active": True}
+            )
 
         # Menu
         cat, _ = MenuCategory.objects.get_or_create(tenant=t, name="Chai & Snacks")
@@ -347,6 +387,8 @@ class Command(BaseCommand):
         ]
         for name, price in chai_items:
             MenuItem.objects.get_or_create(
-                tenant=t, category=cat, name=name,
-                defaults={"base_price_paise": price, "food_type": FoodType.VEG, "is_active": True}
+                tenant=t,
+                category=cat,
+                name=name,
+                defaults={"base_price_paise": price, "food_type": FoodType.VEG, "is_active": True},
             )

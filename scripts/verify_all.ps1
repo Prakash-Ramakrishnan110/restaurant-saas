@@ -1,4 +1,4 @@
-# ==============================================================================
+﻿# ==============================================================================
 # ServeMyFood: Complete Automated Quality Gate Verification Script
 # Target: Prompt 4A Close-Out Verification (Tag v0.6.1)
 # ==============================================================================
@@ -87,8 +87,8 @@ Run-Gate -Id 1 `
     -OutputFile "backend-pytest.txt" `
     -WorkingDir (Join-Path $RepoRoot "backend") `
     -Action {
-        $env:TEST_DB_PORT = "5433"
-        $env:POSTGRES_HOST_PORT = "5433"
+        $env:TEST_DB_PORT = "5432"
+        $env:POSTGRES_HOST_PORT = "5432"
         uv run pytest
     }
 
@@ -144,7 +144,7 @@ Run-Gate -Id 6 `
     -OutputFile "backend-migrations.txt" `
     -WorkingDir (Join-Path $RepoRoot "backend") `
     -Action {
-        $env:POSTGRES_HOST_PORT = "5433"
+        $env:POSTGRES_HOST_PORT = "5432"
         uv run python manage.py makemigrations --check --dry-run
     }
 
@@ -178,7 +178,7 @@ Run-Gate -Id 9 `
     -OutputFile "openapi-drift.txt" `
     -WorkingDir (Join-Path $RepoRoot "backend") `
     -Action {
-        $env:POSTGRES_HOST_PORT = "5433"
+        $env:POSTGRES_HOST_PORT = "5432"
         uv run python manage.py spectacular --file ../docs/openapi.json --validate
     }
 

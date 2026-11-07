@@ -2,7 +2,8 @@ from typing import Any
 
 from django.db.models import Q
 from django.utils import timezone
-from rest_framework import status, viewsets
+from drf_spectacular.utils import extend_schema
+from rest_framework import serializers, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.exceptions import NotFound, PermissionDenied, ValidationError
 from rest_framework.permissions import AllowAny, IsAuthenticated
@@ -355,6 +356,7 @@ class TodayReportView(APIView):
 
     permission_classes = [IsAuthenticated, HasTenantPermission(Permission.REPORT_VIEW)]
 
+    @extend_schema(responses={200: serializers.DictField()})
     def get(self, request: Request) -> Response:
         tenant = getattr(request, "tenant", None)
         if not tenant:

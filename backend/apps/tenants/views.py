@@ -1,8 +1,10 @@
+from datetime import timedelta
+
 from django.http import Http404
 from django.utils import timezone
 from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import extend_schema
-from rest_framework import status
+from rest_framework import serializers, status
 from rest_framework.decorators import action
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.permissions import IsAuthenticated
@@ -445,12 +447,13 @@ class PlatformSummaryView(APIView):
 
     permission_classes = [IsAuthenticated]
 
+    @extend_schema(responses={200: serializers.DictField()})
     def get(self, request: Request) -> Response:
         if not getattr(request.user, "is_platform_admin", False):
             raise PermissionDenied("Only platform administrators can access platform summaries.")
 
         now = timezone.now()
-        week_ago = now - timezone.timedelta(days=7)
+        week_ago = now - timedelta(days=7)
 
         total_tenants = Tenant.objects.count()
         active_tenants = Tenant.objects.filter(status=Tenant.Status.ACTIVE).count()
@@ -474,4 +477,3 @@ class PlatformSummaryView(APIView):
                 "api_health": "HEALTHY",
             }
         )
-

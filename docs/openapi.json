@@ -4,6 +4,34 @@ info:
   version: 1.0.0
   description: Multi-tenant Restaurant Management SaaS backend foundation API
 paths:
+  /api/v1/audit-logs/:
+    get:
+      operationId: audit_logs_list
+      description: List audit log records for the tenant, with sensitive fields redacted.
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      tags:
+      - audit-logs
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedAuditLogList'
+          description: ''
   /api/v1/auth/change-password/:
     post:
       operationId: auth_change_password_create
@@ -83,6 +111,32 @@ paths:
         permissions for active tenant.
       tags:
       - auth
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthMeResponse'
+          description: ''
+    patch:
+      operationId: auth_me_partial_update
+      description: Returns profile of the authenticated user, all memberships, and
+        permissions for active tenant.
+      tags:
+      - auth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedAuthMeResponseRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedAuthMeResponseRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedAuthMeResponseRequest'
       security:
       - jwtAuth: []
       responses:
@@ -431,6 +485,57 @@ paths:
               schema:
                 type: object
                 additionalProperties: {}
+          description: ''
+  /api/v1/invoices/:
+    get:
+      operationId: invoices_list
+      description: Authoritative Invoices directory and detail endpoint.
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      tags:
+      - invoices
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedBillInvoiceList'
+          description: ''
+  /api/v1/invoices/{id}/:
+    get:
+      operationId: invoices_retrieve
+      description: Authoritative Invoices directory and detail endpoint.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this bill invoice.
+        required: true
+      tags:
+      - invoices
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BillInvoice'
           description: ''
   /api/v1/layout-templates/:
     get:
@@ -1335,7 +1440,8 @@ paths:
   /api/v1/orders/:
     get:
       operationId: orders_list
-      description: Production ViewSet for placing, tracking, and cancelling orders.
+      description: Production ViewSet for placing, tracking, serving, and cancelling
+        orders.
       parameters:
       - name: page
         required: false
@@ -1362,7 +1468,8 @@ paths:
           description: ''
     post:
       operationId: orders_create
-      description: Production ViewSet for placing, tracking, and cancelling orders.
+      description: Production ViewSet for placing, tracking, serving, and cancelling
+        orders.
       tags:
       - orders
       requestBody:
@@ -1388,7 +1495,8 @@ paths:
   /api/v1/orders/{id}/:
     get:
       operationId: orders_retrieve
-      description: Production ViewSet for placing, tracking, and cancelling orders.
+      description: Production ViewSet for placing, tracking, serving, and cancelling
+        orders.
       parameters:
       - in: path
         name: id
@@ -1410,7 +1518,8 @@ paths:
           description: ''
     put:
       operationId: orders_update
-      description: Production ViewSet for placing, tracking, and cancelling orders.
+      description: Production ViewSet for placing, tracking, serving, and cancelling
+        orders.
       parameters:
       - in: path
         name: id
@@ -1443,7 +1552,8 @@ paths:
           description: ''
     patch:
       operationId: orders_partial_update
-      description: Production ViewSet for placing, tracking, and cancelling orders.
+      description: Production ViewSet for placing, tracking, serving, and cancelling
+        orders.
       parameters:
       - in: path
         name: id
@@ -1476,7 +1586,8 @@ paths:
           description: ''
     delete:
       operationId: orders_destroy
-      description: Production ViewSet for placing, tracking, and cancelling orders.
+      description: Production ViewSet for placing, tracking, serving, and cancelling
+        orders.
       parameters:
       - in: path
         name: id
@@ -1495,7 +1606,8 @@ paths:
   /api/v1/orders/{id}/cancel/:
     post:
       operationId: orders_cancel_create
-      description: Production ViewSet for placing, tracking, and cancelling orders.
+      description: Production ViewSet for placing, tracking, serving, and cancelling
+        orders.
       parameters:
       - in: path
         name: id
@@ -1529,7 +1641,43 @@ paths:
   /api/v1/orders/{id}/fire-mains/:
     post:
       operationId: orders_fire_mains_create
-      description: Production ViewSet for placing, tracking, and cancelling orders.
+      description: Production ViewSet for placing, tracking, serving, and cancelling
+        orders.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this order.
+        required: true
+      tags:
+      - orders
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OrderRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/OrderRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/OrderRequest'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Order'
+          description: ''
+  /api/v1/orders/{id}/serve/:
+    post:
+      operationId: orders_serve_create
+      description: Production ViewSet for placing, tracking, serving, and cancelling
+        orders.
       parameters:
       - in: path
         name: id
@@ -1563,9 +1711,42 @@ paths:
   /api/v1/orders/billing/invoices/:
     get:
       operationId: orders_billing_invoices_retrieve
-      description: Cashier billing, split payment, and invoice generation.
+      description: Cashier billing and table session checkout.
       tags:
       - orders
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BillInvoice'
+          description: ''
+  /api/v1/orders/billing/order/{order_id}/settle/:
+    post:
+      operationId: orders_billing_order_settle_create
+      description: Cashier billing and table session checkout.
+      parameters:
+      - in: path
+        name: order_id
+        schema:
+          type: string
+        required: true
+      tags:
+      - orders
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BillInvoiceRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/BillInvoiceRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/BillInvoiceRequest'
+        required: true
       security:
       - jwtAuth: []
       responses:
@@ -1578,7 +1759,7 @@ paths:
   /api/v1/orders/billing/session/{session_id}/:
     get:
       operationId: orders_billing_session_retrieve
-      description: Cashier billing, split payment, and invoice generation.
+      description: Cashier billing and table session checkout.
       parameters:
       - in: path
         name: session_id
@@ -1599,7 +1780,7 @@ paths:
   /api/v1/orders/billing/session/{session_id}/settle/:
     post:
       operationId: orders_billing_session_settle_create
-      description: Cashier billing, split payment, and invoice generation.
+      description: Cashier billing and table session checkout.
       parameters:
       - in: path
         name: session_id
@@ -1620,6 +1801,57 @@ paths:
             schema:
               $ref: '#/components/schemas/BillInvoiceRequest'
         required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BillInvoice'
+          description: ''
+  /api/v1/orders/invoices/:
+    get:
+      operationId: orders_invoices_list
+      description: Authoritative Invoices directory and detail endpoint.
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      tags:
+      - orders
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedBillInvoiceList'
+          description: ''
+  /api/v1/orders/invoices/{id}/:
+    get:
+      operationId: orders_invoices_retrieve
+      description: Authoritative Invoices directory and detail endpoint.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this bill invoice.
+        required: true
+      tags:
+      - orders
       security:
       - jwtAuth: []
       responses:
@@ -1915,6 +2147,24 @@ paths:
               schema:
                 $ref: '#/components/schemas/ServiceRequest'
           description: ''
+  /api/v1/platform/summary/:
+    get:
+      operationId: platform_summary_retrieve
+      description: GET /api/v1/platform/summary/ (PLATFORM_ADMIN only; aggregated
+        counts only).
+      tags:
+      - platform
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+                description: Unspecified response body
+          description: ''
   /api/v1/public/qr/{token}/:
     get:
       operationId: public_qr_retrieve
@@ -2135,6 +2385,24 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/QRCodeSheetItem'
+          description: ''
+  /api/v1/reports/today/:
+    get:
+      operationId: reports_today_retrieve
+      description: GET /api/v1/reports/today/ returning sales, orders, and payment
+        totals.
+      tags:
+      - reports
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+                description: Unspecified response body
           description: ''
   /api/v1/sections/:
     get:
@@ -3248,6 +3516,47 @@ components:
         * `BANQUET` - Banquet / Event Hall
         * `FOOD_COURT_COUNTER` - Food Court Stall Counter
         * `TAKEAWAY` - Takeaway Pickup Point
+    AuditLog:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        action:
+          type: string
+          maxLength: 100
+        entity_type:
+          type: string
+          maxLength: 100
+        entity_id:
+          type: string
+          maxLength: 255
+        before_state:
+          readOnly: true
+        after_state:
+          readOnly: true
+        ip_address:
+          type: string
+          nullable: true
+        timestamp:
+          type: string
+          format: date-time
+        actor_name:
+          type: string
+          readOnly: true
+        actor_email:
+          type: string
+          readOnly: true
+      required:
+      - action
+      - actor_email
+      - actor_name
+      - after_state
+      - before_state
+      - entity_id
+      - entity_type
+      - id
     AuthMeResponse:
       type: object
       properties:
@@ -3311,6 +3620,7 @@ components:
           maximum: 9223372036854775807
           minimum: -9223372036854775808
           format: int64
+        snapshot_lines: {}
         payment_method:
           $ref: '#/components/schemas/PaymentMethodEnum'
         amount_tendered_paise:
@@ -3359,6 +3669,7 @@ components:
           maximum: 9223372036854775807
           minimum: -9223372036854775808
           format: int64
+        snapshot_lines: {}
         payment_method:
           $ref: '#/components/schemas/PaymentMethodEnum'
         amount_tendered_paise:
@@ -3914,6 +4225,20 @@ components:
       description: |-
         * `EN` - English
         * `EN_TA` - English and Tamil
+    EventTypeEnum:
+      enum:
+      - CREATED
+      - STATUS_CHANGED
+      - ITEM_FIRED
+      - CANCELLED
+      - COMPLETED
+      type: string
+      description: |-
+        * `CREATED` - Order Created
+        * `STATUS_CHANGED` - Status Changed
+        * `ITEM_FIRED` - Item Fired
+        * `CANCELLED` - Order Cancelled
+        * `COMPLETED` - Order Completed
     FoodTypeEnum:
       enum:
       - VEG
@@ -3981,6 +4306,10 @@ components:
           type: string
           format: uuid
           readOnly: true
+        order_number:
+          type: string
+          description: Unique human-readable order identifier
+          maxLength: 64
         branch_id:
           type: string
           format: uuid
@@ -4026,6 +4355,10 @@ components:
     KDSTicketRequest:
       type: object
       properties:
+        order_number:
+          type: string
+          description: Unique human-readable order identifier
+          maxLength: 64
         order_workflow:
           $ref: '#/components/schemas/OrderWorkflowDafEnum'
         token_number:
@@ -4188,6 +4521,17 @@ components:
       - tenant_name
       - tenant_slug
       - tenant_status
+    MembershipSummaryRequest:
+      type: object
+      properties:
+        role:
+          type: string
+          minLength: 1
+          maxLength: 32
+        is_active:
+          type: boolean
+      required:
+      - role
     MenuCategory:
       type: object
       properties:
@@ -4546,6 +4890,10 @@ components:
           type: string
           format: uuid
           readOnly: true
+        order_number:
+          type: string
+          description: Unique human-readable order identifier
+          maxLength: 64
         branch_id:
           type: string
           format: uuid
@@ -4587,16 +4935,63 @@ components:
           items:
             $ref: '#/components/schemas/OrderItem'
           readOnly: true
+        events:
+          type: array
+          items:
+            $ref: '#/components/schemas/OrderEvent'
+          readOnly: true
         total_paise:
           type: integer
           readOnly: true
       required:
       - branch_id
+      - events
       - id
       - items
       - table_label
       - table_session_id
       - total_paise
+    OrderEvent:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        event_type:
+          $ref: '#/components/schemas/EventTypeEnum'
+        from_status:
+          type: string
+          maxLength: 20
+        to_status:
+          type: string
+          maxLength: 20
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        user_name:
+          type: string
+          readOnly: true
+        notes:
+          type: string
+      required:
+      - created_at
+      - id
+      - user_name
+    OrderEventRequest:
+      type: object
+      properties:
+        event_type:
+          $ref: '#/components/schemas/EventTypeEnum'
+        from_status:
+          type: string
+          maxLength: 20
+        to_status:
+          type: string
+          maxLength: 20
+        notes:
+          type: string
     OrderItem:
       type: object
       properties:
@@ -4704,6 +5099,10 @@ components:
     OrderRequest:
       type: object
       properties:
+        order_number:
+          type: string
+          description: Unique human-readable order identifier
+          maxLength: 64
         order_workflow:
           $ref: '#/components/schemas/OrderWorkflowDafEnum'
         token_number:
@@ -4751,6 +5150,52 @@ components:
         * `COUNTER_TOKEN` - Counter Token
         * `ROOM_SERVICE` - Room Service
         * `BAR_TAB` - Bar Tab
+    PaginatedAuditLogList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/AuditLog'
+    PaginatedBillInvoiceList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/BillInvoice'
     PaginatedBranchItemAvailabilityList:
       type: object
       required:
@@ -5142,6 +5587,26 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/Tenant'
+    PatchedAuthMeResponseRequest:
+      type: object
+      properties:
+        memberships:
+          type: array
+          items:
+            $ref: '#/components/schemas/MembershipSummaryRequest'
+        active_tenant_id:
+          type: string
+          format: uuid
+          nullable: true
+        active_role:
+          type: string
+          nullable: true
+          minLength: 1
+        permissions:
+          type: array
+          items:
+            type: string
+            minLength: 1
     PatchedBranchCapabilitiesRequest:
       type: object
       properties:
@@ -5382,6 +5847,10 @@ components:
     PatchedOrderRequest:
       type: object
       properties:
+        order_number:
+          type: string
+          description: Unique human-readable order identifier
+          maxLength: 64
         order_workflow:
           $ref: '#/components/schemas/OrderWorkflowDafEnum'
         token_number:
@@ -5493,14 +5962,12 @@ components:
       - UPI
       - CARD
       - ROOM_FOLIO
-      - SPLIT
       type: string
       description: |-
         * `CASH` - Cash
         * `UPI` - UPI QR
         * `CARD` - Debit / Credit Card
         * `ROOM_FOLIO` - Room Folio Charge
-        * `SPLIT` - Split Tender
     PaymentTiming:
       enum:
       - PAY_FIRST
@@ -5896,6 +6363,10 @@ components:
           type: string
           format: uuid
           readOnly: true
+        branch_id:
+          type: string
+          format: uuid
+          readOnly: true
         table_id:
           type: string
           format: uuid
@@ -5921,6 +6392,7 @@ components:
           format: date-time
           nullable: true
       required:
+      - branch_id
       - id
       - table_id
       - table_label

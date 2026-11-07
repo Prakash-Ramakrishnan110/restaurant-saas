@@ -258,6 +258,7 @@ class AuthMeView(APIView):
     """Returns profile of the authenticated user, all memberships, and permissions for active tenant."""
 
     permission_classes = [IsAuthenticated]
+    serializer_class = AuthMeResponseSerializer
 
     @extend_schema(responses={200: AuthMeResponseSerializer})
     def get(self, request: Request) -> Response:

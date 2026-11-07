@@ -90,7 +90,7 @@ export const FloorPOSPage: React.FC = () => {
 
   // Cart & Pacing
   const [cart, setCart] = useState<CartItem[]>([]);
-  const [holdMains, setHoldMains] = useState<boolean>(false);
+  const [holdMains] = useState<boolean>(false);
   const [orderNotes, setOrderNotes] = useState<string>("");
 
   // Modals
