@@ -6,12 +6,13 @@ import { useAuth } from "../../context/AuthContext";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
 import { Badge } from "../../components/ui/badge";
+import { formatRupees, parseRupees } from "../../utils/currency";
 
 export const ShiftCloseoutPage: React.FC = () => {
   const navigate = useNavigate();
   const { user, activeTenant } = useAuth();
 
-  const [openingCash, setOpeningCash] = useState<string>("2000.00");
+  const [openingCash, setOpeningCash] = useState<string>("2000");
   const [actualCash, setActualCash] = useState<string>("");
   const [invoices, setInvoices] = useState<any[]>([]);
   const [closeoutResult, setCloseoutResult] = useState<any | null>(null);
@@ -37,17 +38,18 @@ export const ShiftCloseoutPage: React.FC = () => {
     .filter((inv) => inv.payment_method === "CARD")
     .reduce((sum, inv) => sum + inv.total_paise, 0);
 
-  const expectedCashTotal = parseFloat(openingCash || "0") * 100 + cashTotal;
+  const openingPaise = parseRupees(openingCash);
+  const expectedCashTotal = openingPaise + cashTotal;
 
   const handlePerformCloseout = () => {
     setSubmitting(true);
-    const countedPaise = Math.round(parseFloat(actualCash || "0") * 100);
+    const countedPaise = parseRupees(actualCash);
     const variancePaise = countedPaise - expectedCashTotal;
 
     setCloseoutResult({
       timestamp: new Date().toLocaleString(),
       cashier: user?.full_name || "Cashier",
-      opening_cash_paise: parseFloat(openingCash) * 100,
+      opening_cash_paise: openingPaise,
       cash_sales_paise: cashTotal,
       expected_cash_paise: expectedCashTotal,
       actual_cash_paise: countedPaise,
@@ -164,13 +166,13 @@ export const ShiftCloseoutPage: React.FC = () => {
               <div className="flex justify-between py-1 border-b border-border/60">
                 <span className="text-muted-foreground">Expected Drawer Cash:</span>
                 <span className="font-mono font-bold">
-                  ₹{(closeoutResult.expected_cash_paise / 100).toFixed(2)}
+                  {formatRupees(closeoutResult.expected_cash_paise)}
                 </span>
               </div>
               <div className="flex justify-between py-1 border-b border-border/60">
                 <span className="text-muted-foreground">Actual Counted Cash:</span>
                 <span className="font-mono font-bold text-foreground">
-                  ₹{(closeoutResult.actual_cash_paise / 100).toFixed(2)}
+                  {formatRupees(closeoutResult.actual_cash_paise)}
                 </span>
               </div>
               <div className="flex justify-between py-1 border-b border-border/60">
@@ -178,26 +180,25 @@ export const ShiftCloseoutPage: React.FC = () => {
                 <span
                   className={`font-mono font-extrabold ${closeoutResult.variance_paise === 0 ? "text-emerald-600" : "text-destructive"}`}
                 >
-                  {closeoutResult.variance_paise >= 0 ? "+" : ""}₹
-                  {(closeoutResult.variance_paise / 100).toFixed(2)}
+                  {formatRupees(closeoutResult.variance_paise)}
                 </span>
               </div>
               <div className="flex justify-between py-1 border-b border-border/60">
                 <span className="text-muted-foreground">UPI Digital Sales:</span>
                 <span className="font-mono font-bold">
-                  ₹{(closeoutResult.upi_total_paise / 100).toFixed(2)}
+                  {formatRupees(closeoutResult.upi_total_paise)}
                 </span>
               </div>
               <div className="flex justify-between py-1 border-b border-border/60">
                 <span className="text-muted-foreground">Card Sales:</span>
                 <span className="font-mono font-bold">
-                  ₹{(closeoutResult.card_total_paise / 100).toFixed(2)}
+                  {formatRupees(closeoutResult.card_total_paise)}
                 </span>
               </div>
               <div className="flex justify-between pt-2 text-sm font-extrabold text-foreground">
                 <span>Total Shift Net Revenue:</span>
                 <span className="font-mono text-base text-[#FF6A00]">
-                  ₹{(closeoutResult.total_shift_paise / 100).toFixed(2)}
+                  {formatRupees(closeoutResult.total_shift_paise)}
                 </span>
               </div>
             </div>

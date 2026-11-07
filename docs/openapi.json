@@ -3301,18 +3301,6 @@ components:
           maximum: 9223372036854775807
           minimum: -9223372036854775808
           format: int64
-        cgst_paise:
-          type: integer
-          maximum: 9223372036854775807
-          minimum: -9223372036854775808
-          format: int64
-          description: 2.5% Central GST in paise
-        sgst_paise:
-          type: integer
-          maximum: 9223372036854775807
-          minimum: -9223372036854775808
-          format: int64
-          description: 2.5% State GST in paise
         discount_paise:
           type: integer
           maximum: 9223372036854775807
@@ -3361,18 +3349,6 @@ components:
           maximum: 9223372036854775807
           minimum: -9223372036854775808
           format: int64
-        cgst_paise:
-          type: integer
-          maximum: 9223372036854775807
-          minimum: -9223372036854775808
-          format: int64
-          description: 2.5% Central GST in paise
-        sgst_paise:
-          type: integer
-          maximum: 9223372036854775807
-          minimum: -9223372036854775808
-          format: int64
-          description: 2.5% State GST in paise
         discount_paise:
           type: integer
           maximum: 9223372036854775807

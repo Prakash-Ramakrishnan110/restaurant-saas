@@ -75,6 +75,7 @@ class Permission:
     INVOICE_REFUND = "invoice.refund"
     REPORT_VIEW = "report.view"
     PRINTER_REPRINT = "printer.reprint"
+    AUDIT_VIEW = "audit.view"
 
     # Platform Admin
     PLATFORM_ADMIN = "platform.admin"

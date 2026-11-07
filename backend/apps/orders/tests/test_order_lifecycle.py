@@ -150,8 +150,8 @@ def test_create_order_rejects_sold_out_item(orders_env):
 
 
 @pytest.mark.django_db
-def test_bill_calculation_and_gst_exclusive(orders_env):
-    """Verifies 5% GST computation (2.5% CGST + 2.5% SGST) for exclusive tax mode."""
+def test_bill_calculation_and_pure_sum(orders_env):
+    """Verifies bill calculation is authoritative sum of lines without tax pending accountant."""
     env = orders_env
     create_order(
         branch=env["branch_a"],
@@ -163,11 +163,9 @@ def test_bill_calculation_and_gst_exclusive(orders_env):
         ],
     )
     bill = calculate_bill(env["session"])
-    assert bill["net_subtotal_paise"] == 45000
-    assert bill["cgst_paise"] == 1125  # 2.5% of 45000
-    assert bill["sgst_paise"] == 1125  # 2.5% of 45000
-    assert bill["total_tax_paise"] == 2250
-    assert bill["total_paise"] == 47250
+    assert bill["subtotal_paise"] == 45000
+    assert bill["total_paise"] == 45000
+    assert "tax" not in str(bill).lower()
 
 
 @pytest.mark.django_db
@@ -189,8 +187,8 @@ def test_bill_settlement_and_table_turnover(orders_env):
         user_membership=env["m_owner"],
     )
     assert invoice.is_settled is True
-    assert invoice.total_paise == 36750  # 35000 + 1750 (5% GST)
-    assert invoice.change_due_paise == 3250
+    assert invoice.total_paise == 35000  # pure sum of lines, zero tax
+    assert invoice.change_due_paise == 5000
     assert env["session"].status == "CLOSED"
 
     env["table_1"].refresh_from_db()

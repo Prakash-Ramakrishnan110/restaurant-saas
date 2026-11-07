@@ -322,12 +322,10 @@ async function setupOperationsMock(
           table_label: "T2",
           subtotal_paise: 52000,
           discount_paise: 0,
-          cgst_paise: 1300,
-          sgst_paise: 1300,
-          total_paise: 54600,
+          total_paise: 52000,
           payment_method: "CASH",
           amount_tendered_paise: 55000,
-          change_due_paise: 400,
+          change_due_paise: 3000,
           is_settled: true,
           settled_at: new Date().toISOString(),
           notes: "",
@@ -342,11 +340,8 @@ async function setupOperationsMock(
         table_label: "T2",
         session_code: "SES-102",
         items_count: 2,
-        net_subtotal_paise: 52000,
-        cgst_paise: 1300,
-        sgst_paise: 1300,
-        total_tax_paise: 2600,
-        total_paise: 54600,
+        subtotal_paise: 52000,
+        total_paise: 52000,
         items: [
           {
             item_name: "Paneer Tikka Angare",
@@ -580,19 +575,18 @@ test.describe("Production Operational & Sidebar Suite", () => {
     }
 
     // Bill calculation card
-    await expect(page.getByText("Net Subtotal:")).toBeVisible();
-    await expect(page.getByText("CGST (2.5%):")).toBeVisible();
-    await expect(page.getByText("₹520.00")).toBeVisible(); // Net Subtotal
-    await expect(page.getByText("₹13.00").first()).toBeVisible(); // CGST
-    await expect(page.getByText("₹546.00").first()).toBeVisible(); // Total
+    await expect(page.getByText("Subtotal:")).toBeVisible();
+    await expect(page.getByText("₹520.00").first()).toBeVisible(); // Subtotal
+    await expect(page.getByText("Grand Total:")).toBeVisible();
 
     // Settle Bill with Cash
-    const settleBtn = page.getByRole("button", { name: /Settle & Print Tax Invoice/i });
+    const settleBtn = page.getByRole("button", { name: /Settle & Print Receipt/i });
     await expect(settleBtn).toBeVisible();
     await settleBtn.click();
 
     // Verify 80mm Thermal Receipt Dialog appears
-    await expect(page.getByText(/Tax Invoice INV-2026-5001/i)).toBeVisible();
+    await expect(page.getByText(/Receipt INV-2026-5001/i)).toBeVisible();
+    await expect(page.getByText("DEMO RECEIPT - NOT A TAX INVOICE")).toBeVisible();
     await expect(page.getByText("GST Tax Invoice", { exact: true })).toBeVisible();
     await expect(page.getByRole("button", { name: "Print 80mm Receipt" })).toBeVisible();
   });

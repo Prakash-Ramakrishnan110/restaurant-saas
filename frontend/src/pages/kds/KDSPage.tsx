@@ -110,6 +110,20 @@ export const KDSPage: React.FC = () => {
           </div>
 
           <Button
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              setSoundEnabled(true);
+              playChime();
+            }}
+            className="h-8 px-2.5 text-xs font-semibold gap-1.5"
+            data-testid="start-sound-btn"
+          >
+            <Volume2 className="h-3.5 w-3.5 text-[#FF6A00]" />
+            Start Sound
+          </Button>
+
+          <Button
             variant="ghost"
             size="sm"
             onClick={() => setSoundEnabled(!soundEnabled)}

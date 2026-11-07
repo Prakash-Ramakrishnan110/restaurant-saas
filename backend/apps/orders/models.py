@@ -32,7 +32,6 @@ class PaymentMethod(models.TextChoices):
     UPI = "UPI", "UPI QR"
     CARD = "CARD", "Debit / Credit Card"
     ROOM_FOLIO = "ROOM_FOLIO", "Room Folio Charge"
-    SPLIT = "SPLIT", "Split Tender"
 
 
 class ServiceRequestType(models.TextChoices):
@@ -57,6 +56,13 @@ class Order(BranchOwnedModel):
         blank=True,
         on_delete=models.SET_NULL,
         related_name="orders",
+    )
+    order_number = models.CharField(
+        max_length=64,
+        blank=True,
+        default="",
+        db_index=True,
+        help_text="Unique human-readable order identifier",
     )
     order_workflow = models.CharField(
         max_length=30,
@@ -160,8 +166,47 @@ class OrderItem(UUIDModel, TimeStampedModel):
         return f"{self.quantity}x {self.item_name} ({self.subtotal_paise} paise)"
 
 
+class OrderEventType(models.TextChoices):
+    CREATED = "CREATED", "Order Created"
+    STATUS_CHANGED = "STATUS_CHANGED", "Status Changed"
+    ITEM_FIRED = "ITEM_FIRED", "Item Fired"
+    CANCELLED = "CANCELLED", "Order Cancelled"
+    COMPLETED = "COMPLETED", "Order Completed"
+
+
+class OrderEvent(BranchOwnedModel):
+    """Immutable audit trail for order lifecycle transitions."""
+
+    order = models.ForeignKey(
+        Order,
+        on_delete=models.CASCADE,
+        related_name="events",
+    )
+    event_type = models.CharField(
+        max_length=30,
+        choices=OrderEventType.choices,
+        default=OrderEventType.CREATED,
+    )
+    from_status = models.CharField(max_length=20, blank=True, default="")
+    to_status = models.CharField(max_length=20, blank=True, default="")
+    user = models.ForeignKey(
+        "accounts.Membership",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="order_events",
+    )
+    notes = models.TextField(blank=True, default="")
+
+    class Meta:
+        ordering = ["created_at"]
+
+    def __str__(self) -> str:
+        return f"Event {self.event_type} on Order {str(self.order_id)[:8]}"
+
+
 class BillInvoice(BranchOwnedModel):
-    """Commercial tax invoice generated upon session checkout."""
+    """Invoice generated upon session checkout."""
 
     table_session = models.ForeignKey(
         "venues.TableSession",
@@ -172,10 +217,9 @@ class BillInvoice(BranchOwnedModel):
     )
     invoice_number = models.CharField(max_length=64, db_index=True)
     subtotal_paise = models.BigIntegerField(default=0)
-    cgst_paise = models.BigIntegerField(default=0, help_text="2.5% Central GST in paise")
-    sgst_paise = models.BigIntegerField(default=0, help_text="2.5% State GST in paise")
     discount_paise = models.BigIntegerField(default=0)
     total_paise = models.BigIntegerField(default=0)
+    snapshot_lines = models.JSONField(default=list, blank=True)
     payment_method = models.CharField(
         max_length=20,
         choices=PaymentMethod.choices,
@@ -202,7 +246,7 @@ class BillInvoice(BranchOwnedModel):
         ]
 
     def __str__(self) -> str:
-        return f"Invoice {self.invoice_number} - ₹{self.total_paise / 100:.2f}"
+        return f"Invoice {self.invoice_number} ({self.total_paise} paise)"
 
 
 class CashierShiftCloseout(BranchOwnedModel):

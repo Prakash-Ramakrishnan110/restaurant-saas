@@ -110,6 +110,14 @@ export const App: React.FC = () => {
                 }
               />
               <Route
+                path="/orders/floor"
+                element={
+                  <ProtectedRoute>
+                    <FloorPOSPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
                 path="/orders"
                 element={
                   <ProtectedRoute>
@@ -126,7 +134,23 @@ export const App: React.FC = () => {
                 }
               />
               <Route
+                path="/orders/kds"
+                element={
+                  <ProtectedRoute>
+                    <KDSPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
                 path="/billing"
+                element={
+                  <ProtectedRoute>
+                    <BillingPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/orders/billing"
                 element={
                   <ProtectedRoute>
                     <BillingPage />

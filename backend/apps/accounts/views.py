@@ -292,6 +292,27 @@ class AuthMeView(APIView):
             }
         )
 
+    @extend_schema(responses={200: AuthMeResponseSerializer})
+    def patch(self, request: Request) -> Response:
+        user = request.user
+        assert user.is_authenticated
+
+        update_fields = []
+        if "full_name" in request.data:
+            val = str(request.data["full_name"]).strip()
+            if val:
+                user.full_name = val
+                update_fields.append("full_name")
+
+        if "phone" in request.data:
+            user.phone = str(request.data["phone"]).strip()
+            update_fields.append("phone")
+
+        if update_fields:
+            user.save(update_fields=update_fields)
+
+        return self.get(request)
+
 
 class ChangePasswordView(APIView):
     """Authenticated endpoint to change password, revoke prior sessions, and issue fresh access token."""

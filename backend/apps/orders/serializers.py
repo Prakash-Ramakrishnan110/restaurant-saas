@@ -5,6 +5,7 @@ from apps.orders.models import (
     BillInvoice,
     CourseType,
     Order,
+    OrderEvent,
     OrderItem,
     OrderWorkflow,
     PaymentMethod,
@@ -31,8 +32,30 @@ class OrderItemSerializer(serializers.ModelSerializer[OrderItem]):
         ]
 
 
+class OrderEventSerializer(serializers.ModelSerializer[OrderEvent]):
+    user_name = serializers.SerializerMethodField()
+
+    class Meta:
+        model = OrderEvent
+        fields = [
+            "id",
+            "event_type",
+            "from_status",
+            "to_status",
+            "created_at",
+            "user_name",
+            "notes",
+        ]
+
+    def get_user_name(self, obj: OrderEvent) -> str:
+        if obj.user and getattr(obj.user, "user", None):
+            return obj.user.user.full_name
+        return "System"
+
+
 class OrderSerializer(serializers.ModelSerializer[Order]):
     items = OrderItemSerializer(many=True, read_only=True)
+    events = OrderEventSerializer(many=True, read_only=True)
     table_label = serializers.SerializerMethodField()
     total_paise = serializers.ReadOnlyField()
 
@@ -40,6 +63,7 @@ class OrderSerializer(serializers.ModelSerializer[Order]):
         model = Order
         fields = [
             "id",
+            "order_number",
             "branch_id",
             "table_session_id",
             "table_label",
@@ -51,6 +75,7 @@ class OrderSerializer(serializers.ModelSerializer[Order]):
             "served_at",
             "notes",
             "items",
+            "events",
             "total_paise",
         ]
 
@@ -90,6 +115,7 @@ class KDSTicketSerializer(serializers.ModelSerializer[Order]):
         model = Order
         fields = [
             "id",
+            "order_number",
             "branch_id",
             "table_session_id",
             "table_label",
@@ -127,10 +153,9 @@ class BillInvoiceSerializer(serializers.ModelSerializer[BillInvoice]):
             "table_label",
             "invoice_number",
             "subtotal_paise",
-            "cgst_paise",
-            "sgst_paise",
             "discount_paise",
             "total_paise",
+            "snapshot_lines",
             "payment_method",
             "amount_tendered_paise",
             "change_due_paise",
@@ -149,8 +174,8 @@ class SettleBillSerializer(serializers.Serializer):
     payment_method = serializers.ChoiceField(
         choices=PaymentMethod.choices, default=PaymentMethod.CASH
     )
-    amount_tendered_paise = serializers.IntegerField(required=False, allow_null=True)
-    discount_paise = serializers.IntegerField(required=False, default=0)
+    amount_tendered_paise = serializers.IntegerField(required=False, min_value=0)
+    discount_paise = serializers.IntegerField(required=False, default=0, min_value=0)
     notes = serializers.CharField(required=False, allow_blank=True, default="")
 
 
@@ -161,6 +186,7 @@ class ServiceRequestSerializer(serializers.ModelSerializer[ServiceRequest]):
         model = ServiceRequest
         fields = [
             "id",
+            "branch_id",
             "table_id",
             "table_session_id",
             "table_label",
@@ -171,13 +197,4 @@ class ServiceRequestSerializer(serializers.ModelSerializer[ServiceRequest]):
         ]
 
     def get_table_label(self, obj: ServiceRequest) -> str:
-        if obj.table:
-            return obj.table.label
-        return "N/A"
-
-
-class CreateServiceRequestSerializer(serializers.Serializer):
-    table_id = serializers.UUIDField()
-    request_type = serializers.ChoiceField(
-        choices=ServiceRequestType.choices, default=ServiceRequestType.CALL_WAITER
-    )
+        return obj.table.label if obj.table else "N/A"

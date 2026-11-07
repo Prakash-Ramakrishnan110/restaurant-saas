@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from "react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetFooter } from "../ui/sheet";
 import { Button } from "../ui/button";
@@ -70,7 +71,7 @@ export const ItemEditorSheet: React.FC<ItemEditorSheetProps> = ({
       setNameTa(item.name_ta || "");
       setDescription(item.description || "");
       setDescriptionTa(item.description_ta || "");
-      setPriceRupees(item.base_price_paise ? String(item.base_price_paise / 100) : "");
+      setPriceRupees(item.base_price_paise ? String(Math.trunc(item.base_price_paise / 100)) : "");
       setFoodType(item.food_type || "VEG");
       setPrepMinutes(item.prep_minutes ? String(item.prep_minutes) : "");
       setIsBestseller(Boolean(item.is_bestseller));
@@ -87,7 +88,7 @@ export const ItemEditorSheet: React.FC<ItemEditorSheetProps> = ({
             id: v.id,
             name: v.name,
             name_ta: v.name_ta || "",
-            price_rupees: String(v.price_paise / 100),
+            price_rupees: String(Math.trunc(v.price_paise / 100)),
             is_default: Boolean(v.is_default),
           }))
         );

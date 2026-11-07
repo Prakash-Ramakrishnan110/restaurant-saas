@@ -1,12 +1,14 @@
 from typing import Any
 
+from django.db.models import Q
 from django.utils import timezone
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
-from rest_framework.exceptions import NotFound, ValidationError
+from rest_framework.exceptions import NotFound, PermissionDenied, ValidationError
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.request import Request
 from rest_framework.response import Response
+from rest_framework.views import APIView
 
 from apps.accounts.models import Membership
 from apps.orders.models import (
@@ -23,7 +25,6 @@ from apps.orders.models import (
 from apps.orders.serializers import (
     BillInvoiceSerializer,
     CreateOrderSerializer,
-    CreateServiceRequestSerializer,
     KDSTicketSerializer,
     OrderSerializer,
     ServiceRequestSerializer,
@@ -32,16 +33,19 @@ from apps.orders.serializers import (
 from apps.orders.services import (
     calculate_bill,
     create_order,
+    get_today_report,
     settle_bill,
+    settle_order_bill,
+    transition_order_status,
 )
 from apps.rbac.constants import Permission
-from apps.rbac.permissions import ActionPermission
+from apps.rbac.permissions import ActionPermission, HasTenantPermission
 from apps.tenants.models import Branch
 from apps.venues.models import DiningTable, TableSession
 
 
 class OrderViewSet(viewsets.ModelViewSet):
-    """Production ViewSet for placing, tracking, and cancelling orders."""
+    """Production ViewSet for placing, tracking, serving, and cancelling orders."""
 
     serializer_class = OrderSerializer
     permission_classes = [IsAuthenticated, ActionPermission]
@@ -50,6 +54,7 @@ class OrderViewSet(viewsets.ModelViewSet):
         "retrieve": Permission.MENU_VIEW,
         "create": Permission.ORDER_CREATE,
         "cancel": Permission.ORDER_CANCEL,
+        "serve": Permission.ORDER_CREATE,
         "fire_mains": Permission.ORDER_CREATE,
     }
 
@@ -59,8 +64,8 @@ class OrderViewSet(viewsets.ModelViewSet):
             return Order.objects.none()
         qs = (
             Order.objects.filter(tenant=tenant)
-            .select_related("table_session__table", "branch")
-            .prefetch_related("items")
+            .select_related("table_session__table", "branch", "placed_by__user")
+            .prefetch_related("items", "events__user__user")
         )
 
         branch_id = self.request.query_params.get("branch_id")
@@ -71,9 +76,27 @@ class OrderViewSet(viewsets.ModelViewSet):
         if status_param:
             qs = qs.filter(status=status_param)
 
+        workflow = self.request.query_params.get("workflow") or self.request.query_params.get(
+            "order_workflow"
+        )
+        if workflow:
+            qs = qs.filter(order_workflow=workflow)
+
         session_id = self.request.query_params.get("session_id")
         if session_id:
             qs = qs.filter(table_session_id=session_id)
+
+        date_param = self.request.query_params.get("date")
+        if date_param:
+            qs = qs.filter(placed_at__date=date_param)
+
+        q = self.request.query_params.get("q")
+        if q:
+            qs = qs.filter(
+                Q(order_number__icontains=q)
+                | Q(table_session__table__label__icontains=q)
+                | Q(token_number__icontains=q)
+            )
 
         return qs
 
@@ -121,12 +144,29 @@ class OrderViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=["post"], url_path="cancel")
     def cancel(self, request: Request, pk: str | None = None) -> Response:
+        membership = getattr(request, "membership", None)
+        role = getattr(membership, "role", "")
+        if role not in ["OWNER", "BRANCH_MANAGER"] and not getattr(
+            request.user, "is_platform_admin", False
+        ):
+            raise PermissionDenied("Only an Owner or Branch Manager can cancel an order.")
+
+        reason = str(request.data.get("reason", "")).strip()
+        if not reason:
+            raise ValidationError({"reason": "A cancellation reason is required."})
+
         order = self.get_object()
-        if order.status in [OrderStatus.COMPLETED, OrderStatus.CANCELLED]:
-            raise ValidationError({"status": f"Cannot cancel order in status '{order.status}'."})
-        order.status = OrderStatus.CANCELLED
-        order.save(update_fields=["status"])
+        transition_order_status(
+            order, OrderStatus.CANCELLED, user_membership=membership, reason=reason
+        )
         return Response({"status": "CANCELLED", "order_id": str(order.id)})
+
+    @action(detail=True, methods=["post"], url_path="serve")
+    def serve(self, request: Request, pk: str | None = None) -> Response:
+        membership = getattr(request, "membership", None)
+        order = self.get_object()
+        transition_order_status(order, OrderStatus.SERVED, user_membership=membership)
+        return Response({"status": "SERVED", "order_id": str(order.id)})
 
     @action(detail=True, methods=["post"], url_path="fire-mains")
     def fire_mains(self, request: Request, pk: str | None = None) -> Response:
@@ -170,23 +210,23 @@ class KDSViewSet(viewsets.ReadOnlyModelViewSet):
     @action(detail=True, methods=["post"], url_path="bump")
     def bump(self, request: Request, pk: str | None = None) -> Response:
         order = self.get_object()
-        if order.status == OrderStatus.PLACED:
-            order.status = OrderStatus.PREPARING
-        elif order.status == OrderStatus.PREPARING:
-            order.status = OrderStatus.READY
-            order.ready_at = timezone.now()
-        elif order.status == OrderStatus.READY:
-            order.status = OrderStatus.SERVED
-            order.served_at = timezone.now()
-        else:
-            raise ValidationError({"status": f"Order in status '{order.status}' cannot be bumped."})
+        membership = getattr(request, "membership", None)
 
-        order.save()
+        if order.status == OrderStatus.PLACED:
+            next_status = OrderStatus.PREPARING
+        elif order.status == OrderStatus.PREPARING:
+            next_status = OrderStatus.READY
+        elif order.status == OrderStatus.READY:
+            next_status = OrderStatus.SERVED
+        else:
+            next_status = OrderStatus.COMPLETED
+
+        transition_order_status(order, next_status, user_membership=membership)
         return Response({"order_id": str(order.id), "status": order.status})
 
 
 class BillingViewSet(viewsets.ViewSet):
-    """Cashier billing, split payment, and invoice generation."""
+    """Cashier billing and table session checkout."""
 
     serializer_class = BillInvoiceSerializer
     permission_classes = [IsAuthenticated]
@@ -235,6 +275,33 @@ class BillingViewSet(viewsets.ViewSet):
         out_serializer = BillInvoiceSerializer(invoice)
         return Response(out_serializer.data, status=status.HTTP_201_CREATED)
 
+    @action(detail=False, methods=["post"], url_path="order/(?P<order_id>[^/.]+)/settle")
+    def settle_order(self, request: Request, order_id: str | None = None) -> Response:
+        tenant = getattr(request, "tenant", None)
+        order = Order.objects.filter(tenant=tenant, id=order_id).first()
+        if not order:
+            raise NotFound("Order not found.")
+
+        serializer = SettleBillSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        data = serializer.validated_data
+
+        membership = Membership.objects.filter(
+            tenant=tenant, user_id=request.user.pk, is_active=True
+        ).first()
+
+        invoice = settle_order_bill(
+            order=order,
+            payment_method=data.get("payment_method", PaymentMethod.CASH),
+            amount_tendered_paise=data.get("amount_tendered_paise"),
+            user_membership=membership,
+            discount_paise=data.get("discount_paise", 0),
+            notes=data.get("notes", ""),
+        )
+
+        out_serializer = BillInvoiceSerializer(invoice)
+        return Response(out_serializer.data, status=status.HTTP_201_CREATED)
+
     @action(detail=False, methods=["get"], url_path="invoices")
     def list_invoices(self, request: Request) -> Response:
         tenant = getattr(request, "tenant", None)
@@ -245,6 +312,64 @@ class BillingViewSet(viewsets.ViewSet):
         )
         serializer = BillInvoiceSerializer(qs, many=True)
         return Response(serializer.data)
+
+
+class InvoiceViewSet(viewsets.ReadOnlyModelViewSet):
+    """Authoritative Invoices directory and detail endpoint."""
+
+    serializer_class = BillInvoiceSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        tenant = getattr(self.request, "tenant", None)
+        if not tenant:
+            return BillInvoice.objects.none()
+
+        qs = (
+            BillInvoice.objects.filter(tenant=tenant)
+            .select_related("table_session__table", "branch", "settled_by__user")
+            .order_by("-created_at")
+        )
+
+        date_param = self.request.query_params.get("date")
+        if date_param:
+            qs = qs.filter(settled_at__date=date_param)
+
+        method = self.request.query_params.get("payment_method")
+        if method:
+            qs = qs.filter(payment_method=method)
+
+        q = self.request.query_params.get("q")
+        if q:
+            qs = qs.filter(
+                Q(invoice_number__icontains=q)
+                | Q(table_session__table__label__icontains=q)
+                | Q(notes__icontains=q)
+            )
+
+        return qs
+
+
+class TodayReportView(APIView):
+    """GET /api/v1/reports/today/ returning sales, orders, and payment totals."""
+
+    permission_classes = [IsAuthenticated, HasTenantPermission(Permission.REPORT_VIEW)]
+
+    def get(self, request: Request) -> Response:
+        tenant = getattr(request, "tenant", None)
+        if not tenant:
+            return Response({"error": "Tenant context required."}, status=400)
+
+        membership = getattr(request, "membership", None)
+        branch = None
+        branch_id = request.query_params.get("branch_id")
+        if branch_id:
+            branch = Branch.objects.filter(tenant=tenant, id=branch_id).first()
+        elif membership and membership.branches.exists():
+            branch = membership.branches.first()
+
+        report = get_today_report(tenant, branch=branch)
+        return Response(report)
 
 
 class ServiceRequestViewSet(viewsets.ModelViewSet):
@@ -264,11 +389,8 @@ class ServiceRequestViewSet(viewsets.ModelViewSet):
         return qs
 
     def create(self, request: Request, *args: Any, **kwargs: Any) -> Response:
-        serializer = CreateServiceRequestSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        data = serializer.validated_data
-
-        table = DiningTable.objects.filter(id=data["table_id"]).first()
+        table_id = request.data.get("table_id")
+        table = DiningTable.objects.filter(id=table_id).first()
         if not table:
             raise ValidationError({"table_id": "Table not found."})
 
@@ -279,7 +401,7 @@ class ServiceRequestViewSet(viewsets.ModelViewSet):
             branch=table.branch,
             table=table,
             table_session=session,
-            request_type=data.get("request_type", ServiceRequestType.CALL_WAITER),
+            request_type=request.data.get("request_type", ServiceRequestType.CALL_WAITER),
             status=ServiceRequestStatus.PENDING,
         )
 

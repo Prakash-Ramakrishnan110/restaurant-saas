@@ -58,6 +58,24 @@ Phase 2: Payment Gateways (Razorpay/Stripe), Push Real-Time SSE, and Multi-Branc
 ### Epic 5: Cashier Billing & Payment Settlement (Pilot 1)
 - **STORY-BIL-01**: Bill Splitting & Table Checkout
   - As a cashier, I want to split bills by item or evenly by seat count and apply pre-approved manager discounts.
+  - *Status*: Multi-tender and equal split pay deferred in v0.8.0. Cashier billing operates in full payment settlement mode only.
+
+---
+
+## 3. Scope Trim & Deferred Features (Frozen for v0.8.0 Release)
+
+The following items are trimmed from active user interfaces and deferred to Phase 2:
+1. **Course Firing Management & Hold-Mains Pacing**:
+   - Hidden from POS unless venue explicitly opts in via `capabilities.supports_courses`.
+   - Simplifies ordering flow for quick-service and casual restaurants.
+2. **Customer Call Bell & Waiter Calling Requests**:
+   - Customer-initiated service calls (Water, Napkins, Call Waiter) are hidden from floor POS until the customer web self-ordering pilot launches.
+3. **Multi-Tender Bill Splitting**:
+   - Cashier checkout supports single full payment tender (Cash, UPI QR, Card, Room Folio). Equal item/head splitting is deferred.
+4. **Automated Tax Calculations (CGST/SGST/VAT)**:
+   - Zero hardcoded tax rates or automatic computations. All bills show net totals calculated as the exact sum of server-priced line items.
+   - `BusinessSettings.tax_mode` remains dormant; tax rules will be enabled once confirmed by chartered accountant. Receipts state: `"DEMO RECEIPT - NOT A TAX INVOICE"`.
+
 - **STORY-BIL-02**: Thermal Receipt Printing (ESC/POS)
   - As a cashier, I want one-click receipt generation formatted for 58mm and 80mm thermal receipt printers with GST breakdowns.
 - **STORY-BIL-03**: Cash Drawer & Shift Float Reconciliation

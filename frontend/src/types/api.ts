@@ -1424,16 +1424,6 @@ export interface components {
             invoice_number: string;
             /** Format: int64 */
             subtotal_paise?: number;
-            /**
-             * Format: int64
-             * @description 2.5% Central GST in paise
-             */
-            cgst_paise?: number;
-            /**
-             * Format: int64
-             * @description 2.5% State GST in paise
-             */
-            sgst_paise?: number;
             /** Format: int64 */
             discount_paise?: number;
             /** Format: int64 */
@@ -1452,16 +1442,6 @@ export interface components {
             invoice_number: string;
             /** Format: int64 */
             subtotal_paise?: number;
-            /**
-             * Format: int64
-             * @description 2.5% Central GST in paise
-             */
-            cgst_paise?: number;
-            /**
-             * Format: int64
-             * @description 2.5% State GST in paise
-             */
-            sgst_paise?: number;
             /** Format: int64 */
             discount_paise?: number;
             /** Format: int64 */

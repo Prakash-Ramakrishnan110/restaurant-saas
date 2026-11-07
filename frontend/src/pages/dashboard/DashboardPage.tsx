@@ -11,6 +11,9 @@ import {
   QrCode,
   Users,
   LayoutGrid,
+  IndianRupee,
+  ShoppingBag,
+  Receipt,
 } from "lucide-react";
 import { Button } from "../../components/ui/button";
 import {
@@ -23,7 +26,9 @@ import {
 import { Skeleton } from "../../components/ui/skeleton";
 import { UpgradeModal } from "../../components/app/UpgradeModal";
 import { apiClient } from "../../api/client";
+import { ordersApi } from "../../api/orders";
 import { useAuth } from "../../context/AuthContext";
+import { formatRupees } from "../../utils/currency";
 
 interface EntitlementsResponse {
   plan_name: string;
@@ -68,6 +73,29 @@ interface OnboardingResponse {
   };
 }
 
+interface TodayReportResponse {
+  date: string;
+  sales_paise: number;
+  orders_count: number;
+  settled_invoices_count: number;
+  average_order_value_paise: number;
+  open_orders: number;
+  sales_by_payment_method: Record<string, number>;
+  top_items: Array<{
+    item_name: string;
+    quantity: number;
+    total_paise: number;
+  }>;
+  last_bills: Array<{
+    id: string;
+    invoice_number: string;
+    table_label: string;
+    total_paise: number;
+    payment_method: string;
+    settled_at: string;
+  }>;
+}
+
 export function getUsageMeterColor(
   percentage: number,
   isOverLimit?: boolean
@@ -87,6 +115,7 @@ export const DashboardPage: React.FC = () => {
 
   const [entitlements, setEntitlements] = useState<EntitlementsResponse | null>(null);
   const [onboarding, setOnboarding] = useState<OnboardingResponse | null>(null);
+  const [todayReport, setTodayReport] = useState<TodayReportResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [upgradeOpen, setUpgradeOpen] = useState(false);
   const [overLimitKey, setOverLimitKey] = useState<string>("tables");
@@ -97,9 +126,10 @@ export const DashboardPage: React.FC = () => {
     const fetchDashboardData = async () => {
       setLoading(true);
       try {
-        const [entRes, onbRes] = await Promise.allSettled([
+        const [entRes, onbRes, reportRes] = await Promise.allSettled([
           apiClient.get<EntitlementsResponse>("/entitlements/"),
           apiClient.get<OnboardingResponse>("/onboarding/status/"),
+          ordersApi.getTodayReport(),
         ]);
 
         if (isMounted) {
@@ -108,6 +138,9 @@ export const DashboardPage: React.FC = () => {
           }
           if (onbRes.status === "fulfilled") {
             setOnboarding(onbRes.value.data);
+          }
+          if (reportRes.status === "fulfilled") {
+            setTodayReport(reportRes.value.data as unknown as TodayReportResponse);
           }
         }
       } finally {
@@ -200,7 +233,159 @@ export const DashboardPage: React.FC = () => {
         </div>
       )}
 
-      {/* 2. Onboarding Status Checklist Card */}
+      {/* 2. Today's Operational Sales & Velocity (Owner & Manager View) */}
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <TrendingUp className="h-5 w-5 text-[#FF6A00]" />
+            <h2 className="text-xl font-bold font-heading text-foreground">Today's Sales & Operations</h2>
+          </div>
+          <span className="text-xs text-muted-foreground font-medium">
+            Live updates · {todayReport?.date || new Date().toISOString().split("T")[0]}
+          </span>
+        </div>
+
+        {/* 4 Metric Cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <Card className="border border-border">
+            <CardContent className="p-5">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Today's Sales</span>
+                <div className="p-2 rounded-lg bg-[#FF6A00]/10 text-[#FF6A00]">
+                  <IndianRupee className="h-4 w-4" />
+                </div>
+              </div>
+              <div className="mt-3">
+                <div className="text-2xl font-black font-heading text-foreground" data-testid="metric-today-sales">
+                  {todayReport ? formatRupees(todayReport.sales_paise) : "₹0.00"}
+                </div>
+                <p className="text-xs text-muted-foreground mt-1">
+                  {todayReport?.settled_invoices_count ?? 0} settled bills
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="border border-border">
+            <CardContent className="p-5">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Total Orders</span>
+                <div className="p-2 rounded-lg bg-blue-500/10 text-blue-500">
+                  <ShoppingBag className="h-4 w-4" />
+                </div>
+              </div>
+              <div className="mt-3">
+                <div className="text-2xl font-black font-heading text-foreground" data-testid="metric-today-orders">
+                  {todayReport?.orders_count ?? 0}
+                </div>
+                <p className="text-xs text-muted-foreground mt-1">
+                  {todayReport?.open_orders ?? 0} active in progress
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="border border-border">
+            <CardContent className="p-5">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Avg Order Value</span>
+                <div className="p-2 rounded-lg bg-emerald-500/10 text-emerald-500">
+                  <Receipt className="h-4 w-4" />
+                </div>
+              </div>
+              <div className="mt-3">
+                <div className="text-2xl font-black font-heading text-foreground">
+                  {todayReport ? formatRupees(todayReport.average_order_value_paise) : "₹0.00"}
+                </div>
+                <p className="text-xs text-muted-foreground mt-1">Per settled order</p>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="border border-border">
+            <CardContent className="p-5">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Kitchen Queue</span>
+                <div className="p-2 rounded-lg bg-purple-500/10 text-purple-500">
+                  <Utensils className="h-4 w-4" />
+                </div>
+              </div>
+              <div className="mt-3">
+                <div className="text-2xl font-black font-heading text-foreground">
+                  {todayReport?.open_orders ?? 0}
+                </div>
+                <p className="text-xs text-muted-foreground mt-1">Active tickets pending</p>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* 2 Columns: Payment Breakdown & Top Bestsellers */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <Card className="border border-border">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base font-heading">Sales by Payment Method</CardTitle>
+              <CardDescription>Tender distribution collected today</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {["CASH", "UPI", "CARD"].map((method) => {
+                const paise = todayReport?.sales_by_payment_method?.[method] || 0;
+                const totalPaise = todayReport?.sales_paise || 1;
+                const pct = todayReport?.sales_paise ? Math.round((paise / totalPaise) * 100) : 0;
+                return (
+                  <div key={method} className="space-y-1.5">
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="font-semibold text-foreground">{method}</span>
+                      <span className="font-bold text-foreground">
+                        {formatRupees(paise)} ({pct}%)
+                      </span>
+                    </div>
+                    <div className="w-full bg-muted rounded-full h-2 overflow-hidden">
+                      <div
+                        className="bg-[#FF6A00] h-full rounded-full transition-all"
+                        style={{ width: `${pct}%` }}
+                      />
+                    </div>
+                  </div>
+                );
+              })}
+            </CardContent>
+          </Card>
+
+          <Card className="border border-border">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base font-heading">Top 5 Bestselling Items</CardTitle>
+              <CardDescription>Highest volume dishes ordered today</CardDescription>
+            </CardHeader>
+            <CardContent>
+              {todayReport?.top_items && todayReport.top_items.length > 0 ? (
+                <div className="divide-y divide-border">
+                  {todayReport.top_items.map((item, idx) => (
+                    <div key={idx} className="py-2.5 flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <span className="text-xs font-black w-5 text-muted-foreground">#{idx + 1}</span>
+                        <div>
+                          <p className="text-sm font-semibold text-foreground">{item.item_name}</p>
+                          <p className="text-xs text-muted-foreground">{item.quantity} orders</p>
+                        </div>
+                      </div>
+                      <span className="text-sm font-bold text-foreground">
+                        {formatRupees(item.total_paise)}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="py-8 text-center text-sm text-muted-foreground">
+                  No orders completed yet today.
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+
+      {/* 3. Onboarding Status Checklist Card */}
       <Card className="border border-border">
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between">

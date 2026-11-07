@@ -155,3 +155,27 @@ Every 4xx and 5xx response adheres to this deterministic schema:
 | Refresh endpoint | `/api/v1/auth/refresh/` + `/api/v1/auth/token/refresh/` | Single `/api/v1/auth/refresh/` | Removed duplicate alias so the API surface has one canonical route per operation. |
 | QR deactivation endpoint | `DELETE /api/v1/qr-codes/{id}/` + `POST /api/v1/qr-codes/{id}/deactivate/` | Single `DELETE /api/v1/qr-codes/{id}/` returning `204 No Content` | Removed duplicate POST action; `DELETE` soft-deactivates the QR code (`is_active=False`) and returns 204. |
 | Host PostgreSQL port | `127.0.0.1:5432:5432` | Configurable `127.0.0.1:${POSTGRES_HOST_PORT:-5435}:5432` | Windows host runs native PostgreSQL 15/17/18 services on ports 5432, 5433, and 5434; configurable `POSTGRES_HOST_PORT` (default 5435) binds Docker's PostgreSQL 16 to loopback without conflicting with host OS services. |
+
+
+---
+
+## 7. Orders, Invoices, Reports & Audit Trail Endpoints (v0.8.0)
+
+| Method | Endpoint | Allowed Roles | Description |
+|---|---|---|---|
+| `POST` | `/api/v1/orders/` | OWNER, BRANCH_MANAGER, CASHIER, WAITER | Place kitchen order ticket; authoritative server-side pricing snapshots line items. |
+| `GET` | `/api/v1/orders/` | OWNER, BRANCH_MANAGER, CASHIER, WAITER, KITCHEN | Query orders. Query params: `branch_id`, `status`, `workflow`, `session_id`, `date`, `q`. |
+| `GET` | `/api/v1/orders/{id}/` | OWNER, BRANCH_MANAGER, CASHIER, WAITER, KITCHEN | Retrieve order ticket details, line items, and audit transition events. |
+| `POST` | `/api/v1/orders/{id}/cancel/` | OWNER, BRANCH_MANAGER | Cancel order. Payload requires `{"reason": "..."}`. Logs `OrderEvent`. |
+| `POST` | `/api/v1/orders/{id}/serve/` | OWNER, BRANCH_MANAGER, WAITER | Transition READY order to SERVED. |
+| `GET` | `/api/v1/orders/kds/` | OWNER, BRANCH_MANAGER, KITCHEN | Active KDS kitchen display queue filtered by optional `station`. |
+| `POST` | `/api/v1/orders/kds/{id}/bump/` | OWNER, BRANCH_MANAGER, KITCHEN | Bump bar progression: PLACED -> PREPARING -> READY -> SERVED. |
+| `GET` | `/api/v1/orders/billing/session/{session_id}/` | OWNER, BRANCH_MANAGER, CASHIER | Compute authoritative bill breakdown (subtotal, lines, zero tax). |
+| `POST` | `/api/v1/orders/billing/session/{session_id}/settle/` | OWNER, BRANCH_MANAGER, CASHIER | Settle table session bill, generate sequential invoice, mark session CLOSED, free table. |
+| `POST` | `/api/v1/orders/billing/order/{order_id}/settle/` | OWNER, BRANCH_MANAGER, CASHIER | Settle counter/token order directly. |
+| `GET` | `/api/v1/invoices/` | OWNER, BRANCH_MANAGER, CASHIER | History of settled invoices & receipts. Filters: `date`, `payment_method`, `q`. |
+| `GET` | `/api/v1/invoices/{id}/` | OWNER, BRANCH_MANAGER, CASHIER | Retrieve specific invoice with line item snapshots. |
+| `GET` | `/api/v1/reports/today/` | OWNER, BRANCH_MANAGER | Real-time sales, order counts, payment split, and top 5 items. |
+| `GET` | `/api/v1/audit-logs/` | PLATFORM_ADMIN, OWNER, BRANCH_MANAGER | Sanitized, append-only operational audit trail (passwords & tokens redacted). |
+| `PATCH` | `/api/v1/auth/me/` | Any Authenticated | Self-service profile update (`full_name`, `phone`). |
+| `GET` | `/api/v1/platform/summary/` | PLATFORM_ADMIN only | Platform health, tenant count, plan distribution. Zero tenant-data leakage. |

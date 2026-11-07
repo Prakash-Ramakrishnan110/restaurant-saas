@@ -1,8 +1,11 @@
 from django.http import Http404
+from django.utils import timezone
 from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import extend_schema
 from rest_framework import status
 from rest_framework.decorators import action
+from rest_framework.exceptions import PermissionDenied
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -435,3 +438,40 @@ class BusinessLogoView(APIView):
         response = Response({"logo_url": "", "logo_128_url": ""}, status=status.HTTP_200_OK)
         response["X-Content-Type-Options"] = "nosniff"
         return response
+
+
+class PlatformSummaryView(APIView):
+    """GET /api/v1/platform/summary/ (PLATFORM_ADMIN only; aggregated counts only)."""
+
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request: Request) -> Response:
+        if not getattr(request.user, "is_platform_admin", False):
+            raise PermissionDenied("Only platform administrators can access platform summaries.")
+
+        now = timezone.now()
+        week_ago = now - timezone.timedelta(days=7)
+
+        total_tenants = Tenant.objects.count()
+        active_tenants = Tenant.objects.filter(status=Tenant.Status.ACTIVE).count()
+        suspended_tenants = Tenant.objects.filter(status=Tenant.Status.SUSPENDED).count()
+        new_this_week = Tenant.objects.filter(created_at__gte=week_ago).count()
+
+        from apps.subscriptions.models import Subscription
+
+        plan_counts: dict[str, int] = {}
+        for sub in Subscription.objects.select_related("plan").all():
+            plan_name = sub.plan.name if sub.plan else "Unknown"
+            plan_counts[plan_name] = plan_counts.get(plan_name, 0) + 1
+
+        return Response(
+            {
+                "total_tenants": total_tenants,
+                "active_tenants": active_tenants,
+                "suspended_tenants": suspended_tenants,
+                "new_this_week": new_this_week,
+                "plan_distribution": plan_counts,
+                "api_health": "HEALTHY",
+            }
+        )
+

@@ -27,6 +27,7 @@ import {
   DialogTitle,
   DialogFooter,
 } from "../../components/ui/dialog";
+import { formatRupees } from "../../utils/currency";
 
 interface DiningTableItem {
   id: string;
@@ -342,8 +343,8 @@ export const FloorPOSPage: React.FC = () => {
         </div>
       )}
 
-      {/* Call Bell Alert Bar */}
-      {serviceRequests.length > 0 && (
+      {/* Call Bell Alert Bar - Hidden per scope trim */}
+      {false && serviceRequests.length > 0 && (
         <div className="bg-amber-500 text-white px-4 py-2 flex items-center justify-between text-xs font-bold animate-pulse">
           <div className="flex items-center gap-2">
             <Bell className="h-4 w-4" />
@@ -534,7 +535,7 @@ export const FloorPOSPage: React.FC = () => {
                   </div>
                   <div className="flex items-center justify-between mt-3 pt-2 border-t border-border">
                     <span className="font-extrabold text-sm text-[#FF6A00]">
-                      ₹{(item.base_price_paise / 100).toFixed(2)}
+                      {formatRupees(item.base_price_paise)}
                     </span>
                     <Button
                       size="sm"
@@ -600,7 +601,7 @@ export const FloorPOSPage: React.FC = () => {
                       {line.name}
                     </span>
                     <span className="font-extrabold text-xs text-[#FF6A00]">
-                      ₹{((line.unit_price_paise * line.quantity) / 100).toFixed(2)}
+                      {formatRupees(line.unit_price_paise * line.quantity)}
                     </span>
                   </div>
                   <div className="flex items-center justify-between text-xs">
@@ -648,23 +649,15 @@ export const FloorPOSPage: React.FC = () => {
 
           {/* Footer Controls & Pacing */}
           <div className="pt-3 border-t border-border space-y-3">
-            <div className="flex items-center justify-between">
-              <label className="flex items-center gap-2 text-xs font-semibold cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={holdMains}
-                  onChange={(e) => setHoldMains(e.target.checked)}
-                  className="rounded border-input text-[#FF6A00] focus:ring-[#FF6A00]"
-                />
-                <span>Hold Main Courses (Fire Later)</span>
-              </label>
-              <span className="text-xs text-muted-foreground">{cart.length} items</span>
+            <div className="flex items-center justify-between text-xs text-muted-foreground">
+              <span>{cart.length} item(s) in cart</span>
+              <span className="text-[11px] font-medium">Server calculates final bill</span>
             </div>
 
             <div className="flex items-center justify-between text-sm">
-              <span className="font-semibold text-muted-foreground">Order Subtotal:</span>
+              <span className="font-semibold text-muted-foreground">Estimated Total:</span>
               <span className="font-extrabold text-lg text-foreground font-heading">
-                ₹{(cartTotalPaise / 100).toFixed(2)}
+                {formatRupees(cartTotalPaise)}
               </span>
             </div>
 

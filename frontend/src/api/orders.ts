@@ -64,35 +64,37 @@ export interface BillCalculation {
   session_code: string;
   items: BillItemSummary[];
   items_count: number;
-  net_subtotal_paise: number;
-  cgst_paise: number;
-  sgst_paise: number;
-  total_tax_paise: number;
+  subtotal_paise: number;
+  discount_paise?: number;
   total_paise: number;
-  is_inclusive: boolean;
 }
 
 export interface BillInvoice {
   id: string;
   branch_id: string;
   table_session_id?: string;
+  order_id?: string;
   table_label: string;
   invoice_number: string;
   subtotal_paise: number;
-  cgst_paise: number;
-  sgst_paise: number;
   discount_paise: number;
   total_paise: number;
-  payment_method: "CASH" | "UPI" | "CARD" | "ROOM_FOLIO" | "SPLIT";
+  payment_method: "CASH" | "UPI" | "CARD" | "ROOM_FOLIO";
   amount_tendered_paise: number;
   change_due_paise: number;
   is_settled: boolean;
   settled_at: string;
   notes: string;
+  snapshot_lines?: Array<{
+    item_name: string;
+    quantity: number;
+    unit_price_paise: number;
+    subtotal_paise: number;
+  }>;
 }
 
 export interface SettleBillPayload {
-  payment_method: "CASH" | "UPI" | "CARD" | "ROOM_FOLIO" | "SPLIT";
+  payment_method: "CASH" | "UPI" | "CARD" | "ROOM_FOLIO";
   amount_tendered_paise?: number;
   discount_paise?: number;
   notes?: string;
@@ -110,13 +112,18 @@ export interface ServiceRequest {
 }
 
 export const ordersApi = {
-  getOrders: (params?: { branch_id?: string; status?: string; session_id?: string }) =>
+  getOrders: (params?: { branch_id?: string; status?: string; session_id?: string; date?: string; q?: string }) =>
     apiClient.get<Order[]>("/orders/", { params }),
+
+  getOrder: (orderId: string) => apiClient.get<Order>(`/orders/${orderId}/`),
 
   createOrder: (data: CreateOrderPayload) => apiClient.post<Order>("/orders/", data),
 
-  cancelOrder: (orderId: string) =>
-    apiClient.post<{ status: string; order_id: string }>(`/orders/${orderId}/cancel/`),
+  cancelOrder: (orderId: string, reason?: string) =>
+    apiClient.post<{ status: string; order_id: string }>(`/orders/${orderId}/cancel/`, { reason }),
+
+  serveOrder: (orderId: string) =>
+    apiClient.post<{ status: string; order_id: string }>(`/orders/${orderId}/serve/`),
 
   fireMains: (orderId: string) =>
     apiClient.post<{ fired_count: number; order_id: string }>(`/orders/${orderId}/fire-mains/`),
@@ -133,7 +140,16 @@ export const ordersApi = {
   settleBill: (sessionId: string, data: SettleBillPayload) =>
     apiClient.post<BillInvoice>(`/orders/billing/session/${sessionId}/settle/`, data),
 
-  getInvoices: () => apiClient.get<BillInvoice[]>("/orders/billing/invoices/"),
+  settleOrder: (orderId: string, data: SettleBillPayload) =>
+    apiClient.post<BillInvoice>(`/orders/billing/order/${orderId}/settle/`, data),
+
+  getInvoices: (params?: { branch_id?: string; date?: string; payment_method?: string; q?: string }) =>
+    apiClient.get<BillInvoice[]>("/invoices/", { params }),
+
+  getInvoice: (id: string) => apiClient.get<BillInvoice>(`/invoices/${id}/`),
+
+  getTodayReport: (params?: { branch_id?: string; date?: string }) =>
+    apiClient.get<any>("/reports/today/", { params }),
 
   getServiceRequests: (status?: string) =>
     apiClient.get<ServiceRequest[]>("/orders/service-requests/", { params: { status } }),

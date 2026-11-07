@@ -5,10 +5,17 @@ from apps.tenants.views import (
     BusinessLogoView,
     BusinessProfileView,
     OnboardingStatusView,
+    PlatformSummaryView,
     TenantViewSet,
 )
 
 urlpatterns = [
+    # Platform Summary (Platform Admin)
+    path(
+        "platform/summary/",
+        PlatformSummaryView.as_view(),
+        name="platform-summary",
+    ),
     # Business Profile & Logo (Active Tenant)
     path(
         "business/",
