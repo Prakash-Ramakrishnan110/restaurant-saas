@@ -186,30 +186,25 @@ describe("Brand & UI Components", () => {
     expect(screen.getByText("Tables")).toBeInTheDocument();
   });
 
-  it("hides 'Dev & Design Tools' in AppShell when import.meta.env.DEV is false (Requirement C3)", () => {
-    const originalDev = import.meta.env.DEV;
-    try {
-      (import.meta.env as Record<string, unknown>).DEV = false;
+  it("strictly does not render 'Dev & Design Tools' in production AppShell navigation", () => {
+    const routerFuture = { v7_startTransition: true, v7_relativeSplatPath: true };
+    const { unmount } = render(
+      <MemoryRouter future={routerFuture}>
+        <ThemeProvider>
+          <AuthProvider>
+            <AppShell>
+              <div>Prod Test App Content</div>
+            </AppShell>
+          </AuthProvider>
+        </ThemeProvider>
+      </MemoryRouter>
+    );
 
-      const routerFuture = { v7_startTransition: true, v7_relativeSplatPath: true };
-      const { unmount } = render(
-        <MemoryRouter future={routerFuture}>
-          <ThemeProvider>
-            <AuthProvider>
-              <AppShell>
-                <div>Prod Test App Content</div>
-              </AppShell>
-            </AuthProvider>
-          </ThemeProvider>
-        </MemoryRouter>
-      );
-
-      // Must strictly NOT render Dev & Design Tools section
-      expect(screen.queryByText(/Dev & Design Tools/i)).toBeNull();
-      expect(screen.getByText("Prod Test App Content")).toBeInTheDocument();
-      unmount();
-    } finally {
-      (import.meta.env as Record<string, unknown>).DEV = originalDev;
-    }
+    // Must strictly NOT render Dev & Design Tools section
+    expect(screen.queryByText(/Dev & Design Tools/i)).toBeNull();
+    expect(screen.queryByText(/Brand Showcase/i)).toBeNull();
+    expect(screen.queryByText(/Design System/i)).toBeNull();
+    expect(screen.getByText("Prod Test App Content")).toBeInTheDocument();
+    unmount();
   });
 });

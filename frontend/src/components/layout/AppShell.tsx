@@ -20,7 +20,6 @@ import {
   Menu,
   X,
   Palette,
-  Component,
   Zap,
   UtensilsCrossed,
   Clock,
@@ -189,11 +188,6 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
     }))
     .filter((grp) => grp.items.length > 0);
 
-  const devItems: NavItem[] = [
-    { label: "Brand Showcase", path: "/dev/brand", icon: Palette },
-    { label: "Design System", path: "/dev/design-system", icon: Component },
-  ];
-
   const handleLogout = async () => {
     await logout();
     navigate("/login");
@@ -339,35 +333,6 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
                 </div>
               ))}
             </nav>
-
-            {import.meta.env.DEV && (
-              <div className="pt-4 border-t border-border">
-                <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider px-3 mb-2 block">
-                  Dev & Design Tools
-                </span>
-                <nav className="space-y-1">
-                  {devItems.map((item) => {
-                    const Icon = item.icon;
-                    const isActive = location.pathname === item.path;
-                    return (
-                      <Link
-                        key={item.path}
-                        to={item.path}
-                        onClick={() => setSidebarOpen(false)}
-                        className={`flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-medium transition-colors min-h-[38px] ${
-                          isActive
-                            ? "bg-accent text-accent-foreground font-semibold"
-                            : "text-muted-foreground hover:bg-muted hover:text-foreground"
-                        }`}
-                      >
-                        <Icon className="h-3.5 w-3.5 shrink-0" />
-                        <span>{item.label}</span>
-                      </Link>
-                    );
-                  })}
-                </nav>
-              </div>
-            )}
           </div>
 
           {/* Active Tenant Card in Sidebar Footer */}
