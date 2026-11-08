@@ -882,8 +882,12 @@ class PlatformCustomerCreateView(APIView):
         )
 
         # 6. Single-use Owner Temporary Password
-        chars = "abcdefghjkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789!@#$%"
-        temp_password = "".join(secrets.choice(chars) for _ in range(12))
+        initial_pwd = vd.get("initial_password", "").strip()
+        if initial_pwd:
+            temp_password = initial_pwd
+        else:
+            chars = "abcdefghjkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789!@#$%"
+            temp_password = "".join(secrets.choice(chars) for _ in range(12))
 
         owner_user, _ = User.objects.get_or_create(
             email=owner_email,

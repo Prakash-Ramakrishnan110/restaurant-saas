@@ -23,6 +23,7 @@ interface CustomerForm {
   owner_name: string;
   owner_phone: string;
   owner_email: string;
+  initial_password?: string;
   plan_slug: "starter" | "professional" | "business" | "enterprise";
   trial_days: number;
   outlets_count: number;
@@ -54,6 +55,7 @@ export const NewCustomerWizardPage: React.FC = () => {
     owner_name: "",
     owner_phone: "",
     owner_email: "",
+    initial_password: "",
     plan_slug: "starter",
     trial_days: 14,
     outlets_count: 1,
@@ -130,6 +132,7 @@ export const NewCustomerWizardPage: React.FC = () => {
         owner_name: form.owner_name.trim(),
         owner_phone: form.owner_phone.trim(),
         owner_email: form.owner_email.trim().toLowerCase(),
+        initial_password: form.initial_password?.trim() || undefined,
         plan_slug: form.plan_slug,
         trial_days: Number(form.trial_days) || 14,
         outlets_count: Number(form.outlets_count) || 1,
@@ -372,8 +375,22 @@ export const NewCustomerWizardPage: React.FC = () => {
                   onChange={(e) => setForm({ ...form, owner_email: e.target.value })}
                   className="h-10 text-sm"
                 />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-foreground mb-1">
+                  Initial Password (Optional)
+                </label>
+                <Input
+                  type="text"
+                  placeholder="Leave blank to auto-generate secure 12-char password"
+                  value={form.initial_password || ""}
+                  onChange={(e) => setForm({ ...form, initial_password: e.target.value })}
+                  className="h-10 text-sm font-mono"
+                />
                 <p className="text-[11px] text-muted-foreground mt-1">
-                  The initial login password will be generated and shown once on completion.
+                  You can specify an initial password, or leave empty to auto-generate one on
+                  completion.
                 </p>
               </div>
 

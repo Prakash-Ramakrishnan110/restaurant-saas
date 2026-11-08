@@ -323,6 +323,9 @@ class PlatformCustomerCreateSerializer(serializers.Serializer):
     owner_name = serializers.CharField(max_length=255)
     owner_phone = serializers.CharField(max_length=32, required=False, allow_blank=True, default="")
     owner_email = serializers.EmailField()
+    initial_password = serializers.CharField(
+        max_length=128, required=False, allow_blank=True, default=""
+    )
     plan_slug = serializers.ChoiceField(
         choices=["starter", "professional", "business", "enterprise"],
         default="starter",
@@ -350,6 +353,9 @@ class TenantCreateSerializer(serializers.Serializer):
     timezone = serializers.CharField(max_length=64, default="Asia/Kolkata")
     currency = serializers.CharField(max_length=10, default="INR")
     owner_email = serializers.EmailField()
+    initial_password = serializers.CharField(
+        max_length=128, required=False, allow_blank=True, default=""
+    )
     owner_full_name = serializers.CharField(max_length=255)
     owner_password = serializers.CharField(write_only=True, required=False, default="")
 
