@@ -1,46 +1,46 @@
 ﻿==============================================================================
              SERVEMYFOOD - AUTOMATED CLOSE-OUT VERIFICATION SUMMARY           
 ==============================================================================
-Generated At:    2026-11-07 20:53:13 +05:30
+Generated At:    2026-11-08 11:45:07 +05:30
 Git Branch:      main
-Git Commit:      127483dc212a110357d7b45791628b83bc71c5ac
-Target Tag:      v0.7.0-4-g127483d
+Git Commit:      0f0df5e5740c6beb28f54b491464681d273df22a
+Target Tag:      v0.8.0-3-g0f0df5e
 Working Tree:    Clean
-Overall Result:  PASS
+Overall Result:  FAIL
 ==============================================================================
 
 1. QUALITY GATE VERIFICATION TABLE
 -----------------------------------------------------------------------------------------------------------------
 #    | Gate Description                         | Evidence File             | Duration   | Status
 -----------------------------------------------------------------------------------------------------------------
-1    | Backend Pytest Suite with Coverage       | backend-pytest.txt        | 130.7s     | PASS  
-2    | Backend Coverage Gate Check              | backend-coverage-gate.txt | 1.8s       | PASS  
-3    | Backend Ruff Linting                     | backend-ruff.txt          | 0.4s       | PASS  
-4    | Backend Ruff Format Verification         | backend-ruff-format.txt   | 0.5s       | PASS  
-5    | Backend Mypy Type Checking               | backend-mypy.txt          | 13.7s      | PASS  
-6    | Backend Migrations Drift Check           | backend-migrations.txt    | 3.4s       | PASS  
-7    | Backend Pip Dependency Consistency       | backend-pip-check.txt     | 2.8s       | PASS  
-8    | Backend Pip Security Audit               | backend-pip-audit.txt     | 15.6s      | PASS  
-9    | OpenAPI Schema Validation & Drift Check  | openapi-drift.txt         | 3.7s       | PASS  
-10   | Frontend ESLint Linting                  | frontend-lint.txt         | 27.2s      | PASS  
-11   | Frontend Prettier Format Verification    | frontend-format.txt       | 3.7s       | PASS  
-12   | Frontend TypeScript Typecheck            | frontend-typecheck.txt    | 21.3s      | PASS  
-13   | Frontend Vitest Unit Suite               | frontend-vitest.txt       | 39.4s      | PASS  
-14   | Frontend Production Build                | frontend-build.txt        | 28.9s      | PASS  
-15   | Frontend API Types Drift Verification    | api-types-drift.txt       | 8.3s       | PASS  
-16   | Playwright Browser E2E Test Suite        | e2e-report.txt            | 515.2s     | PASS  
+1    | Backend Pytest Suite with Coverage       | backend-pytest.txt        | 120.5s     | PASS  
+2    | Backend Coverage Gate Check              | backend-coverage-gate.txt | 0.4s       | FAIL  
+3    | Backend Ruff Linting                     | backend-ruff.txt          | 0.2s       | PASS  
+4    | Backend Ruff Format Verification         | backend-ruff-format.txt   | 0.2s       | PASS  
+5    | Backend Mypy Type Checking               | backend-mypy.txt          | 17.1s      | PASS  
+6    | Backend Migrations Drift Check           | backend-migrations.txt    | 4.4s       | PASS  
+7    | Backend Pip Dependency Consistency       | backend-pip-check.txt     | 1.8s       | PASS  
+8    | Backend Pip Security Audit               | backend-pip-audit.txt     | 25.1s      | PASS  
+9    | OpenAPI Schema Validation & Drift Check  | openapi-drift.txt         | 4.0s       | PASS  
+10   | Frontend ESLint Linting                  | frontend-lint.txt         | 17.6s      | PASS  
+11   | Frontend Prettier Format Verification    | frontend-format.txt       | 4.0s       | PASS  
+12   | Frontend TypeScript Typecheck            | frontend-typecheck.txt    | 15.0s      | PASS  
+13   | Frontend Vitest Unit Suite               | frontend-vitest.txt       | 28.5s      | PASS  
+14   | Frontend Production Build                | frontend-build.txt        | 23.0s      | PASS  
+15   | Frontend API Types Drift Verification    | api-types-drift.txt       | 10.7s      | PASS  
+16   | Playwright Browser E2E Test Suite        | e2e-report.txt            | 372.9s     | PASS  
 -----------------------------------------------------------------------------------------------------------------
 
 2. KEY VERIFIED METRICS
 -----------------------------------------------------------------------------------------------------------------
-Backend Pytest Tests Passed:     517 (0 failures)
-Backend Total Code Coverage:     91.62% (Threshold >= 90.0%, Menu >= 90.0%)
-Frontend Vitest Tests Passed:    77 (0 failures across 9 test suites)
-Playwright E2E Tests Passed:     138 across Desktop (1280x720) & Mobile (390x844)
+Backend Pytest Tests Passed:     523 (0 failures)
+Backend Total Code Coverage:     91.51% (Threshold >= 90.0%, Menu >= 90.0%)
+Frontend Vitest Tests Passed:    92 (0 failures across 9 test suites)
+Playwright E2E Tests Passed:     144 across Desktop (1280x720) & Mobile (390x844)
 Image Processing & Safety:       PASS (SVG rejected, animated rejected, EXIF stripped, quota enforced)
 Waiter Availability Isolation:   PASS (Role.WAITER receives 403 on ALL availability endpoints)
 Tax Claim Policy (ADR 0021):     PASS (Zero tax rates or legal claims in active UI, serializers, seed)
 -----------------------------------------------------------------------------------------------------------------
 
-FINAL CLOSE-OUT VERDICT: PASS
+FINAL CLOSE-OUT VERDICT: FAIL
 ==============================================================================

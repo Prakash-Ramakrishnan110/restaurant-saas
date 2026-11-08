@@ -220,3 +220,89 @@ def test_non_platform_admin_forbidden_on_customer_endpoints(platform_env):
         f"/api/v1/tenants/{t.id}/extend-trial/", {"days": 30, "reason": "Self-extension"}
     )
     assert res_ext.status_code == status.HTTP_403_FORBIDDEN
+
+
+@pytest.mark.django_db
+def test_platform_customer_provision_wizard_hotel(platform_env):
+    """POST /api/v1/platform/customers/ provisions hotel with room features and floors."""
+    from apps.tenants.models import Branch
+
+    client = platform_env["admin_client"]
+    payload = {
+        "name": "Grand Kaveri Hotel & Suites",
+        "business_type": "HOTEL",
+        "city": "Chennai",
+        "language": "en",
+        "owner_name": "General Manager",
+        "owner_email": "gm@grandkaverihotel.com",
+        "plan_slug": "enterprise",
+        "trial_days": 30,
+        "outlets_count": 3,
+        "outlet_names": ["Lobby Cafe", "Rooftop Restaurant", "Banquet"],
+    }
+    res = client.post("/api/v1/platform/customers/", payload)
+    assert res.status_code == status.HTTP_201_CREATED
+    t_id = res.data["tenant_id"]
+    t = Tenant.objects.get(id=t_id)
+    assert t.business_type == "HOTEL"
+    assert t.subscription.plan and t.subscription.plan.slug == "enterprise"
+    assert Branch.unscoped.filter(tenant=t).count() == 3
+
+
+@pytest.mark.django_db
+def test_tenant_actions_validation_and_not_found(platform_env):
+    """Validates reason requirements, invalid slugs, and 404 handling on tenant actions."""
+    client = platform_env["admin_client"]
+    t = platform_env["tenant"]
+    fake_id = "00000000-0000-0000-0000-000000000000"
+
+    # Actions strictly requiring reason
+    assert (
+        client.post(f"/api/v1/tenants/{t.id}/extend-trial/", {"days": 7}).status_code
+        == status.HTTP_400_BAD_REQUEST
+    )
+    assert (
+        client.post(f"/api/v1/tenants/{t.id}/change-plan/", {"plan_slug": "starter"}).status_code
+        == status.HTTP_400_BAD_REQUEST
+    )
+    assert (
+        client.post(
+            f"/api/v1/tenants/{t.id}/change-plan/", {"plan_slug": "invalid", "reason": "Test"}
+        ).status_code
+        == status.HTTP_400_BAD_REQUEST
+    )
+    assert (
+        client.post(f"/api/v1/tenants/{t.id}/notes/", {}).status_code == status.HTTP_400_BAD_REQUEST
+    )
+
+    # 404 checks
+    assert (
+        client.post(f"/api/v1/tenants/{fake_id}/suspend/", {"reason": "X"}).status_code
+        == status.HTTP_404_NOT_FOUND
+    )
+    assert (
+        client.post(f"/api/v1/tenants/{fake_id}/activate/", {"reason": "X"}).status_code
+        == status.HTTP_404_NOT_FOUND
+    )
+    assert (
+        client.post(f"/api/v1/tenants/{fake_id}/extend-trial/", {"reason": "X"}).status_code
+        == status.HTTP_404_NOT_FOUND
+    )
+    assert (
+        client.post(
+            f"/api/v1/tenants/{fake_id}/change-plan/", {"reason": "X", "plan_slug": "starter"}
+        ).status_code
+        == status.HTTP_404_NOT_FOUND
+    )
+    assert (
+        client.post(f"/api/v1/tenants/{fake_id}/reset-owner-password/", {"reason": "X"}).status_code
+        == status.HTTP_404_NOT_FOUND
+    )
+    assert (
+        client.post(f"/api/v1/tenants/{fake_id}/notes/", {"note": "X"}).status_code
+        == status.HTTP_404_NOT_FOUND
+    )
+
+    # Platform Customer Create validation
+    res_bad = client.post("/api/v1/platform/customers/", {"name": ""})
+    assert res_bad.status_code == status.HTTP_400_BAD_REQUEST
