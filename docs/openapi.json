@@ -4,6 +4,131 @@ info:
   version: 1.0.0
   description: Multi-tenant Restaurant Management SaaS backend foundation API
 paths:
+  /api/v1/announcements/:
+    get:
+      operationId: announcements_list
+      description: Platform-wide announcements and maintenance notices (A-05).
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      tags:
+      - announcements
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedPlatformAnnouncementList'
+          description: ''
+    post:
+      operationId: announcements_create
+      description: Platform-wide announcements and maintenance notices (A-05).
+      tags:
+      - announcements
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PlatformAnnouncementRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PlatformAnnouncementRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PlatformAnnouncementRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PlatformAnnouncement'
+          description: ''
+  /api/v1/announcements/{id}/:
+    get:
+      operationId: announcements_retrieve
+      description: Platform-wide announcements and maintenance notices (A-05).
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - announcements
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PlatformAnnouncement'
+          description: ''
+    patch:
+      operationId: announcements_partial_update
+      description: Platform-wide announcements and maintenance notices (A-05).
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - announcements
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedPlatformAnnouncementRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedPlatformAnnouncementRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedPlatformAnnouncementRequest'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PlatformAnnouncement'
+          description: ''
+    delete:
+      operationId: announcements_destroy
+      description: Platform-wide announcements and maintenance notices (A-05).
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - announcements
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
   /api/v1/audit-logs/:
     get:
       operationId: audit_logs_list
@@ -468,6 +593,180 @@ paths:
               schema:
                 $ref: '#/components/schemas/BusinessLogoResponse'
           description: ''
+  /api/v1/customers/:
+    get:
+      operationId: customers_list
+      description: Customer CRM directory for guest preferences, visit counts, and
+        consent (H-24).
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      tags:
+      - customers
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedCustomerList'
+          description: ''
+    post:
+      operationId: customers_create
+      description: Customer CRM directory for guest preferences, visit counts, and
+        consent (H-24).
+      tags:
+      - customers
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CustomerRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/CustomerRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/CustomerRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Customer'
+          description: ''
+  /api/v1/customers/{id}/:
+    get:
+      operationId: customers_retrieve
+      description: Customer CRM directory for guest preferences, visit counts, and
+        consent (H-24).
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this customer.
+        required: true
+      tags:
+      - customers
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Customer'
+          description: ''
+    put:
+      operationId: customers_update
+      description: Customer CRM directory for guest preferences, visit counts, and
+        consent (H-24).
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this customer.
+        required: true
+      tags:
+      - customers
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CustomerRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/CustomerRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/CustomerRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Customer'
+          description: ''
+    patch:
+      operationId: customers_partial_update
+      description: Customer CRM directory for guest preferences, visit counts, and
+        consent (H-24).
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this customer.
+        required: true
+      tags:
+      - customers
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedCustomerRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedCustomerRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedCustomerRequest'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Customer'
+          description: ''
+    delete:
+      operationId: customers_destroy
+      description: Customer CRM directory for guest preferences, visit counts, and
+        consent (H-24).
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this customer.
+        required: true
+      tags:
+      - customers
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
   /api/v1/entitlements/:
     get:
       operationId: entitlements_retrieve
@@ -1810,6 +2109,180 @@ paths:
               schema:
                 $ref: '#/components/schemas/BillInvoice'
           description: ''
+  /api/v1/orders/customers/:
+    get:
+      operationId: orders_customers_list
+      description: Customer CRM directory for guest preferences, visit counts, and
+        consent (H-24).
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      tags:
+      - orders
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedCustomerList'
+          description: ''
+    post:
+      operationId: orders_customers_create
+      description: Customer CRM directory for guest preferences, visit counts, and
+        consent (H-24).
+      tags:
+      - orders
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CustomerRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/CustomerRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/CustomerRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Customer'
+          description: ''
+  /api/v1/orders/customers/{id}/:
+    get:
+      operationId: orders_customers_retrieve
+      description: Customer CRM directory for guest preferences, visit counts, and
+        consent (H-24).
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this customer.
+        required: true
+      tags:
+      - orders
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Customer'
+          description: ''
+    put:
+      operationId: orders_customers_update
+      description: Customer CRM directory for guest preferences, visit counts, and
+        consent (H-24).
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this customer.
+        required: true
+      tags:
+      - orders
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CustomerRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/CustomerRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/CustomerRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Customer'
+          description: ''
+    patch:
+      operationId: orders_customers_partial_update
+      description: Customer CRM directory for guest preferences, visit counts, and
+        consent (H-24).
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this customer.
+        required: true
+      tags:
+      - orders
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedCustomerRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedCustomerRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedCustomerRequest'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Customer'
+          description: ''
+    delete:
+      operationId: orders_customers_destroy
+      description: Customer CRM directory for guest preferences, visit counts, and
+        consent (H-24).
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this customer.
+        required: true
+      tags:
+      - orders
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
   /api/v1/orders/invoices/:
     get:
       operationId: orders_invoices_list
@@ -2437,11 +2910,83 @@ paths:
                 items:
                   $ref: '#/components/schemas/QRCodeSheetItem'
           description: ''
+  /api/v1/reports/exceptions/:
+    get:
+      operationId: reports_exceptions_retrieve
+      description: GET /api/v1/reports/exceptions/ returning discounts, voids, and
+        reprint audit trails (H-01).
+      tags:
+      - reports
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+                description: Unspecified response body
+          description: ''
+  /api/v1/reports/orders-delay/:
+    get:
+      operationId: reports_orders_delay_retrieve
+      description: GET /api/v1/reports/orders-delay/ analyzing prep times and delays
+        (H-06).
+      tags:
+      - reports
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+                description: Unspecified response body
+          description: ''
+  /api/v1/reports/outlets/:
+    get:
+      operationId: reports_outlets_retrieve
+      description: GET /api/v1/reports/outlets/ comparing performance across branches/outlets
+        (H-21).
+      tags:
+      - reports
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+                description: Unspecified response body
+          description: ''
   /api/v1/reports/range/:
     get:
       operationId: reports_range_retrieve
       description: GET /api/v1/reports/range/ returning sales, orders, and payment
         totals for a date range.
+      tags:
+      - reports
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+                description: Unspecified response body
+          description: ''
+  /api/v1/reports/staff/:
+    get:
+      operationId: reports_staff_retrieve
+      description: GET /api/v1/reports/staff/ returning staff sales and efficiency
+        metrics (H-22).
       tags:
       - reports
       security:
@@ -2962,6 +3507,131 @@ paths:
                 type: object
                 additionalProperties: {}
           description: ''
+  /api/v1/support-tickets/:
+    get:
+      operationId: support_tickets_list
+      description: Customer support requests (A-04, R-11).
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      tags:
+      - support-tickets
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedSupportTicketList'
+          description: ''
+    post:
+      operationId: support_tickets_create
+      description: Customer support requests (A-04, R-11).
+      tags:
+      - support-tickets
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SupportTicketRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/SupportTicketRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/SupportTicketRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SupportTicket'
+          description: ''
+  /api/v1/support-tickets/{id}/:
+    get:
+      operationId: support_tickets_retrieve
+      description: Customer support requests (A-04, R-11).
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - support-tickets
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SupportTicket'
+          description: ''
+    patch:
+      operationId: support_tickets_partial_update
+      description: Customer support requests (A-04, R-11).
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - support-tickets
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedSupportTicketRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedSupportTicketRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedSupportTicketRequest'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SupportTicket'
+          description: ''
+    delete:
+      operationId: support_tickets_destroy
+      description: Customer support requests (A-04, R-11).
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - support-tickets
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
   /api/v1/table-groups/:
     get:
       operationId: table_groups_list
@@ -3667,6 +4337,18 @@ paths:
           description: ''
 components:
   schemas:
+    AnnouncementTypeEnum:
+      enum:
+      - INFO
+      - MAINTENANCE
+      - FEATURE
+      - WARNING
+      type: string
+      description: |-
+        * `INFO` - Information
+        * `MAINTENANCE` - Scheduled Maintenance
+        * `FEATURE` - New Feature
+        * `WARNING` - Urgent Alert
     AreaType:
       enum:
       - DINING
@@ -4256,6 +4938,112 @@ components:
         * `MAIN` - Main Course
         * `DESSERT` - Dessert
         * `BEVERAGE` - Beverage
+    Customer:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        name:
+          type: string
+          maxLength: 150
+        phone:
+          type: string
+          maxLength: 20
+        email:
+          type: string
+          format: email
+          maxLength: 254
+        consent_given:
+          type: boolean
+          description: Explicit consent to retain visit history and contact details
+        dietary_preference:
+          $ref: '#/components/schemas/DietaryPreferenceEnum'
+        allergies:
+          type: string
+          description: Customer reported allergies (e.g. peanuts, dairy, gluten)
+          maxLength: 255
+        notes:
+          type: string
+        visit_count:
+          type: integer
+          maximum: 2147483647
+          minimum: 0
+        total_spend_paise:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: -9223372036854775808
+          format: int64
+        last_visit_at:
+          type: string
+          format: date-time
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - created_at
+      - id
+      - name
+      - phone
+    CustomerRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 150
+        phone:
+          type: string
+          minLength: 1
+          maxLength: 20
+        email:
+          type: string
+          format: email
+          maxLength: 254
+        consent_given:
+          type: boolean
+          description: Explicit consent to retain visit history and contact details
+        dietary_preference:
+          $ref: '#/components/schemas/DietaryPreferenceEnum'
+        allergies:
+          type: string
+          description: Customer reported allergies (e.g. peanuts, dairy, gluten)
+          maxLength: 255
+        notes:
+          type: string
+        visit_count:
+          type: integer
+          maximum: 2147483647
+          minimum: 0
+        total_spend_paise:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: -9223372036854775808
+          format: int64
+        last_visit_at:
+          type: string
+          format: date-time
+      required:
+      - name
+      - phone
+    DietaryPreferenceEnum:
+      enum:
+      - VEG
+      - NON_VEG
+      - EGG
+      - JAIN
+      - VEGAN
+      - NONE
+      type: string
+      description: |-
+        * `VEG` - Vegetarian
+        * `NON_VEG` - Non-Vegetarian
+        * `EGG` - Eggetarian
+        * `JAIN` - Jain
+        * `VEGAN` - Vegan
+        * `NONE` - No Preference
     DiningTable:
       type: object
       properties:
@@ -5421,6 +6209,29 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/Branch'
+    PaginatedCustomerList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Customer'
     PaginatedDiningTableList:
       type: object
       required:
@@ -5559,6 +6370,29 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/Order'
+    PaginatedPlatformAnnouncementList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/PlatformAnnouncement'
     PaginatedQRCodeList:
       type: object
       required:
@@ -5697,6 +6531,29 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/StaffSectionAssignment'
+    PaginatedSupportTicketList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/SupportTicket'
     PaginatedTableGroupList:
       type: object
       required:
@@ -5890,6 +6747,44 @@ components:
           maxLength: 200
         tax_mode:
           $ref: '#/components/schemas/TaxMode'
+    PatchedCustomerRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 150
+        phone:
+          type: string
+          minLength: 1
+          maxLength: 20
+        email:
+          type: string
+          format: email
+          maxLength: 254
+        consent_given:
+          type: boolean
+          description: Explicit consent to retain visit history and contact details
+        dietary_preference:
+          $ref: '#/components/schemas/DietaryPreferenceEnum'
+        allergies:
+          type: string
+          description: Customer reported allergies (e.g. peanuts, dairy, gluten)
+          maxLength: 255
+        notes:
+          type: string
+        visit_count:
+          type: integer
+          maximum: 2147483647
+          minimum: 0
+        total_spend_paise:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: -9223372036854775808
+          format: int64
+        last_visit_at:
+          type: string
+          format: date-time
     PatchedDiningTableRequest:
       type: object
       properties:
@@ -6053,6 +6948,28 @@ components:
           nullable: true
         notes:
           type: string
+    PatchedPlatformAnnouncementRequest:
+      type: object
+      properties:
+        title:
+          type: string
+          minLength: 1
+          maxLength: 255
+        message:
+          type: string
+          minLength: 1
+        announcement_type:
+          $ref: '#/components/schemas/AnnouncementTypeEnum'
+        is_active:
+          type: boolean
+        starts_at:
+          type: string
+          format: date-time
+          nullable: true
+        ends_at:
+          type: string
+          format: date-time
+          nullable: true
     PatchedSectionRequest:
       type: object
       properties:
@@ -6135,6 +7052,33 @@ components:
           maxLength: 32
         is_active:
           type: boolean
+    PatchedSupportTicketRequest:
+      type: object
+      properties:
+        subject:
+          type: string
+          minLength: 1
+          maxLength: 255
+        description:
+          type: string
+          minLength: 1
+        status:
+          $ref: '#/components/schemas/SupportTicketStatusEnum'
+        priority:
+          $ref: '#/components/schemas/PriorityEnum'
+        contact_phone:
+          type: string
+          maxLength: 32
+        contact_email:
+          type: string
+          format: email
+          maxLength: 254
+        admin_notes:
+          type: string
+        resolved_at:
+          type: string
+          format: date-time
+          nullable: true
     PaymentMethodEnum:
       enum:
       - CASH
@@ -6169,6 +7113,69 @@ components:
         * `professional` - professional
         * `business` - business
         * `enterprise` - enterprise
+    PlatformAnnouncement:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        title:
+          type: string
+          maxLength: 255
+        message:
+          type: string
+        announcement_type:
+          $ref: '#/components/schemas/AnnouncementTypeEnum'
+        is_active:
+          type: boolean
+        starts_at:
+          type: string
+          format: date-time
+          nullable: true
+        ends_at:
+          type: string
+          format: date-time
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - created_at
+      - id
+      - message
+      - title
+      - updated_at
+    PlatformAnnouncementRequest:
+      type: object
+      properties:
+        title:
+          type: string
+          minLength: 1
+          maxLength: 255
+        message:
+          type: string
+          minLength: 1
+        announcement_type:
+          $ref: '#/components/schemas/AnnouncementTypeEnum'
+        is_active:
+          type: boolean
+        starts_at:
+          type: string
+          format: date-time
+          nullable: true
+        ends_at:
+          type: string
+          format: date-time
+          nullable: true
+      required:
+      - message
+      - title
     PlatformCustomerCreateRequest:
       type: object
       properties:
@@ -6224,6 +7231,18 @@ components:
       - name
       - owner_email
       - owner_name
+    PriorityEnum:
+      enum:
+      - LOW
+      - MEDIUM
+      - HIGH
+      - URGENT
+      type: string
+      description: |-
+        * `LOW` - Low
+        * `MEDIUM` - Medium
+        * `HIGH` - High
+        * `URGENT` - Urgent
     PublicQRDetail:
       type: object
       properties:
@@ -6801,6 +7820,95 @@ components:
         * `PENDING` - Pending
         * `ACKNOWLEDGED` - Acknowledged
         * `RESOLVED` - Resolved
+    SupportTicket:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        subject:
+          type: string
+          maxLength: 255
+        description:
+          type: string
+        status:
+          $ref: '#/components/schemas/SupportTicketStatusEnum'
+        priority:
+          $ref: '#/components/schemas/PriorityEnum'
+        contact_phone:
+          type: string
+          maxLength: 32
+        contact_email:
+          type: string
+          format: email
+          maxLength: 254
+        admin_notes:
+          type: string
+        resolved_at:
+          type: string
+          format: date-time
+          nullable: true
+        tenant_name:
+          type: string
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - created_at
+      - description
+      - id
+      - subject
+      - tenant_name
+      - updated_at
+    SupportTicketRequest:
+      type: object
+      properties:
+        subject:
+          type: string
+          minLength: 1
+          maxLength: 255
+        description:
+          type: string
+          minLength: 1
+        status:
+          $ref: '#/components/schemas/SupportTicketStatusEnum'
+        priority:
+          $ref: '#/components/schemas/PriorityEnum'
+        contact_phone:
+          type: string
+          maxLength: 32
+        contact_email:
+          type: string
+          format: email
+          maxLength: 254
+        admin_notes:
+          type: string
+        resolved_at:
+          type: string
+          format: date-time
+          nullable: true
+      required:
+      - description
+      - subject
+    SupportTicketStatusEnum:
+      enum:
+      - OPEN
+      - IN_PROGRESS
+      - RESOLVED
+      - CLOSED
+      type: string
+      description: |-
+        * `OPEN` - Open
+        * `IN_PROGRESS` - In Progress
+        * `RESOLVED` - Resolved
+        * `CLOSED` - Closed
     TableGroup:
       type: object
       properties:

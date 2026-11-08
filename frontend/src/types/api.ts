@@ -4,6 +4,43 @@
  */
 
 export interface paths {
+    "/api/v1/announcements/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description Platform-wide announcements and maintenance notices (A-05). */
+        get: operations["announcements_list"];
+        put?: never;
+        /** @description Platform-wide announcements and maintenance notices (A-05). */
+        post: operations["announcements_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/announcements/{id}/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description Platform-wide announcements and maintenance notices (A-05). */
+        get: operations["announcements_retrieve"];
+        put?: never;
+        post?: never;
+        /** @description Platform-wide announcements and maintenance notices (A-05). */
+        delete: operations["announcements_destroy"];
+        options?: never;
+        head?: never;
+        /** @description Platform-wide announcements and maintenance notices (A-05). */
+        patch: operations["announcements_partial_update"];
+        trace?: never;
+    };
     "/api/v1/audit-logs/": {
         parameters: {
             query?: never;
@@ -231,6 +268,44 @@ export interface paths {
         options?: never;
         head?: never;
         patch?: never;
+        trace?: never;
+    };
+    "/api/v1/customers/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description Customer CRM directory for guest preferences, visit counts, and consent (H-24). */
+        get: operations["customers_list"];
+        put?: never;
+        /** @description Customer CRM directory for guest preferences, visit counts, and consent (H-24). */
+        post: operations["customers_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/customers/{id}/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description Customer CRM directory for guest preferences, visit counts, and consent (H-24). */
+        get: operations["customers_retrieve"];
+        /** @description Customer CRM directory for guest preferences, visit counts, and consent (H-24). */
+        put: operations["customers_update"];
+        post?: never;
+        /** @description Customer CRM directory for guest preferences, visit counts, and consent (H-24). */
+        delete: operations["customers_destroy"];
+        options?: never;
+        head?: never;
+        /** @description Customer CRM directory for guest preferences, visit counts, and consent (H-24). */
+        patch: operations["customers_partial_update"];
         trace?: never;
     };
     "/api/v1/entitlements/": {
@@ -741,6 +816,44 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/orders/customers/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description Customer CRM directory for guest preferences, visit counts, and consent (H-24). */
+        get: operations["orders_customers_list"];
+        put?: never;
+        /** @description Customer CRM directory for guest preferences, visit counts, and consent (H-24). */
+        post: operations["orders_customers_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/orders/customers/{id}/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description Customer CRM directory for guest preferences, visit counts, and consent (H-24). */
+        get: operations["orders_customers_retrieve"];
+        /** @description Customer CRM directory for guest preferences, visit counts, and consent (H-24). */
+        put: operations["orders_customers_update"];
+        post?: never;
+        /** @description Customer CRM directory for guest preferences, visit counts, and consent (H-24). */
+        delete: operations["orders_customers_destroy"];
+        options?: never;
+        head?: never;
+        /** @description Customer CRM directory for guest preferences, visit counts, and consent (H-24). */
+        patch: operations["orders_customers_partial_update"];
+        trace?: never;
+    };
     "/api/v1/orders/invoices/": {
         parameters: {
             query?: never;
@@ -1081,6 +1194,57 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/reports/exceptions/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description GET /api/v1/reports/exceptions/ returning discounts, voids, and reprint audit trails (H-01). */
+        get: operations["reports_exceptions_retrieve"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/reports/orders-delay/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description GET /api/v1/reports/orders-delay/ analyzing prep times and delays (H-06). */
+        get: operations["reports_orders_delay_retrieve"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/reports/outlets/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description GET /api/v1/reports/outlets/ comparing performance across branches/outlets (H-21). */
+        get: operations["reports_outlets_retrieve"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/reports/range/": {
         parameters: {
             query?: never;
@@ -1090,6 +1254,23 @@ export interface paths {
         };
         /** @description GET /api/v1/reports/range/ returning sales, orders, and payment totals for a date range. */
         get: operations["reports_range_retrieve"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/reports/staff/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description GET /api/v1/reports/staff/ returning staff sales and efficiency metrics (H-22). */
+        get: operations["reports_staff_retrieve"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1267,6 +1448,43 @@ export interface paths {
         options?: never;
         head?: never;
         patch?: never;
+        trace?: never;
+    };
+    "/api/v1/support-tickets/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description Customer support requests (A-04, R-11). */
+        get: operations["support_tickets_list"];
+        put?: never;
+        /** @description Customer support requests (A-04, R-11). */
+        post: operations["support_tickets_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/support-tickets/{id}/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description Customer support requests (A-04, R-11). */
+        get: operations["support_tickets_retrieve"];
+        put?: never;
+        post?: never;
+        /** @description Customer support requests (A-04, R-11). */
+        delete: operations["support_tickets_destroy"];
+        options?: never;
+        head?: never;
+        /** @description Customer support requests (A-04, R-11). */
+        patch: operations["support_tickets_partial_update"];
         trace?: never;
     };
     "/api/v1/table-groups/": {
@@ -1659,6 +1877,14 @@ export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
         /**
+         * @description * `INFO` - Information
+         *     * `MAINTENANCE` - Scheduled Maintenance
+         *     * `FEATURE` - New Feature
+         *     * `WARNING` - Urgent Alert
+         * @enum {string}
+         */
+        AnnouncementTypeEnum: "INFO" | "MAINTENANCE" | "FEATURE" | "WARNING";
+        /**
          * @description * `DINING` - Dining Area
          *     * `BAR` - Bar / Lounge
          *     * `COUNTER` - Order Counter
@@ -1902,6 +2128,54 @@ export interface components {
          * @enum {string}
          */
         CourseEnum: "STARTER" | "MAIN" | "DESSERT" | "BEVERAGE";
+        Customer: {
+            /** Format: uuid */
+            readonly id: string;
+            name: string;
+            phone: string;
+            /** Format: email */
+            email?: string;
+            /** @description Explicit consent to retain visit history and contact details */
+            consent_given?: boolean;
+            dietary_preference?: components["schemas"]["DietaryPreferenceEnum"];
+            /** @description Customer reported allergies (e.g. peanuts, dairy, gluten) */
+            allergies?: string;
+            notes?: string;
+            visit_count?: number;
+            /** Format: int64 */
+            total_spend_paise?: number;
+            /** Format: date-time */
+            last_visit_at?: string;
+            /** Format: date-time */
+            readonly created_at: string;
+        };
+        CustomerRequest: {
+            name: string;
+            phone: string;
+            /** Format: email */
+            email?: string;
+            /** @description Explicit consent to retain visit history and contact details */
+            consent_given?: boolean;
+            dietary_preference?: components["schemas"]["DietaryPreferenceEnum"];
+            /** @description Customer reported allergies (e.g. peanuts, dairy, gluten) */
+            allergies?: string;
+            notes?: string;
+            visit_count?: number;
+            /** Format: int64 */
+            total_spend_paise?: number;
+            /** Format: date-time */
+            last_visit_at?: string;
+        };
+        /**
+         * @description * `VEG` - Vegetarian
+         *     * `NON_VEG` - Non-Vegetarian
+         *     * `EGG` - Eggetarian
+         *     * `JAIN` - Jain
+         *     * `VEGAN` - Vegan
+         *     * `NONE` - No Preference
+         * @enum {string}
+         */
+        DietaryPreferenceEnum: "VEG" | "NON_VEG" | "EGG" | "JAIN" | "VEGAN" | "NONE";
         DiningTable: {
             /** Format: uuid */
             readonly id: string;
@@ -2420,6 +2694,21 @@ export interface components {
             previous?: string | null;
             results: components["schemas"]["Branch"][];
         };
+        PaginatedCustomerList: {
+            /** @example 123 */
+            count: number;
+            /**
+             * Format: uri
+             * @example http://api.example.org/accounts/?page=4
+             */
+            next?: string | null;
+            /**
+             * Format: uri
+             * @example http://api.example.org/accounts/?page=2
+             */
+            previous?: string | null;
+            results: components["schemas"]["Customer"][];
+        };
         PaginatedDiningTableList: {
             /** @example 123 */
             count: number;
@@ -2510,6 +2799,21 @@ export interface components {
             previous?: string | null;
             results: components["schemas"]["Order"][];
         };
+        PaginatedPlatformAnnouncementList: {
+            /** @example 123 */
+            count: number;
+            /**
+             * Format: uri
+             * @example http://api.example.org/accounts/?page=4
+             */
+            next?: string | null;
+            /**
+             * Format: uri
+             * @example http://api.example.org/accounts/?page=2
+             */
+            previous?: string | null;
+            results: components["schemas"]["PlatformAnnouncement"][];
+        };
         PaginatedQRCodeList: {
             /** @example 123 */
             count: number;
@@ -2599,6 +2903,21 @@ export interface components {
              */
             previous?: string | null;
             results: components["schemas"]["StaffSectionAssignment"][];
+        };
+        PaginatedSupportTicketList: {
+            /** @example 123 */
+            count: number;
+            /**
+             * Format: uri
+             * @example http://api.example.org/accounts/?page=4
+             */
+            next?: string | null;
+            /**
+             * Format: uri
+             * @example http://api.example.org/accounts/?page=2
+             */
+            previous?: string | null;
+            results: components["schemas"]["SupportTicket"][];
         };
         PaginatedTableGroupList: {
             /** @example 123 */
@@ -2703,6 +3022,23 @@ export interface components {
             receipt_footer_text?: string;
             tax_mode?: components["schemas"]["TaxMode"];
         };
+        PatchedCustomerRequest: {
+            name?: string;
+            phone?: string;
+            /** Format: email */
+            email?: string;
+            /** @description Explicit consent to retain visit history and contact details */
+            consent_given?: boolean;
+            dietary_preference?: components["schemas"]["DietaryPreferenceEnum"];
+            /** @description Customer reported allergies (e.g. peanuts, dairy, gluten) */
+            allergies?: string;
+            notes?: string;
+            visit_count?: number;
+            /** Format: int64 */
+            total_spend_paise?: number;
+            /** Format: date-time */
+            last_visit_at?: string;
+        };
         PatchedDiningTableRequest: {
             /** Format: uuid */
             branch?: string;
@@ -2775,6 +3111,16 @@ export interface components {
             served_at?: string | null;
             notes?: string;
         };
+        PatchedPlatformAnnouncementRequest: {
+            title?: string;
+            message?: string;
+            announcement_type?: components["schemas"]["AnnouncementTypeEnum"];
+            is_active?: boolean;
+            /** Format: date-time */
+            starts_at?: string | null;
+            /** Format: date-time */
+            ends_at?: string | null;
+        };
         PatchedSectionRequest: {
             /** Format: uuid */
             branch?: string;
@@ -2812,6 +3158,18 @@ export interface components {
             role?: string;
             is_active?: boolean;
         };
+        PatchedSupportTicketRequest: {
+            subject?: string;
+            description?: string;
+            status?: components["schemas"]["SupportTicketStatusEnum"];
+            priority?: components["schemas"]["PriorityEnum"];
+            contact_phone?: string;
+            /** Format: email */
+            contact_email?: string;
+            admin_notes?: string;
+            /** Format: date-time */
+            resolved_at?: string | null;
+        };
         /**
          * @description * `CASH` - Cash
          *     * `UPI` - UPI QR
@@ -2835,6 +3193,32 @@ export interface components {
          * @enum {string}
          */
         PlanSlugEnum: "starter" | "professional" | "business" | "enterprise";
+        PlatformAnnouncement: {
+            /** Format: uuid */
+            readonly id: string;
+            title: string;
+            message: string;
+            announcement_type?: components["schemas"]["AnnouncementTypeEnum"];
+            is_active?: boolean;
+            /** Format: date-time */
+            starts_at?: string | null;
+            /** Format: date-time */
+            ends_at?: string | null;
+            /** Format: date-time */
+            readonly created_at: string;
+            /** Format: date-time */
+            readonly updated_at: string;
+        };
+        PlatformAnnouncementRequest: {
+            title: string;
+            message: string;
+            announcement_type?: components["schemas"]["AnnouncementTypeEnum"];
+            is_active?: boolean;
+            /** Format: date-time */
+            starts_at?: string | null;
+            /** Format: date-time */
+            ends_at?: string | null;
+        };
         PlatformCustomerCreateRequest: {
             name: string;
             /** @default RESTAURANT */
@@ -2856,6 +3240,14 @@ export interface components {
             outlets_count: number;
             outlet_names?: string[];
         };
+        /**
+         * @description * `LOW` - Low
+         *     * `MEDIUM` - Medium
+         *     * `HIGH` - High
+         *     * `URGENT` - Urgent
+         * @enum {string}
+         */
+        PriorityEnum: "LOW" | "MEDIUM" | "HIGH" | "URGENT";
         PublicQRDetail: {
             tenant_name: string;
             display_name: string;
@@ -3111,6 +3503,45 @@ export interface components {
          * @enum {string}
          */
         StatusDb8Enum: "PENDING" | "ACKNOWLEDGED" | "RESOLVED";
+        SupportTicket: {
+            /** Format: uuid */
+            readonly id: string;
+            subject: string;
+            description: string;
+            status?: components["schemas"]["SupportTicketStatusEnum"];
+            priority?: components["schemas"]["PriorityEnum"];
+            contact_phone?: string;
+            /** Format: email */
+            contact_email?: string;
+            admin_notes?: string;
+            /** Format: date-time */
+            resolved_at?: string | null;
+            readonly tenant_name: string;
+            /** Format: date-time */
+            readonly created_at: string;
+            /** Format: date-time */
+            readonly updated_at: string;
+        };
+        SupportTicketRequest: {
+            subject: string;
+            description: string;
+            status?: components["schemas"]["SupportTicketStatusEnum"];
+            priority?: components["schemas"]["PriorityEnum"];
+            contact_phone?: string;
+            /** Format: email */
+            contact_email?: string;
+            admin_notes?: string;
+            /** Format: date-time */
+            resolved_at?: string | null;
+        };
+        /**
+         * @description * `OPEN` - Open
+         *     * `IN_PROGRESS` - In Progress
+         *     * `RESOLVED` - Resolved
+         *     * `CLOSED` - Closed
+         * @enum {string}
+         */
+        SupportTicketStatusEnum: "OPEN" | "IN_PROGRESS" | "RESOLVED" | "CLOSED";
         TableGroup: {
             /** Format: uuid */
             readonly id: string;
@@ -3264,6 +3695,123 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+    announcements_list: {
+        parameters: {
+            query?: {
+                /** @description A page number within the paginated result set. */
+                page?: number;
+                /** @description Number of results to return per page. */
+                page_size?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaginatedPlatformAnnouncementList"];
+                };
+            };
+        };
+    };
+    announcements_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PlatformAnnouncementRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["PlatformAnnouncementRequest"];
+                "multipart/form-data": components["schemas"]["PlatformAnnouncementRequest"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlatformAnnouncement"];
+                };
+            };
+        };
+    };
+    announcements_retrieve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlatformAnnouncement"];
+                };
+            };
+        };
+    };
+    announcements_destroy: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No response body */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    announcements_partial_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["PatchedPlatformAnnouncementRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["PatchedPlatformAnnouncementRequest"];
+                "multipart/form-data": components["schemas"]["PatchedPlatformAnnouncementRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlatformAnnouncement"];
+                };
+            };
+        };
+    };
     audit_logs_list: {
         parameters: {
             query?: {
@@ -3729,6 +4277,156 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["BusinessLogoResponse"];
+                };
+            };
+        };
+    };
+    customers_list: {
+        parameters: {
+            query?: {
+                /** @description A page number within the paginated result set. */
+                page?: number;
+                /** @description Number of results to return per page. */
+                page_size?: number;
+                /** @description A search term. */
+                search?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaginatedCustomerList"];
+                };
+            };
+        };
+    };
+    customers_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CustomerRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["CustomerRequest"];
+                "multipart/form-data": components["schemas"]["CustomerRequest"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Customer"];
+                };
+            };
+        };
+    };
+    customers_retrieve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description A UUID string identifying this customer. */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Customer"];
+                };
+            };
+        };
+    };
+    customers_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description A UUID string identifying this customer. */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CustomerRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["CustomerRequest"];
+                "multipart/form-data": components["schemas"]["CustomerRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Customer"];
+                };
+            };
+        };
+    };
+    customers_destroy: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description A UUID string identifying this customer. */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No response body */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    customers_partial_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description A UUID string identifying this customer. */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["PatchedCustomerRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["PatchedCustomerRequest"];
+                "multipart/form-data": components["schemas"]["PatchedCustomerRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Customer"];
                 };
             };
         };
@@ -4982,6 +5680,156 @@ export interface operations {
             };
         };
     };
+    orders_customers_list: {
+        parameters: {
+            query?: {
+                /** @description A page number within the paginated result set. */
+                page?: number;
+                /** @description Number of results to return per page. */
+                page_size?: number;
+                /** @description A search term. */
+                search?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaginatedCustomerList"];
+                };
+            };
+        };
+    };
+    orders_customers_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CustomerRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["CustomerRequest"];
+                "multipart/form-data": components["schemas"]["CustomerRequest"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Customer"];
+                };
+            };
+        };
+    };
+    orders_customers_retrieve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description A UUID string identifying this customer. */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Customer"];
+                };
+            };
+        };
+    };
+    orders_customers_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description A UUID string identifying this customer. */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CustomerRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["CustomerRequest"];
+                "multipart/form-data": components["schemas"]["CustomerRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Customer"];
+                };
+            };
+        };
+    };
+    orders_customers_destroy: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description A UUID string identifying this customer. */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No response body */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    orders_customers_partial_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description A UUID string identifying this customer. */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["PatchedCustomerRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["PatchedCustomerRequest"];
+                "multipart/form-data": components["schemas"]["PatchedCustomerRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Customer"];
+                };
+            };
+        };
+    };
     orders_invoices_list: {
         parameters: {
             query?: {
@@ -5555,7 +6403,91 @@ export interface operations {
             };
         };
     };
+    reports_exceptions_retrieve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+        };
+    };
+    reports_orders_delay_retrieve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+        };
+    };
+    reports_outlets_retrieve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+        };
+    };
     reports_range_retrieve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+        };
+    };
+    reports_staff_retrieve: {
         parameters: {
             query?: never;
             header?: never;
@@ -6065,6 +6997,123 @@ export interface operations {
                     "application/json": {
                         [key: string]: unknown;
                     };
+                };
+            };
+        };
+    };
+    support_tickets_list: {
+        parameters: {
+            query?: {
+                /** @description A page number within the paginated result set. */
+                page?: number;
+                /** @description Number of results to return per page. */
+                page_size?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaginatedSupportTicketList"];
+                };
+            };
+        };
+    };
+    support_tickets_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SupportTicketRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["SupportTicketRequest"];
+                "multipart/form-data": components["schemas"]["SupportTicketRequest"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SupportTicket"];
+                };
+            };
+        };
+    };
+    support_tickets_retrieve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SupportTicket"];
+                };
+            };
+        };
+    };
+    support_tickets_destroy: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No response body */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    support_tickets_partial_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["PatchedSupportTicketRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["PatchedSupportTicketRequest"];
+                "multipart/form-data": components["schemas"]["PatchedSupportTicketRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SupportTicket"];
                 };
             };
         };

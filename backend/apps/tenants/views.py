@@ -5,7 +5,7 @@ from django.utils import timezone
 from django.utils.text import slugify
 from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import extend_schema
-from rest_framework import serializers, status
+from rest_framework import serializers, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.permissions import IsAuthenticated
@@ -24,14 +24,22 @@ from apps.rbac.permissions import (
     IsPlatformAdmin,
     verify_tenant_and_branch_access,
 )
-from apps.tenants.models import Branch, BusinessSettings, Tenant
+from apps.tenants.models import (
+    Branch,
+    BusinessSettings,
+    PlatformAnnouncement,
+    SupportTicket,
+    Tenant,
+)
 from apps.tenants.serializers import (
     BranchCreateUpdateSerializer,
     BranchSerializer,
     BusinessLogoResponseSerializer,
     BusinessProfileSerializer,
     OnboardingStatusSerializer,
+    PlatformAnnouncementSerializer,
     PlatformCustomerCreateSerializer,
+    SupportTicketSerializer,
     TenantCreateSerializer,
     TenantDetailSerializer,
     TenantSerializer,
@@ -968,3 +976,51 @@ class PlatformSummaryView(APIView):
                 "api_health": "HEALTHY",
             }
         )
+
+
+class SupportTicketViewSet(viewsets.ModelViewSet):
+    """Customer support requests (A-04, R-11)."""
+
+    serializer_class = SupportTicketSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        user = self.request.user
+        if getattr(user, "is_platform_admin", False):
+            return SupportTicket.objects.all().select_related("tenant")
+        tenant = getattr(self.request, "tenant", None)
+        if not tenant:
+            return SupportTicket.objects.none()
+        return SupportTicket.objects.filter(tenant=tenant)
+
+    def perform_create(self, serializer: serializers.BaseSerializer[SupportTicket]) -> None:
+        tenant = getattr(self.request, "tenant", None)
+        serializer.save(tenant=tenant)
+
+
+class PlatformAnnouncementViewSet(viewsets.ModelViewSet):
+    """Platform-wide announcements and maintenance notices (A-05)."""
+
+    serializer_class = PlatformAnnouncementSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        user = self.request.user
+        if getattr(user, "is_platform_admin", False):
+            return PlatformAnnouncement.objects.all()
+        return PlatformAnnouncement.objects.filter(is_active=True)
+
+    def perform_create(self, serializer: serializers.BaseSerializer[PlatformAnnouncement]) -> None:
+        if not getattr(self.request.user, "is_platform_admin", False):
+            raise PermissionDenied("Only platform administrators can create announcements.")
+        serializer.save()
+
+    def perform_update(self, serializer: serializers.BaseSerializer[PlatformAnnouncement]) -> None:
+        if not getattr(self.request.user, "is_platform_admin", False):
+            raise PermissionDenied("Only platform administrators can update announcements.")
+        serializer.save()
+
+    def perform_destroy(self, instance: PlatformAnnouncement) -> None:
+        if not getattr(self.request.user, "is_platform_admin", False):
+            raise PermissionDenied("Only platform administrators can delete announcements.")
+        instance.delete()

@@ -3,7 +3,13 @@ from typing import Any
 from rest_framework import serializers
 
 from apps.tenants.color_utils import validate_brand_primary_color, validate_gstin
-from apps.tenants.models import Branch, BusinessSettings, Tenant
+from apps.tenants.models import (
+    Branch,
+    BusinessSettings,
+    PlatformAnnouncement,
+    SupportTicket,
+    Tenant,
+)
 
 
 class BusinessSettingsSerializer(serializers.ModelSerializer):
@@ -379,3 +385,42 @@ class OnboardingStatusSerializer(serializers.Serializer):
     next_step = serializers.CharField(allow_null=True)
     steps = serializers.DictField(child=serializers.BooleanField())
     details = serializers.DictField()
+
+
+class SupportTicketSerializer(serializers.ModelSerializer[SupportTicket]):
+    tenant_name = serializers.CharField(source="tenant.name", read_only=True)
+
+    class Meta:
+        model = SupportTicket
+        fields = (
+            "id",
+            "subject",
+            "description",
+            "status",
+            "priority",
+            "contact_phone",
+            "contact_email",
+            "admin_notes",
+            "resolved_at",
+            "tenant_name",
+            "created_at",
+            "updated_at",
+        )
+        read_only_fields = ("id", "tenant_name", "created_at", "updated_at")
+
+
+class PlatformAnnouncementSerializer(serializers.ModelSerializer[PlatformAnnouncement]):
+    class Meta:
+        model = PlatformAnnouncement
+        fields = (
+            "id",
+            "title",
+            "message",
+            "announcement_type",
+            "is_active",
+            "starts_at",
+            "ends_at",
+            "created_at",
+            "updated_at",
+        )
+        read_only_fields = ("id", "created_at", "updated_at")

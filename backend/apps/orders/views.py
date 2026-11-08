@@ -3,7 +3,7 @@ from typing import Any
 from django.db.models import Q
 from django.utils import timezone
 from drf_spectacular.utils import extend_schema
-from rest_framework import serializers, status, viewsets
+from rest_framework import filters, serializers, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.exceptions import NotFound, PermissionDenied, ValidationError
 from rest_framework.permissions import AllowAny, IsAuthenticated
@@ -15,6 +15,7 @@ from apps.accounts.models import Membership
 from apps.orders.models import (
     BillInvoice,
     CourseType,
+    Customer,
     Order,
     OrderStatus,
     OrderWorkflow,
@@ -26,6 +27,7 @@ from apps.orders.models import (
 from apps.orders.serializers import (
     BillInvoiceSerializer,
     CreateOrderSerializer,
+    CustomerSerializer,
     KDSTicketSerializer,
     OrderSerializer,
     ServiceRequestSerializer,
@@ -34,7 +36,11 @@ from apps.orders.serializers import (
 from apps.orders.services import (
     calculate_bill,
     create_order,
+    get_exceptions_report,
+    get_orders_delay_report,
+    get_outlets_report,
     get_range_report,
+    get_staff_report,
     get_today_report,
     settle_bill,
     settle_order_bill,
@@ -375,6 +381,77 @@ class TodayReportView(APIView):
         return Response(report)
 
 
+def _parse_report_dates_and_branch(
+    request: Request,
+) -> tuple[Any, Any, Branch | None, Response | None]:
+    import datetime
+    import zoneinfo
+
+    tenant = getattr(request, "tenant", None)
+    if not tenant:
+        return (
+            datetime.date.today(),
+            datetime.date.today(),
+            None,
+            Response({"error": "Tenant context required."}, status=400),
+        )
+
+    tz_name = getattr(tenant, "timezone", None) or "Asia/Kolkata"
+    try:
+        tz = zoneinfo.ZoneInfo(tz_name)
+    except Exception:
+        tz = zoneinfo.ZoneInfo("Asia/Kolkata")
+
+    today = timezone.now().astimezone(tz).date()
+
+    start_date_str = request.query_params.get("start_date")
+    end_date_str = request.query_params.get("end_date")
+
+    if not start_date_str:
+        start_date = today - datetime.timedelta(days=6)
+    else:
+        try:
+            start_date = datetime.date.fromisoformat(start_date_str)
+        except ValueError:
+            return (
+                today,
+                today,
+                None,
+                Response({"error": "Invalid start_date format (YYYY-MM-DD required)."}, status=400),
+            )
+
+    if not end_date_str:
+        end_date = today
+    else:
+        try:
+            end_date = datetime.date.fromisoformat(end_date_str)
+        except ValueError:
+            return (
+                today,
+                today,
+                None,
+                Response({"error": "Invalid end_date format (YYYY-MM-DD required)."}, status=400),
+            )
+
+    if start_date > end_date:
+        return (
+            today,
+            today,
+            None,
+            Response({"error": "start_date cannot be greater than end_date."}, status=400),
+        )
+
+    membership = getattr(request, "membership", None)
+    branch = None
+    branch_id = request.query_params.get("branch_id")
+    if branch_id:
+        branch = Branch.objects.filter(tenant=tenant, id=branch_id).first()
+    elif membership and membership.branches.exists():
+        branch = membership.branches.first()
+
+    return start_date, end_date, branch, None
+
+
 class RangeReportView(APIView):
     """GET /api/v1/reports/range/ returning sales, orders, and payment totals for a date range."""
 
@@ -382,56 +459,74 @@ class RangeReportView(APIView):
 
     @extend_schema(responses={200: serializers.DictField()})
     def get(self, request: Request) -> Response:
-        import datetime
-        import zoneinfo
+        start_date, end_date, branch, err_response = _parse_report_dates_and_branch(request)
+        if err_response:
+            return err_response
+        report = get_range_report(
+            request.tenant, start_date=start_date, end_date=end_date, branch=branch
+        )
+        return Response(report)
 
-        tenant = getattr(request, "tenant", None)
-        if not tenant:
-            return Response({"error": "Tenant context required."}, status=400)
 
-        tz_name = getattr(tenant, "timezone", None) or "Asia/Kolkata"
-        try:
-            tz = zoneinfo.ZoneInfo(tz_name)
-        except Exception:
-            tz = zoneinfo.ZoneInfo("Asia/Kolkata")
+class ExceptionsReportView(APIView):
+    """GET /api/v1/reports/exceptions/ returning discounts, voids, and reprint audit trails (H-01)."""
 
-        today = timezone.now().astimezone(tz).date()
+    permission_classes = [IsAuthenticated, HasTenantPermission(Permission.REPORT_VIEW)]
 
-        start_date_str = request.query_params.get("start_date")
-        end_date_str = request.query_params.get("end_date")
+    @extend_schema(responses={200: serializers.DictField()})
+    def get(self, request: Request) -> Response:
+        start_date, end_date, branch, err_response = _parse_report_dates_and_branch(request)
+        if err_response:
+            return err_response
+        report = get_exceptions_report(
+            request.tenant, start_date=start_date, end_date=end_date, branch=branch
+        )
+        return Response(report)
 
-        if not start_date_str:
-            start_date = today - datetime.timedelta(days=6)
-        else:
-            try:
-                start_date = datetime.date.fromisoformat(start_date_str)
-            except ValueError:
-                return Response(
-                    {"error": "Invalid start_date format (YYYY-MM-DD required)."}, status=400
-                )
 
-        if not end_date_str:
-            end_date = today
-        else:
-            try:
-                end_date = datetime.date.fromisoformat(end_date_str)
-            except ValueError:
-                return Response(
-                    {"error": "Invalid end_date format (YYYY-MM-DD required)."}, status=400
-                )
+class StaffReportView(APIView):
+    """GET /api/v1/reports/staff/ returning staff sales and efficiency metrics (H-22)."""
 
-        if start_date > end_date:
-            return Response({"error": "start_date cannot be greater than end_date."}, status=400)
+    permission_classes = [IsAuthenticated, HasTenantPermission(Permission.REPORT_VIEW)]
 
-        membership = getattr(request, "membership", None)
-        branch = None
-        branch_id = request.query_params.get("branch_id")
-        if branch_id:
-            branch = Branch.objects.filter(tenant=tenant, id=branch_id).first()
-        elif membership and membership.branches.exists():
-            branch = membership.branches.first()
+    @extend_schema(responses={200: serializers.DictField()})
+    def get(self, request: Request) -> Response:
+        start_date, end_date, branch, err_response = _parse_report_dates_and_branch(request)
+        if err_response:
+            return err_response
+        report = get_staff_report(
+            request.tenant, start_date=start_date, end_date=end_date, branch=branch
+        )
+        return Response(report)
 
-        report = get_range_report(tenant, start_date=start_date, end_date=end_date, branch=branch)
+
+class OutletComparisonReportView(APIView):
+    """GET /api/v1/reports/outlets/ comparing performance across branches/outlets (H-21)."""
+
+    permission_classes = [IsAuthenticated, HasTenantPermission(Permission.REPORT_VIEW)]
+
+    @extend_schema(responses={200: serializers.DictField()})
+    def get(self, request: Request) -> Response:
+        start_date, end_date, _branch, err_response = _parse_report_dates_and_branch(request)
+        if err_response:
+            return err_response
+        report = get_outlets_report(request.tenant, start_date=start_date, end_date=end_date)
+        return Response(report)
+
+
+class OrdersDelayReportView(APIView):
+    """GET /api/v1/reports/orders-delay/ analyzing prep times and delays (H-06)."""
+
+    permission_classes = [IsAuthenticated, HasTenantPermission(Permission.REPORT_VIEW)]
+
+    @extend_schema(responses={200: serializers.DictField()})
+    def get(self, request: Request) -> Response:
+        start_date, end_date, branch, err_response = _parse_report_dates_and_branch(request)
+        if err_response:
+            return err_response
+        report = get_orders_delay_report(
+            request.tenant, start_date=start_date, end_date=end_date, branch=branch
+        )
         return Response(report)
 
 
@@ -478,3 +573,26 @@ class ServiceRequestViewSet(viewsets.ModelViewSet):
         srv_req.acknowledged_at = timezone.now()
         srv_req.save(update_fields=["status", "acknowledged_at"])
         return Response({"id": str(srv_req.id), "status": srv_req.status})
+
+
+class CustomerViewSet(viewsets.ModelViewSet):
+    """Customer CRM directory for guest preferences, visit counts, and consent (H-24)."""
+
+    serializer_class = CustomerSerializer
+    permission_classes = [IsAuthenticated, HasTenantPermission(Permission.ORDER_CREATE)]
+    filter_backends = [filters.SearchFilter]
+    search_fields = ["name", "phone", "email"]
+
+    def get_queryset(self):
+        tenant = getattr(self.request, "tenant", None)
+        if not tenant:
+            return Customer.objects.none()
+        qs = Customer.objects.filter(tenant=tenant)
+        phone = self.request.query_params.get("phone")
+        if phone:
+            qs = qs.filter(phone=phone)
+        return qs
+
+    def perform_create(self, serializer: serializers.BaseSerializer[Customer]) -> None:
+        tenant = getattr(self.request, "tenant", None)
+        serializer.save(tenant=tenant)

@@ -4,6 +4,7 @@ from rest_framework import serializers
 from apps.orders.models import (
     BillInvoice,
     CourseType,
+    Customer,
     Order,
     OrderEvent,
     OrderItem,
@@ -197,3 +198,23 @@ class ServiceRequestSerializer(serializers.ModelSerializer[ServiceRequest]):
 
     def get_table_label(self, obj: ServiceRequest) -> str:
         return obj.table.label if obj.table else "N/A"
+
+
+class CustomerSerializer(serializers.ModelSerializer[Customer]):
+    class Meta:
+        model = Customer
+        fields = [
+            "id",
+            "name",
+            "phone",
+            "email",
+            "consent_given",
+            "dietary_preference",
+            "allergies",
+            "notes",
+            "visit_count",
+            "total_spend_paise",
+            "last_visit_at",
+            "created_at",
+        ]
+        read_only_fields = ["id", "created_at"]

@@ -45,6 +45,18 @@ import { SoundSettingsPage } from "./pages/settings/SoundSettingsPage";
 import { DeviceSettingsPage } from "./pages/settings/DeviceSettingsPage";
 import { PlatformPlansPage } from "./pages/admin/PlatformPlansPage";
 import { PlatformActivityPage } from "./pages/admin/PlatformActivityPage";
+import { RoomsPage } from "./pages/venue/RoomsPage";
+import { RoomServicePage } from "./pages/orders/RoomServicePage";
+import { RoomChargesPage } from "./pages/billing/RoomChargesPage";
+import { TakeawayPage } from "./pages/orders/TakeawayPage";
+import { ExceptionsReportPage } from "./pages/reports/ExceptionsReportPage";
+import { StaffReportPage } from "./pages/reports/StaffReportPage";
+import { OutletComparisonPage } from "./pages/reports/OutletComparisonPage";
+import { CustomersPage } from "./pages/customers/CustomersPage";
+import { RolesGuidePage } from "./pages/team/RolesGuidePage";
+import { PlatformSupportPage } from "./pages/admin/PlatformSupportPage";
+import { PlatformAnnouncementsPage } from "./pages/admin/PlatformAnnouncementsPage";
+import { PlatformHealthPage } from "./pages/admin/PlatformHealthPage";
 import "./i18n";
 
 const queryClient = new QueryClient({
@@ -157,6 +169,30 @@ export const App: React.FC = () => {
                 }
               />
               <Route
+                path="/serve"
+                element={
+                  <ProtectedRoute>
+                    <ReadyToServePage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/room-service"
+                element={
+                  <ProtectedRoute>
+                    <RoomServicePage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/takeaway"
+                element={
+                  <ProtectedRoute>
+                    <TakeawayPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
                 path="/kds"
                 element={
                   <ProtectedRoute>
@@ -213,6 +249,14 @@ export const App: React.FC = () => {
                 }
               />
               <Route
+                path="/billing/room-charges"
+                element={
+                  <ProtectedRoute>
+                    <RoomChargesPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
                 path="/reports/sales"
                 element={
                   <ProtectedRoute>
@@ -233,6 +277,30 @@ export const App: React.FC = () => {
                 element={
                   <ProtectedRoute>
                     <PaymentReportsPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/reports/exceptions"
+                element={
+                  <ProtectedRoute>
+                    <ExceptionsReportPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/reports/staff"
+                element={
+                  <ProtectedRoute>
+                    <StaffReportPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/reports/outlets"
+                element={
+                  <ProtectedRoute>
+                    <OutletComparisonPage />
                   </ProtectedRoute>
                 }
               />
@@ -325,6 +393,30 @@ export const App: React.FC = () => {
                 }
               />
               <Route
+                path="/admin/support"
+                element={
+                  <ProtectedRoute>
+                    <PlatformSupportPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/announcements"
+                element={
+                  <ProtectedRoute>
+                    <PlatformAnnouncementsPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/health"
+                element={
+                  <ProtectedRoute>
+                    <PlatformHealthPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
                 path="/onboarding"
                 element={
                   <ProtectedRoute>
@@ -365,6 +457,14 @@ export const App: React.FC = () => {
                 }
               />
               <Route
+                path="/venue/rooms"
+                element={
+                  <ProtectedRoute>
+                    <RoomsPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
                 path="/venue/counters"
                 element={
                   <ProtectedRoute>
@@ -401,6 +501,22 @@ export const App: React.FC = () => {
                 element={
                   <ProtectedRoute>
                     <StaffPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/customers"
+                element={
+                  <ProtectedRoute>
+                    <CustomersPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/team/roles"
+                element={
+                  <ProtectedRoute>
+                    <RolesGuidePage />
                   </ProtectedRoute>
                 }
               />

@@ -662,6 +662,240 @@ def get_range_report(
     }
 
 
+def get_exceptions_report(
+    tenant: Tenant,
+    start_date: datetime.date,
+    end_date: datetime.date,
+    branch: Branch | None = None,
+) -> dict[str, Any]:
+    """Summarizes operational exceptions: discounts applied, voided / cancelled orders, and reprints (H-01)."""
+    from django.db.models import Sum
+
+    from apps.audit.models import AuditLog
+
+    invoices_qs = BillInvoice.objects.filter(
+        tenant=tenant,
+        is_settled=True,
+        settled_at__date__gte=start_date,
+        settled_at__date__lte=end_date,
+    )
+    orders_qs = Order.objects.filter(
+        tenant=tenant,
+        placed_at__date__gte=start_date,
+        placed_at__date__lte=end_date,
+    )
+    if branch:
+        invoices_qs = invoices_qs.filter(branch=branch)
+        orders_qs = orders_qs.filter(branch=branch)
+
+    # 1. Discount exceptions
+    discounted_invoices = invoices_qs.filter(discount_paise__gt=0).select_related(
+        "settled_by__user"
+    )
+    total_discount_paise = discounted_invoices.aggregate(total=Sum("discount_paise"))["total"] or 0
+    discount_count = discounted_invoices.count()
+
+    discount_items = [
+        {
+            "id": str(inv.id),
+            "invoice_number": inv.invoice_number,
+            "discount_paise": inv.discount_paise,
+            "total_paise": inv.total_paise,
+            "authorizer": (
+                inv.settled_by.user.full_name
+                if inv.settled_by and inv.settled_by.user
+                else "System"
+            ),
+            "notes": inv.notes,
+            "settled_at": inv.settled_at.isoformat() if inv.settled_at else "",
+        }
+        for inv in discounted_invoices[:50]
+    ]
+
+    # 2. Voided / Cancelled order exceptions
+    cancelled_orders = orders_qs.filter(status=OrderStatus.CANCELLED)
+    cancelled_count = cancelled_orders.count()
+    cancelled_items = [
+        {
+            "id": str(ord.id),
+            "order_number": str(ord.id)[:8],
+            "workflow": ord.order_workflow,
+            "notes": ord.notes,
+            "placed_at": ord.placed_at.isoformat() if ord.placed_at else "",
+        }
+        for ord in cancelled_orders[:50]
+    ]
+
+    # 3. Reprint audit exceptions
+    reprints_qs = AuditLog.objects.filter(
+        tenant=tenant,
+        action="printer.reprint",
+        timestamp__date__gte=start_date,
+        timestamp__date__lte=end_date,
+    ).select_related("actor")
+    reprints_count = reprints_qs.count()
+    reprint_events = [
+        {
+            "id": str(ev.id),
+            "actor": ev.actor.full_name if ev.actor else "Staff",
+            "timestamp": ev.timestamp.isoformat(),
+            "notes": f"Reprint of {ev.entity_type} {ev.entity_id[:8]}",
+        }
+        for ev in reprints_qs[:50]
+    ]
+
+    return {
+        "start_date": start_date.isoformat(),
+        "end_date": end_date.isoformat(),
+        "total_discount_paise": total_discount_paise,
+        "discounted_invoices_count": discount_count,
+        "cancelled_orders_count": cancelled_count,
+        "reprints_count": reprints_count,
+        "discounts": discount_items,
+        "cancellations": cancelled_items,
+        "reprints": reprint_events,
+    }
+
+
+def get_staff_report(
+    tenant: Tenant,
+    start_date: datetime.date,
+    end_date: datetime.date,
+    branch: Branch | None = None,
+) -> dict[str, Any]:
+    """Summarizes staff efficiency: bills settled, sales generated, and average ticket size (H-22)."""
+    from django.db.models import Count, Sum
+
+    invoices_qs = BillInvoice.objects.filter(
+        tenant=tenant,
+        is_settled=True,
+        settled_at__date__gte=start_date,
+        settled_at__date__lte=end_date,
+    )
+    if branch:
+        invoices_qs = invoices_qs.filter(branch=branch)
+
+    staff_sales = (
+        invoices_qs.filter(settled_by__isnull=False)
+        .values("settled_by__user__id", "settled_by__user__full_name", "settled_by__role")
+        .annotate(total_sales_paise=Sum("total_paise"), settled_count=Count("id"))
+        .order_by("-total_sales_paise")
+    )
+
+    staff_list = [
+        {
+            "user_id": str(row["settled_by__user__id"]),
+            "full_name": row["settled_by__user__full_name"] or "Staff Member",
+            "role": row["settled_by__role"] or "CASHIER",
+            "settled_count": row["settled_count"] or 0,
+            "total_sales_paise": row["total_sales_paise"] or 0,
+            "average_ticket_paise": (
+                (row["total_sales_paise"] // row["settled_count"])
+                if row["settled_count"] > 0
+                else 0
+            ),
+        }
+        for row in staff_sales
+    ]
+
+    return {
+        "start_date": start_date.isoformat(),
+        "end_date": end_date.isoformat(),
+        "staff": staff_list,
+    }
+
+
+def get_outlets_report(
+    tenant: Tenant,
+    start_date: datetime.date,
+    end_date: datetime.date,
+) -> dict[str, Any]:
+    """Compares performance across all branches/outlets (e.g. Lobby Cafe vs Rooftop Bar vs Room Service) (H-21)."""
+    from django.db.models import Count, Sum
+
+    invoices_qs = BillInvoice.objects.filter(
+        tenant=tenant,
+        is_settled=True,
+        settled_at__date__gte=start_date,
+        settled_at__date__lte=end_date,
+    )
+
+    outlet_stats = (
+        invoices_qs.values("branch__id", "branch__name", "branch__venue_profile")
+        .annotate(total_sales_paise=Sum("total_paise"), invoices_count=Count("id"))
+        .order_by("-total_sales_paise")
+    )
+
+    outlets = [
+        {
+            "branch_id": str(row["branch__id"]),
+            "name": row["branch__name"] or "Main Outlet",
+            "venue_profile": row["branch__venue_profile"] or "CASUAL_DINING",
+            "invoices_count": row["invoices_count"] or 0,
+            "total_sales_paise": row["total_sales_paise"] or 0,
+            "average_ticket_paise": (
+                (row["total_sales_paise"] // row["invoices_count"])
+                if row["invoices_count"] > 0
+                else 0
+            ),
+        }
+        for row in outlet_stats
+    ]
+
+    return {
+        "start_date": start_date.isoformat(),
+        "end_date": end_date.isoformat(),
+        "outlets": outlets,
+    }
+
+
+def get_orders_delay_report(
+    tenant: Tenant,
+    start_date: datetime.date,
+    end_date: datetime.date,
+    branch: Branch | None = None,
+) -> dict[str, Any]:
+    """Analyzes order fulfillment speed and kitchen prep delays (H-06)."""
+    orders_qs = Order.objects.filter(
+        tenant=tenant,
+        placed_at__date__gte=start_date,
+        placed_at__date__lte=end_date,
+    )
+    if branch:
+        orders_qs = orders_qs.filter(branch=branch)
+
+    total_orders = orders_qs.count()
+    completed_orders = orders_qs.filter(status=OrderStatus.COMPLETED)
+
+    prep_times = []
+    delayed_orders = []
+    for ord in orders_qs.filter(ready_at__isnull=False, placed_at__isnull=False)[:100]:
+        diff_mins = int((ord.ready_at - ord.placed_at).total_seconds() // 60)
+        prep_times.append(diff_mins)
+        if diff_mins > 25:
+            delayed_orders.append(
+                {
+                    "id": str(ord.id),
+                    "order_number": str(ord.id)[:8],
+                    "workflow": ord.order_workflow,
+                    "prep_minutes": diff_mins,
+                    "status": ord.status,
+                }
+            )
+
+    avg_prep_minutes = (sum(prep_times) // len(prep_times)) if prep_times else 15
+
+    return {
+        "start_date": start_date.isoformat(),
+        "end_date": end_date.isoformat(),
+        "total_orders": total_orders,
+        "completed_count": completed_orders.count(),
+        "average_prep_minutes": avg_prep_minutes,
+        "delayed_orders_count": len(delayed_orders),
+        "delayed_orders": delayed_orders[:20],
+    }
+
+
 @transaction.atomic
 def transfer_table_session(
     table_session: TableSession,

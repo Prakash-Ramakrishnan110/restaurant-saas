@@ -136,3 +136,70 @@ class BusinessSettings(TenantOwnedModel):
 
     def __str__(self) -> str:
         return f"Settings ({self.tenant.name})"
+
+
+class SupportTicket(TenantOwnedModel):
+    """Customer support ticket for troubleshooting and feature inquiries (A-04, R-11)."""
+
+    class Status(models.TextChoices):
+        OPEN = "OPEN", "Open"
+        IN_PROGRESS = "IN_PROGRESS", "In Progress"
+        RESOLVED = "RESOLVED", "Resolved"
+        CLOSED = "CLOSED", "Closed"
+
+    class Priority(models.TextChoices):
+        LOW = "LOW", "Low"
+        MEDIUM = "MEDIUM", "Medium"
+        HIGH = "HIGH", "High"
+        URGENT = "URGENT", "Urgent"
+
+    subject = models.CharField(max_length=255)
+    description = models.TextField()
+    status = models.CharField(
+        max_length=20,
+        choices=Status.choices,
+        default=Status.OPEN,
+        db_index=True,
+    )
+    priority = models.CharField(
+        max_length=20,
+        choices=Priority.choices,
+        default=Priority.MEDIUM,
+    )
+    contact_phone = models.CharField(max_length=32, blank=True, default="")
+    contact_email = models.EmailField(blank=True, default="")
+    admin_notes = models.TextField(blank=True, default="")
+    resolved_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+
+    def __str__(self) -> str:
+        return f"[{self.status}] {self.subject} ({self.tenant.name})"
+
+
+class PlatformAnnouncement(UUIDModel, TimeStampedModel):
+    """Platform-wide announcement for maintenance notices, downtime and feature releases (A-05)."""
+
+    class AnnouncementType(models.TextChoices):
+        INFO = "INFO", "Information"
+        MAINTENANCE = "MAINTENANCE", "Scheduled Maintenance"
+        FEATURE = "FEATURE", "New Feature"
+        WARNING = "WARNING", "Urgent Alert"
+
+    title = models.CharField(max_length=255)
+    message = models.TextField()
+    announcement_type = models.CharField(
+        max_length=20,
+        choices=AnnouncementType.choices,
+        default=AnnouncementType.INFO,
+    )
+    is_active = models.BooleanField(default=True, db_index=True)
+    starts_at = models.DateTimeField(null=True, blank=True)
+    ends_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+
+    def __str__(self) -> str:
+        return f"[{self.announcement_type}] {self.title}"

@@ -12,7 +12,16 @@ from drf_spectacular.views import (
 from rest_framework.routers import DefaultRouter
 
 from apps.core.views import HealthCheckView
-from apps.orders.views import InvoiceViewSet, RangeReportView, TodayReportView
+from apps.orders.views import (
+    CustomerViewSet,
+    ExceptionsReportView,
+    InvoiceViewSet,
+    OrdersDelayReportView,
+    OutletComparisonReportView,
+    RangeReportView,
+    StaffReportView,
+    TodayReportView,
+)
 
 
 class HealthCheckNoSlashView(HealthCheckView):
@@ -24,6 +33,9 @@ class HealthCheckNoSlashView(HealthCheckView):
 invoice_router = DefaultRouter()
 invoice_router.register(r"", InvoiceViewSet, basename="invoices-standalone")
 
+customer_router = DefaultRouter()
+customer_router.register(r"", CustomerViewSet, basename="customers-standalone")
+
 api_v1_patterns: list[Any] = [
     path("", include("apps.accounts.urls")),
     path("", include("apps.tenants.urls")),
@@ -33,6 +45,11 @@ api_v1_patterns: list[Any] = [
     path("orders/", include("apps.orders.urls")),
     path("reports/today/", TodayReportView.as_view(), name="reports-today"),
     path("reports/range/", RangeReportView.as_view(), name="reports-range"),
+    path("reports/exceptions/", ExceptionsReportView.as_view(), name="reports-exceptions"),
+    path("reports/staff/", StaffReportView.as_view(), name="reports-staff"),
+    path("reports/outlets/", OutletComparisonReportView.as_view(), name="reports-outlets"),
+    path("reports/orders-delay/", OrdersDelayReportView.as_view(), name="reports-orders-delay"),
+    path("customers/", include(customer_router.urls)),
     path("invoices/", include(invoice_router.urls)),
     path("audit-logs/", include("apps.audit.urls")),
 ]

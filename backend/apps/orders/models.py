@@ -1,7 +1,7 @@
 from django.db import models
 from django.utils import timezone
 
-from apps.core.models import BranchOwnedModel, TimeStampedModel, UUIDModel
+from apps.core.models import BranchOwnedModel, TenantOwnedModel, TimeStampedModel, UUIDModel
 
 
 class OrderWorkflow(models.TextChoices):
@@ -322,3 +322,50 @@ class ServiceRequest(BranchOwnedModel):
     def __str__(self) -> str:
         table_label = self.table.label if self.table else "N/A"
         return f"Call Bell: {self.request_type} at Table {table_label} ({self.status})"
+
+
+class Customer(TenantOwnedModel):
+    """Guest / customer profile with explicit consent, preferences, and visit history (H-24, G-04)."""
+
+    name = models.CharField(max_length=150)
+    phone = models.CharField(max_length=20, db_index=True)
+    email = models.EmailField(blank=True, default="")
+    consent_given = models.BooleanField(
+        default=True,
+        help_text="Explicit consent to retain visit history and contact details",
+    )
+    dietary_preference = models.CharField(
+        max_length=20,
+        choices=[
+            ("VEG", "Vegetarian"),
+            ("NON_VEG", "Non-Vegetarian"),
+            ("EGG", "Eggetarian"),
+            ("JAIN", "Jain"),
+            ("VEGAN", "Vegan"),
+            ("NONE", "No Preference"),
+        ],
+        default="NONE",
+    )
+    allergies = models.CharField(
+        max_length=255,
+        blank=True,
+        default="",
+        help_text="Customer reported allergies (e.g. peanuts, dairy, gluten)",
+    )
+    notes = models.TextField(blank=True, default="")
+    visit_count = models.PositiveIntegerField(default=1)
+    total_spend_paise = models.BigIntegerField(default=0)
+    last_visit_at = models.DateTimeField(default=timezone.now)
+
+    class Meta:
+        db_table = "orders_customers"
+        ordering = ["-last_visit_at", "name"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["tenant", "phone"],
+                name="unique_tenant_customer_phone",
+            )
+        ]
+
+    def __str__(self) -> str:
+        return f"{self.name} ({self.phone})"

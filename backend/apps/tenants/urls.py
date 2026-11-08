@@ -5,8 +5,10 @@ from apps.tenants.views import (
     BusinessLogoView,
     BusinessProfileView,
     OnboardingStatusView,
+    PlatformAnnouncementViewSet,
     PlatformCustomerCreateView,
     PlatformSummaryView,
+    SupportTicketViewSet,
     TenantViewSet,
 )
 
@@ -91,5 +93,31 @@ urlpatterns = [
         "branches/<uuid:pk>/",
         BranchViewSet.as_view({"get": "retrieve", "patch": "partial_update", "delete": "destroy"}),
         name="branch-detail",
+    ),
+    # Support Tickets (Tenant / Platform Admin)
+    path(
+        "support-tickets/",
+        SupportTicketViewSet.as_view({"get": "list", "post": "create"}),
+        name="support-ticket-list-create",
+    ),
+    path(
+        "support-tickets/<uuid:pk>/",
+        SupportTicketViewSet.as_view(
+            {"get": "retrieve", "patch": "partial_update", "delete": "destroy"}
+        ),
+        name="support-ticket-detail",
+    ),
+    # Announcements (Platform Admin create, all tenants read)
+    path(
+        "announcements/",
+        PlatformAnnouncementViewSet.as_view({"get": "list", "post": "create"}),
+        name="announcement-list-create",
+    ),
+    path(
+        "announcements/<uuid:pk>/",
+        PlatformAnnouncementViewSet.as_view(
+            {"get": "retrieve", "patch": "partial_update", "delete": "destroy"}
+        ),
+        name="announcement-detail",
     ),
 ]
