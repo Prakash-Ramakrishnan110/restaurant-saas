@@ -40,17 +40,22 @@ export const LoginPage: React.FC = () => {
       if (res?.mustChangePassword) {
         navigate("/change-password");
       } else {
-        const from = (location.state as any)?.from?.pathname || "/dashboard";
+        const locationState = location.state as { from?: { pathname?: string } } | null;
+        const from = locationState?.from?.pathname || "/dashboard";
         navigate(from, { replace: true });
       }
-    } catch (err: any) {
-      if (err?.error?.code === "RATE_LIMITED") {
-        const retryAfter = Number(err?.error?.details?.retry_after) || 60;
+    } catch (err: unknown) {
+      const authErr = err as {
+        error?: { code?: string; message?: string; details?: { retry_after?: number } };
+        message?: string;
+      };
+      if (authErr?.error?.code === "RATE_LIMITED") {
+        const retryAfter = Number(authErr?.error?.details?.retry_after) || 60;
         setRateLimitSeconds(retryAfter);
       }
       const msg =
-        err?.error?.message ||
-        err?.message ||
+        authErr?.error?.message ||
+        authErr?.message ||
         "Invalid email or password. Please verify your credentials.";
       setErrorMsg(msg);
     } finally {

@@ -38,9 +38,9 @@ class Command(BaseCommand):
         with transaction.atomic():
             # 1. Base Subscription Plans
             plan_pro, _ = Plan.objects.get_or_create(
-                slug="pro",
+                slug="professional",
                 defaults={
-                    "name": "Pro Tier",
+                    "name": "Professional Plan",
                     "entitlements": {"max_tables": 100, "max_branches": 5, "reports": True},
                 },
             )

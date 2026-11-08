@@ -24,6 +24,7 @@ export interface SectionItem {
   color: string;
   sort_order: number;
   service_area: string;
+  service_area_id?: string;
   tables_count?: number;
 }
 
@@ -356,7 +357,7 @@ export const AreasPage: React.FC = () => {
             .sort((a, b) => a.sort_order - b.sort_order)
             .map((area, areaIdx, areaArr) => {
               const areaSections = sections
-                .filter((s) => s.service_area === area.id || (s as any).service_area_id === area.id)
+                .filter((s) => s.service_area === area.id || s.service_area_id === area.id)
                 .sort((a, b) => a.sort_order - b.sort_order);
 
               return (
@@ -720,7 +721,10 @@ export const AreasPage: React.FC = () => {
                 <select
                   value={sectionForm.section_type}
                   onChange={(e) => {
-                    setSectionForm({ ...sectionForm, section_type: e.target.value as any });
+                    setSectionForm({
+                      ...sectionForm,
+                      section_type: e.target.value as SectionItem["section_type"],
+                    });
                     setIsFormDirty(true);
                   }}
                   className="w-full rounded-md border border-input bg-card p-2.5 min-h-[44px]"
@@ -801,7 +805,10 @@ export const AreasPage: React.FC = () => {
                 <select
                   value={sectionForm.section_type}
                   onChange={(e) => {
-                    setSectionForm({ ...sectionForm, section_type: e.target.value as any });
+                    setSectionForm({
+                      ...sectionForm,
+                      section_type: e.target.value as SectionItem["section_type"],
+                    });
                     setIsFormDirty(true);
                   }}
                   className="w-full rounded-md border border-input bg-card p-2.5 min-h-[44px]"

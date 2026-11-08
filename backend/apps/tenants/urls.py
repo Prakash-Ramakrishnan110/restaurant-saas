@@ -5,6 +5,7 @@ from apps.tenants.views import (
     BusinessLogoView,
     BusinessProfileView,
     OnboardingStatusView,
+    PlatformCustomerCreateView,
     PlatformSummaryView,
     TenantViewSet,
 )
@@ -15,6 +16,12 @@ urlpatterns = [
         "platform/summary/",
         PlatformSummaryView.as_view(),
         name="platform-summary",
+    ),
+    # Platform Provisioning New Customer Wizard
+    path(
+        "platform/customers/",
+        PlatformCustomerCreateView.as_view(),
+        name="platform-customer-create",
     ),
     # Business Profile & Logo (Active Tenant)
     path(
@@ -58,6 +65,21 @@ urlpatterns = [
         "tenants/<uuid:pk>/activate/",
         TenantViewSet.as_view({"post": "activate"}),
         name="tenant-activate",
+    ),
+    path(
+        "tenants/<uuid:pk>/extend-trial/",
+        TenantViewSet.as_view({"post": "extend_trial"}),
+        name="tenant-extend-trial",
+    ),
+    path(
+        "tenants/<uuid:pk>/change-plan/",
+        TenantViewSet.as_view({"post": "change_plan"}),
+        name="tenant-change-plan",
+    ),
+    path(
+        "tenants/<uuid:pk>/notes/",
+        TenantViewSet.as_view({"post": "add_note"}),
+        name="tenant-add-note",
     ),
     # Branch Management (Tenant scoped)
     path(

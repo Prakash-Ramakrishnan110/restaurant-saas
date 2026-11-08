@@ -11,6 +11,7 @@ import {
   Zap,
 } from "lucide-react";
 import { ordersApi, BillInvoice } from "../../api/orders";
+import { unwrapList } from "../../api/pagination";
 import { formatRupees } from "../../utils/currency";
 import { Button } from "../../components/ui/button";
 import { Card } from "../../components/ui/card";
@@ -29,8 +30,7 @@ export const InvoicesHistoryPage: React.FC = () => {
     try {
       setLoading(true);
       const res = await ordersApi.getInvoices();
-      const raw = (res.data as any)?.results || res.data || [];
-      setInvoices(Array.isArray(raw) ? raw : []);
+      setInvoices(unwrapList<BillInvoice>(res.data));
     } catch (err) {
       console.error("Failed to fetch invoices", err);
     } finally {

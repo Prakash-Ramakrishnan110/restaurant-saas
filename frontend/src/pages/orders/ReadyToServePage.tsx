@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { CheckCircle2, RefreshCw, Utensils, Zap, Clock } from "lucide-react";
 import { ordersApi, Order } from "../../api/orders";
+import { unwrapList } from "../../api/pagination";
 import { Button } from "../../components/ui/button";
 import { Card, CardContent } from "../../components/ui/card";
 
@@ -13,8 +14,7 @@ export const ReadyToServePage: React.FC = () => {
     try {
       setLoading(true);
       const res = await ordersApi.getOrders({ status: "READY" });
-      const raw = (res.data as any)?.results || res.data || [];
-      setOrders(Array.isArray(raw) ? raw : []);
+      setOrders(unwrapList<Order>(res.data));
     } catch (err) {
       console.error("Failed to fetch ready orders", err);
     } finally {
@@ -33,8 +33,9 @@ export const ReadyToServePage: React.FC = () => {
       setServingId(orderId);
       await ordersApi.serveOrder(orderId);
       await fetchReadyOrders();
-    } catch (err: any) {
-      alert("Failed to mark order as served: " + (err.response?.data?.detail || err.message));
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Unknown error";
+      alert("Failed to mark order as served: " + message);
     } finally {
       setServingId(null);
     }

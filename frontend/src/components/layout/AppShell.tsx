@@ -22,7 +22,8 @@ import { OfflineBanner } from "../app/OfflineBanner";
 import { useAuth } from "../../context/AuthContext";
 import { useTheme } from "../../context/ThemeContext";
 import { apiClient } from "../../api/client";
-import { ordersApi } from "../../api/orders";
+import { ordersApi, Order } from "../../api/orders";
+import { unwrapList } from "../../api/pagination";
 import { getNavigationGroups, NavItem } from "../../app/navigation";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../ui/dialog";
 
@@ -109,8 +110,7 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
     const pollCounts = async () => {
       try {
         const res = await ordersApi.getOrders();
-        const raw = (res.data as any)?.results || res.data || [];
-        const orders = Array.isArray(raw) ? raw : [];
+        const orders = unwrapList<Order>(res.data);
         const active = orders.filter((o) => o.status === "NEW" || o.status === "PREPARING").length;
         const ready = orders.filter((o) => o.status === "READY").length;
         setActiveOrdersCount(active);

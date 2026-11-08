@@ -1,9 +1,14 @@
 import React, { useState, useEffect, useRef } from "react";
 import { ChefHat, Clock, CheckCircle2, Volume2, VolumeX, Flame } from "lucide-react";
 import { ordersApi, KDSTicket } from "../../api/orders";
+import { unwrapList } from "../../api/pagination";
 import { useAuth } from "../../context/AuthContext";
 import { Badge } from "../../components/ui/badge";
 import { Button } from "../../components/ui/button";
+
+interface WindowWithWebkitAudio extends Window {
+  webkitAudioContext?: typeof AudioContext;
+}
 
 export const KDSPage: React.FC = () => {
   const { activeTenant } = useAuth();
@@ -16,7 +21,10 @@ export const KDSPage: React.FC = () => {
   const playChime = () => {
     if (!soundEnabled) return;
     try {
-      const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
+      const AudioCtxClass =
+        window.AudioContext || (window as unknown as WindowWithWebkitAudio).webkitAudioContext;
+      if (!AudioCtxClass) return;
+      const audioCtx = new AudioCtxClass();
       const osc = audioCtx.createOscillator();
       const gain = audioCtx.createGain();
       osc.type = "sine";
@@ -38,8 +46,7 @@ export const KDSPage: React.FC = () => {
     try {
       const station = selectedStation === "ALL" ? undefined : selectedStation;
       const res = await ordersApi.getKDSTickets(station);
-      const raw = (res.data as any)?.results || res.data || [];
-      const newTickets = Array.isArray(raw) ? raw : [];
+      const newTickets = unwrapList<KDSTicket>(res.data);
 
       // Check if new tickets arrived to sound alert
       if (newTickets.length > previousTicketCount.current && previousTicketCount.current > 0) {

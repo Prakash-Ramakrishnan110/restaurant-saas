@@ -121,7 +121,9 @@ export function DataTable<T>({
                 <tr key={keyExtractor(item)} className="hover:bg-muted/30 transition-colors">
                   {columns.map((col) => (
                     <td key={col.key} className="px-4 py-3 font-medium text-foreground">
-                      {col.render ? col.render(item) : (item as any)[col.key]}
+                      {col.render
+                        ? col.render(item)
+                        : String((item as Record<string, unknown>)[col.key] ?? "")}
                     </td>
                   ))}
                 </tr>

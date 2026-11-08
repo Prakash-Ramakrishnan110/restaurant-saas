@@ -1,12 +1,27 @@
 import React, { useState, useEffect } from "react";
 import { ShieldCheck, Printer, CheckCircle2, ArrowLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { ordersApi } from "../../api/orders";
+import { ordersApi, BillInvoice } from "../../api/orders";
+import { unwrapList } from "../../api/pagination";
 import { useAuth } from "../../context/AuthContext";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
 import { Badge } from "../../components/ui/badge";
 import { formatRupees, parseRupees } from "../../utils/currency";
+
+export interface ShiftCloseoutRecord {
+  timestamp: string;
+  cashier: string;
+  opening_cash_paise: number;
+  cash_sales_paise: number;
+  expected_cash_paise: number;
+  actual_cash_paise: number;
+  variance_paise: number;
+  upi_total_paise: number;
+  card_total_paise: number;
+  total_shift_paise: number;
+  invoices_count: number;
+}
 
 export const ShiftCloseoutPage: React.FC = () => {
   const navigate = useNavigate();
@@ -14,16 +29,15 @@ export const ShiftCloseoutPage: React.FC = () => {
 
   const [openingCash, setOpeningCash] = useState<string>("2000");
   const [actualCash, setActualCash] = useState<string>("");
-  const [invoices, setInvoices] = useState<any[]>([]);
-  const [closeoutResult, setCloseoutResult] = useState<any | null>(null);
+  const [invoices, setInvoices] = useState<BillInvoice[]>([]);
+  const [closeoutResult, setCloseoutResult] = useState<ShiftCloseoutRecord | null>(null);
   const [submitting, setSubmitting] = useState<boolean>(false);
 
   useEffect(() => {
     ordersApi
       .getInvoices()
       .then((res) => {
-        const raw = (res.data as any)?.results || res.data || [];
-        setInvoices(Array.isArray(raw) ? raw : []);
+        setInvoices(unwrapList<BillInvoice>(res.data));
       })
       .catch(() => setInvoices([]));
   }, [activeTenant?.tenant_id]);

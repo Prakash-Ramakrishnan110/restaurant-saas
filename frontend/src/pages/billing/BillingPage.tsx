@@ -24,6 +24,16 @@ import {
   DialogFooter,
 } from "../../components/ui/dialog";
 import { formatRupees, parseRupees } from "../../utils/currency";
+import { unwrapList, ListResponse } from "../../api/pagination";
+
+interface TableSessionInfo {
+  id: string;
+  table?: { label: string };
+  session_code?: string;
+  party_size?: number;
+  orders_count?: number;
+  status: string;
+}
 
 export const BillingPage: React.FC = () => {
   const [searchParams] = useSearchParams();
@@ -31,7 +41,7 @@ export const BillingPage: React.FC = () => {
   const { activeTenant } = useAuth();
 
   // Sessions and Active Selection
-  const [sessions, setSessions] = useState<any[]>([]);
+  const [sessions, setSessions] = useState<TableSessionInfo[]>([]);
   const [selectedSessionId, setSelectedSessionId] = useState<string | null>(null);
   const [billData, setBillData] = useState<BillCalculation | null>(null);
   const [settling, setSettling] = useState<boolean>(false);
@@ -54,9 +64,11 @@ export const BillingPage: React.FC = () => {
   const fetchSessions = async () => {
     if (!activeTenant) return;
     try {
-      const res = await apiClient.get<any>("/sessions/");
-      const openSessions = (res.data?.results || res.data || []).filter(
-        (s: any) => s.status === "OPEN"
+      const res = await apiClient.get<ListResponse<TableSessionInfo> | TableSessionInfo[]>(
+        "/sessions/"
+      );
+      const openSessions = unwrapList<TableSessionInfo>(res.data).filter(
+        (s) => s.status === "OPEN"
       );
       setSessions(openSessions);
 
@@ -111,8 +123,17 @@ export const BillingPage: React.FC = () => {
       setSettledInvoice(res.data);
       setReceiptModalOpen(true);
       await fetchSessions();
-    } catch (err: any) {
-      setErrorMessage(err?.response?.data?.message || "Failed to settle bill.");
+    } catch (err: unknown) {
+      const axiosErr = err as {
+        response?: { data?: { message?: string; detail?: string } };
+        message?: string;
+      };
+      setErrorMessage(
+        axiosErr?.response?.data?.message ||
+          axiosErr?.response?.data?.detail ||
+          axiosErr?.message ||
+          "Failed to settle bill."
+      );
     } finally {
       setSettling(false);
     }
@@ -297,9 +318,9 @@ export const BillingPage: React.FC = () => {
 
                 <div className="grid grid-cols-3 gap-2">
                   {[
-                    { id: "CASH", label: "Cash", icon: Banknote },
-                    { id: "UPI", label: "UPI QR", icon: QrCode },
-                    { id: "CARD", label: "Card", icon: CreditCard },
+                    { id: "CASH" as const, label: "Cash", icon: Banknote },
+                    { id: "UPI" as const, label: "UPI QR", icon: QrCode },
+                    { id: "CARD" as const, label: "Card", icon: CreditCard },
                   ].map((m) => {
                     const Icon = m.icon;
                     const isSelected = paymentMethod === m.id;
@@ -307,7 +328,7 @@ export const BillingPage: React.FC = () => {
                       <button
                         key={m.id}
                         type="button"
-                        onClick={() => setPaymentMethod(m.id as any)}
+                        onClick={() => setPaymentMethod(m.id)}
                         className={`flex flex-col items-center justify-center gap-1.5 p-3 rounded-xl border text-xs font-bold transition-all ${
                           isSelected
                             ? "border-[#FF6A00] bg-[#FF6A00]/10 text-foreground ring-1 ring-[#FF6A00]"

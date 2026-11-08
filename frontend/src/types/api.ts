@@ -881,6 +881,29 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/platform/customers/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * @description POST /api/v1/platform/customers/
+         *
+         *     Platform Admin New Customer provisioning wizard.
+         *     Creates Tenant, starting branches, business settings, trial subscription,
+         *     initial venue presets, and owner user with a single-use temporary password.
+         */
+        post: operations["platform_customers_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/platform/summary/": {
         parameters: {
             query?: never;
@@ -1475,6 +1498,57 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/tenants/{id}/change-plan/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** @description Platform administrator endpoints to manage tenants and provisioning. */
+        post: operations["tenants_change_plan_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/tenants/{id}/extend-trial/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** @description Platform administrator endpoints to manage tenants and provisioning. */
+        post: operations["tenants_extend_trial_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/tenants/{id}/notes/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** @description Platform administrator endpoints to manage tenants and provisioning. */
+        post: operations["tenants_notes_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/tenants/{id}/reset-owner-password/": {
         parameters: {
             query?: never;
@@ -1918,6 +1992,12 @@ export interface components {
             placed_at?: string;
             notes?: string;
         };
+        /**
+         * @description * `en` - en
+         *     * `ta` - ta
+         * @enum {string}
+         */
+        LanguageEnum: "en" | "ta";
         LayoutTemplateApplyResponse: {
             dry_run: boolean;
             template_key: string;
@@ -2710,6 +2790,35 @@ export interface components {
          * @enum {string}
          */
         PaymentTiming: "PAY_FIRST" | "PAY_LATER" | "EITHER";
+        /**
+         * @description * `starter` - starter
+         *     * `professional` - professional
+         *     * `business` - business
+         *     * `enterprise` - enterprise
+         * @enum {string}
+         */
+        PlanSlugEnum: "starter" | "professional" | "business" | "enterprise";
+        PlatformCustomerCreateRequest: {
+            name: string;
+            /** @default RESTAURANT */
+            business_type: components["schemas"]["BusinessType"];
+            /** @default  */
+            city: string;
+            /** @default en */
+            language: components["schemas"]["LanguageEnum"];
+            owner_name: string;
+            /** @default  */
+            owner_phone: string;
+            /** Format: email */
+            owner_email: string;
+            /** @default starter */
+            plan_slug: components["schemas"]["PlanSlugEnum"];
+            /** @default 14 */
+            trial_days: number;
+            /** @default 1 */
+            outlets_count: number;
+            outlet_names?: string[];
+        };
         PublicQRDetail: {
             tenant_name: string;
             display_name: string;
@@ -3061,6 +3170,8 @@ export interface components {
             currency?: string;
             readonly business_settings: components["schemas"]["BusinessSettings"];
             readonly subscription_status: string;
+            readonly branches_count: number;
+            readonly plan_name: string;
             /** Format: date-time */
             readonly created_at: string;
             /** Format: date-time */
@@ -5130,6 +5241,33 @@ export interface operations {
             };
         };
     };
+    platform_customers_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PlatformCustomerCreateRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["PlatformCustomerCreateRequest"];
+                "multipart/form-data": components["schemas"]["PlatformCustomerCreateRequest"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+        };
+    };
     platform_summary_retrieve: {
         parameters: {
             query?: never;
@@ -6304,6 +6442,87 @@ export interface operations {
         };
     };
     tenants_activate_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TenantRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["TenantRequest"];
+                "multipart/form-data": components["schemas"]["TenantRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Tenant"];
+                };
+            };
+        };
+    };
+    tenants_change_plan_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TenantRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["TenantRequest"];
+                "multipart/form-data": components["schemas"]["TenantRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Tenant"];
+                };
+            };
+        };
+    };
+    tenants_extend_trial_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TenantRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["TenantRequest"];
+                "multipart/form-data": components["schemas"]["TenantRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Tenant"];
+                };
+            };
+        };
+    };
+    tenants_notes_create: {
         parameters: {
             query?: never;
             header?: never;

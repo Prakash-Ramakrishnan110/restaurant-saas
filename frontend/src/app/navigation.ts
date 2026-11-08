@@ -20,6 +20,7 @@ import {
   FileText,
   User,
   Activity,
+  PlusCircle,
 } from "lucide-react";
 
 export interface NavItem {
@@ -53,16 +54,15 @@ export function getNavigationGroups(ctx: NavigationContext): NavGroup[] {
     businessType === "FOOD_COURT" ||
     venueProfile === "QUICK_SERVICE";
 
-  const isHotel = venueProfile === "HOTEL";
-
-  // 1. Platform Admin role: Platform group only, NEVER restaurant data
+  // 1. Platform Admin role: Platform console only, NEVER restaurant data
   if (isPlatformAdmin) {
     return [
       {
         label: "Super Admin",
         items: [
-          { label: "Platform Overview", path: "/admin/dashboard", icon: ShieldCheck },
+          { label: "Platform Dashboard", path: "/admin", icon: ShieldCheck },
           { label: "Tenants Directory", path: "/admin/tenants", icon: Users },
+          { label: "New Customer", path: "/admin/tenants/new", icon: PlusCircle },
         ],
       },
     ];
@@ -74,7 +74,7 @@ export function getNavigationGroups(ctx: NavigationContext): NavGroup[] {
       {
         label: "Kitchen Station",
         items: [
-          { label: "Kitchen KDS", path: "/kds", icon: ChefHat },
+          { label: "Kitchen KDS", path: "/kds", icon: ChefHat, badgeKey: "activeOrders" },
           { label: "Today's Availability", path: "/menu/availability", icon: Clock },
           { label: "Menu", path: "/menu", icon: UtensilsCrossed },
         ],
@@ -92,12 +92,12 @@ export function getNavigationGroups(ctx: NavigationContext): NavGroup[] {
           { label: floorLabel, path: "/pos", icon: Utensils },
           { label: "Live Orders", path: "/orders", icon: Activity, badgeKey: "activeOrders" },
           {
-            label: "Ready to Serve",
-            path: "/orders/ready",
+            label: isQuickService ? "Ready for Pickup" : "Ready to Serve",
+            path: "/serve",
             icon: CheckCircle2,
             badgeKey: "readyOrders",
           },
-          { label: "Menu (View Only)", path: "/menu", icon: UtensilsCrossed },
+          { label: "Menu", path: "/menu", icon: UtensilsCrossed },
         ],
       },
     ];
@@ -110,8 +110,8 @@ export function getNavigationGroups(ctx: NavigationContext): NavGroup[] {
         label: "Billing & Register",
         items: [
           { label: "Cashier Billing", path: "/billing", icon: Receipt },
-          { label: "Bills & Receipts", path: "/billing/invoices", icon: FileText },
-          { label: "Shift Closeout", path: "/billing/closeout", icon: Clock },
+          { label: "Bills", path: "/billing/bills", icon: FileText },
+          { label: "Shift Close", path: "/billing/closeout", icon: Clock },
           { label: "Live Orders", path: "/orders", icon: Activity, badgeKey: "activeOrders" },
           { label: "Today's Availability", path: "/menu/availability", icon: Clock },
           { label: "Menu", path: "/menu", icon: UtensilsCrossed },
@@ -120,19 +120,12 @@ export function getNavigationGroups(ctx: NavigationContext): NavGroup[] {
     ];
   }
 
-  // 5. Manager & Owner roles
+  // 5. Manager & Owner roles (exactly 4 groups: Daily work, Restaurant setup, Team, Settings)
   const isManager = role === "BRANCH_MANAGER";
 
   const setupVenueItem: NavItem = isQuickService
     ? { label: "Counters and Tokens", path: "/venue/counters", icon: Zap, permission: "area.view" }
-    : isHotel
-      ? {
-          label: "Floors and Outlets",
-          path: "/branches",
-          icon: GitBranch,
-          permission: "branch.view",
-        }
-      : { label: "Tables", path: "/venue/tables", icon: Utensils, permission: "table.view" };
+    : { label: "Tables", path: "/venue/tables", icon: Utensils, permission: "table.view" };
 
   const floorPlanItem: NavItem | null = isQuickService
     ? null
@@ -147,9 +140,16 @@ export function getNavigationGroups(ctx: NavigationContext): NavGroup[] {
       permission: "order.create",
     },
     { label: "Live Orders", path: "/orders", icon: Activity, badgeKey: "activeOrders" },
-    { label: "Ready to Serve", path: "/orders/ready", icon: CheckCircle2, badgeKey: "readyOrders" },
+    {
+      label: isQuickService ? "Ready for Pickup" : "Ready to Serve",
+      path: "/serve",
+      icon: CheckCircle2,
+      badgeKey: "readyOrders",
+    },
     { label: "Kitchen KDS", path: "/kds", icon: ChefHat, permission: "menu.availability" },
     { label: "Cashier Billing", path: "/billing", icon: Receipt, permission: "order.create" },
+    { label: "Bills", path: "/billing/bills", icon: FileText, permission: "order.create" },
+    { label: "Shift Close", path: "/billing/closeout", icon: Clock, permission: "order.create" },
     { label: "Menu", path: "/menu", icon: UtensilsCrossed, permission: "menu.view" },
     {
       label: "Today's Availability",
@@ -157,15 +157,25 @@ export function getNavigationGroups(ctx: NavigationContext): NavGroup[] {
       icon: Clock,
       permission: "menu.availability",
     },
-    { label: "QR Codes", path: "/qr", icon: QrCode, permission: "qr.view" },
   ];
 
   const setupItems: NavItem[] = [
     { label: "Onboarding", path: "/onboarding", icon: Sparkles, permission: "business.manage" },
-    { label: "Branches", path: "/branches", icon: GitBranch, permission: "branch.view" },
-    { label: "Areas", path: "/venue/areas", icon: Layers, permission: "area.view" },
+    {
+      label: "Branches",
+      path: "/branches",
+      icon: GitBranch,
+      permission: "branch.view",
+    },
+    {
+      label: "Areas",
+      path: "/venue/areas",
+      icon: Layers,
+      permission: "area.view",
+    },
     setupVenueItem,
     ...(floorPlanItem ? [floorPlanItem] : []),
+    { label: "QR Codes", path: "/qr", icon: QrCode, permission: "qr.view" },
   ];
 
   const settingsItems: NavItem[] = [
@@ -185,30 +195,21 @@ export function getNavigationGroups(ctx: NavigationContext): NavGroup[] {
       icon: Sliders,
       permission: "business.view",
     },
-    { label: "Account & Plan", path: "/settings/account", icon: User },
+    ...(!isManager
+      ? [
+          {
+            label: "Your Plan & Billing",
+            path: "/settings/plan",
+            icon: User,
+          },
+        ]
+      : []),
   ];
 
   const groups: NavGroup[] = [
     {
       label: "Daily work",
       items: dailyItems,
-    },
-    {
-      label: "Bills & Reports",
-      items: [
-        {
-          label: "Bills & Receipts",
-          path: "/billing/invoices",
-          icon: FileText,
-          permission: "order.create",
-        },
-        {
-          label: "Shift Closeout",
-          path: "/billing/closeout",
-          icon: Clock,
-          permission: "order.create",
-        },
-      ],
     },
     {
       label: "Restaurant setup",

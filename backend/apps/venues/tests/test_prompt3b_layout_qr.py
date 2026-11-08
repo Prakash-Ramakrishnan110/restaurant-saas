@@ -23,8 +23,8 @@ def venue_env(django_db_blocker):
         branch = Branch.objects.create(tenant=tenant, name="T. Nagar Branch", is_active=True)
 
         plan = Plan.objects.create(
-            name="Pro Growth",
-            slug="pro-growth",
+            name="Professional",
+            slug="professional",
             entitlements={"max_service_areas": 10, "max_tables": 50},
         )
         Subscription.objects.create(tenant=tenant, plan=plan, status="ACTIVE")

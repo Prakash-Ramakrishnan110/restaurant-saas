@@ -13,6 +13,7 @@ import {
   Receipt,
 } from "lucide-react";
 import { ordersApi, Order } from "../../api/orders";
+import { unwrapList } from "../../api/pagination";
 import { formatRupees } from "../../utils/currency";
 import { Button } from "../../components/ui/button";
 import { Card, CardContent } from "../../components/ui/card";
@@ -54,8 +55,7 @@ export const LiveOrdersPage: React.FC = () => {
     try {
       setLoading(true);
       const res = await ordersApi.getOrders();
-      const raw = (res.data as any)?.results || res.data || [];
-      setOrders(Array.isArray(raw) ? raw : []);
+      setOrders(unwrapList<Order>(res.data));
     } catch (err) {
       console.error("Failed to load orders", err);
     } finally {

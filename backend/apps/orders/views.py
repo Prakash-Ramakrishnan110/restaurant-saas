@@ -182,7 +182,7 @@ class KDSViewSet(viewsets.ReadOnlyModelViewSet):
     """Kitchen Display System real-time ticket queue."""
 
     serializer_class = KDSTicketSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, HasTenantPermission(Permission.MENU_VIEW)]
 
     def get_queryset(self):
         tenant = getattr(self.request, "tenant", None)
@@ -230,7 +230,7 @@ class BillingViewSet(viewsets.ViewSet):
     """Cashier billing and table session checkout."""
 
     serializer_class = BillInvoiceSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, HasTenantPermission(Permission.TABLE_SESSION_CLOSE)]
 
     @action(detail=False, methods=["get"], url_path="session/(?P<session_id>[^/.]+)")
     def session_bill(self, request: Request, session_id: str | None = None) -> Response:
@@ -319,7 +319,7 @@ class InvoiceViewSet(viewsets.ReadOnlyModelViewSet):
     """Authoritative Invoices directory and detail endpoint."""
 
     serializer_class = BillInvoiceSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, HasTenantPermission(Permission.PRINTER_REPRINT)]
 
     def get_queryset(self):
         tenant = getattr(self.request, "tenant", None)

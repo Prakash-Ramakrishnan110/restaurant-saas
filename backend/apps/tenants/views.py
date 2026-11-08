@@ -2,6 +2,7 @@ from datetime import timedelta
 
 from django.http import Http404
 from django.utils import timezone
+from django.utils.text import slugify
 from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import extend_schema
 from rest_framework import serializers, status
@@ -13,23 +14,26 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.viewsets import ViewSet
 
+from apps.accounts.models import Membership
 from apps.core.context import get_current_tenant
 from apps.core.pagination import StandardResultsSetPagination
-from apps.rbac.constants import Permission
+from apps.rbac.constants import Permission, Role
 from apps.rbac.permissions import (
     HasTenantPermission,
     IsOwnerOrBranchManager,
     IsPlatformAdmin,
     verify_tenant_and_branch_access,
 )
-from apps.tenants.models import Branch, Tenant
+from apps.tenants.models import Branch, BusinessSettings, Tenant
 from apps.tenants.serializers import (
     BranchCreateUpdateSerializer,
     BranchSerializer,
     BusinessLogoResponseSerializer,
     BusinessProfileSerializer,
     OnboardingStatusSerializer,
+    PlatformCustomerCreateSerializer,
     TenantCreateSerializer,
+    TenantDetailSerializer,
     TenantSerializer,
 )
 from apps.tenants.services import (
@@ -104,7 +108,7 @@ class TenantViewSet(ViewSet):
             tenant = Tenant.objects.select_related("business_settings", "subscription").get(pk=pk)
         except Tenant.DoesNotExist:
             raise Http404("Tenant not found.") from None
-        return Response(TenantSerializer(tenant).data)
+        return Response(TenantDetailSerializer(tenant).data)
 
     @extend_schema(request=None, responses={200: OpenApiTypes.OBJECT})
     @action(detail=True, methods=["post"], url_path="reset-owner-password")
@@ -115,8 +119,23 @@ class TenantViewSet(ViewSet):
             tenant = Tenant.objects.get(pk=pk)
         except Tenant.DoesNotExist:
             raise Http404("Tenant not found.") from None
+        reason = request.data.get("reason", "").strip() or "Operator initiated password reset"
         owners = reset_owner_passwords(tenant, actor=request.user, request=request)
-        return Response({"owners": owners})
+        from apps.audit.models import AuditLog
+
+        AuditLog.objects.create(
+            tenant=tenant,
+            actor=request.user,
+            action="tenant.reset_password",
+            entity_type="Tenant",
+            entity_id=str(tenant.id),
+            after_state={"owners_count": len(owners), "reason": reason},
+        )
+        temp_pwd = owners[0]["temporary_password"] if owners else ""
+        owner_email = owners[0]["email"] if owners else ""
+        return Response(
+            {"owners": owners, "temporary_password": temp_pwd, "owner_email": owner_email}
+        )
 
     @action(detail=True, methods=["post"])
     def suspend(self, request: Request, pk: str | None = None) -> Response:
@@ -127,7 +146,18 @@ class TenantViewSet(ViewSet):
         except Tenant.DoesNotExist:
             raise Http404("Tenant not found.") from None
 
+        reason = request.data.get("reason", "").strip() or "Administrative suspension"
         updated_tenant = suspend_tenant(tenant, actor=request.user, request=request)
+        from apps.audit.models import AuditLog
+
+        AuditLog.objects.create(
+            tenant=tenant,
+            actor=request.user,
+            action="tenant.suspend",
+            entity_type="Tenant",
+            entity_id=str(tenant.id),
+            after_state={"status": Tenant.Status.SUSPENDED, "reason": reason},
+        )
         return Response(TenantSerializer(updated_tenant).data)
 
     @action(detail=True, methods=["post"])
@@ -139,8 +169,157 @@ class TenantViewSet(ViewSet):
         except Tenant.DoesNotExist:
             raise Http404("Tenant not found.") from None
 
+        reason = request.data.get("reason", "").strip() or "Administrative reactivation"
         updated_tenant = activate_tenant(tenant, actor=request.user, request=request)
+        from apps.audit.models import AuditLog
+
+        AuditLog.objects.create(
+            tenant=tenant,
+            actor=request.user,
+            action="tenant.reactivate",
+            entity_type="Tenant",
+            entity_id=str(tenant.id),
+            after_state={"status": Tenant.Status.ACTIVE, "reason": reason},
+        )
         return Response(TenantSerializer(updated_tenant).data)
+
+    @action(detail=True, methods=["post"], url_path="extend-trial")
+    def extend_trial(self, request: Request, pk: str | None = None) -> Response:
+        if not pk:
+            raise Http404("Tenant not found.")
+        try:
+            tenant = Tenant.objects.get(pk=pk)
+        except Tenant.DoesNotExist:
+            raise Http404("Tenant not found.") from None
+
+        reason = request.data.get("reason", "").strip()
+        if not reason:
+            return Response(
+                {"reason": ["A reason is mandatory for extending trial."]},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        try:
+            days = int(request.data.get("days", 14))
+        except (ValueError, TypeError):
+            days = 14
+
+        from apps.subscriptions.models import Subscription, SubscriptionStatus
+
+        sub = getattr(tenant, "subscription", None)
+        if not sub:
+            sub = Subscription.objects.create(tenant=tenant, status=SubscriptionStatus.TRIAL)
+        now = timezone.now()
+        current_end = sub.ends_at if (sub.ends_at and sub.ends_at > now) else now
+        sub.ends_at = current_end + timedelta(days=days)
+        sub.status = SubscriptionStatus.TRIAL
+        sub.save(update_fields=["ends_at", "status", "updated_at"])
+
+        from apps.audit.models import AuditLog
+
+        AuditLog.objects.create(
+            tenant=tenant,
+            actor=request.user,
+            action="tenant.extend_trial",
+            entity_type="Tenant",
+            entity_id=str(tenant.id),
+            after_state={"days": days, "new_ends_at": sub.ends_at.isoformat(), "reason": reason},
+        )
+        return Response(TenantDetailSerializer(tenant).data)
+
+    @action(detail=True, methods=["post"], url_path="change-plan")
+    def change_plan(self, request: Request, pk: str | None = None) -> Response:
+        if not pk:
+            raise Http404("Tenant not found.")
+        try:
+            tenant = Tenant.objects.get(pk=pk)
+        except Tenant.DoesNotExist:
+            raise Http404("Tenant not found.") from None
+
+        reason = request.data.get("reason", "").strip()
+        if not reason:
+            return Response(
+                {"reason": ["A reason is mandatory for changing plan."]},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        plan_slug = request.data.get("plan_slug", "").strip().lower()
+        if plan_slug not in ("starter", "professional", "business", "enterprise"):
+            return Response(
+                {"plan_slug": ["Must be starter, professional, business, or enterprise."]},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        from apps.subscriptions.models import Plan, Subscription, SubscriptionStatus
+
+        plan_defaults = {
+            "starter": {
+                "name": "Starter Plan",
+                "price_paise": 149900,
+                "entitlements": {"max_tables": 10, "max_branches": 1},
+            },
+            "professional": {
+                "name": "Professional Plan",
+                "price_paise": 499900,
+                "entitlements": {"max_tables": 50, "max_branches": 5},
+            },
+            "business": {
+                "name": "Business Plan",
+                "price_paise": 999900,
+                "entitlements": {"max_tables": 150, "max_branches": 15},
+            },
+            "enterprise": {
+                "name": "Enterprise Plan",
+                "price_paise": 2499900,
+                "entitlements": {"max_tables": None, "max_branches": None},
+            },
+        }
+        plan, _ = Plan.objects.get_or_create(slug=plan_slug, defaults=plan_defaults[plan_slug])
+        sub = getattr(tenant, "subscription", None)
+        if not sub:
+            sub = Subscription.objects.create(
+                tenant=tenant, plan=plan, status=SubscriptionStatus.ACTIVE
+            )
+        else:
+            sub.plan = plan
+            sub.save(update_fields=["plan", "updated_at"])
+
+        from apps.audit.models import AuditLog
+
+        AuditLog.objects.create(
+            tenant=tenant,
+            actor=request.user,
+            action="tenant.change_plan",
+            entity_type="Tenant",
+            entity_id=str(tenant.id),
+            after_state={"plan_slug": plan_slug, "plan_name": plan.name, "reason": reason},
+        )
+        return Response(TenantDetailSerializer(tenant).data)
+
+    @action(detail=True, methods=["post"], url_path="notes")
+    def add_note(self, request: Request, pk: str | None = None) -> Response:
+        if not pk:
+            raise Http404("Tenant not found.")
+        try:
+            tenant = Tenant.objects.get(pk=pk)
+        except Tenant.DoesNotExist:
+            raise Http404("Tenant not found.") from None
+
+        note = request.data.get("note", "").strip()
+        if not note:
+            return Response(
+                {"note": ["Note content cannot be empty."]}, status=status.HTTP_400_BAD_REQUEST
+            )
+        reason = request.data.get("reason", "Operator Note").strip()
+        from apps.audit.models import AuditLog
+
+        AuditLog.objects.create(
+            tenant=tenant,
+            actor=request.user,
+            action="tenant.add_note",
+            entity_type="Tenant",
+            entity_id=str(tenant.id),
+            after_state={"note": note, "reason": reason, "author": getattr(request.user, "email", "system")},
+        )
+        return Response({"message": "Note added successfully."}, status=status.HTTP_201_CREATED)
 
 
 class BranchViewSet(ViewSet):
@@ -442,6 +621,310 @@ class BusinessLogoView(APIView):
         return response
 
 
+class PlatformCustomerCreateView(APIView):
+    """POST /api/v1/platform/customers/
+
+    Platform Admin New Customer provisioning wizard.
+    Creates Tenant, starting branches, business settings, trial subscription,
+    initial venue presets, and owner user with a single-use temporary password.
+    """
+
+    permission_classes = [IsPlatformAdmin]
+
+    @extend_schema(
+        request=PlatformCustomerCreateSerializer,
+        responses={201: OpenApiTypes.OBJECT},
+    )
+    def post(self, request: Request) -> Response:
+        import secrets
+
+        from django.contrib.auth import get_user_model
+
+        from apps.audit.models import AuditLog
+        from apps.subscriptions.models import Plan, Subscription, SubscriptionStatus
+        from apps.venues.models import (
+            BranchCapabilities,
+            DiningTable,
+            Section,
+            ServiceArea,
+            TokenCounter,
+        )
+
+        User = get_user_model()
+
+        serializer = PlatformCustomerCreateSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        vd = serializer.validated_data
+
+        name = vd["name"].strip()
+        slug = slugify(name)
+        base_slug = slug
+        counter = 1
+        while Tenant.objects.filter(slug=slug).exists():
+            slug = f"{base_slug}-{counter}"
+            counter += 1
+
+        business_type = vd["business_type"]
+        city = vd.get("city", "").strip()
+        language = vd.get("language", "en")
+        owner_name = vd["owner_name"].strip()
+        owner_phone = vd.get("owner_phone", "").strip()
+        owner_email = vd["owner_email"].strip().lower()
+        plan_slug = vd.get("plan_slug", "starter")
+        trial_days = vd.get("trial_days", 14)
+        outlets_count = vd.get("outlets_count", 1)
+        outlet_names = vd.get("outlet_names", [])
+
+        plan_defaults = {
+            "starter": {
+                "name": "Starter Plan",
+                "price_paise": 149900,
+                "entitlements": {"max_tables": 10, "max_branches": 1},
+            },
+            "professional": {
+                "name": "Professional Plan",
+                "price_paise": 499900,
+                "entitlements": {"max_tables": 50, "max_branches": 5},
+            },
+            "business": {
+                "name": "Business Plan",
+                "price_paise": 999900,
+                "entitlements": {"max_tables": 150, "max_branches": 15},
+            },
+            "enterprise": {
+                "name": "Enterprise Plan",
+                "price_paise": 2499900,
+                "entitlements": {"max_tables": None, "max_branches": None},
+            },
+        }
+        plan, _ = Plan.objects.get_or_create(
+            slug=plan_slug, defaults=plan_defaults.get(plan_slug, plan_defaults["starter"])
+        )
+
+        # 1. Tenant
+        tenant = Tenant.objects.create(
+            name=name,
+            slug=slug,
+            business_type=business_type,
+            status=Tenant.Status.ACTIVE,
+            email=owner_email,
+            phone=owner_phone,
+            address=city,
+            timezone="Asia/Kolkata",
+            currency="INR",
+        )
+
+        # 2. Business Settings
+        doc_lang = (
+            BusinessSettings.DocumentLanguage.EN_TA
+            if language == "ta"
+            else BusinessSettings.DocumentLanguage.EN
+        )
+        BusinessSettings.objects.create(
+            tenant=tenant,
+            legal_name=name,
+            registered_address=city,
+            document_language=doc_lang,
+            tax_mode=BusinessSettings.TaxMode.INCLUSIVE,
+            invoice_prefix="INV-",
+        )
+
+        # 3. Branches
+        if outlet_names and len(outlet_names) > 0:
+            branch_names = [n.strip() for n in outlet_names if n.strip()]
+        elif outlets_count <= 1:
+            branch_names = [f"{name} Main"]
+        else:
+            branch_names = [f"{name} Outlet {i + 1}" for i in range(outlets_count)]
+
+        venue_profile_map = {
+            Tenant.BusinessType.TEA_SHOP: Branch.VenueProfile.QUICK_SERVICE,
+            Tenant.BusinessType.BAKERY: Branch.VenueProfile.QUICK_SERVICE,
+            Tenant.BusinessType.FOOD_COURT: Branch.VenueProfile.FOOD_COURT,
+            Tenant.BusinessType.CAFE: Branch.VenueProfile.CAFE,
+            Tenant.BusinessType.FINE_DINING: Branch.VenueProfile.FINE_DINING,
+            Tenant.BusinessType.HOTEL: Branch.VenueProfile.HOTEL_RESTAURANT,
+            Tenant.BusinessType.RESTAURANT: Branch.VenueProfile.CASUAL_DINING,
+        }
+        venue_prof = venue_profile_map.get(business_type, Branch.VenueProfile.CASUAL_DINING)
+
+        created_branches = []
+        for b_name in branch_names:
+            br = Branch.objects.create(
+                tenant=tenant,
+                name=b_name,
+                venue_profile=venue_prof,
+                address=city,
+                phone=owner_phone,
+                is_active=True,
+            )
+            created_branches.append(br)
+
+        first_branch = created_branches[0]
+        # 4. Venue Layout Presets
+        is_counter = business_type in (
+            Tenant.BusinessType.TEA_SHOP,
+            Tenant.BusinessType.BAKERY,
+            Tenant.BusinessType.FOOD_COURT,
+        )
+        if is_counter:
+            BranchCapabilities.objects.create(
+                tenant=tenant,
+                branch=first_branch,
+                uses_tables=False,
+                uses_token_numbers=True,
+                allows_takeaway=True,
+                payment_timing="PAY_FIRST",
+            )
+            area = ServiceArea.objects.create(
+                tenant=tenant,
+                branch=first_branch,
+                name="Main Counter",
+                area_type="COUNTER",
+                sort_order=1,
+            )
+            TokenCounter.objects.create(
+                tenant=tenant,
+                branch=first_branch,
+                service_area=area,
+                service_date=timezone.now().date(),
+                last_number=0,
+            )
+        elif business_type == Tenant.BusinessType.HOTEL:
+            BranchCapabilities.objects.create(
+                tenant=tenant,
+                branch=first_branch,
+                uses_tables=True,
+                allows_room_service=True,
+                allows_room_charge=True,
+            )
+            area1 = ServiceArea.objects.create(
+                tenant=tenant,
+                branch=first_branch,
+                name="Ground Floor Dining",
+                area_type="MAIN_DINING",
+                sort_order=1,
+            )
+            sec1 = Section.objects.create(
+                tenant=tenant,
+                branch=first_branch,
+                service_area=area1,
+                name="Restaurant Hall",
+                section_type="INDOOR",
+                sort_order=1,
+            )
+            for t_no in range(1, 6):
+                DiningTable.objects.create(
+                    tenant=tenant,
+                    branch=first_branch,
+                    section=sec1,
+                    label=f"T{t_no}",
+                    capacity=4,
+                )
+            ServiceArea.objects.create(
+                tenant=tenant,
+                branch=first_branch,
+                name="Room Service",
+                area_type="ROOM_SERVICE",
+                sort_order=2,
+            )
+        else:
+            BranchCapabilities.objects.create(
+                tenant=tenant,
+                branch=first_branch,
+                uses_tables=True,
+            )
+            area = ServiceArea.objects.create(
+                tenant=tenant,
+                branch=first_branch,
+                name="Main Dining",
+                area_type="MAIN_DINING",
+                sort_order=1,
+            )
+            sec = Section.objects.create(
+                tenant=tenant,
+                branch=first_branch,
+                service_area=area,
+                name="Indoor Hall",
+                section_type="INDOOR",
+                sort_order=1,
+            )
+            for t_no in range(1, 6):
+                DiningTable.objects.create(
+                    tenant=tenant,
+                    branch=first_branch,
+                    section=sec,
+                    label=f"T{t_no}",
+                    capacity=4,
+                )
+
+        # 5. Trial Subscription
+        now = timezone.now()
+        Subscription.objects.create(
+            tenant=tenant,
+            plan=plan,
+            status=SubscriptionStatus.TRIAL,
+            starts_at=now,
+            ends_at=now + timedelta(days=trial_days),
+        )
+
+        # 6. Single-use Owner Temporary Password
+        chars = "abcdefghjkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789!@#$%"
+        temp_password = "".join(secrets.choice(chars) for _ in range(12))
+
+        owner_user, _ = User.objects.get_or_create(
+            email=owner_email,
+            defaults={"full_name": owner_name, "is_active": True, "phone": owner_phone},
+        )
+        owner_user.set_password(temp_password)
+        owner_user.must_change_password = True
+        owner_user.save()
+
+        membership, _ = Membership.objects.get_or_create(
+            user=owner_user,
+            tenant=tenant,
+            defaults={"role": Role.OWNER, "is_active": True},
+        )
+        membership.branches.set(created_branches)
+
+        # 7. Audit Log (Never log temporary password!)
+        AuditLog.objects.create(
+            tenant=tenant,
+            actor=request.user,
+            action="tenant.provision_customer",
+            entity_type="Tenant",
+            entity_id=str(tenant.id),
+            after_state={
+                "name": name,
+                "business_type": business_type,
+                "plan": plan.slug,
+                "owner_email": owner_email,
+                "trial_days": trial_days,
+                "outlets_count": len(created_branches),
+            },
+        )
+
+        welcome_note = (
+            f"Welcome to ServeMyFood!\n\n"
+            f"Your restaurant '{name}' is ready on the {plan.name}.\n"
+            f"Login URL: http://localhost:5173/login\n"
+            f"Email: {owner_email}\n"
+            f"Temporary Password: {temp_password}\n\n"
+            f"Please sign in and set your new password on first login."
+        )
+
+        return Response(
+            {
+                "tenant_id": str(tenant.id),
+                "name": tenant.name,
+                "owner_email": owner_email,
+                "temporary_password": temp_password,
+                "welcome_note": welcome_note,
+            },
+            status=status.HTTP_201_CREATED,
+        )
+
+
 class PlatformSummaryView(APIView):
     """GET /api/v1/platform/summary/ (PLATFORM_ADMIN only; aggregated counts only)."""
 
@@ -460,12 +943,15 @@ class PlatformSummaryView(APIView):
         suspended_tenants = Tenant.objects.filter(status=Tenant.Status.SUSPENDED).count()
         new_this_week = Tenant.objects.filter(created_at__gte=week_ago).count()
 
-        from apps.subscriptions.models import Subscription
+        from apps.subscriptions.models import Subscription, SubscriptionStatus
 
         plan_counts: dict[str, int] = {}
+        mrr_paise = 0
         for sub in Subscription.objects.select_related("plan").all():
             plan_name = sub.plan.name if sub.plan else "Unknown"
             plan_counts[plan_name] = plan_counts.get(plan_name, 0) + 1
+            if sub.status == SubscriptionStatus.ACTIVE and sub.plan:
+                mrr_paise += sub.plan.price_paise
 
         return Response(
             {
@@ -474,6 +960,7 @@ class PlatformSummaryView(APIView):
                 "suspended_tenants": suspended_tenants,
                 "new_this_week": new_this_week,
                 "plan_distribution": plan_counts,
+                "mrr_paise": mrr_paise,
                 "api_health": "HEALTHY",
             }
         )

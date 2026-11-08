@@ -15,7 +15,8 @@ import {
   Zap,
 } from "lucide-react";
 import { apiClient } from "../../api/client";
-import { ordersApi, OrderItemPayload } from "../../api/orders";
+import { ordersApi, OrderItemPayload, ServiceRequest } from "../../api/orders";
+import { unwrapList } from "../../api/pagination";
 import { useAuth } from "../../context/AuthContext";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
@@ -62,7 +63,13 @@ export const FloorPOSPage: React.FC = () => {
   const { activeTenant } = useAuth();
 
   const usesTables = useMemo(() => {
-    const tenant: any = activeTenant;
+    const tenant = activeTenant as
+      | (typeof activeTenant & {
+          uses_tables?: boolean;
+          business_type?: string;
+          venue_profile?: string;
+        })
+      | null;
     if (!tenant) return true;
     return !(
       tenant.uses_tables === false ||
@@ -167,8 +174,7 @@ export const FloorPOSPage: React.FC = () => {
       ordersApi
         .getServiceRequests("PENDING")
         .then((res) => {
-          const raw = (res.data as any)?.results || res.data || [];
-          setServiceRequests(Array.isArray(raw) ? raw : []);
+          setServiceRequests(unwrapList<ServiceRequest>(res.data));
         })
         .catch(() => {});
     }, 10000);
@@ -611,7 +617,12 @@ export const FloorPOSPage: React.FC = () => {
                     <div className="flex items-center gap-1.5">
                       <select
                         value={line.course}
-                        onChange={(e) => updateCourse(line.menu_item_id, e.target.value as any)}
+                        onChange={(e) =>
+                          updateCourse(
+                            line.menu_item_id,
+                            e.target.value as "STARTER" | "MAIN" | "DESSERT" | "BEVERAGE"
+                          )
+                        }
                         className="h-6 text-[11px] px-1 rounded border border-input bg-card font-semibold"
                       >
                         <option value="STARTER">Starter</option>

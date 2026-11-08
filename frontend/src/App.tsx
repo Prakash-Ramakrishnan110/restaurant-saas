@@ -28,6 +28,8 @@ import { KDSPage } from "./pages/kds/KDSPage";
 import { BillingPage } from "./pages/billing/BillingPage";
 import { ShiftCloseoutPage } from "./pages/billing/ShiftCloseoutPage";
 import { PlatformAdminPage } from "./pages/admin/PlatformAdminPage";
+import { NewCustomerWizardPage } from "./pages/admin/NewCustomerWizardPage";
+import { CustomerDetailPage } from "./pages/admin/CustomerDetailPage";
 import { PublicQRPage } from "./pages/public/PublicQRPage";
 import { SuspendedPage } from "./pages/error/SuspendedPage";
 import { ForbiddenPage } from "./pages/error/ForbiddenPage";
@@ -194,10 +196,34 @@ export const App: React.FC = () => {
                 }
               />
               <Route
+                path="/admin"
+                element={
+                  <ProtectedRoute>
+                    <PlatformAdminPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
                 path="/admin/tenants"
                 element={
                   <ProtectedRoute>
                     <PlatformAdminPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/tenants/new"
+                element={
+                  <ProtectedRoute>
+                    <NewCustomerWizardPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/tenants/:id"
+                element={
+                  <ProtectedRoute>
+                    <CustomerDetailPage />
                   </ProtectedRoute>
                 }
               />

@@ -121,7 +121,7 @@ export function normalizeApiError(error: AxiosError<any>): ApiErrorPayload {
         error.response?.data?.detail ||
         error.message ||
         "An unexpected network or server error occurred.",
-      details: (error.response?.data as any) || {},
+      details: (error.response?.data as Record<string, unknown>) || {},
     },
   };
 }
