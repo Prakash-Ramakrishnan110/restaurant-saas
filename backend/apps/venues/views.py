@@ -452,7 +452,7 @@ class TableSessionViewSet(
     def get_permissions(self) -> list[Any]:
         if self.action in ("list", "retrieve"):
             return [IsAuthenticated(), HasTenantPermission(Permission.TABLE_VIEW)()]
-        if self.action == "open":
+        if self.action in ("open", "create"):
             return [IsAuthenticated(), HasTenantPermission(Permission.TABLE_SESSION_OPEN)()]
         if self.action == "close":
             return [IsAuthenticated(), HasTenantPermission(Permission.TABLE_SESSION_CLOSE)()]
@@ -470,6 +470,10 @@ class TableSessionViewSet(
         if status_filter:
             qs = qs.filter(status=status_filter)
         return qs
+
+    def create(self, request: Request, *args: Any, **kwargs: Any) -> Response:
+        """Allow creating/opening a dining table session via standard POST /table-sessions/ or /sessions/."""
+        return self.open(request)
 
     @action(detail=False, methods=["post"], url_path="open")
     def open(self, request: Request) -> Response:

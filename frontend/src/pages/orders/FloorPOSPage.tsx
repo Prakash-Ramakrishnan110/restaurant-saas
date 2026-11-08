@@ -186,7 +186,7 @@ export const FloorPOSPage: React.FC = () => {
     if (!selectedTable) return;
     setSubmitting(true);
     try {
-      const res = await apiClient.post<any>("/sessions/", {
+      const res = await apiClient.post<any>("/table-sessions/open/", {
         table_id: selectedTable.id,
         guest_count: guestCount,
       });
