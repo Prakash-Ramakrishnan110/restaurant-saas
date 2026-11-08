@@ -8,14 +8,6 @@ import {
   Copy,
   Check,
   Sparkles,
-  UtensilsCrossed,
-  Coffee,
-  Zap,
-  Building,
-  Store,
-  Eye,
-  EyeOff,
-  ExternalLink,
 } from "lucide-react";
 import { apiClient } from "../../api/client";
 import { Button } from "../../components/ui/button";
@@ -52,7 +44,7 @@ export const NewCustomerWizardPage: React.FC = () => {
   const [submitting, setSubmitting] = useState<boolean>(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [copiedPwd, setCopiedPwd] = useState<boolean>(false);
-  const [showPassword, setShowPassword] = useState<boolean>(false);
+  const [copiedNote, setCopiedNote] = useState<boolean>(false);
   const [result, setResult] = useState<ProvisionResult | null>(null);
 
   const [form, setForm] = useState<CustomerForm>({
@@ -67,50 +59,17 @@ export const NewCustomerWizardPage: React.FC = () => {
     plan_slug: "starter",
     trial_days: 14,
     outlets_count: 1,
-    outlet_names: ["Main Outlet"],
+    outlet_names: [""],
   });
 
-  const BUSINESS_MODELS = [
-    {
-      id: "RESTAURANT",
-      label: "Dining Restaurant",
-      desc: "Full table service, table merging, and multi-course kitchen routing",
-      icon: UtensilsCrossed,
-      pill: "Full Table POS",
-      color: "border-orange-200 dark:border-orange-900/40 bg-orange-50/20",
-    },
-    {
-      id: "CAFE",
-      label: "Café & Bakery",
-      desc: "Casual dining tables, pastry takeaway counters, and token numbers",
-      icon: Coffee,
-      pill: "Tables + Counter",
-      color: "border-amber-200 dark:border-amber-900/40 bg-amber-50/20",
-    },
-    {
-      id: "TEA_SHOP",
-      label: "Quick Service / Tea Shop",
-      desc: "High-speed token numbers, counter pickup, zero table clutter",
-      icon: Zap,
-      pill: "Token Queue • Zero Tables",
-      color: "border-emerald-200 dark:border-emerald-900/40 bg-emerald-50/20",
-    },
-    {
-      id: "HOTEL",
-      label: "Hotel & Resort",
-      desc: "Multi-floor rooms, guest folios, and 24/7 room service dining",
-      icon: Building,
-      pill: "Rooms + Outlets",
-      color: "border-purple-200 dark:border-purple-900/40 bg-purple-50/20",
-    },
-    {
-      id: "FOOD_COURT",
-      label: "Food Court Stall",
-      desc: "Multi-stall counter pickup, shared food court dining, buzzer queue",
-      icon: Store,
-      pill: "Counter Buzzer",
-      color: "border-blue-200 dark:border-blue-900/40 bg-blue-50/20",
-    },
+  const BUSINESS_TYPES = [
+    { id: "TEA_SHOP", label: "Tea Shop", desc: "Fast token queue, counters, zero tables" },
+    { id: "BAKERY", label: "Bakery", desc: "Takeaway counters, token numbers" },
+    { id: "CAFE", label: "Café", desc: "Casual dining tables and counter ordering" },
+    { id: "RESTAURANT", label: "Restaurant", desc: "Full table service, kitchen routing" },
+    { id: "FINE_DINING", label: "Fine Dining", desc: "Multi-course service and VIP sections" },
+    { id: "HOTEL", label: "Hotel", desc: "Floors, outlets, rooms, and room service" },
+    { id: "FOOD_COURT", label: "Food Court", desc: "Multi-stall counter pickup" },
   ];
 
   const PLANS = [
@@ -118,38 +77,27 @@ export const NewCustomerWizardPage: React.FC = () => {
       id: "starter" as const,
       name: "Starter",
       price: "₹1,499 / mo",
-      details: "1 outlet • Up to 15 dining tables • Basic daily reports",
+      details: "1 outlet, up to 10 tables, basic reporting",
     },
     {
       id: "professional" as const,
       name: "Professional",
       price: "₹4,999 / mo",
-      details: "Up to 3 outlets • 50 tables • Visual Floor Plan Editor & KDS",
-      popular: true,
+      details: "Up to 5 outlets, 50 tables, kitchen KDS & floor plan",
     },
     {
       id: "business" as const,
       name: "Business",
       price: "₹9,999 / mo",
-      details: "Up to 10 outlets • 200 tables • Multi-course dining & multi-store controls",
+      details: "Up to 15 outlets, 150 tables, multi-store controls",
     },
     {
       id: "enterprise" as const,
       name: "Enterprise",
       price: "₹24,999 / mo",
-      details: "Unlimited outlets & tables • Custom integrations & dedicated SLA",
+      details: "Unlimited outlets, custom integrations & SLA",
     },
   ];
-
-  const handleGeneratePassword = () => {
-    const chars = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789!@#$%";
-    let pwd = "";
-    for (let i = 0; i < 12; i++) {
-      pwd += chars.charAt(Math.floor(Math.random() * chars.length));
-    }
-    setForm({ ...form, initial_password: pwd });
-    setShowPassword(true);
-  };
 
   const handleNext = () => {
     setErrorMessage(null);
@@ -160,11 +108,7 @@ export const NewCustomerWizardPage: React.FC = () => {
       }
     } else if (currentStep === 2) {
       if (!form.owner_name.trim() || !form.owner_email.trim()) {
-        setErrorMessage("Owner full name and a valid login email are required.");
-        return;
-      }
-      if (!form.owner_email.includes("@") || !form.owner_email.includes(".")) {
-        setErrorMessage("Please enter a valid owner email address.");
+        setErrorMessage("Owner name and a valid email are required.");
         return;
       }
     }
@@ -174,15 +118,6 @@ export const NewCustomerWizardPage: React.FC = () => {
   const handleBack = () => {
     setErrorMessage(null);
     setCurrentStep((prev) => Math.max(1, prev - 1));
-  };
-
-  const handleOutletsCountChange = (count: number) => {
-    const n = Math.max(1, Math.min(10, count));
-    const names = [...form.outlet_names];
-    while (names.length < n) {
-      names.push(`Branch ${names.length + 1}`);
-    }
-    setForm({ ...form, outlets_count: n, outlet_names: names.slice(0, n) });
   };
 
   const handleSubmit = async () => {
@@ -224,26 +159,32 @@ export const NewCustomerWizardPage: React.FC = () => {
     }
   };
 
-  const copyToClipboard = (text: string) => {
+  const copyToClipboard = (text: string, type: "pwd" | "note") => {
     navigator.clipboard.writeText(text);
-    setCopiedPwd(true);
-    setTimeout(() => setCopiedPwd(false), 2000);
+    if (type === "pwd") {
+      setCopiedPwd(true);
+      setTimeout(() => setCopiedPwd(false), 2000);
+    } else {
+      setCopiedNote(true);
+      setTimeout(() => setCopiedNote(false), 2000);
+    }
   };
 
   return (
-    <div className="p-4 sm:p-6 md:p-8 max-w-4xl mx-auto space-y-6 font-sans">
+    <div className="p-4 md:p-8 max-w-3xl mx-auto space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between pb-4 border-b border-border">
         <div>
           <span className="text-xs font-bold text-[#FF6A00] uppercase tracking-wider">
-            SaaS Onboarding Wizard
+            Platform Operator Wizard
           </span>
-          <h1 className="text-2xl sm:text-3xl font-extrabold font-heading text-foreground mt-0.5 flex items-center gap-2">
-            <Building2 className="h-7 w-7 text-[#FF6A00]" />
-            New Customer Provisioning
+          <h1 className="text-2xl font-extrabold font-heading text-foreground mt-0.5 flex items-center gap-2">
+            <Building2 className="h-6 w-6 text-[#FF6A00]" />
+            New Customer Onboarding
           </h1>
           <p className="text-xs text-muted-foreground mt-1">
-            Provision a new restaurant tenant, initial outlets, venue presets, and administrator credentials.
+            Provision a new restaurant tenant, initial outlets, venue presets, and owner
+            credentials.
           </p>
         </div>
         <Button variant="ghost" size="sm" onClick={() => navigate("/admin/tenants")}>
@@ -251,47 +192,39 @@ export const NewCustomerWizardPage: React.FC = () => {
         </Button>
       </div>
 
-      {/* Stepper Progress Bar */}
+      {/* Step Indicators */}
       {currentStep <= 5 && (
-        <div className="flex items-center justify-between px-2 text-xs font-bold">
+        <div className="flex items-center justify-between px-2 text-xs font-bold text-muted-foreground">
           {[
-            { step: 1, label: "Business Model" },
-            { step: 2, label: "Owner Account" },
+            { step: 1, label: "Business" },
+            { step: 2, label: "Owner" },
             { step: 3, label: "Plan & Trial" },
-            { step: 4, label: "Branches / Outlets" },
-            { step: 5, label: "Review & Provision" },
-          ].map((s, idx, arr) => (
-            <React.Fragment key={s.step}>
-              <div
-                className={`flex items-center gap-2 ${
+            { step: 4, label: "Outlets" },
+            { step: 5, label: "Review" },
+          ].map((s) => (
+            <div
+              key={s.step}
+              className={`flex items-center gap-1.5 ${
+                currentStep === s.step
+                  ? "text-[#FF6A00]"
+                  : currentStep > s.step
+                    ? "text-emerald-600 dark:text-emerald-400"
+                    : "text-muted-foreground/60"
+              }`}
+            >
+              <span
+                className={`w-6 h-6 rounded-full flex items-center justify-center text-[11px] font-black ${
                   currentStep === s.step
-                    ? "text-[#FF6A00]"
+                    ? "bg-[#FF6A00] text-white"
                     : currentStep > s.step
-                      ? "text-emerald-600 dark:text-emerald-400"
-                      : "text-muted-foreground/60"
+                      ? "bg-emerald-600 text-white"
+                      : "bg-muted text-muted-foreground"
                 }`}
               >
-                <span
-                  className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-black transition-all ${
-                    currentStep === s.step
-                      ? "bg-[#FF6A00] text-white shadow-sm ring-2 ring-[#FF6A00]/30"
-                      : currentStep > s.step
-                        ? "bg-emerald-600 text-white"
-                        : "bg-muted text-muted-foreground"
-                  }`}
-                >
-                  {currentStep > s.step ? "✓" : s.step}
-                </span>
-                <span className="hidden md:inline font-bold">{s.label}</span>
-              </div>
-              {idx < arr.length - 1 && (
-                <div
-                  className={`flex-1 mx-2 h-0.5 transition-colors ${
-                    currentStep > s.step ? "bg-emerald-600" : "bg-muted"
-                  }`}
-                />
-              )}
-            </React.Fragment>
+                {currentStep > s.step ? "✓" : s.step}
+              </span>
+              <span className="hidden sm:inline">{s.label}</span>
+            </div>
           ))}
         </div>
       )}
@@ -302,87 +235,66 @@ export const NewCustomerWizardPage: React.FC = () => {
         </div>
       )}
 
-      {/* Step 1: Business Profile */}
+      {/* Step 1: Business */}
       {currentStep === 1 && (
         <Card className="border border-border">
           <CardContent className="p-6 space-y-5">
             <div>
-              <h2 className="text-lg font-black font-heading text-foreground">
-                Step 1: Business &amp; Venue Model
+              <h2 className="text-lg font-bold font-heading text-foreground">
+                Step 1: Business Information
               </h2>
               <p className="text-xs text-muted-foreground">
-                Enter the brand name and select the operating preset that shapes the UI and workflows.
+                Set the restaurant name, city, and business operational model.
               </p>
             </div>
 
             <div className="space-y-4">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-bold text-foreground mb-1">
-                    Business / Brand Name *
-                  </label>
-                  <Input
-                    placeholder="e.g. Sangeetha Veg Restaurant, Madurai Cafe"
-                    value={form.name}
-                    onChange={(e) => setForm({ ...form, name: e.target.value })}
-                    className="h-10 text-sm"
-                    autoFocus
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-foreground mb-1">
-                    Operating City / Headquarters
-                  </label>
-                  <Input
-                    placeholder="e.g. Chennai, Bengaluru, Coimbatore"
-                    value={form.city}
-                    onChange={(e) => setForm({ ...form, city: e.target.value })}
-                    className="h-10 text-sm"
-                  />
-                </div>
+              <div>
+                <label className="block text-xs font-bold text-foreground mb-1">
+                  Business / Restaurant Name *
+                </label>
+                <Input
+                  placeholder="e.g. Anand Bhavan, Chai Katta"
+                  value={form.name}
+                  onChange={(e) => setForm({ ...form, name: e.target.value })}
+                  className="h-10 text-sm"
+                  autoFocus
+                />
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-foreground mb-2">
-                  Operating Model &amp; Workflow Preset *
+                <label className="block text-xs font-bold text-foreground mb-1">
+                  Operating City / Location
                 </label>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  {BUSINESS_MODELS.map((bm) => {
-                    const isSelected = form.business_type === bm.id;
-                    const Icon = bm.icon;
+                <Input
+                  placeholder="e.g. Chennai, Coimbatore, Bengaluru"
+                  value={form.city}
+                  onChange={(e) => setForm({ ...form, city: e.target.value })}
+                  className="h-10 text-sm"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-foreground mb-1.5">
+                  Business Model & Venue Preset *
+                </label>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                  {BUSINESS_TYPES.map((bt) => {
+                    const isSelected = form.business_type === bt.id;
                     return (
                       <div
-                        key={bm.id}
-                        onClick={() => setForm({ ...form, business_type: bm.id })}
-                        className={`p-3.5 rounded-xl border text-left cursor-pointer transition-all flex items-start gap-3 ${
+                        key={bt.id}
+                        onClick={() => setForm({ ...form, business_type: bt.id })}
+                        className={`p-3 rounded-lg border text-left cursor-pointer transition-all ${
                           isSelected
-                            ? "border-[#FF6A00] bg-[#FF6A00]/5 ring-2 ring-[#FF6A00]/30 shadow-xs"
+                            ? "border-[#FF6A00] bg-[#FF6A00]/5 ring-1 ring-[#FF6A00]"
                             : "border-border bg-card hover:border-border/80"
                         }`}
                       >
-                        <div
-                          className={`p-2 rounded-lg mt-0.5 shrink-0 ${
-                            isSelected
-                              ? "bg-[#FF6A00] text-white"
-                              : "bg-muted text-muted-foreground"
-                          }`}
-                        >
-                          <Icon className="h-5 w-5" />
-                        </div>
-                        <div className="min-w-0">
-                          <div className="flex items-center gap-2">
-                            <span className="text-sm font-extrabold text-foreground">
-                              {bm.label}
-                            </span>
-                          </div>
-                          <p className="text-[11px] text-muted-foreground mt-0.5 leading-snug">
-                            {bm.desc}
-                          </p>
-                          <Badge variant="outline" className="text-[10px] font-bold mt-2 bg-card">
-                            {bm.pill}
-                          </Badge>
-                        </div>
+                        <span className="text-xs font-extrabold text-foreground block">
+                          {bt.label}
+                        </span>
+                        <span className="text-[11px] text-muted-foreground">{bt.desc}</span>
                       </div>
                     );
                   })}
@@ -391,9 +303,9 @@ export const NewCustomerWizardPage: React.FC = () => {
 
               <div>
                 <label className="block text-xs font-bold text-foreground mb-1">
-                  Document Language (Invoices &amp; QR Guest Portal)
+                  Document Language (Receipts & QR)
                 </label>
-                <div className="flex gap-4 pt-1">
+                <div className="flex gap-4">
                   <label className="flex items-center gap-2 text-xs font-semibold text-foreground cursor-pointer">
                     <input
                       type="radio"
@@ -410,101 +322,81 @@ export const NewCustomerWizardPage: React.FC = () => {
                       checked={form.language === "ta"}
                       onChange={() => setForm({ ...form, language: "ta" })}
                     />
-                    Bilingual English &amp; Tamil (தமிழ்)
+                    English & Tamil (இருமொழி)
                   </label>
                 </div>
               </div>
             </div>
 
             <div className="pt-4 border-t border-border flex justify-end">
-              <Button onClick={handleNext} className="gap-2 bg-[#FF6A00] hover:bg-[#FF6A00]/90 text-white text-xs">
-                Continue to Owner Account <ArrowRight className="h-4 w-4" />
+              <Button onClick={handleNext} className="gap-2">
+                Continue to Owner <ArrowRight className="h-4 w-4" />
               </Button>
             </div>
           </CardContent>
         </Card>
       )}
 
-      {/* Step 2: Owner Credentials */}
+      {/* Step 2: Owner */}
       {currentStep === 2 && (
         <Card className="border border-border">
           <CardContent className="p-6 space-y-5">
             <div>
-              <h2 className="text-lg font-black font-heading text-foreground">
-                Step 2: Owner Contact &amp; Credentials
+              <h2 className="text-lg font-bold font-heading text-foreground">
+                Step 2: Owner Contact Details
               </h2>
               <p className="text-xs text-muted-foreground">
-                The primary owner account that receives management credentials to access the venue console.
+                The primary owner account that receives management credentials.
               </p>
             </div>
 
             <div className="space-y-4">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-bold text-foreground mb-1">
-                    Owner Full Name *
-                  </label>
-                  <Input
-                    placeholder="e.g. Ramesh Kumar"
-                    value={form.owner_name}
-                    onChange={(e) => setForm({ ...form, owner_name: e.target.value })}
-                    className="h-10 text-sm"
-                    autoFocus
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-foreground mb-1">
-                    Owner Email (Platform Login ID) *
-                  </label>
-                  <Input
-                    type="email"
-                    placeholder="e.g. ramesh@restaurant.com"
-                    value={form.owner_email}
-                    onChange={(e) => setForm({ ...form, owner_email: e.target.value })}
-                    className="h-10 text-sm font-mono"
-                  />
-                </div>
+              <div>
+                <label className="block text-xs font-bold text-foreground mb-1">
+                  Owner Full Name *
+                </label>
+                <Input
+                  placeholder="e.g. Ramesh Kumar"
+                  value={form.owner_name}
+                  onChange={(e) => setForm({ ...form, owner_name: e.target.value })}
+                  className="h-10 text-sm"
+                  autoFocus
+                />
               </div>
 
               <div>
-                <div className="flex items-center justify-between mb-1">
-                  <label className="block text-xs font-bold text-foreground">
-                    Initial Password
-                  </label>
-                  <button
-                    type="button"
-                    onClick={handleGeneratePassword}
-                    className="text-xs text-[#FF6A00] hover:underline font-bold flex items-center gap-1"
-                  >
-                    <Sparkles className="h-3 w-3" /> Generate Strong Password
-                  </button>
-                </div>
-                <div className="relative">
-                  <Input
-                    type={showPassword ? "text" : "password"}
-                    placeholder="Enter custom password or click Generate above (leave blank to auto-generate)"
-                    value={form.initial_password || ""}
-                    onChange={(e) => setForm({ ...form, initial_password: e.target.value })}
-                    className="h-10 text-sm font-mono pr-10"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                    title={showPassword ? "Hide password" : "Show password"}
-                  >
-                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                  </button>
-                </div>
+                <label className="block text-xs font-bold text-foreground mb-1">
+                  Owner Email Address (Login ID) *
+                </label>
+                <Input
+                  type="email"
+                  placeholder="owner@restaurant.com"
+                  value={form.owner_email}
+                  onChange={(e) => setForm({ ...form, owner_email: e.target.value })}
+                  className="h-10 text-sm"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-foreground mb-1">
+                  Initial Password (Optional)
+                </label>
+                <Input
+                  type="text"
+                  placeholder="Leave blank to auto-generate secure 12-char password"
+                  value={form.initial_password || ""}
+                  onChange={(e) => setForm({ ...form, initial_password: e.target.value })}
+                  className="h-10 text-sm font-mono"
+                />
                 <p className="text-[11px] text-muted-foreground mt-1">
-                  The owner will use this password to log in. You can also view it on the final screen.
+                  You can specify an initial password, or leave empty to auto-generate one on
+                  completion.
                 </p>
               </div>
 
               <div>
                 <label className="block text-xs font-bold text-foreground mb-1">
-                  Owner Mobile Number (Optional)
+                  Owner Phone Number
                 </label>
                 <Input
                   placeholder="+91 98765 43210"
@@ -516,10 +408,10 @@ export const NewCustomerWizardPage: React.FC = () => {
             </div>
 
             <div className="pt-4 border-t border-border flex justify-between">
-              <Button variant="outline" onClick={handleBack} className="gap-2 text-xs">
+              <Button variant="outline" onClick={handleBack} className="gap-2">
                 <ArrowLeft className="h-4 w-4" /> Back
               </Button>
-              <Button onClick={handleNext} className="gap-2 bg-[#FF6A00] hover:bg-[#FF6A00]/90 text-white text-xs">
+              <Button onClick={handleNext} className="gap-2">
                 Continue to Plan <ArrowRight className="h-4 w-4" />
               </Button>
             </div>
@@ -527,80 +419,75 @@ export const NewCustomerWizardPage: React.FC = () => {
         </Card>
       )}
 
-      {/* Step 3: Plan & Trial */}
+      {/* Step 3: Plan and Trial */}
       {currentStep === 3 && (
         <Card className="border border-border">
           <CardContent className="p-6 space-y-5">
             <div>
-              <h2 className="text-lg font-black font-heading text-foreground">
-                Step 3: Subscription Tier &amp; Trial Period
+              <h2 className="text-lg font-bold font-heading text-foreground">
+                Step 3: Plan & Trial Duration
               </h2>
               <p className="text-xs text-muted-foreground">
-                Select the subscription tier and trial window for this brand.
+                Select one of the strictly supported SaaS subscription plans.
               </p>
             </div>
 
-            <div className="space-y-4">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                {PLANS.map((p) => {
-                  const isSelected = form.plan_slug === p.id;
-                  return (
-                    <div
-                      key={p.id}
-                      onClick={() => setForm({ ...form, plan_slug: p.id })}
-                      className={`relative p-4 rounded-xl border cursor-pointer transition-all ${
-                        isSelected
-                          ? "border-[#FF6A00] bg-[#FF6A00]/5 ring-2 ring-[#FF6A00]/30 shadow-xs"
-                          : "border-border bg-card hover:border-border/80"
-                      }`}
-                    >
-                      {p.popular && (
-                        <span className="absolute top-3 right-3 text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#FF6A00] text-white uppercase">
-                          Recommended
-                        </span>
-                      )}
-                      <h3 className="font-extrabold text-sm text-foreground">{p.name}</h3>
-                      <div className="text-xl font-black text-foreground mt-1">
-                        {p.price}
+            <div className="space-y-3">
+              {PLANS.map((p) => {
+                const isSelected = form.plan_slug === p.id;
+                return (
+                  <div
+                    key={p.id}
+                    onClick={() => setForm({ ...form, plan_slug: p.id })}
+                    className={`p-4 rounded-xl border cursor-pointer transition-all flex items-center justify-between ${
+                      isSelected
+                        ? "border-[#FF6A00] bg-[#FF6A00]/5 ring-1 ring-[#FF6A00]"
+                        : "border-border bg-card hover:border-border/80"
+                    }`}
+                  >
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className="font-extrabold text-sm text-foreground">{p.name}</span>
+                        <Badge variant="outline" className="text-[10px] py-0">
+                          {p.price}
+                        </Badge>
                       </div>
-                      <p className="text-xs text-muted-foreground mt-1.5">{p.details}</p>
+                      <p className="text-xs text-muted-foreground mt-0.5">{p.details}</p>
                     </div>
-                  );
-                })}
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-foreground mb-1.5">
-                  Complimentary Trial Period
-                </label>
-                <div className="grid grid-cols-3 gap-2.5">
-                  {[
-                    { days: 7, label: "7 Days Quick Trial" },
-                    { days: 14, label: "14 Days (Standard)" },
-                    { days: 30, label: "30 Days (Extended)" },
-                  ].map((t) => (
-                    <button
-                      key={t.days}
-                      type="button"
-                      onClick={() => setForm({ ...form, trial_days: t.days })}
-                      className={`p-3 rounded-lg border text-xs font-bold transition-all text-center ${
-                        form.trial_days === t.days
-                          ? "border-[#FF6A00] bg-[#FF6A00]/10 text-foreground ring-1 ring-[#FF6A00]"
-                          : "border-border bg-card text-muted-foreground hover:text-foreground"
+                    <div
+                      className={`w-4 h-4 rounded-full border flex items-center justify-center ${
+                        isSelected ? "border-[#FF6A00] bg-[#FF6A00]" : "border-muted-foreground/40"
                       }`}
                     >
-                      {t.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
+                      {isSelected && <span className="w-1.5 h-1.5 rounded-full bg-white" />}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold text-foreground mb-1">
+                Trial Duration (Days)
+              </label>
+              <Input
+                type="number"
+                min={1}
+                max={90}
+                value={form.trial_days}
+                onChange={(e) => setForm({ ...form, trial_days: Number(e.target.value) || 14 })}
+                className="h-10 text-sm max-w-[200px]"
+              />
+              <p className="text-[11px] text-muted-foreground mt-1">
+                Default: 14 days. Trial ends without charging until manually converted or billed.
+              </p>
             </div>
 
             <div className="pt-4 border-t border-border flex justify-between">
-              <Button variant="outline" onClick={handleBack} className="gap-2 text-xs">
+              <Button variant="outline" onClick={handleBack} className="gap-2">
                 <ArrowLeft className="h-4 w-4" /> Back
               </Button>
-              <Button onClick={handleNext} className="gap-2 bg-[#FF6A00] hover:bg-[#FF6A00]/90 text-white text-xs">
+              <Button onClick={handleNext} className="gap-2">
                 Continue to Outlets <ArrowRight className="h-4 w-4" />
               </Button>
             </div>
@@ -608,243 +495,236 @@ export const NewCustomerWizardPage: React.FC = () => {
         </Card>
       )}
 
-      {/* Step 4: Outlets & Branches */}
+      {/* Step 4: Outlets */}
       {currentStep === 4 && (
         <Card className="border border-border">
           <CardContent className="p-6 space-y-5">
             <div>
-              <h2 className="text-lg font-black font-heading text-foreground">
-                Step 4: Outlets &amp; Branch Locations
+              <h2 className="text-lg font-bold font-heading text-foreground">
+                Step 4: Outlets & Branches
               </h2>
               <p className="text-xs text-muted-foreground">
-                Configure initial outlets to seed for this brand.
+                Configure physical or virtual outlet locations.
               </p>
             </div>
 
             <div className="space-y-4">
               <div>
                 <label className="block text-xs font-bold text-foreground mb-1">
-                  Number of Initial Outlets (1 to 10)
+                  Number of Outlets to provision
                 </label>
-                <div className="flex items-center gap-2">
-                  {[1, 2, 3, 5].map((cnt) => (
-                    <button
-                      key={cnt}
-                      type="button"
-                      onClick={() => handleOutletsCountChange(cnt)}
-                      className={`px-3 py-1.5 rounded-lg border text-xs font-bold ${
-                        form.outlets_count === cnt
-                          ? "border-[#FF6A00] bg-[#FF6A00] text-white"
-                          : "border-border bg-card text-muted-foreground hover:text-foreground"
-                      }`}
-                    >
-                      {cnt} {cnt === 1 ? "Outlet" : "Outlets"}
-                    </button>
-                  ))}
-                  <Input
-                    type="number"
-                    min={1}
-                    max={10}
-                    value={form.outlets_count}
-                    onChange={(e) => handleOutletsCountChange(Number(e.target.value))}
-                    className="w-20 h-9 text-xs"
-                  />
-                </div>
+                <Input
+                  type="number"
+                  min={1}
+                  max={20}
+                  value={form.outlets_count}
+                  onChange={(e) => {
+                    const cnt = Math.max(1, Number(e.target.value) || 1);
+                    const names = [...form.outlet_names];
+                    while (names.length < cnt) names.push("");
+                    setForm({ ...form, outlets_count: cnt, outlet_names: names.slice(0, cnt) });
+                  }}
+                  className="h-10 text-sm max-w-[200px]"
+                />
               </div>
 
               <div className="space-y-2">
                 <label className="block text-xs font-bold text-foreground">
-                  Outlet Names
+                  Outlet Names (Optional custom names)
                 </label>
-                {form.outlet_names.map((name, i) => (
-                  <div key={i} className="flex items-center gap-2">
-                    <span className="text-xs text-muted-foreground font-mono w-6 text-right">
-                      #{i + 1}
-                    </span>
-                    <Input
-                      placeholder={`Outlet ${i + 1} Name`}
-                      value={name}
-                      onChange={(e) => {
-                        const updated = [...form.outlet_names];
-                        updated[i] = e.target.value;
-                        setForm({ ...form, outlet_names: updated });
-                      }}
-                      className="h-9 text-xs"
-                    />
-                  </div>
+                {Array.from({ length: form.outlets_count }).map((_, idx) => (
+                  <Input
+                    key={idx}
+                    placeholder={`Outlet ${idx + 1} Name (e.g. ${
+                      form.name || "Main"
+                    } - Branch ${idx + 1})`}
+                    value={form.outlet_names[idx] || ""}
+                    onChange={(e) => {
+                      const newNames = [...form.outlet_names];
+                      newNames[idx] = e.target.value;
+                      setForm({ ...form, outlet_names: newNames });
+                    }}
+                    className="h-9 text-xs"
+                  />
                 ))}
               </div>
             </div>
 
             <div className="pt-4 border-t border-border flex justify-between">
-              <Button variant="outline" onClick={handleBack} className="gap-2 text-xs">
+              <Button variant="outline" onClick={handleBack} className="gap-2">
                 <ArrowLeft className="h-4 w-4" /> Back
               </Button>
-              <Button onClick={handleNext} className="gap-2 bg-[#FF6A00] hover:bg-[#FF6A00]/90 text-white text-xs">
-                Review &amp; Provision <ArrowRight className="h-4 w-4" />
+              <Button onClick={handleNext} className="gap-2">
+                Review Setup <ArrowRight className="h-4 w-4" />
               </Button>
             </div>
           </CardContent>
         </Card>
       )}
 
-      {/* Step 5: Review & Provision */}
+      {/* Step 5: Review */}
       {currentStep === 5 && (
         <Card className="border border-border">
           <CardContent className="p-6 space-y-5">
             <div>
-              <h2 className="text-lg font-black font-heading text-foreground">
-                Step 5: Review Selections &amp; Provision
+              <h2 className="text-lg font-bold font-heading text-foreground">
+                Step 5: Review & Confirm Provisioning
               </h2>
               <p className="text-xs text-muted-foreground">
-                Confirm customer details before generating the tenant database partition and owner account.
+                Check all configuration parameters before creating the customer account.
               </p>
             </div>
 
-            <div className="p-4 rounded-xl border border-border bg-muted/10 space-y-3 text-xs">
-              <div className="grid grid-cols-2 gap-3 pb-3 border-b border-border">
-                <div>
-                  <span className="text-muted-foreground block text-[11px]">Brand Name:</span>
-                  <span className="font-extrabold text-foreground text-sm">{form.name}</span>
-                </div>
-                <div>
-                  <span className="text-muted-foreground block text-[11px]">Venue Preset:</span>
-                  <span className="font-bold text-foreground">{form.business_type}</span>
-                </div>
-                <div>
-                  <span className="text-muted-foreground block text-[11px]">Operating City:</span>
-                  <span className="font-bold text-foreground">{form.city || "Not specified"}</span>
-                </div>
-                <div>
-                  <span className="text-muted-foreground block text-[11px]">Language:</span>
-                  <span className="font-bold text-foreground">
-                    {form.language === "en" ? "English" : "English & Tamil"}
-                  </span>
-                </div>
+            <div className="space-y-3 p-4 rounded-xl bg-muted/30 border border-border text-xs divide-y divide-border">
+              <div className="pb-2.5 flex justify-between">
+                <span className="text-muted-foreground font-semibold">Business:</span>
+                <span className="font-extrabold text-foreground">
+                  {form.name} ({form.business_type})
+                </span>
               </div>
-
-              <div className="grid grid-cols-2 gap-3 pb-3 border-b border-border">
-                <div>
-                  <span className="text-muted-foreground block text-[11px]">Owner Name:</span>
-                  <span className="font-bold text-foreground">{form.owner_name}</span>
-                </div>
-                <div>
-                  <span className="text-muted-foreground block text-[11px]">Owner Login ID:</span>
-                  <span className="font-mono font-bold text-foreground">{form.owner_email}</span>
-                </div>
-                <div>
-                  <span className="text-muted-foreground block text-[11px]">Password:</span>
-                  <span className="font-mono font-bold text-foreground">
-                    {form.initial_password ? form.initial_password : "Auto-generate 12-char password"}
-                  </span>
-                </div>
-                <div>
-                  <span className="text-muted-foreground block text-[11px]">Owner Phone:</span>
-                  <span className="font-mono text-foreground">{form.owner_phone || "—"}</span>
-                </div>
+              <div className="py-2.5 flex justify-between">
+                <span className="text-muted-foreground font-semibold">City & Language:</span>
+                <span className="font-bold text-foreground">
+                  {form.city || "Not specified"} ·{" "}
+                  {form.language === "ta" ? "English + Tamil" : "English"}
+                </span>
               </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <span className="text-muted-foreground block text-[11px]">Subscription Plan:</span>
-                  <span className="font-bold text-[#FF6A00] uppercase">{form.plan_slug}</span>
-                </div>
-                <div>
-                  <span className="text-muted-foreground block text-[11px]">Trial Duration:</span>
-                  <span className="font-bold text-emerald-600">{form.trial_days} Days Complimentary</span>
-                </div>
-                <div className="col-span-2">
-                  <span className="text-muted-foreground block text-[11px]">Initial Outlets:</span>
-                  <span className="font-bold text-foreground">
-                    {form.outlet_names.filter((n) => n.trim().length > 0).join(", ")}
-                  </span>
-                </div>
+              <div className="py-2.5 flex justify-between">
+                <span className="text-muted-foreground font-semibold">Owner Contact:</span>
+                <span className="font-bold text-foreground">
+                  {form.owner_name} &lt;{form.owner_email}&gt; {form.owner_phone}
+                </span>
+              </div>
+              <div className="py-2.5 flex justify-between">
+                <span className="text-muted-foreground font-semibold">Subscription Plan:</span>
+                <span className="font-bold text-[#FF6A00] uppercase">
+                  {form.plan_slug} ({form.trial_days} Days Free Trial)
+                </span>
+              </div>
+              <div className="pt-2.5 flex justify-between">
+                <span className="text-muted-foreground font-semibold">Outlets:</span>
+                <span className="font-bold text-foreground">{form.outlets_count} outlet(s)</span>
               </div>
             </div>
 
+            <div className="p-3.5 rounded-lg border border-emerald-500/20 bg-emerald-500/10 text-emerald-900 dark:text-emerald-300 text-xs flex items-center gap-2.5">
+              <Sparkles className="h-4 w-4 shrink-0 text-emerald-600" />
+              <span>
+                On provisioning, an isolated tenant container, default branch, layout presets, and
+                owner account will be created. A single-use temporary password will be presented.
+              </span>
+            </div>
+
             <div className="pt-4 border-t border-border flex justify-between">
-              <Button variant="outline" onClick={handleBack} disabled={submitting} className="gap-2 text-xs">
+              <Button
+                variant="outline"
+                onClick={handleBack}
+                disabled={submitting}
+                className="gap-2"
+              >
                 <ArrowLeft className="h-4 w-4" /> Back
               </Button>
               <Button
                 onClick={handleSubmit}
                 disabled={submitting}
-                className="gap-2 bg-[#FF6A00] hover:bg-[#FF6A00]/90 text-white font-extrabold text-xs px-6"
+                className="gap-2 bg-emerald-600 hover:bg-emerald-700 text-white"
               >
-                {submitting ? "Provisioning Brand..." : "Confirm & Provision Customer"}
-                <Check className="h-4 w-4" />
+                {submitting ? "Provisioning..." : "Provision Customer Account"}
               </Button>
             </div>
           </CardContent>
         </Card>
       )}
 
-      {/* Step 6: Provisioned Success Screen */}
+      {/* Step 6: Done (Credentials) */}
       {currentStep === 6 && result && (
-        <Card className="border border-emerald-300 dark:border-emerald-800 bg-emerald-50/20 dark:bg-emerald-950/20">
-          <CardContent className="p-6 sm:p-8 space-y-6">
-            <div className="flex items-center gap-3">
-              <div className="p-3 rounded-full bg-emerald-600 text-white shadow-sm">
-                <CheckCircle2 className="h-8 w-8" />
+        <Card className="border border-emerald-500/40 bg-card shadow-lg">
+          <CardContent className="p-6 md:p-8 space-y-6">
+            <div className="text-center space-y-2">
+              <div className="w-12 h-12 rounded-full bg-emerald-500/10 text-emerald-600 mx-auto flex items-center justify-center">
+                <CheckCircle2 className="h-7 w-7" />
               </div>
-              <div>
-                <h2 className="text-xl sm:text-2xl font-black font-heading text-foreground">
-                  Customer Successfully Provisioned!
-                </h2>
-                <p className="text-xs text-muted-foreground mt-0.5">
-                  Tenant partition and owner administrator account are live and ready for operation.
-                </p>
-              </div>
+              <h2 className="text-xl font-black font-heading text-foreground">
+                Customer Account Provisioned Successfully!
+              </h2>
+              <p className="text-xs text-muted-foreground max-w-md mx-auto">
+                <strong className="text-foreground">{result.name}</strong> has been created with
+                active trial credentials.
+              </p>
             </div>
 
-            <div className="p-4 rounded-xl border border-border bg-card space-y-3 text-xs">
-              <h3 className="font-bold text-foreground uppercase tracking-wider text-[11px]">
-                Owner Credentials
-              </h3>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div className="p-3 rounded-lg border border-border bg-muted/20">
-                  <span className="text-[10px] text-muted-foreground block">Login Email ID</span>
-                  <span className="font-mono font-bold text-foreground text-sm block mt-0.5">
-                    {result.owner_email}
-                  </span>
-                </div>
-
-                <div className="p-3 rounded-lg border border-border bg-muted/20 flex items-center justify-between">
-                  <div>
-                    <span className="text-[10px] text-muted-foreground block">Temporary Password</span>
-                    <span className="font-mono font-bold text-foreground text-sm block mt-0.5">
-                      {result.temporary_password}
-                    </span>
-                  </div>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => copyToClipboard(result.temporary_password)}
-                    className="h-8 text-xs gap-1"
-                  >
-                    {copiedPwd ? <Check className="h-3.5 w-3.5 text-emerald-600" /> : <Copy className="h-3.5 w-3.5" />}
-                    <span>{copiedPwd ? "Copied" : "Copy"}</span>
-                  </Button>
-                </div>
+            {/* Temporary Password Box */}
+            <div className="p-4 rounded-xl border border-amber-500/30 bg-amber-500/10 space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-amber-900 dark:text-amber-300 uppercase tracking-wider">
+                  Single-Use Temporary Password (Shown Once)
+                </span>
+                <Badge variant="outline" className="border-amber-500/40 text-[10px]">
+                  Must change on login
+                </Badge>
               </div>
+              <div className="flex items-center gap-3">
+                <div className="flex-1 font-mono text-base font-black text-foreground bg-card p-2.5 rounded-lg border border-border select-all">
+                  {result.temporary_password}
+                </div>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => copyToClipboard(result.temporary_password, "pwd")}
+                  className="gap-1.5"
+                >
+                  {copiedPwd ? (
+                    <Check className="h-4 w-4 text-emerald-600" />
+                  ) : (
+                    <Copy className="h-4 w-4" />
+                  )}
+                  {copiedPwd ? "Copied" : "Copy"}
+                </Button>
+              </div>
+              <p className="text-[11px] text-amber-800/80 dark:text-amber-300">
+                ⚠️ This password is not stored anywhere in plain text. Please copy and deliver it to
+                the owner now.
+              </p>
             </div>
 
-            <div className="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-border">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => navigate("/admin/tenants")}
-                className="text-xs"
-              >
-                Back to Tenants Directory
+            {/* Welcome Note */}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <label className="text-xs font-bold text-foreground">
+                  Ready-to-Send Welcome Note
+                </label>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => copyToClipboard(result.welcome_note, "note")}
+                  className="h-7 text-xs gap-1 text-[#FF6A00]"
+                >
+                  {copiedNote ? (
+                    <Check className="h-3.5 w-3.5" />
+                  ) : (
+                    <Copy className="h-3.5 w-3.5" />
+                  )}
+                  {copiedNote ? "Copied note" : "Copy full message"}
+                </Button>
+              </div>
+              <textarea
+                readOnly
+                rows={7}
+                value={result.welcome_note}
+                className="w-full text-xs font-mono p-3 rounded-xl border border-border bg-muted/30 text-foreground resize-none"
+              />
+            </div>
+
+            <div className="pt-4 border-t border-border flex items-center justify-between">
+              <Button variant="outline" size="sm" onClick={() => navigate("/admin/tenants")}>
+                View All Tenants
               </Button>
               <Button
                 size="sm"
                 onClick={() => navigate(`/admin/tenants/${result.tenant_id}`)}
-                className="bg-[#FF6A00] hover:bg-[#FF6A00]/90 text-white text-xs gap-1.5"
+                className="gap-2"
               >
-                <span>Inspect New Tenant</span>
-                <ExternalLink className="h-3.5 w-3.5" />
+                Go to Customer Detail <ArrowRight className="h-4 w-4" />
               </Button>
             </div>
           </CardContent>
