@@ -23,6 +23,7 @@ from apps.orders.models import (
 from apps.orders.services import (
     calculate_bill,
     create_order,
+    get_range_report,
     get_today_report,
     settle_bill,
     settle_order_bill,
@@ -479,6 +480,59 @@ def test_today_report_calculations(comp_env):
     assert res_api_br.status_code == status.HTTP_200_OK
     assert res_api_br.data["sales_paise"] == 19500
     assert report["top_items"][0]["quantity"] == 3
+
+
+@pytest.mark.django_db
+def test_range_report_calculations(comp_env):
+    """GET /api/v1/reports/range/ aggregates custom date-range operational data."""
+    import datetime
+
+    from django.utils import timezone
+
+    env = comp_env
+    today = timezone.now().date()
+    yesterday = today - datetime.timedelta(days=1)
+
+    o1 = create_order(
+        branch=env["branch_a"],
+        order_workflow=OrderWorkflow.COUNTER_TOKEN,
+        items_data=[{"menu_item_id": env["item_coffee"].id, "quantity": 2}],
+    )
+    settle_order_bill(o1, payment_method=PaymentMethod.CASH)
+
+    report = get_range_report(
+        env["tenant_a"], start_date=yesterday, end_date=today, branch=env["branch_a"]
+    )
+    assert report["sales_paise"] >= 9000
+    assert report["orders_count"] >= 1
+    assert "sales_by_payment_method" in report
+    assert "top_items" in report
+    assert "top_categories" in report
+    assert len(report["daily_breakdown"]) >= 1
+
+    client = make_client(env["tokens"][Role.OWNER], env["tenant_a"].id, env["branch_a"].id)
+    res_range = client.get(
+        "/api/v1/reports/range/",
+        {
+            "start_date": yesterday.isoformat(),
+            "end_date": today.isoformat(),
+            "branch_id": str(env["branch_a"].id),
+        },
+    )
+    assert res_range.status_code == status.HTTP_200_OK
+    assert res_range.data["sales_paise"] >= 9000
+    assert res_range.data["start_date"] == yesterday.isoformat()
+    assert res_range.data["end_date"] == today.isoformat()
+
+    # Invalid range validation check
+    res_bad = client.get(
+        "/api/v1/reports/range/",
+        {
+            "start_date": today.isoformat(),
+            "end_date": yesterday.isoformat(),
+        },
+    )
+    assert res_bad.status_code == status.HTTP_400_BAD_REQUEST
 
 
 @pytest.mark.django_db

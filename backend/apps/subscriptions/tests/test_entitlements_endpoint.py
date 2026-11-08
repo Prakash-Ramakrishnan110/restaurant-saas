@@ -172,3 +172,19 @@ def test_entitlements_clamped_remaining_and_over_limit(entitlements_fixture):
     assert branch_info["current"] == 3
     assert branch_info["remaining"] == 0  # Clamped, never negative
     assert branch_info["over_limit"] is True
+
+
+@pytest.mark.django_db
+def test_plans_list_view(entitlements_fixture):
+    """GET /api/v1/plans/ returns list of active SaaS plans with integer paise pricing."""
+    fixture = entitlements_fixture
+    client = make_client(fixture["owner_a"], fixture["tenant_a"])
+
+    res = client.get("/api/v1/plans/")
+    assert res.status_code == status.HTTP_200_OK
+    assert len(res.data) >= 1
+    pro = next((p for p in res.data if p["slug"] == "pro-restaurant"), None)
+    assert pro is not None
+    assert pro["name"] == "Pro Restaurant Plan"
+    assert pro["price_paise"] == 499900
+    assert pro["entitlements"]["max_branches"] == 2

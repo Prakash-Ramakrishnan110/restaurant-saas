@@ -1,3 +1,4 @@
+import datetime
 import zoneinfo
 from typing import Any
 
@@ -558,6 +559,106 @@ def get_today_report(tenant: Tenant, branch: Branch | None = None) -> dict[str, 
         "sales_by_payment_method": sales_by_payment_method,
         "top_items": top_items,
         "last_bills": last_bills,
+    }
+
+
+def get_range_report(
+    tenant: Tenant,
+    start_date: datetime.date,
+    end_date: datetime.date,
+    branch: Branch | None = None,
+) -> dict[str, Any]:
+    """Generates operational sales, orders, and payment breakdown for a date range without floats."""
+    from django.db.models import Count, Sum
+
+    invoices_qs = BillInvoice.objects.filter(
+        tenant=tenant,
+        is_settled=True,
+        settled_at__date__gte=start_date,
+        settled_at__date__lte=end_date,
+    )
+    orders_qs = Order.objects.filter(
+        tenant=tenant,
+        placed_at__date__gte=start_date,
+        placed_at__date__lte=end_date,
+    )
+    if branch:
+        invoices_qs = invoices_qs.filter(branch=branch)
+        orders_qs = orders_qs.filter(branch=branch)
+
+    total_sales_paise = invoices_qs.aggregate(total=Sum("total_paise"))["total"] or 0
+    orders_count = orders_qs.count()
+    settled_invoices_count = invoices_qs.count()
+    average_order_value_paise = (
+        total_sales_paise // settled_invoices_count if settled_invoices_count > 0 else 0
+    )
+
+    sales_by_payment_method: dict[str, int] = {
+        "CASH": 0,
+        "UPI": 0,
+        "CARD": 0,
+        "ROOM_FOLIO": 0,
+    }
+    for row in invoices_qs.values("payment_method").annotate(total=Sum("total_paise")):
+        method = row["payment_method"]
+        if method in sales_by_payment_method:
+            sales_by_payment_method[method] = row["total"] or 0
+
+    daily_stats = (
+        invoices_qs.values("settled_at__date")
+        .annotate(sales_paise=Sum("total_paise"), invoices_count=Count("id"))
+        .order_by("settled_at__date")
+    )
+    daily_breakdown = [
+        {
+            "date": str(row["settled_at__date"]),
+            "sales_paise": row["sales_paise"] or 0,
+            "invoices_count": row["invoices_count"] or 0,
+        }
+        for row in daily_stats
+    ]
+
+    top_items_qs = (
+        OrderItem.objects.filter(order__in=orders_qs.exclude(status=OrderStatus.CANCELLED))
+        .values("item_name")
+        .annotate(quantity=Sum("quantity"), total_paise=Sum("subtotal_paise"))
+        .order_by("-quantity")[:10]
+    )
+    top_items = [
+        {
+            "item_name": it["item_name"],
+            "quantity": it["quantity"] or 0,
+            "total_paise": it["total_paise"] or 0,
+        }
+        for it in top_items_qs
+    ]
+
+    top_categories_qs = (
+        OrderItem.objects.filter(order__in=orders_qs.exclude(status=OrderStatus.CANCELLED))
+        .values("menu_item__category__name")
+        .annotate(quantity=Sum("quantity"), total_paise=Sum("subtotal_paise"))
+        .order_by("-quantity")[:10]
+    )
+    top_categories = [
+        {
+            "category_name": it["menu_item__category__name"] or "General",
+            "quantity": it["quantity"] or 0,
+            "total_paise": it["total_paise"] or 0,
+        }
+        for it in top_categories_qs
+    ]
+
+    return {
+        "start_date": start_date.isoformat(),
+        "end_date": end_date.isoformat(),
+        "sales_paise": total_sales_paise,
+        "orders_count": orders_count,
+        "settled_invoices_count": settled_invoices_count,
+        "average_order_value_paise": average_order_value_paise,
+        "sales_by_payment_method": sales_by_payment_method,
+        "daily_breakdown": daily_breakdown,
+        "top_items": top_items,
+        "top_categories": top_categories,
     }
 
 

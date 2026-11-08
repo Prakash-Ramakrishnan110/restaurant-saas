@@ -36,6 +36,15 @@ import { ForbiddenPage } from "./pages/error/ForbiddenPage";
 import { NotFoundPage } from "./pages/error/NotFoundPage";
 import { DevBrandPage } from "./pages/dev/DevBrandPage";
 import { DevDesignSystemPage } from "./pages/dev/DevDesignSystemPage";
+import { SalesReportsPage } from "./pages/reports/SalesReportsPage";
+import { ItemReportsPage } from "./pages/reports/ItemReportsPage";
+import { PaymentReportsPage } from "./pages/reports/PaymentReportsPage";
+import { ActivityLogPage } from "./pages/activity/ActivityLogPage";
+import { MenuOptionsPage } from "./pages/menu/MenuOptionsPage";
+import { SoundSettingsPage } from "./pages/settings/SoundSettingsPage";
+import { DeviceSettingsPage } from "./pages/settings/DeviceSettingsPage";
+import { PlatformPlansPage } from "./pages/admin/PlatformPlansPage";
+import { PlatformActivityPage } from "./pages/admin/PlatformActivityPage";
 import "./i18n";
 
 const queryClient = new QueryClient({
@@ -188,10 +197,74 @@ export const App: React.FC = () => {
                 }
               />
               <Route
+                path="/billing/bills"
+                element={
+                  <ProtectedRoute>
+                    <InvoicesHistoryPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
                 path="/billing/closeout"
                 element={
                   <ProtectedRoute>
                     <ShiftCloseoutPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/reports/sales"
+                element={
+                  <ProtectedRoute>
+                    <SalesReportsPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/reports/items"
+                element={
+                  <ProtectedRoute>
+                    <ItemReportsPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/reports/payments"
+                element={
+                  <ProtectedRoute>
+                    <PaymentReportsPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/activity"
+                element={
+                  <ProtectedRoute>
+                    <ActivityLogPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/menu/options"
+                element={
+                  <ProtectedRoute>
+                    <MenuOptionsPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/settings/sound"
+                element={
+                  <ProtectedRoute>
+                    <SoundSettingsPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/settings/devices"
+                element={
+                  <ProtectedRoute>
+                    <DeviceSettingsPage />
                   </ProtectedRoute>
                 }
               />
@@ -232,6 +305,22 @@ export const App: React.FC = () => {
                 element={
                   <ProtectedRoute>
                     <PlatformAdminPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/plans"
+                element={
+                  <ProtectedRoute>
+                    <PlatformPlansPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/activity"
+                element={
+                  <ProtectedRoute>
+                    <PlatformActivityPage />
                   </ProtectedRoute>
                 }
               />

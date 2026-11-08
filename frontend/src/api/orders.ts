@@ -115,6 +115,31 @@ export interface SettleBillPayload {
   notes?: string;
 }
 
+export interface RangeReportResponse {
+  start_date: string;
+  end_date: string;
+  sales_paise: number;
+  orders_count: number;
+  settled_invoices_count: number;
+  average_order_value_paise: number;
+  sales_by_payment_method: Record<string, number>;
+  daily_breakdown: Array<{
+    date: string;
+    sales_paise: number;
+    invoices_count: number;
+  }>;
+  top_items: Array<{
+    item_name: string;
+    quantity: number;
+    total_paise: number;
+  }>;
+  top_categories: Array<{
+    category_name: string;
+    quantity: number;
+    total_paise: number;
+  }>;
+}
+
 export interface ServiceRequest {
   id: string;
   table_id?: string;
@@ -174,6 +199,9 @@ export const ordersApi = {
 
   getTodayReport: (params?: { branch_id?: string; date?: string }) =>
     apiClient.get<any>("/reports/today/", { params }),
+
+  getRangeReport: (params?: { start_date?: string; end_date?: string; branch_id?: string }) =>
+    apiClient.get<RangeReportResponse>("/reports/range/", { params }),
 
   getServiceRequests: (status?: string) =>
     apiClient.get<ServiceRequest[]>("/orders/service-requests/", { params: { status } }),

@@ -34,6 +34,7 @@ from apps.orders.serializers import (
 from apps.orders.services import (
     calculate_bill,
     create_order,
+    get_range_report,
     get_today_report,
     settle_bill,
     settle_order_bill,
@@ -371,6 +372,66 @@ class TodayReportView(APIView):
             branch = membership.branches.first()
 
         report = get_today_report(tenant, branch=branch)
+        return Response(report)
+
+
+class RangeReportView(APIView):
+    """GET /api/v1/reports/range/ returning sales, orders, and payment totals for a date range."""
+
+    permission_classes = [IsAuthenticated, HasTenantPermission(Permission.REPORT_VIEW)]
+
+    @extend_schema(responses={200: serializers.DictField()})
+    def get(self, request: Request) -> Response:
+        import datetime
+        import zoneinfo
+
+        tenant = getattr(request, "tenant", None)
+        if not tenant:
+            return Response({"error": "Tenant context required."}, status=400)
+
+        tz_name = getattr(tenant, "timezone", None) or "Asia/Kolkata"
+        try:
+            tz = zoneinfo.ZoneInfo(tz_name)
+        except Exception:
+            tz = zoneinfo.ZoneInfo("Asia/Kolkata")
+
+        today = timezone.now().astimezone(tz).date()
+
+        start_date_str = request.query_params.get("start_date")
+        end_date_str = request.query_params.get("end_date")
+
+        if not start_date_str:
+            start_date = today - datetime.timedelta(days=6)
+        else:
+            try:
+                start_date = datetime.date.fromisoformat(start_date_str)
+            except ValueError:
+                return Response(
+                    {"error": "Invalid start_date format (YYYY-MM-DD required)."}, status=400
+                )
+
+        if not end_date_str:
+            end_date = today
+        else:
+            try:
+                end_date = datetime.date.fromisoformat(end_date_str)
+            except ValueError:
+                return Response(
+                    {"error": "Invalid end_date format (YYYY-MM-DD required)."}, status=400
+                )
+
+        if start_date > end_date:
+            return Response({"error": "start_date cannot be greater than end_date."}, status=400)
+
+        membership = getattr(request, "membership", None)
+        branch = None
+        branch_id = request.query_params.get("branch_id")
+        if branch_id:
+            branch = Branch.objects.filter(tenant=tenant, id=branch_id).first()
+        elif membership and membership.branches.exists():
+            branch = membership.branches.first()
+
+        report = get_range_report(tenant, start_date=start_date, end_date=end_date, branch=branch)
         return Response(report)
 
 

@@ -2147,6 +2147,24 @@ paths:
               schema:
                 $ref: '#/components/schemas/ServiceRequest'
           description: ''
+  /api/v1/plans/:
+    get:
+      operationId: plans_retrieve
+      description: Returns list of available SaaS plans, pricing in paise, and entitlement
+        limits.
+      summary: List all subscription plans
+      tags:
+      - plans
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
   /api/v1/platform/customers/:
     post:
       operationId: platform_customers_create
@@ -2418,6 +2436,24 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/QRCodeSheetItem'
+          description: ''
+  /api/v1/reports/range/:
+    get:
+      operationId: reports_range_retrieve
+      description: GET /api/v1/reports/range/ returning sales, orders, and payment
+        totals for a date range.
+      tags:
+      - reports
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+                description: Unspecified response body
           description: ''
   /api/v1/reports/today/:
     get:

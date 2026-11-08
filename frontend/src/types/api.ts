@@ -881,6 +881,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/plans/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List all subscription plans
+         * @description Returns list of available SaaS plans, pricing in paise, and entitlement limits.
+         */
+        get: operations["plans_retrieve"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/platform/customers/": {
         parameters: {
             query?: never;
@@ -1053,6 +1073,23 @@ export interface paths {
          * @description Returns list of active QR codes with table, area, section names, and public URLs.
          */
         get: operations["qr_codes_sheet_data_list"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/reports/range/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description GET /api/v1/reports/range/ returning sales, orders, and payment totals for a date range. */
+        get: operations["reports_range_retrieve"];
         put?: never;
         post?: never;
         delete?: never;
@@ -5241,6 +5278,27 @@ export interface operations {
             };
         };
     };
+    plans_retrieve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+        };
+    };
     platform_customers_create: {
         parameters: {
             query?: never;
@@ -5493,6 +5551,27 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["QRCodeSheetItem"][];
+                };
+            };
+        };
+    };
+    reports_range_retrieve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
                 };
             };
         };

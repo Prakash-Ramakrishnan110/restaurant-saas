@@ -12,7 +12,7 @@ from drf_spectacular.views import (
 from rest_framework.routers import DefaultRouter
 
 from apps.core.views import HealthCheckView
-from apps.orders.views import InvoiceViewSet, TodayReportView
+from apps.orders.views import InvoiceViewSet, RangeReportView, TodayReportView
 
 
 class HealthCheckNoSlashView(HealthCheckView):
@@ -32,6 +32,7 @@ api_v1_patterns: list[Any] = [
     path("menu/", include("apps.menu.urls")),
     path("orders/", include("apps.orders.urls")),
     path("reports/today/", TodayReportView.as_view(), name="reports-today"),
+    path("reports/range/", RangeReportView.as_view(), name="reports-range"),
     path("invoices/", include(invoice_router.urls)),
     path("audit-logs/", include("apps.audit.urls")),
 ]
