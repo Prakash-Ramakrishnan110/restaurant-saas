@@ -121,6 +121,24 @@ export const ClientQRCodeCanvas: React.FC<{
   );
 };
 
+interface BusinessProfileResponse {
+  name: string;
+  display_name?: string;
+  brand_primary_color?: string;
+  primary_color?: string;
+  logo_url?: string | null;
+  logo_128_url?: string | null;
+  document_language?: "EN" | "EN_TA";
+  business_settings?: {
+    display_name?: string;
+    brand_primary_color?: string;
+    primary_color?: string;
+    logo_url?: string | null;
+    logo_128_url?: string | null;
+    document_language?: "EN" | "EN_TA";
+  };
+}
+
 export const QRCodesPage: React.FC = () => {
   const { t } = useTranslation();
 
@@ -153,19 +171,21 @@ export const QRCodesPage: React.FC = () => {
     try {
       const [qrRes, bizRes, sheetRes] = await Promise.all([
         apiClient.get<{ results: QRCodeItem[] }>("/qr-codes/"),
-        apiClient.get<{ business_settings: any; name: string }>("/business/"),
+        apiClient.get<BusinessProfileResponse>("/business/"),
         apiClient.get<SheetDataItem[]>("/qr-codes/sheet-data/"),
       ]);
 
       setQrCodes(qrRes.data.results || []);
-      const bSettings = bizRes.data.business_settings || {};
-      setBusinessName(bSettings.display_name || bizRes.data.name || "ServeMyFood Venue");
-      setBrandColor(bSettings.brand_primary_color || "#FF6A00");
-      setLogoUrl(bSettings.logo_url || null);
-      setSheetLanguage(bSettings.document_language || "EN");
+      const bData = bizRes.data;
+      const bSettings = bData.business_settings || {};
+      setBusinessName(bData.display_name || bSettings.display_name || bData.name || "ServeMyFood Venue");
+      setBrandColor(bData.brand_primary_color || bData.primary_color || bSettings.brand_primary_color || "#FF6A00");
+      setLogoUrl(bData.logo_128_url || bData.logo_url || bSettings.logo_128_url || bSettings.logo_url || null);
+      setSheetLanguage(bData.document_language || bSettings.document_language || "EN");
       setSheetData(sheetRes.data || []);
-    } catch (err: any) {
-      setErrorMessage(err.error?.message || err.message || "Failed to load QR codes.");
+    } catch (err: unknown) {
+      const apiErr = err as { error?: { message?: string }; message?: string };
+      setErrorMessage(apiErr.error?.message || apiErr.message || "Failed to load QR codes.");
     } finally {
       setLoading(false);
     }
@@ -181,8 +201,9 @@ export const QRCodesPage: React.FC = () => {
     try {
       await apiClient.post(`/qr-codes/${rotateTarget.id}/rotate/`);
       await fetchQrCodes();
-    } catch (err: any) {
-      setErrorMessage(err.error?.message || err.message || "Failed to rotate QR token.");
+    } catch (err: unknown) {
+      const apiErr = err as { error?: { message?: string }; message?: string };
+      setErrorMessage(apiErr.error?.message || apiErr.message || "Failed to rotate QR token.");
     } finally {
       setActionLoading(false);
       setRotateTarget(null);
@@ -195,8 +216,9 @@ export const QRCodesPage: React.FC = () => {
     try {
       await apiClient.delete(`/qr-codes/${deactivateTarget.id}/`);
       await fetchQrCodes();
-    } catch (err: any) {
-      setErrorMessage(err.error?.message || err.message || "Failed to deactivate QR token.");
+    } catch (err: unknown) {
+      const apiErr = err as { error?: { message?: string }; message?: string };
+      setErrorMessage(apiErr.error?.message || apiErr.message || "Failed to deactivate QR token.");
     } finally {
       setActionLoading(false);
       setDeactivateTarget(null);
