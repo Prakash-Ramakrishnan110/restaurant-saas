@@ -19,6 +19,7 @@ from apps.menu.models import (
     OptionGroup,
 )
 from apps.menu.services import process_and_store_menu_image
+from apps.orders.models import Customer
 from apps.rbac.constants import Role
 from apps.subscriptions.constants import SubscriptionStatus
 from apps.subscriptions.models import Plan, Subscription
@@ -80,6 +81,14 @@ DISH_COLORS = {
     "Continental Breakfast Platter": "#B91C1C",
     "Burger & Fries Combo": "#DC2626",
     "Veg Fried Rice Combo": "#059669",
+    "Artisanal Sourdough Loaf": "#D97706",
+    "Red Velvet Cake Slice": "#991B1B",
+    "Dark Chocolate Macarons (4 pcs)": "#451A03",
+    "Cold Brew Mocha": "#78350F",
+    "Lucknowi Galouti Kebab": "#7C2D12",
+    "Shahi Awadhi Dum Biryani": "#B45309",
+    "Zaffrani Gosht Korma": "#C2410C",
+    "Shahi Tukda Gold": "#EAB308",
 }
 
 
@@ -242,6 +251,15 @@ class Command(BaseCommand):
         Membership.objects.get_or_create(
             user=u1_cashier, tenant=t1, defaults={"role": Role.CASHIER, "is_active": True}
         )
+        u1_kitchen, _ = User.objects.get_or_create(
+            email="kitchen@chaicorner.in",
+            defaults={"full_name": "Master Murugan", "is_active": True},
+        )
+        u1_kitchen.set_password(default_password)
+        u1_kitchen.save()
+        Membership.objects.get_or_create(
+            user=u1_kitchen, tenant=t1, defaults={"role": Role.KITCHEN, "is_active": True}
+        )
 
         # Tenant 2: Bean & Bloom Cafe (CAFE, Starter)
         t2, _ = Tenant.objects.get_or_create(
@@ -319,6 +337,14 @@ class Command(BaseCommand):
         u2_waiter.save()
         Membership.objects.get_or_create(
             user=u2_waiter, tenant=t2, defaults={"role": Role.WAITER, "is_active": True}
+        )
+        u2_kitchen, _ = User.objects.get_or_create(
+            email="kitchen@beanbloom.in", defaults={"full_name": "Barista Arjun", "is_active": True}
+        )
+        u2_kitchen.set_password(default_password)
+        u2_kitchen.save()
+        Membership.objects.get_or_create(
+            user=u2_kitchen, tenant=t2, defaults={"role": Role.KITCHEN, "is_active": True}
         )
 
         # Tenant 3: Spice Garden (RESTAURANT, Professional)
@@ -428,6 +454,72 @@ class Command(BaseCommand):
             membership=m3_waiter,
             section=sec3_ac,
         )
+        u3_kitchen, _ = User.objects.get_or_create(
+            email="kitchen@spicegarden.com", defaults={"full_name": "Chef Sanjeev", "is_active": True}
+        )
+        u3_kitchen.set_password(default_password)
+        u3_kitchen.save()
+        Membership.objects.get_or_create(
+            user=u3_kitchen, tenant=t3, defaults={"role": Role.KITCHEN, "is_active": True}
+        )
+
+        # Fixed deterministic QR token for demo customer scan on Table T4
+        t4_table = DiningTable.objects.filter(tenant=t3, branch=b3, label="T4").first()
+        if t4_table:
+            QRCode.objects.update_or_create(
+                tenant=t3,
+                branch=b3,
+                table=t4_table,
+                defaults={
+                    "public_token": "demo-spice-t4",
+                    "target_type": QRTargetType.TABLE,
+                    "is_active": True,
+                },
+            )
+
+        # Seed Demo Customer CRM profiles for Spice Garden
+        Customer.objects.update_or_create(
+            tenant=t3,
+            phone="+91 98765 43210",
+            defaults={
+                "name": "Priya Sharma",
+                "email": "priya.sharma@example.com",
+                "consent_given": True,
+                "dietary_preference": "VEG",
+                "allergies": "Peanuts, Cashews",
+                "notes": "Prefers window table. Regular weekend family dinner guest.",
+                "visit_count": 14,
+                "total_spend_paise": 1845000,
+            },
+        )
+        Customer.objects.update_or_create(
+            tenant=t3,
+            phone="+91 98765 43211",
+            defaults={
+                "name": "Arun Kumar",
+                "email": "arun.k@example.com",
+                "consent_given": True,
+                "dietary_preference": "NON_VEG",
+                "allergies": "",
+                "notes": "Enjoys Tandoori specials and biryani.",
+                "visit_count": 8,
+                "total_spend_paise": 1280000,
+            },
+        )
+        Customer.objects.update_or_create(
+            tenant=t3,
+            phone="+91 98765 43212",
+            defaults={
+                "name": "Sneha Patel",
+                "email": "sneha.p@example.com",
+                "consent_given": True,
+                "dietary_preference": "JAIN",
+                "allergies": "No root vegetables",
+                "notes": "Jain preparation strictly required.",
+                "visit_count": 5,
+                "total_spend_paise": 650000,
+            },
+        )
 
         # Tenant 4: Grand Meridian (HOTEL_RESTAURANT, Enterprise)
         t4, _ = Tenant.objects.get_or_create(
@@ -514,6 +606,29 @@ class Command(BaseCommand):
         Membership.objects.get_or_create(
             user=u4_owner, tenant=t4, defaults={"role": Role.OWNER, "is_active": True}
         )
+        u4_mgr, _ = User.objects.get_or_create(
+            email="manager@grandmeridian.com",
+            defaults={"full_name": "Deepak General Manager", "is_active": True},
+        )
+        u4_mgr.set_password(default_password)
+        u4_mgr.save()
+        Membership.objects.get_or_create(
+            user=u4_mgr, tenant=t4, defaults={"role": Role.BRANCH_MANAGER, "is_active": True}
+        )
+
+        # Fixed deterministic QR token for Room 104 room-service orders
+        r104_tbl = DiningTable.objects.filter(tenant=t4, branch=b4, label="Room 104").first()
+        if r104_tbl:
+            QRCode.objects.update_or_create(
+                tenant=t4,
+                branch=b4,
+                table=r104_tbl,
+                defaults={
+                    "public_token": "demo-room-104",
+                    "target_type": QRTargetType.ROOM,
+                    "is_active": True,
+                },
+            )
 
         # Tenant 5: Foodie Plaza (FOOD_COURT, Business)
         t5, _ = Tenant.objects.get_or_create(
@@ -591,8 +706,181 @@ class Command(BaseCommand):
         Membership.objects.get_or_create(
             user=u5_cashier, tenant=t5, defaults={"role": Role.CASHIER, "is_active": True}
         )
+        u5_kitchen, _ = User.objects.get_or_create(
+            email="kitchen@foodieplaza.in", defaults={"full_name": "Chef Lin Wok", "is_active": True}
+        )
+        u5_kitchen.set_password(default_password)
+        u5_kitchen.save()
+        Membership.objects.get_or_create(
+            user=u5_kitchen, tenant=t5, defaults={"role": Role.KITCHEN, "is_active": True}
+        )
 
-        self._seed_menus(t1, b1, t2, b2, t3, b3, t4, b4, t5, b5)
+        # Tenant 6: Artisan Bakehouse (BAKERY, Starter)
+        t6, _ = Tenant.objects.get_or_create(
+            slug="artisan-bakery",
+            defaults={
+                "name": "Artisan Bakehouse",
+                "business_type": Tenant.BusinessType.BAKERY,
+                "email": "contact@artisanbakery.in",
+                "phone": "+91 98765 00006",
+                "address": "Lavelle Road, Bengaluru",
+                "status": Tenant.Status.ACTIVE,
+            },
+        )
+        set_current_tenant(t6)
+        BusinessSettings.objects.get_or_create(
+            tenant=t6,
+            defaults={"tax_mode": BusinessSettings.TaxMode.INCLUSIVE, "invoice_prefix": "AB-"},
+        )
+        Subscription.objects.update_or_create(
+            tenant=t6,
+            defaults={"plan": plans["starter"], "status": SubscriptionStatus.ACTIVE},
+        )
+        b6, _ = Branch.objects.get_or_create(
+            tenant=t6,
+            name="Artisan Bakehouse Flagship",
+            defaults={
+                "venue_profile": Branch.VenueProfile.QUICK_SERVICE,
+                "address": "Lavelle Road, Bengaluru",
+                "phone": "+91 98765 00006",
+                "is_active": True,
+            },
+        )
+        apply_preset(b6, Branch.VenueProfile.QUICK_SERVICE)
+        sa6, _ = ServiceArea.objects.get_or_create(
+            tenant=t6,
+            branch=b6,
+            name="Pastry & Bread Counter",
+            defaults={"area_type": AreaType.TAKEAWAY},
+        )
+        next_token(b6, sa6)
+        u6_owner, _ = User.objects.get_or_create(
+            email="owner@artisanbakery.in",
+            defaults={"full_name": "Pierre Laurent", "is_active": True},
+        )
+        u6_owner.set_password(default_password)
+        u6_owner.save()
+        Membership.objects.get_or_create(
+            user=u6_owner, tenant=t6, defaults={"role": Role.OWNER, "is_active": True}
+        )
+        u6_cashier, _ = User.objects.get_or_create(
+            email="cashier@artisanbakery.in",
+            defaults={"full_name": "Chloe Baker", "is_active": True},
+        )
+        u6_cashier.set_password(default_password)
+        u6_cashier.save()
+        Membership.objects.get_or_create(
+            user=u6_cashier, tenant=t6, defaults={"role": Role.CASHIER, "is_active": True}
+        )
+        u6_kitchen, _ = User.objects.get_or_create(
+            email="kitchen@artisanbakery.in",
+            defaults={"full_name": "Chef Jacques", "is_active": True},
+        )
+        u6_kitchen.set_password(default_password)
+        u6_kitchen.save()
+        Membership.objects.get_or_create(
+            user=u6_kitchen, tenant=t6, defaults={"role": Role.KITCHEN, "is_active": True}
+        )
+
+        # Tenant 7: Royal Dum Pukht (FINE_DINING, Enterprise)
+        t7, _ = Tenant.objects.get_or_create(
+            slug="royal-dum-pukht",
+            defaults={
+                "name": "Royal Dum Pukht",
+                "business_type": Tenant.BusinessType.FINE_DINING,
+                "email": "concierge@royaldumpukht.com",
+                "phone": "+91 98765 00007",
+                "address": "Taj West End, Race Course Road, Bengaluru",
+                "status": Tenant.Status.ACTIVE,
+            },
+        )
+        set_current_tenant(t7)
+        BusinessSettings.objects.get_or_create(
+            tenant=t7,
+            defaults={"tax_mode": BusinessSettings.TaxMode.EXCLUSIVE, "invoice_prefix": "RDP-"},
+        )
+        Subscription.objects.update_or_create(
+            tenant=t7,
+            defaults={"plan": plans["enterprise"], "status": SubscriptionStatus.ACTIVE},
+        )
+        b7, _ = Branch.objects.get_or_create(
+            tenant=t7,
+            name="Royal Dum Pukht Palace",
+            defaults={
+                "venue_profile": Branch.VenueProfile.FINE_DINING,
+                "address": "Race Course Road, Bengaluru",
+                "phone": "+91 98765 00007",
+                "is_active": True,
+            },
+        )
+        apply_preset(b7, Branch.VenueProfile.FINE_DINING)
+        sa7_vip, _ = ServiceArea.objects.get_or_create(
+            tenant=t7,
+            branch=b7,
+            name="Maharaja VIP Hall",
+            defaults={"area_type": AreaType.DINING, "service_charge_bps": 1000},
+        )
+        sec7_vip, _ = Section.objects.get_or_create(
+            tenant=t7,
+            branch=b7,
+            service_area=sa7_vip,
+            name="Royal Suites",
+            defaults={"color": "#7C3AED", "section_type": SectionType.PRIVATE_ROOM, "is_active": True},
+        )
+        for i in range(1, 9):
+            tbl, _ = DiningTable.objects.get_or_create(
+                tenant=t7,
+                branch=b7,
+                label=f"V{i}",
+                defaults={"section": sec7_vip, "capacity": 6, "status": TableStatus.AVAILABLE},
+            )
+            if not QRCode.objects.filter(table=tbl, is_active=True).exists():
+                generate_qr_code(branch=b7, target_type=QRTargetType.TABLE, table=tbl)
+
+        u7_owner, _ = User.objects.get_or_create(
+            email="owner@royaldumpukht.com",
+            defaults={"full_name": "Nawab Asif Ali", "is_active": True},
+        )
+        u7_owner.set_password(default_password)
+        u7_owner.save()
+        Membership.objects.get_or_create(
+            user=u7_owner, tenant=t7, defaults={"role": Role.OWNER, "is_active": True}
+        )
+        u7_mgr, _ = User.objects.get_or_create(
+            email="manager@royaldumpukht.com",
+            defaults={"full_name": "Farhan Khan", "is_active": True},
+        )
+        u7_mgr.set_password(default_password)
+        u7_mgr.save()
+        Membership.objects.get_or_create(
+            user=u7_mgr, tenant=t7, defaults={"role": Role.BRANCH_MANAGER, "is_active": True}
+        )
+        u7_waiter, _ = User.objects.get_or_create(
+            email="waiter@royaldumpukht.com",
+            defaults={"full_name": "Tariq Sommelier", "is_active": True},
+        )
+        u7_waiter.set_password(default_password)
+        u7_waiter.save()
+        m7_waiter, _ = Membership.objects.get_or_create(
+            user=u7_waiter, tenant=t7, defaults={"role": Role.WAITER, "is_active": True}
+        )
+        StaffSectionAssignment.objects.get_or_create(
+            tenant=t7,
+            branch=b7,
+            membership=m7_waiter,
+            section=sec7_vip,
+        )
+        u7_kitchen, _ = User.objects.get_or_create(
+            email="kitchen@royaldumpukht.com",
+            defaults={"full_name": "Ustad Imtiaz", "is_active": True},
+        )
+        u7_kitchen.set_password(default_password)
+        u7_kitchen.save()
+        Membership.objects.get_or_create(
+            user=u7_kitchen, tenant=t7, defaults={"role": Role.KITCHEN, "is_active": True}
+        )
+
+        self._seed_menus(t1, b1, t2, b2, t3, b3, t4, b4, t5, b5, t6, b6, t7, b7)
         self._seed_orders(t1, b1, t3, b3)
 
         # Print Seed Summary Table
@@ -604,7 +892,7 @@ class Command(BaseCommand):
         )
         self.stdout.write("-" * 90)
 
-        all_tenants = [t1, t2, t3, t4, t5]
+        all_tenants = [t1, t2, t3, t4, t5, t6, t7]
         for t in all_tenants:
             set_current_tenant(t)
             areas_count = ServiceArea.objects.filter(tenant=t).count()
@@ -627,7 +915,7 @@ class Command(BaseCommand):
             )
         )
 
-    def _seed_menus(self, t1, b1, t2, b2, t3, b3, t4, b4, t5, b5):
+    def _seed_menus(self, t1, b1, t2, b2, t3, b3, t4, b4, t5, b5, t6, b6, t7, b7):
         def _attach_image_if_missing(tenant, item, food_type):
             if not item.image_card:
                 color = DISH_COLORS.get(
@@ -1026,6 +1314,75 @@ class Command(BaseCommand):
             },
         )
         _attach_image_if_missing(t5, fried_rice, FoodType.VEG)
+
+        # 6. Artisan Bakehouse (Bakery)
+        set_current_tenant(t6)
+        cat_bk1, _ = MenuCategory.objects.get_or_create(
+            tenant=t6, name="Breads & Viennoiserie", defaults={"name_ta": "ரொட்டி வகைகள்", "sort_order": 1}
+        )
+        cat_bk2, _ = MenuCategory.objects.get_or_create(
+            tenant=t6, name="Cakes & Patisserie", defaults={"name_ta": "கேக் வகைகள்", "sort_order": 2}
+        )
+        cat_bk3, _ = MenuCategory.objects.get_or_create(
+            tenant=t6, name="Beverages", defaults={"name_ta": "பானங்கள்", "sort_order": 3}
+        )
+
+        bakery_items = [
+            (cat_bk1, "Artisanal Sourdough Loaf", "புளிப்பு ரொட்டி", "Slow-fermented wild yeast crusty sourdough", 18000, FoodType.VEG, 5, True),
+            (cat_bk1, "Butter Croissant", "பட்டர் குரோசண்ட்", "Flaky layered French butter pastry", 12000, FoodType.EGG, 3, True),
+            (cat_bk2, "Red Velvet Cake Slice", "ரெட் வெல்வெட் கேக்", "Velvety cocoa cake with cream cheese frosting", 22000, FoodType.EGG, 2, True),
+            (cat_bk2, "Dark Chocolate Macarons (4 pcs)", "சாக்லேட் மக்காரோன்", "Almond meringue shells with Belgian ganache", 28000, FoodType.EGG, 2, False),
+            (cat_bk3, "Cold Brew Mocha", "கோல்ட் ப்ரூ மோக்கா", "Single-origin 18-hour cold brew with chocolate", 16000, FoodType.VEG, 4, False),
+        ]
+        for cat, name, name_ta, desc, price, food, prep, best in bakery_items:
+            m_itm, _ = MenuItem.objects.get_or_create(
+                tenant=t6,
+                category=cat,
+                name=name,
+                defaults={
+                    "name_ta": name_ta,
+                    "description": desc,
+                    "base_price_paise": price,
+                    "food_type": food,
+                    "prep_minutes": prep,
+                    "is_bestseller": best,
+                },
+            )
+            _attach_image_if_missing(t6, m_itm, food)
+
+        # 7. Royal Dum Pukht (Fine Dining)
+        set_current_tenant(t7)
+        cat_fd1, _ = MenuCategory.objects.get_or_create(
+            tenant=t7, name="Shahi Dastarkhwan Starters", defaults={"name_ta": "ஷாஃபி ஸ்டார்ட்டர்ஸ்", "sort_order": 1}
+        )
+        cat_fd2, _ = MenuCategory.objects.get_or_create(
+            tenant=t7, name="Nawabi Royal Mains", defaults={"name_ta": "நவாபி மெயின்ஸ்", "sort_order": 2}
+        )
+        cat_fd3, _ = MenuCategory.objects.get_or_create(
+            tenant=t7, name="Meetha & Desserts", defaults={"name_ta": "இனிப்புகள்", "sort_order": 3}
+        )
+
+        fine_dining_items = [
+            (cat_fd1, "Lucknowi Galouti Kebab", "கலௌதி கபாப்", "Mouth-melting minced lamb infused with 32 royal spices", 59000, FoodType.NON_VEG, 18, True),
+            (cat_fd2, "Shahi Awadhi Dum Biryani", "அவதி தம் பிரியாணி", "Aged basmati and tender meat cooked under sealed dough purdah", 65000, FoodType.NON_VEG, 22, True),
+            (cat_fd2, "Zaffrani Gosht Korma", "ஜாப்ரானி கோஷ்ட் கோர்மா", "Slow braised mutton in rich almond saffron gravy", 69000, FoodType.NON_VEG, 20, False),
+            (cat_fd3, "Shahi Tukda Gold", "ஷாஃபி துக்டா", "Crispy fried brioche soaked in saffron rabri with edible gold foil", 29000, FoodType.VEG, 10, True),
+        ]
+        for cat, name, name_ta, desc, price, food, prep, best in fine_dining_items:
+            m_itm, _ = MenuItem.objects.get_or_create(
+                tenant=t7,
+                category=cat,
+                name=name,
+                defaults={
+                    "name_ta": name_ta,
+                    "description": desc,
+                    "base_price_paise": price,
+                    "food_type": food,
+                    "prep_minutes": prep,
+                    "is_bestseller": best,
+                },
+            )
+            _attach_image_if_missing(t7, m_itm, food)
 
     def _seed_orders(self, t1, b1, t3, b3):
         from apps.orders.models import CourseType, Order, OrderItem, OrderStatus, OrderWorkflow
