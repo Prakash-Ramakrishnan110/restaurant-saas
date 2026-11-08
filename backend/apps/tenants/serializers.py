@@ -166,7 +166,7 @@ class TenantSerializer(serializers.ModelSerializer):
         return suggest_venue_profile(obj.business_type)
 
     def get_branches_count(self, obj: Tenant) -> int:
-        return Branch.unscoped.filter(tenant=obj).count()
+        return obj.get_branches_count()
 
     def get_plan_name(self, obj: Tenant) -> str:
         sub = getattr(obj, "subscription", None)
@@ -215,7 +215,7 @@ class TenantDetailSerializer(serializers.ModelSerializer):
         return suggest_venue_profile(obj.business_type)
 
     def get_branches(self, obj: Tenant) -> Any:
-        return BranchSerializer(Branch.unscoped.filter(tenant=obj), many=True).data
+        return BranchSerializer(obj.get_branches_list(), many=True).data
 
     def get_owner(self, obj: Tenant) -> dict | None:
         from apps.accounts.models import Membership

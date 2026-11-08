@@ -49,6 +49,12 @@ class Tenant(UUIDModel, TimeStampedModel):
     def __str__(self) -> str:
         return f"{self.name} ({self.slug})"
 
+    def get_branches_count(self) -> int:
+        return Branch.unscoped.filter(tenant=self).count()
+
+    def get_branches_list(self):
+        return Branch.unscoped.filter(tenant=self)
+
 
 class Branch(TenantOwnedModel):
     """Represents a physical or virtual restaurant outlet/location for a tenant."""

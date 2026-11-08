@@ -317,7 +317,11 @@ class TenantViewSet(ViewSet):
             action="tenant.add_note",
             entity_type="Tenant",
             entity_id=str(tenant.id),
-            after_state={"note": note, "reason": reason, "author": getattr(request.user, "email", "system")},
+            after_state={
+                "note": note,
+                "reason": reason,
+                "author": getattr(request.user, "email", "system"),
+            },
         )
         return Response({"message": "Note added successfully."}, status=status.HTTP_201_CREATED)
 
