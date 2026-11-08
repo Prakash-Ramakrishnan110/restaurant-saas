@@ -190,7 +190,7 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
 
   const handleLogout = async () => {
     await logout();
-    navigate("/login");
+    navigate("/login", { replace: true, state: null });
   };
 
   const toggleLanguage = () => {
@@ -214,7 +214,10 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
             {sidebarOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
           </button>
 
-          <Link to="/dashboard" className="flex items-center">
+          <Link
+            to={user?.is_platform_admin ? "/admin" : "/dashboard"}
+            className="flex items-center"
+          >
             <BrandLogo size={32} theme={theme === "dark" ? "dark" : "auto"} />
           </Link>
 

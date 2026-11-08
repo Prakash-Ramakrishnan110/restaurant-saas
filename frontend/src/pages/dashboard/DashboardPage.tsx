@@ -113,6 +113,12 @@ export const DashboardPage: React.FC = () => {
   const { user, activeTenant } = useAuth();
   const navigate = useNavigate();
 
+  useEffect(() => {
+    if (user?.is_platform_admin) {
+      navigate("/admin", { replace: true });
+    }
+  }, [user, navigate]);
+
   const [entitlements, setEntitlements] = useState<EntitlementsResponse | null>(null);
   const [onboarding, setOnboarding] = useState<OnboardingResponse | null>(null);
   const [todayReport, setTodayReport] = useState<TodayReportResponse | null>(null);
@@ -174,6 +180,10 @@ export const DashboardPage: React.FC = () => {
 
   const hasAnyOverLimit =
     entitlements?.limits && Object.values(entitlements.limits).some((lim) => lim?.over_limit);
+
+  if (user?.is_platform_admin) {
+    return null;
+  }
 
   return (
     <div className="space-y-8 animate-in fade-in-50">

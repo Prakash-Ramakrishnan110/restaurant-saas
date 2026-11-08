@@ -654,6 +654,7 @@ class PlatformCustomerCreateView(APIView):
 
         from apps.audit.models import AuditLog
         from apps.subscriptions.models import Plan, Subscription, SubscriptionStatus
+        from apps.venues.constants import AreaType
         from apps.venues.models import (
             BranchCapabilities,
             DiningTable,
@@ -814,7 +815,7 @@ class PlatformCustomerCreateView(APIView):
                 tenant=tenant,
                 branch=first_branch,
                 name="Ground Floor Dining",
-                area_type="MAIN_DINING",
+                area_type=AreaType.DINING,
                 sort_order=1,
             )
             sec1 = Section.objects.create(
@@ -850,7 +851,7 @@ class PlatformCustomerCreateView(APIView):
                 tenant=tenant,
                 branch=first_branch,
                 name="Main Dining",
-                area_type="MAIN_DINING",
+                area_type=AreaType.DINING,
                 sort_order=1,
             )
             sec = Section.objects.create(

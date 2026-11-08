@@ -27,7 +27,10 @@ export interface AuthContextType {
   permissions: string[];
   mustChangePassword: boolean;
   isLoading: boolean;
-  login: (email: string, password: string) => Promise<{ mustChangePassword: boolean }>;
+  login: (
+    email: string,
+    password: string
+  ) => Promise<{ mustChangePassword: boolean; isPlatformAdmin: boolean }>;
   logout: () => Promise<void>;
   changePassword: (oldPassword: string, newPassword: string) => Promise<void>;
   selectTenant: (tenantId: string) => void;
@@ -126,7 +129,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         profile?.user?.must_change_password ??
         res.data?.user?.must_change_password
       );
-      return { mustChangePassword: needsChange };
+      const isPlatformAdmin = Boolean(
+        profile?.user?.is_platform_admin ?? (profile as unknown as { is_platform_admin?: boolean })?.is_platform_admin
+      );
+      return { mustChangePassword: needsChange, isPlatformAdmin };
     } finally {
       setIsLoading(false);
     }

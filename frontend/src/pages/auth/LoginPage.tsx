@@ -41,8 +41,14 @@ export const LoginPage: React.FC = () => {
         navigate("/change-password");
       } else {
         const locationState = location.state as { from?: { pathname?: string } } | null;
-        const from = locationState?.from?.pathname || "/dashboard";
-        navigate(from, { replace: true });
+        const requestedPath = locationState?.from?.pathname;
+        if (res?.isPlatformAdmin) {
+          const target = requestedPath && requestedPath.startsWith("/admin") ? requestedPath : "/admin";
+          navigate(target, { replace: true });
+        } else {
+          const target = requestedPath && !requestedPath.startsWith("/admin") && requestedPath !== "/login" ? requestedPath : "/dashboard";
+          navigate(target, { replace: true });
+        }
       }
     } catch (err: unknown) {
       const authErr = err as {

@@ -73,7 +73,10 @@ const queryClient = new QueryClient({
   },
 });
 
-const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+const ProtectedRoute: React.FC<{
+  children: React.ReactNode;
+  requirePlatformAdmin?: boolean;
+}> = ({ children, requirePlatformAdmin = false }) => {
   const { user, mustChangePassword, isLoading } = useAuth();
   const location = useLocation();
 
@@ -98,7 +101,33 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) =
     return <Navigate to="/change-password" replace />;
   }
 
+  if (requirePlatformAdmin && !user.is_platform_admin) {
+    return <Navigate to="/dashboard" replace />;
+  }
+
+  if (!requirePlatformAdmin && user.is_platform_admin) {
+    return <Navigate to="/admin" replace />;
+  }
+
   return <AppShell>{children}</AppShell>;
+};
+
+const RootRedirect: React.FC = () => {
+  const { user, isLoading } = useAuth();
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="w-8 h-8 border-4 border-[#FF6A00] border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
+  if (!user) {
+    return <Navigate to="/login" replace />;
+  }
+  if (user.is_platform_admin) {
+    return <Navigate to="/admin" replace />;
+  }
+  return <Navigate to="/dashboard" replace />;
 };
 
 export const App: React.FC = () => {
@@ -384,7 +413,7 @@ export const App: React.FC = () => {
               <Route
                 path="/admin"
                 element={
-                  <ProtectedRoute>
+                  <ProtectedRoute requirePlatformAdmin>
                     <PlatformAdminPage />
                   </ProtectedRoute>
                 }
@@ -392,7 +421,7 @@ export const App: React.FC = () => {
               <Route
                 path="/admin/tenants"
                 element={
-                  <ProtectedRoute>
+                  <ProtectedRoute requirePlatformAdmin>
                     <PlatformAdminPage />
                   </ProtectedRoute>
                 }
@@ -400,7 +429,7 @@ export const App: React.FC = () => {
               <Route
                 path="/admin/tenants/new"
                 element={
-                  <ProtectedRoute>
+                  <ProtectedRoute requirePlatformAdmin>
                     <NewCustomerWizardPage />
                   </ProtectedRoute>
                 }
@@ -408,7 +437,7 @@ export const App: React.FC = () => {
               <Route
                 path="/admin/tenants/:id"
                 element={
-                  <ProtectedRoute>
+                  <ProtectedRoute requirePlatformAdmin>
                     <CustomerDetailPage />
                   </ProtectedRoute>
                 }
@@ -416,7 +445,7 @@ export const App: React.FC = () => {
               <Route
                 path="/admin/dashboard"
                 element={
-                  <ProtectedRoute>
+                  <ProtectedRoute requirePlatformAdmin>
                     <PlatformAdminPage />
                   </ProtectedRoute>
                 }
@@ -424,7 +453,7 @@ export const App: React.FC = () => {
               <Route
                 path="/admin/plans"
                 element={
-                  <ProtectedRoute>
+                  <ProtectedRoute requirePlatformAdmin>
                     <PlatformPlansPage />
                   </ProtectedRoute>
                 }
@@ -432,7 +461,7 @@ export const App: React.FC = () => {
               <Route
                 path="/admin/activity"
                 element={
-                  <ProtectedRoute>
+                  <ProtectedRoute requirePlatformAdmin>
                     <PlatformActivityPage />
                   </ProtectedRoute>
                 }
@@ -440,7 +469,7 @@ export const App: React.FC = () => {
               <Route
                 path="/admin/support"
                 element={
-                  <ProtectedRoute>
+                  <ProtectedRoute requirePlatformAdmin>
                     <PlatformSupportPage />
                   </ProtectedRoute>
                 }
@@ -448,7 +477,7 @@ export const App: React.FC = () => {
               <Route
                 path="/admin/announcements"
                 element={
-                  <ProtectedRoute>
+                  <ProtectedRoute requirePlatformAdmin>
                     <PlatformAnnouncementsPage />
                   </ProtectedRoute>
                 }
@@ -456,7 +485,7 @@ export const App: React.FC = () => {
               <Route
                 path="/admin/health"
                 element={
-                  <ProtectedRoute>
+                  <ProtectedRoute requirePlatformAdmin>
                     <PlatformHealthPage />
                   </ProtectedRoute>
                 }
@@ -607,7 +636,7 @@ export const App: React.FC = () => {
               />
 
               {/* Default Redirects & 404 */}
-              <Route path="/" element={<Navigate to="/dashboard" replace />} />
+              <Route path="/" element={<RootRedirect />} />
               <Route path="*" element={<NotFoundPage />} />
             </Routes>
           </BrowserRouter>
