@@ -785,6 +785,938 @@ paths:
                 type: object
                 additionalProperties: {}
           description: ''
+  /api/v1/inventory/ingredients/:
+    get:
+      operationId: inventory_ingredients_list
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      tags:
+      - inventory
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedIngredientList'
+          description: ''
+    post:
+      operationId: inventory_ingredients_create
+      tags:
+      - inventory
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/IngredientRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/IngredientRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/IngredientRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Ingredient'
+          description: ''
+  /api/v1/inventory/ingredients/{id}/:
+    get:
+      operationId: inventory_ingredients_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this ingredient.
+        required: true
+      tags:
+      - inventory
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Ingredient'
+          description: ''
+    put:
+      operationId: inventory_ingredients_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this ingredient.
+        required: true
+      tags:
+      - inventory
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/IngredientRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/IngredientRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/IngredientRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Ingredient'
+          description: ''
+    patch:
+      operationId: inventory_ingredients_partial_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this ingredient.
+        required: true
+      tags:
+      - inventory
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedIngredientRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedIngredientRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedIngredientRequest'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Ingredient'
+          description: ''
+    delete:
+      operationId: inventory_ingredients_destroy
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this ingredient.
+        required: true
+      tags:
+      - inventory
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/v1/inventory/ingredients/{id}/adjust-stock/:
+    post:
+      operationId: inventory_ingredients_adjust_stock_create
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this ingredient.
+        required: true
+      tags:
+      - inventory
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/IngredientRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/IngredientRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/IngredientRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Ingredient'
+          description: ''
+  /api/v1/inventory/purchases/:
+    get:
+      operationId: inventory_purchases_list
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      tags:
+      - inventory
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedPurchaseOrderList'
+          description: ''
+    post:
+      operationId: inventory_purchases_create
+      tags:
+      - inventory
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PurchaseOrderRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PurchaseOrderRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PurchaseOrderRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PurchaseOrder'
+          description: ''
+  /api/v1/inventory/purchases/{id}/:
+    get:
+      operationId: inventory_purchases_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this purchase order.
+        required: true
+      tags:
+      - inventory
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PurchaseOrder'
+          description: ''
+    put:
+      operationId: inventory_purchases_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this purchase order.
+        required: true
+      tags:
+      - inventory
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PurchaseOrderRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PurchaseOrderRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PurchaseOrderRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PurchaseOrder'
+          description: ''
+    patch:
+      operationId: inventory_purchases_partial_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this purchase order.
+        required: true
+      tags:
+      - inventory
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedPurchaseOrderRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedPurchaseOrderRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedPurchaseOrderRequest'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PurchaseOrder'
+          description: ''
+    delete:
+      operationId: inventory_purchases_destroy
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this purchase order.
+        required: true
+      tags:
+      - inventory
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/v1/inventory/purchases/{id}/receive/:
+    post:
+      operationId: inventory_purchases_receive_create
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this purchase order.
+        required: true
+      tags:
+      - inventory
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PurchaseOrderRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PurchaseOrderRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PurchaseOrderRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PurchaseOrder'
+          description: ''
+  /api/v1/inventory/recipes/:
+    get:
+      operationId: inventory_recipes_list
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      tags:
+      - inventory
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedRecipeList'
+          description: ''
+    post:
+      operationId: inventory_recipes_create
+      tags:
+      - inventory
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RecipeRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/RecipeRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/RecipeRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Recipe'
+          description: ''
+  /api/v1/inventory/recipes/{id}/:
+    get:
+      operationId: inventory_recipes_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this recipe.
+        required: true
+      tags:
+      - inventory
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Recipe'
+          description: ''
+    put:
+      operationId: inventory_recipes_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this recipe.
+        required: true
+      tags:
+      - inventory
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RecipeRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/RecipeRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/RecipeRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Recipe'
+          description: ''
+    patch:
+      operationId: inventory_recipes_partial_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this recipe.
+        required: true
+      tags:
+      - inventory
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedRecipeRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedRecipeRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedRecipeRequest'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Recipe'
+          description: ''
+    delete:
+      operationId: inventory_recipes_destroy
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this recipe.
+        required: true
+      tags:
+      - inventory
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/v1/inventory/reports/low-stock/:
+    get:
+      operationId: inventory_reports_low_stock_list
+      summary: Get low stock ingredient alerts
+      tags:
+      - inventory
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  additionalProperties: {}
+          description: ''
+  /api/v1/inventory/reports/variance/:
+    get:
+      operationId: inventory_reports_variance_retrieve
+      summary: Get theoretical vs actual inventory variance and food cost report
+      tags:
+      - inventory
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+                description: Unspecified response body
+          description: ''
+  /api/v1/inventory/suppliers/:
+    get:
+      operationId: inventory_suppliers_list
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      tags:
+      - inventory
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedSupplierList'
+          description: ''
+    post:
+      operationId: inventory_suppliers_create
+      tags:
+      - inventory
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SupplierRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/SupplierRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/SupplierRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Supplier'
+          description: ''
+  /api/v1/inventory/suppliers/{id}/:
+    get:
+      operationId: inventory_suppliers_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this supplier.
+        required: true
+      tags:
+      - inventory
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Supplier'
+          description: ''
+    put:
+      operationId: inventory_suppliers_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this supplier.
+        required: true
+      tags:
+      - inventory
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SupplierRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/SupplierRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/SupplierRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Supplier'
+          description: ''
+    patch:
+      operationId: inventory_suppliers_partial_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this supplier.
+        required: true
+      tags:
+      - inventory
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedSupplierRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedSupplierRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedSupplierRequest'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Supplier'
+          description: ''
+    delete:
+      operationId: inventory_suppliers_destroy
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this supplier.
+        required: true
+      tags:
+      - inventory
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/v1/inventory/transactions/:
+    get:
+      operationId: inventory_transactions_list
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      tags:
+      - inventory
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedStockTransactionList'
+          description: ''
+  /api/v1/inventory/transactions/{id}/:
+    get:
+      operationId: inventory_transactions_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this stock transaction.
+        required: true
+      tags:
+      - inventory
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StockTransaction'
+          description: ''
+  /api/v1/inventory/wastage/:
+    get:
+      operationId: inventory_wastage_list
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      tags:
+      - inventory
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedWastageLogList'
+          description: ''
+    post:
+      operationId: inventory_wastage_create
+      tags:
+      - inventory
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WastageLogRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/WastageLogRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/WastageLogRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WastageLog'
+          description: ''
+  /api/v1/inventory/wastage/{id}/:
+    get:
+      operationId: inventory_wastage_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this wastage log.
+        required: true
+      tags:
+      - inventory
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WastageLog'
+          description: ''
+    put:
+      operationId: inventory_wastage_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this wastage log.
+        required: true
+      tags:
+      - inventory
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WastageLogRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/WastageLogRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/WastageLogRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WastageLog'
+          description: ''
+    patch:
+      operationId: inventory_wastage_partial_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this wastage log.
+        required: true
+      tags:
+      - inventory
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedWastageLogRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedWastageLogRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedWastageLogRequest'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WastageLog'
+          description: ''
+    delete:
+      operationId: inventory_wastage_destroy
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this wastage log.
+        required: true
+      tags:
+      - inventory
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
   /api/v1/invoices/:
     get:
       operationId: invoices_list
@@ -4912,6 +5844,26 @@ components:
         * `HOTEL` - Hotel
         * `FOOD_COURT` - Food Court
         * `CHAIN` - Chain
+    CategoryEnum:
+      enum:
+      - DRY_GOODS
+      - DAIRY
+      - MEAT
+      - VEGETABLE
+      - BEVERAGE
+      - SPICE_CONDIMENT
+      - PACKAGING
+      - OTHER
+      type: string
+      description: |-
+        * `DRY_GOODS` - Dry Goods & Grains
+        * `DAIRY` - Dairy & Eggs
+        * `MEAT` - Meat & Seafood
+        * `VEGETABLE` - Vegetables & Produce
+        * `BEVERAGE` - Beverages & Liquids
+        * `SPICE_CONDIMENT` - Spices & Condiments
+        * `PACKAGING` - Packaging & Disposables
+        * `OTHER` - Other
     ChangePasswordRequest:
       type: object
       properties:
@@ -5208,6 +6160,100 @@ components:
         * `VEG` - Vegetarian
         * `NON_VEG` - Non-Vegetarian
         * `EGG` - Contains Egg
+    Ingredient:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        name:
+          type: string
+          maxLength: 200
+        name_ta:
+          type: string
+          maxLength: 200
+        sku:
+          type: string
+          maxLength: 50
+        category:
+          $ref: '#/components/schemas/CategoryEnum'
+        unit:
+          $ref: '#/components/schemas/UnitEnum'
+        cost_paise:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: -9223372036854775808
+          format: int64
+          description: Standard or weighted average cost per unit in integer paise
+        current_stock:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,9}(?:\.\d{0,3})?$
+        min_threshold:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,9}(?:\.\d{0,3})?$
+          description: Threshold below which low-stock replenishment alert is triggered
+        is_active:
+          type: boolean
+        is_low_stock:
+          type: boolean
+          readOnly: true
+        stock_value_paise:
+          type: integer
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - created_at
+      - id
+      - is_low_stock
+      - name
+      - stock_value_paise
+      - updated_at
+    IngredientRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 200
+        name_ta:
+          type: string
+          maxLength: 200
+        sku:
+          type: string
+          maxLength: 50
+        category:
+          $ref: '#/components/schemas/CategoryEnum'
+        unit:
+          $ref: '#/components/schemas/UnitEnum'
+        cost_paise:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: -9223372036854775808
+          format: int64
+          description: Standard or weighted average cost per unit in integer paise
+        current_stock:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,9}(?:\.\d{0,3})?$
+        min_threshold:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,9}(?:\.\d{0,3})?$
+          description: Threshold below which low-stock replenishment alert is triggered
+        is_active:
+          type: boolean
+      required:
+      - name
     ItemVariant:
       type: object
       properties:
@@ -6255,6 +7301,29 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/DiningTable'
+    PaginatedIngredientList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Ingredient'
     PaginatedKDSTicketList:
       type: object
       required:
@@ -6393,6 +7462,29 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/PlatformAnnouncement'
+    PaginatedPurchaseOrderList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/PurchaseOrder'
     PaginatedQRCodeList:
       type: object
       required:
@@ -6416,6 +7508,29 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/QRCode'
+    PaginatedRecipeList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Recipe'
     PaginatedSectionList:
       type: object
       required:
@@ -6531,6 +7646,52 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/StaffSectionAssignment'
+    PaginatedStockTransactionList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/StockTransaction'
+    PaginatedSupplierList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Supplier'
     PaginatedSupportTicketList:
       type: object
       required:
@@ -6623,6 +7784,29 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/Tenant'
+    PaginatedWastageLogList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/WastageLog'
     PatchedAuthMeResponseRequest:
       type: object
       properties:
@@ -6832,6 +8016,40 @@ components:
           minimum: -2147483648
         shape:
           $ref: '#/components/schemas/TableShape'
+    PatchedIngredientRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 200
+        name_ta:
+          type: string
+          maxLength: 200
+        sku:
+          type: string
+          maxLength: 50
+        category:
+          $ref: '#/components/schemas/CategoryEnum'
+        unit:
+          $ref: '#/components/schemas/UnitEnum'
+        cost_paise:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: -9223372036854775808
+          format: int64
+          description: Standard or weighted average cost per unit in integer paise
+        current_stock:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,9}(?:\.\d{0,3})?$
+        min_threshold:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,9}(?:\.\d{0,3})?$
+          description: Threshold below which low-stock replenishment alert is triggered
+        is_active:
+          type: boolean
     PatchedMenuCategoryRequest:
       type: object
       properties:
@@ -6970,6 +8188,48 @@ components:
           type: string
           format: date-time
           nullable: true
+    PatchedPurchaseOrderRequest:
+      type: object
+      properties:
+        order_number:
+          type: string
+          minLength: 1
+          maxLength: 50
+        supplier:
+          type: string
+          format: uuid
+          nullable: true
+        invoice_number:
+          type: string
+          maxLength: 100
+        total_cost_paise:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: -9223372036854775808
+          format: int64
+        notes:
+          type: string
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/PurchaseOrderItemRequest'
+    PatchedRecipeRequest:
+      type: object
+      properties:
+        menu_item:
+          type: string
+          format: uuid
+        yield_servings:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,4}(?:\.\d{0,2})?$
+          description: Number of servings produced by this recipe batch (default 1.0)
+        preparation_instructions:
+          type: string
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/RecipeItemRequest'
     PatchedSectionRequest:
       type: object
       properties:
@@ -7052,6 +8312,30 @@ components:
           maxLength: 32
         is_active:
           type: boolean
+    PatchedSupplierRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 200
+        contact_person:
+          type: string
+          maxLength: 150
+        phone:
+          type: string
+          maxLength: 30
+        email:
+          type: string
+          format: email
+          maxLength: 254
+        address:
+          type: string
+        gstin:
+          type: string
+          maxLength: 50
+        is_active:
+          type: boolean
     PatchedSupportTicketRequest:
       type: object
       properties:
@@ -7079,6 +8363,20 @@ components:
           type: string
           format: date-time
           nullable: true
+    PatchedWastageLogRequest:
+      type: object
+      properties:
+        ingredient:
+          type: string
+          format: uuid
+        quantity:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,9}(?:\.\d{0,3})?$
+        reason:
+          $ref: '#/components/schemas/ReasonEnum'
+        notes:
+          type: string
     PaymentMethodEnum:
       enum:
       - CASH
@@ -7307,6 +8605,172 @@ components:
       - session_code
       - session_token
       - status
+    PurchaseOrder:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        order_number:
+          type: string
+          maxLength: 50
+        supplier:
+          type: string
+          format: uuid
+          nullable: true
+        supplier_name:
+          type: string
+          readOnly: true
+        status:
+          allOf:
+          - $ref: '#/components/schemas/PurchaseOrderStatusEnum'
+          readOnly: true
+        invoice_number:
+          type: string
+          maxLength: 100
+        total_cost_paise:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: -9223372036854775808
+          format: int64
+        notes:
+          type: string
+        received_at:
+          type: string
+          format: date-time
+          readOnly: true
+          nullable: true
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/PurchaseOrderItem'
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - created_at
+      - id
+      - order_number
+      - received_at
+      - status
+      - supplier_name
+      - updated_at
+    PurchaseOrderItem:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        ingredient:
+          type: string
+          format: uuid
+        ingredient_name:
+          type: string
+          readOnly: true
+        ingredient_unit:
+          type: string
+          readOnly: true
+        quantity:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,9}(?:\.\d{0,3})?$
+        unit_price_paise:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: -9223372036854775808
+          format: int64
+        subtotal_paise:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: -9223372036854775808
+          format: int64
+        batch_number:
+          type: string
+          maxLength: 100
+        expiry_date:
+          type: string
+          format: date
+          nullable: true
+      required:
+      - id
+      - ingredient
+      - ingredient_name
+      - ingredient_unit
+      - quantity
+    PurchaseOrderItemRequest:
+      type: object
+      properties:
+        ingredient:
+          type: string
+          format: uuid
+        quantity:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,9}(?:\.\d{0,3})?$
+        unit_price_paise:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: -9223372036854775808
+          format: int64
+        subtotal_paise:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: -9223372036854775808
+          format: int64
+        batch_number:
+          type: string
+          maxLength: 100
+        expiry_date:
+          type: string
+          format: date
+          nullable: true
+      required:
+      - ingredient
+      - quantity
+    PurchaseOrderRequest:
+      type: object
+      properties:
+        order_number:
+          type: string
+          minLength: 1
+          maxLength: 50
+        supplier:
+          type: string
+          format: uuid
+          nullable: true
+        invoice_number:
+          type: string
+          maxLength: 100
+        total_cost_paise:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: -9223372036854775808
+          format: int64
+        notes:
+          type: string
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/PurchaseOrderItemRequest'
+      required:
+      - order_number
+    PurchaseOrderStatusEnum:
+      enum:
+      - DRAFT
+      - RECEIVED
+      - CANCELLED
+      type: string
+      description: |-
+        * `DRAFT` - Draft
+        * `RECEIVED` - Received & Stocked
+        * `CANCELLED` - Cancelled
     QRCode:
       type: object
       properties:
@@ -7438,6 +8902,136 @@ components:
       description: |-
         * `CUSTOMER_CAN_OPEN` - Customer Can Open
         * `STAFF_ONLY` - Staff Only
+    ReasonEnum:
+      enum:
+      - EXPIRED
+      - SPOILED
+      - BURNT_PREP
+      - SPILLAGE
+      - OTHER
+      type: string
+      description: |-
+        * `EXPIRED` - Expired / Date Passed
+        * `SPOILED` - Spoiled / Quality Degraded
+        * `BURNT_PREP` - Burnt / Prep Error
+        * `SPILLAGE` - Spillage / Handling Drop
+        * `OTHER` - Other
+    Recipe:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        menu_item:
+          type: string
+          format: uuid
+        menu_item_name:
+          type: string
+          readOnly: true
+        menu_item_price_paise:
+          type: integer
+          readOnly: true
+        yield_servings:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,4}(?:\.\d{0,2})?$
+          description: Number of servings produced by this recipe batch (default 1.0)
+        preparation_instructions:
+          type: string
+        total_cost_paise:
+          type: integer
+          readOnly: true
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/RecipeItem'
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - created_at
+      - id
+      - menu_item
+      - menu_item_name
+      - menu_item_price_paise
+      - total_cost_paise
+      - updated_at
+    RecipeItem:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        ingredient:
+          type: string
+          format: uuid
+        ingredient_name:
+          type: string
+          readOnly: true
+        ingredient_unit:
+          type: string
+          readOnly: true
+        ingredient_cost_paise:
+          type: integer
+          readOnly: true
+        quantity:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,7}(?:\.\d{0,3})?$
+          description: Quantity of ingredient in ingredient's base unit required per
+            recipe batch
+        calculated_cost_paise:
+          type: integer
+          readOnly: true
+      required:
+      - calculated_cost_paise
+      - id
+      - ingredient
+      - ingredient_cost_paise
+      - ingredient_name
+      - ingredient_unit
+      - quantity
+    RecipeItemRequest:
+      type: object
+      properties:
+        ingredient:
+          type: string
+          format: uuid
+        quantity:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,7}(?:\.\d{0,3})?$
+          description: Quantity of ingredient in ingredient's base unit required per
+            recipe batch
+      required:
+      - ingredient
+      - quantity
+    RecipeRequest:
+      type: object
+      properties:
+        menu_item:
+          type: string
+          format: uuid
+        yield_servings:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,4}(?:\.\d{0,2})?$
+          description: Number of servings produced by this recipe batch (default 1.0)
+        preparation_instructions:
+          type: string
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/RecipeItemRequest'
+      required:
+      - menu_item
     RequestTypeEnum:
       enum:
       - WATER
@@ -7820,6 +9414,118 @@ components:
         * `PENDING` - Pending
         * `ACKNOWLEDGED` - Acknowledged
         * `RESOLVED` - Resolved
+    StockTransaction:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        ingredient:
+          type: string
+          format: uuid
+        ingredient_name:
+          type: string
+          readOnly: true
+        ingredient_unit:
+          type: string
+          readOnly: true
+        transaction_type:
+          $ref: '#/components/schemas/TransactionTypeEnum'
+        quantity_change:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,9}(?:\.\d{0,3})?$
+          description: Positive for inward receipts, negative for outward usage/waste
+        balance_after:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,9}(?:\.\d{0,3})?$
+          readOnly: true
+        reference_id:
+          type: string
+          maxLength: 100
+        notes:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - balance_after
+      - created_at
+      - id
+      - ingredient
+      - ingredient_name
+      - ingredient_unit
+      - quantity_change
+      - transaction_type
+    Supplier:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        name:
+          type: string
+          maxLength: 200
+        contact_person:
+          type: string
+          maxLength: 150
+        phone:
+          type: string
+          maxLength: 30
+        email:
+          type: string
+          format: email
+          maxLength: 254
+        address:
+          type: string
+        gstin:
+          type: string
+          maxLength: 50
+        is_active:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - created_at
+      - id
+      - name
+      - updated_at
+    SupplierRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 200
+        contact_person:
+          type: string
+          maxLength: 150
+        phone:
+          type: string
+          maxLength: 30
+        email:
+          type: string
+          format: email
+          maxLength: 254
+        address:
+          type: string
+        gstin:
+          type: string
+          maxLength: 50
+        is_active:
+          type: boolean
+      required:
+      - name
     SupportTicket:
       type: object
       properties:
@@ -8203,6 +9909,34 @@ components:
       description: |-
         * `ACTIVE` - Active
         * `SUSPENDED` - Suspended
+    TransactionTypeEnum:
+      enum:
+      - INWARD_PURCHASE
+      - OUTWARD_SALE
+      - WASTAGE
+      - MANUAL_ADJUSTMENT
+      type: string
+      description: |-
+        * `INWARD_PURCHASE` - Inward Purchase
+        * `OUTWARD_SALE` - Outward Recipe Depletion
+        * `WASTAGE` - Wastage / Spoilage Write-Off
+        * `MANUAL_ADJUSTMENT` - Manual Stock Reconciliation
+    UnitEnum:
+      enum:
+      - KG
+      - GRAM
+      - LITER
+      - ML
+      - PIECE
+      - PACKET
+      type: string
+      description: |-
+        * `KG` - Kilogram (kg)
+        * `GRAM` - Gram (g)
+        * `LITER` - Liter (L)
+        * `ML` - Milliliter (mL)
+        * `PIECE` - Piece (pc)
+        * `PACKET` - Packet (pkt)
     User:
       type: object
       properties:
@@ -8256,6 +9990,73 @@ components:
         * `HOTEL_RESTAURANT` - Hotel Restaurant
         * `FOOD_COURT` - Food Court
         * `BAR_BREWERY` - Bar / Brewery
+    WastageLog:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        ingredient:
+          type: string
+          format: uuid
+        ingredient_name:
+          type: string
+          readOnly: true
+        ingredient_unit:
+          type: string
+          readOnly: true
+        quantity:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,9}(?:\.\d{0,3})?$
+        reason:
+          $ref: '#/components/schemas/ReasonEnum'
+        cost_loss_paise:
+          type: integer
+          readOnly: true
+          description: Total calculated monetary loss in integer paise
+        notes:
+          type: string
+        logged_by:
+          type: string
+          format: uuid
+          readOnly: true
+          nullable: true
+        logged_by_name:
+          type: string
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - cost_loss_paise
+      - created_at
+      - id
+      - ingredient
+      - ingredient_name
+      - ingredient_unit
+      - logged_by
+      - logged_by_name
+      - quantity
+    WastageLogRequest:
+      type: object
+      properties:
+        ingredient:
+          type: string
+          format: uuid
+        quantity:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,9}(?:\.\d{0,3})?$
+        reason:
+          $ref: '#/components/schemas/ReasonEnum'
+        notes:
+          type: string
+      required:
+      - ingredient
+      - quantity
   securitySchemes:
     jwtAuth:
       type: http

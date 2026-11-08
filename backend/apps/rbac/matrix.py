@@ -36,6 +36,8 @@ ROLE_PERMISSIONS: dict[str, set[str]] = {
         Permission.REPORT_VIEW,
         Permission.PRINTER_REPRINT,
         Permission.AUDIT_VIEW,
+        Permission.INVENTORY_VIEW,
+        Permission.INVENTORY_MANAGE,
     },
     Role.BRANCH_MANAGER: {
         Permission.BUSINESS_VIEW,
@@ -62,6 +64,8 @@ ROLE_PERMISSIONS: dict[str, set[str]] = {
         Permission.REPORT_VIEW,
         Permission.PRINTER_REPRINT,
         Permission.AUDIT_VIEW,
+        Permission.INVENTORY_VIEW,
+        Permission.INVENTORY_MANAGE,
     },
     Role.CASHIER: {
         Permission.TABLE_VIEW,
@@ -92,6 +96,8 @@ ROLE_PERMISSIONS: dict[str, set[str]] = {
         Permission.MENU_VIEW,
         Permission.MENU_MANAGE,
         Permission.MENU_AVAILABILITY,
+        Permission.INVENTORY_VIEW,
+        Permission.INVENTORY_MANAGE,
     },
 }
 

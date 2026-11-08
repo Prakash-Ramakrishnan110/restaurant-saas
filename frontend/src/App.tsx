@@ -57,6 +57,11 @@ import { RolesGuidePage } from "./pages/team/RolesGuidePage";
 import { PlatformSupportPage } from "./pages/admin/PlatformSupportPage";
 import { PlatformAnnouncementsPage } from "./pages/admin/PlatformAnnouncementsPage";
 import { PlatformHealthPage } from "./pages/admin/PlatformHealthPage";
+import { StockOverviewPage } from "./pages/inventory/StockOverviewPage";
+import { RecipesPage } from "./pages/inventory/RecipesPage";
+import { SuppliersPurchasesPage } from "./pages/inventory/SuppliersPurchasesPage";
+import { WastagePage } from "./pages/inventory/WastagePage";
+import { InventoryReportsPage } from "./pages/inventory/InventoryReportsPage";
 import "./i18n";
 
 const queryClient = new QueryClient({
@@ -301,6 +306,46 @@ export const App: React.FC = () => {
                 element={
                   <ProtectedRoute>
                     <OutletComparisonPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/inventory"
+                element={
+                  <ProtectedRoute>
+                    <StockOverviewPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/inventory/recipes"
+                element={
+                  <ProtectedRoute>
+                    <RecipesPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/inventory/purchases"
+                element={
+                  <ProtectedRoute>
+                    <SuppliersPurchasesPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/inventory/wastage"
+                element={
+                  <ProtectedRoute>
+                    <WastagePage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/inventory/reports"
+                element={
+                  <ProtectedRoute>
+                    <InventoryReportsPage />
                   </ProtectedRoute>
                 }
               />

@@ -65,6 +65,14 @@ def transition_order_status(
 
     order.save()
 
+    if new_status in (OrderStatus.SERVED, OrderStatus.COMPLETED):
+        try:
+            from apps.inventory.services import deplete_stock_for_order
+
+            deplete_stock_for_order(order)
+        except Exception:
+            pass
+
     event_type = (
         OrderEventType.CANCELLED
         if new_status == OrderStatus.CANCELLED

@@ -43,6 +43,7 @@ api_v1_patterns: list[Any] = [
     path("", include("apps.subscriptions.urls")),
     path("menu/", include("apps.menu.urls")),
     path("orders/", include("apps.orders.urls")),
+    path("inventory/", include("apps.inventory.urls")),
     path("reports/today/", TodayReportView.as_view(), name="reports-today"),
     path("reports/range/", RangeReportView.as_view(), name="reports-range"),
     path("reports/exceptions/", ExceptionsReportView.as_view(), name="reports-exceptions"),

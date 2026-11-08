@@ -328,6 +328,264 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/inventory/ingredients/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["inventory_ingredients_list"];
+        put?: never;
+        post: operations["inventory_ingredients_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/inventory/ingredients/{id}/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["inventory_ingredients_retrieve"];
+        put: operations["inventory_ingredients_update"];
+        post?: never;
+        delete: operations["inventory_ingredients_destroy"];
+        options?: never;
+        head?: never;
+        patch: operations["inventory_ingredients_partial_update"];
+        trace?: never;
+    };
+    "/api/v1/inventory/ingredients/{id}/adjust-stock/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["inventory_ingredients_adjust_stock_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/inventory/purchases/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["inventory_purchases_list"];
+        put?: never;
+        post: operations["inventory_purchases_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/inventory/purchases/{id}/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["inventory_purchases_retrieve"];
+        put: operations["inventory_purchases_update"];
+        post?: never;
+        delete: operations["inventory_purchases_destroy"];
+        options?: never;
+        head?: never;
+        patch: operations["inventory_purchases_partial_update"];
+        trace?: never;
+    };
+    "/api/v1/inventory/purchases/{id}/receive/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["inventory_purchases_receive_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/inventory/recipes/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["inventory_recipes_list"];
+        put?: never;
+        post: operations["inventory_recipes_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/inventory/recipes/{id}/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["inventory_recipes_retrieve"];
+        put: operations["inventory_recipes_update"];
+        post?: never;
+        delete: operations["inventory_recipes_destroy"];
+        options?: never;
+        head?: never;
+        patch: operations["inventory_recipes_partial_update"];
+        trace?: never;
+    };
+    "/api/v1/inventory/reports/low-stock/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get low stock ingredient alerts */
+        get: operations["inventory_reports_low_stock_list"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/inventory/reports/variance/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get theoretical vs actual inventory variance and food cost report */
+        get: operations["inventory_reports_variance_retrieve"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/inventory/suppliers/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["inventory_suppliers_list"];
+        put?: never;
+        post: operations["inventory_suppliers_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/inventory/suppliers/{id}/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["inventory_suppliers_retrieve"];
+        put: operations["inventory_suppliers_update"];
+        post?: never;
+        delete: operations["inventory_suppliers_destroy"];
+        options?: never;
+        head?: never;
+        patch: operations["inventory_suppliers_partial_update"];
+        trace?: never;
+    };
+    "/api/v1/inventory/transactions/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["inventory_transactions_list"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/inventory/transactions/{id}/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["inventory_transactions_retrieve"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/inventory/wastage/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["inventory_wastage_list"];
+        put?: never;
+        post: operations["inventory_wastage_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/inventory/wastage/{id}/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["inventory_wastage_retrieve"];
+        put: operations["inventory_wastage_update"];
+        post?: never;
+        delete: operations["inventory_wastage_destroy"];
+        options?: never;
+        head?: never;
+        patch: operations["inventory_wastage_partial_update"];
+        trace?: never;
+    };
     "/api/v1/invoices/": {
         parameters: {
             query?: never;
@@ -2116,6 +2374,18 @@ export interface components {
          * @enum {string}
          */
         BusinessType: "TEA_SHOP" | "BAKERY" | "CAFE" | "RESTAURANT" | "FINE_DINING" | "HOTEL" | "FOOD_COURT" | "CHAIN";
+        /**
+         * @description * `DRY_GOODS` - Dry Goods & Grains
+         *     * `DAIRY` - Dairy & Eggs
+         *     * `MEAT` - Meat & Seafood
+         *     * `VEGETABLE` - Vegetables & Produce
+         *     * `BEVERAGE` - Beverages & Liquids
+         *     * `SPICE_CONDIMENT` - Spices & Condiments
+         *     * `PACKAGING` - Packaging & Disposables
+         *     * `OTHER` - Other
+         * @enum {string}
+         */
+        CategoryEnum: "DRY_GOODS" | "DAIRY" | "MEAT" | "VEGETABLE" | "BEVERAGE" | "SPICE_CONDIMENT" | "PACKAGING" | "OTHER";
         ChangePasswordRequest: {
             current_password: string;
             new_password: string;
@@ -2256,6 +2526,54 @@ export interface components {
          * @enum {string}
          */
         FoodTypeEnum: "VEG" | "NON_VEG" | "EGG";
+        Ingredient: {
+            /** Format: uuid */
+            readonly id: string;
+            name: string;
+            name_ta?: string;
+            sku?: string;
+            category?: components["schemas"]["CategoryEnum"];
+            unit?: components["schemas"]["UnitEnum"];
+            /**
+             * Format: int64
+             * @description Standard or weighted average cost per unit in integer paise
+             */
+            cost_paise?: number;
+            /** Format: decimal */
+            current_stock?: string;
+            /**
+             * Format: decimal
+             * @description Threshold below which low-stock replenishment alert is triggered
+             */
+            min_threshold?: string;
+            is_active?: boolean;
+            readonly is_low_stock: boolean;
+            readonly stock_value_paise: number;
+            /** Format: date-time */
+            readonly created_at: string;
+            /** Format: date-time */
+            readonly updated_at: string;
+        };
+        IngredientRequest: {
+            name: string;
+            name_ta?: string;
+            sku?: string;
+            category?: components["schemas"]["CategoryEnum"];
+            unit?: components["schemas"]["UnitEnum"];
+            /**
+             * Format: int64
+             * @description Standard or weighted average cost per unit in integer paise
+             */
+            cost_paise?: number;
+            /** Format: decimal */
+            current_stock?: string;
+            /**
+             * Format: decimal
+             * @description Threshold below which low-stock replenishment alert is triggered
+             */
+            min_threshold?: string;
+            is_active?: boolean;
+        };
         ItemVariant: {
             /** Format: uuid */
             readonly id: string;
@@ -2724,6 +3042,21 @@ export interface components {
             previous?: string | null;
             results: components["schemas"]["DiningTable"][];
         };
+        PaginatedIngredientList: {
+            /** @example 123 */
+            count: number;
+            /**
+             * Format: uri
+             * @example http://api.example.org/accounts/?page=4
+             */
+            next?: string | null;
+            /**
+             * Format: uri
+             * @example http://api.example.org/accounts/?page=2
+             */
+            previous?: string | null;
+            results: components["schemas"]["Ingredient"][];
+        };
         PaginatedKDSTicketList: {
             /** @example 123 */
             count: number;
@@ -2814,6 +3147,21 @@ export interface components {
             previous?: string | null;
             results: components["schemas"]["PlatformAnnouncement"][];
         };
+        PaginatedPurchaseOrderList: {
+            /** @example 123 */
+            count: number;
+            /**
+             * Format: uri
+             * @example http://api.example.org/accounts/?page=4
+             */
+            next?: string | null;
+            /**
+             * Format: uri
+             * @example http://api.example.org/accounts/?page=2
+             */
+            previous?: string | null;
+            results: components["schemas"]["PurchaseOrder"][];
+        };
         PaginatedQRCodeList: {
             /** @example 123 */
             count: number;
@@ -2828,6 +3176,21 @@ export interface components {
              */
             previous?: string | null;
             results: components["schemas"]["QRCode"][];
+        };
+        PaginatedRecipeList: {
+            /** @example 123 */
+            count: number;
+            /**
+             * Format: uri
+             * @example http://api.example.org/accounts/?page=4
+             */
+            next?: string | null;
+            /**
+             * Format: uri
+             * @example http://api.example.org/accounts/?page=2
+             */
+            previous?: string | null;
+            results: components["schemas"]["Recipe"][];
         };
         PaginatedSectionList: {
             /** @example 123 */
@@ -2904,6 +3267,36 @@ export interface components {
             previous?: string | null;
             results: components["schemas"]["StaffSectionAssignment"][];
         };
+        PaginatedStockTransactionList: {
+            /** @example 123 */
+            count: number;
+            /**
+             * Format: uri
+             * @example http://api.example.org/accounts/?page=4
+             */
+            next?: string | null;
+            /**
+             * Format: uri
+             * @example http://api.example.org/accounts/?page=2
+             */
+            previous?: string | null;
+            results: components["schemas"]["StockTransaction"][];
+        };
+        PaginatedSupplierList: {
+            /** @example 123 */
+            count: number;
+            /**
+             * Format: uri
+             * @example http://api.example.org/accounts/?page=4
+             */
+            next?: string | null;
+            /**
+             * Format: uri
+             * @example http://api.example.org/accounts/?page=2
+             */
+            previous?: string | null;
+            results: components["schemas"]["Supplier"][];
+        };
         PaginatedSupportTicketList: {
             /** @example 123 */
             count: number;
@@ -2963,6 +3356,21 @@ export interface components {
              */
             previous?: string | null;
             results: components["schemas"]["Tenant"][];
+        };
+        PaginatedWastageLogList: {
+            /** @example 123 */
+            count: number;
+            /**
+             * Format: uri
+             * @example http://api.example.org/accounts/?page=4
+             */
+            next?: string | null;
+            /**
+             * Format: uri
+             * @example http://api.example.org/accounts/?page=2
+             */
+            previous?: string | null;
+            results: components["schemas"]["WastageLog"][];
         };
         PatchedAuthMeResponseRequest: {
             memberships?: components["schemas"]["MembershipSummaryRequest"][];
@@ -3063,6 +3471,26 @@ export interface components {
             rotation?: number;
             shape?: components["schemas"]["TableShape"];
         };
+        PatchedIngredientRequest: {
+            name?: string;
+            name_ta?: string;
+            sku?: string;
+            category?: components["schemas"]["CategoryEnum"];
+            unit?: components["schemas"]["UnitEnum"];
+            /**
+             * Format: int64
+             * @description Standard or weighted average cost per unit in integer paise
+             */
+            cost_paise?: number;
+            /** Format: decimal */
+            current_stock?: string;
+            /**
+             * Format: decimal
+             * @description Threshold below which low-stock replenishment alert is triggered
+             */
+            min_threshold?: string;
+            is_active?: boolean;
+        };
         PatchedMenuCategoryRequest: {
             name?: string;
             name_ta?: string;
@@ -3121,6 +3549,27 @@ export interface components {
             /** Format: date-time */
             ends_at?: string | null;
         };
+        PatchedPurchaseOrderRequest: {
+            order_number?: string;
+            /** Format: uuid */
+            supplier?: string | null;
+            invoice_number?: string;
+            /** Format: int64 */
+            total_cost_paise?: number;
+            notes?: string;
+            items?: components["schemas"]["PurchaseOrderItemRequest"][];
+        };
+        PatchedRecipeRequest: {
+            /** Format: uuid */
+            menu_item?: string;
+            /**
+             * Format: decimal
+             * @description Number of servings produced by this recipe batch (default 1.0)
+             */
+            yield_servings?: string;
+            preparation_instructions?: string;
+            items?: components["schemas"]["RecipeItemRequest"][];
+        };
         PatchedSectionRequest: {
             /** Format: uuid */
             branch?: string;
@@ -3158,6 +3607,16 @@ export interface components {
             role?: string;
             is_active?: boolean;
         };
+        PatchedSupplierRequest: {
+            name?: string;
+            contact_person?: string;
+            phone?: string;
+            /** Format: email */
+            email?: string;
+            address?: string;
+            gstin?: string;
+            is_active?: boolean;
+        };
         PatchedSupportTicketRequest: {
             subject?: string;
             description?: string;
@@ -3169,6 +3628,14 @@ export interface components {
             admin_notes?: string;
             /** Format: date-time */
             resolved_at?: string | null;
+        };
+        PatchedWastageLogRequest: {
+            /** Format: uuid */
+            ingredient?: string;
+            /** Format: decimal */
+            quantity?: string;
+            reason?: components["schemas"]["ReasonEnum"];
+            notes?: string;
         };
         /**
          * @description * `CASH` - Cash
@@ -3273,6 +3740,73 @@ export interface components {
             status: string;
             guest_count: number;
         };
+        PurchaseOrder: {
+            /** Format: uuid */
+            readonly id: string;
+            order_number: string;
+            /** Format: uuid */
+            supplier?: string | null;
+            readonly supplier_name: string;
+            readonly status: components["schemas"]["PurchaseOrderStatusEnum"];
+            invoice_number?: string;
+            /** Format: int64 */
+            total_cost_paise?: number;
+            notes?: string;
+            /** Format: date-time */
+            readonly received_at: string | null;
+            items?: components["schemas"]["PurchaseOrderItem"][];
+            /** Format: date-time */
+            readonly created_at: string;
+            /** Format: date-time */
+            readonly updated_at: string;
+        };
+        PurchaseOrderItem: {
+            /** Format: uuid */
+            readonly id: string;
+            /** Format: uuid */
+            ingredient: string;
+            readonly ingredient_name: string;
+            readonly ingredient_unit: string;
+            /** Format: decimal */
+            quantity: string;
+            /** Format: int64 */
+            unit_price_paise?: number;
+            /** Format: int64 */
+            subtotal_paise?: number;
+            batch_number?: string;
+            /** Format: date */
+            expiry_date?: string | null;
+        };
+        PurchaseOrderItemRequest: {
+            /** Format: uuid */
+            ingredient: string;
+            /** Format: decimal */
+            quantity: string;
+            /** Format: int64 */
+            unit_price_paise?: number;
+            /** Format: int64 */
+            subtotal_paise?: number;
+            batch_number?: string;
+            /** Format: date */
+            expiry_date?: string | null;
+        };
+        PurchaseOrderRequest: {
+            order_number: string;
+            /** Format: uuid */
+            supplier?: string | null;
+            invoice_number?: string;
+            /** Format: int64 */
+            total_cost_paise?: number;
+            notes?: string;
+            items?: components["schemas"]["PurchaseOrderItemRequest"][];
+        };
+        /**
+         * @description * `DRAFT` - Draft
+         *     * `RECEIVED` - Received & Stocked
+         *     * `CANCELLED` - Cancelled
+         * @enum {string}
+         */
+        PurchaseOrderStatusEnum: "DRAFT" | "RECEIVED" | "CANCELLED";
         QRCode: {
             /** Format: uuid */
             readonly id: string;
@@ -3330,6 +3864,70 @@ export interface components {
          * @enum {string}
          */
         QrSessionPolicy: "CUSTOMER_CAN_OPEN" | "STAFF_ONLY";
+        /**
+         * @description * `EXPIRED` - Expired / Date Passed
+         *     * `SPOILED` - Spoiled / Quality Degraded
+         *     * `BURNT_PREP` - Burnt / Prep Error
+         *     * `SPILLAGE` - Spillage / Handling Drop
+         *     * `OTHER` - Other
+         * @enum {string}
+         */
+        ReasonEnum: "EXPIRED" | "SPOILED" | "BURNT_PREP" | "SPILLAGE" | "OTHER";
+        Recipe: {
+            /** Format: uuid */
+            readonly id: string;
+            /** Format: uuid */
+            menu_item: string;
+            readonly menu_item_name: string;
+            readonly menu_item_price_paise: number;
+            /**
+             * Format: decimal
+             * @description Number of servings produced by this recipe batch (default 1.0)
+             */
+            yield_servings?: string;
+            preparation_instructions?: string;
+            readonly total_cost_paise: number;
+            items?: components["schemas"]["RecipeItem"][];
+            /** Format: date-time */
+            readonly created_at: string;
+            /** Format: date-time */
+            readonly updated_at: string;
+        };
+        RecipeItem: {
+            /** Format: uuid */
+            readonly id: string;
+            /** Format: uuid */
+            ingredient: string;
+            readonly ingredient_name: string;
+            readonly ingredient_unit: string;
+            readonly ingredient_cost_paise: number;
+            /**
+             * Format: decimal
+             * @description Quantity of ingredient in ingredient's base unit required per recipe batch
+             */
+            quantity: string;
+            readonly calculated_cost_paise: number;
+        };
+        RecipeItemRequest: {
+            /** Format: uuid */
+            ingredient: string;
+            /**
+             * Format: decimal
+             * @description Quantity of ingredient in ingredient's base unit required per recipe batch
+             */
+            quantity: string;
+        };
+        RecipeRequest: {
+            /** Format: uuid */
+            menu_item: string;
+            /**
+             * Format: decimal
+             * @description Number of servings produced by this recipe batch (default 1.0)
+             */
+            yield_servings?: string;
+            preparation_instructions?: string;
+            items?: components["schemas"]["RecipeItemRequest"][];
+        };
         /**
          * @description * `WATER` - Water
          *     * `NAPKINS` - Extra Napkins
@@ -3503,6 +4101,52 @@ export interface components {
          * @enum {string}
          */
         StatusDb8Enum: "PENDING" | "ACKNOWLEDGED" | "RESOLVED";
+        StockTransaction: {
+            /** Format: uuid */
+            readonly id: string;
+            /** Format: uuid */
+            ingredient: string;
+            readonly ingredient_name: string;
+            readonly ingredient_unit: string;
+            transaction_type: components["schemas"]["TransactionTypeEnum"];
+            /**
+             * Format: decimal
+             * @description Positive for inward receipts, negative for outward usage/waste
+             */
+            quantity_change: string;
+            /** Format: decimal */
+            readonly balance_after: string;
+            reference_id?: string;
+            notes?: string;
+            /** Format: date-time */
+            readonly created_at: string;
+        };
+        Supplier: {
+            /** Format: uuid */
+            readonly id: string;
+            name: string;
+            contact_person?: string;
+            phone?: string;
+            /** Format: email */
+            email?: string;
+            address?: string;
+            gstin?: string;
+            is_active?: boolean;
+            /** Format: date-time */
+            readonly created_at: string;
+            /** Format: date-time */
+            readonly updated_at: string;
+        };
+        SupplierRequest: {
+            name: string;
+            contact_person?: string;
+            phone?: string;
+            /** Format: email */
+            email?: string;
+            address?: string;
+            gstin?: string;
+            is_active?: boolean;
+        };
         SupportTicket: {
             /** Format: uuid */
             readonly id: string;
@@ -3663,6 +4307,24 @@ export interface components {
          * @enum {string}
          */
         TenantStatus: "ACTIVE" | "SUSPENDED";
+        /**
+         * @description * `INWARD_PURCHASE` - Inward Purchase
+         *     * `OUTWARD_SALE` - Outward Recipe Depletion
+         *     * `WASTAGE` - Wastage / Spoilage Write-Off
+         *     * `MANUAL_ADJUSTMENT` - Manual Stock Reconciliation
+         * @enum {string}
+         */
+        TransactionTypeEnum: "INWARD_PURCHASE" | "OUTWARD_SALE" | "WASTAGE" | "MANUAL_ADJUSTMENT";
+        /**
+         * @description * `KG` - Kilogram (kg)
+         *     * `GRAM` - Gram (g)
+         *     * `LITER` - Liter (L)
+         *     * `ML` - Milliliter (mL)
+         *     * `PIECE` - Piece (pc)
+         *     * `PACKET` - Packet (pkt)
+         * @enum {string}
+         */
+        UnitEnum: "KG" | "GRAM" | "LITER" | "ML" | "PIECE" | "PACKET";
         User: {
             /** Format: uuid */
             readonly id: string;
@@ -3686,6 +4348,33 @@ export interface components {
          * @enum {string}
          */
         VenueProfile: "QUICK_SERVICE" | "CAFE" | "CASUAL_DINING" | "FINE_DINING" | "HOTEL_RESTAURANT" | "FOOD_COURT" | "BAR_BREWERY";
+        WastageLog: {
+            /** Format: uuid */
+            readonly id: string;
+            /** Format: uuid */
+            ingredient: string;
+            readonly ingredient_name: string;
+            readonly ingredient_unit: string;
+            /** Format: decimal */
+            quantity: string;
+            reason?: components["schemas"]["ReasonEnum"];
+            /** @description Total calculated monetary loss in integer paise */
+            readonly cost_loss_paise: number;
+            notes?: string;
+            /** Format: uuid */
+            readonly logged_by: string | null;
+            readonly logged_by_name: string;
+            /** Format: date-time */
+            readonly created_at: string;
+        };
+        WastageLogRequest: {
+            /** Format: uuid */
+            ingredient: string;
+            /** Format: decimal */
+            quantity: string;
+            reason?: components["schemas"]["ReasonEnum"];
+            notes?: string;
+        };
     };
     responses: never;
     parameters: never;
@@ -4448,6 +5137,890 @@ export interface operations {
                     "application/json": {
                         [key: string]: unknown;
                     };
+                };
+            };
+        };
+    };
+    inventory_ingredients_list: {
+        parameters: {
+            query?: {
+                /** @description A page number within the paginated result set. */
+                page?: number;
+                /** @description Number of results to return per page. */
+                page_size?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaginatedIngredientList"];
+                };
+            };
+        };
+    };
+    inventory_ingredients_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["IngredientRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["IngredientRequest"];
+                "multipart/form-data": components["schemas"]["IngredientRequest"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Ingredient"];
+                };
+            };
+        };
+    };
+    inventory_ingredients_retrieve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description A UUID string identifying this ingredient. */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Ingredient"];
+                };
+            };
+        };
+    };
+    inventory_ingredients_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description A UUID string identifying this ingredient. */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["IngredientRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["IngredientRequest"];
+                "multipart/form-data": components["schemas"]["IngredientRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Ingredient"];
+                };
+            };
+        };
+    };
+    inventory_ingredients_destroy: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description A UUID string identifying this ingredient. */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No response body */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    inventory_ingredients_partial_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description A UUID string identifying this ingredient. */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["PatchedIngredientRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["PatchedIngredientRequest"];
+                "multipart/form-data": components["schemas"]["PatchedIngredientRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Ingredient"];
+                };
+            };
+        };
+    };
+    inventory_ingredients_adjust_stock_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description A UUID string identifying this ingredient. */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["IngredientRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["IngredientRequest"];
+                "multipart/form-data": components["schemas"]["IngredientRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Ingredient"];
+                };
+            };
+        };
+    };
+    inventory_purchases_list: {
+        parameters: {
+            query?: {
+                /** @description A page number within the paginated result set. */
+                page?: number;
+                /** @description Number of results to return per page. */
+                page_size?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaginatedPurchaseOrderList"];
+                };
+            };
+        };
+    };
+    inventory_purchases_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PurchaseOrderRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["PurchaseOrderRequest"];
+                "multipart/form-data": components["schemas"]["PurchaseOrderRequest"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PurchaseOrder"];
+                };
+            };
+        };
+    };
+    inventory_purchases_retrieve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description A UUID string identifying this purchase order. */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PurchaseOrder"];
+                };
+            };
+        };
+    };
+    inventory_purchases_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description A UUID string identifying this purchase order. */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PurchaseOrderRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["PurchaseOrderRequest"];
+                "multipart/form-data": components["schemas"]["PurchaseOrderRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PurchaseOrder"];
+                };
+            };
+        };
+    };
+    inventory_purchases_destroy: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description A UUID string identifying this purchase order. */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No response body */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    inventory_purchases_partial_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description A UUID string identifying this purchase order. */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["PatchedPurchaseOrderRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["PatchedPurchaseOrderRequest"];
+                "multipart/form-data": components["schemas"]["PatchedPurchaseOrderRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PurchaseOrder"];
+                };
+            };
+        };
+    };
+    inventory_purchases_receive_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description A UUID string identifying this purchase order. */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PurchaseOrderRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["PurchaseOrderRequest"];
+                "multipart/form-data": components["schemas"]["PurchaseOrderRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PurchaseOrder"];
+                };
+            };
+        };
+    };
+    inventory_recipes_list: {
+        parameters: {
+            query?: {
+                /** @description A page number within the paginated result set. */
+                page?: number;
+                /** @description Number of results to return per page. */
+                page_size?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaginatedRecipeList"];
+                };
+            };
+        };
+    };
+    inventory_recipes_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RecipeRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["RecipeRequest"];
+                "multipart/form-data": components["schemas"]["RecipeRequest"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Recipe"];
+                };
+            };
+        };
+    };
+    inventory_recipes_retrieve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description A UUID string identifying this recipe. */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Recipe"];
+                };
+            };
+        };
+    };
+    inventory_recipes_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description A UUID string identifying this recipe. */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RecipeRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["RecipeRequest"];
+                "multipart/form-data": components["schemas"]["RecipeRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Recipe"];
+                };
+            };
+        };
+    };
+    inventory_recipes_destroy: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description A UUID string identifying this recipe. */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No response body */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    inventory_recipes_partial_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description A UUID string identifying this recipe. */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["PatchedRecipeRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["PatchedRecipeRequest"];
+                "multipart/form-data": components["schemas"]["PatchedRecipeRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Recipe"];
+                };
+            };
+        };
+    };
+    inventory_reports_low_stock_list: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    }[];
+                };
+            };
+        };
+    };
+    inventory_reports_variance_retrieve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+        };
+    };
+    inventory_suppliers_list: {
+        parameters: {
+            query?: {
+                /** @description A page number within the paginated result set. */
+                page?: number;
+                /** @description Number of results to return per page. */
+                page_size?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaginatedSupplierList"];
+                };
+            };
+        };
+    };
+    inventory_suppliers_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SupplierRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["SupplierRequest"];
+                "multipart/form-data": components["schemas"]["SupplierRequest"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Supplier"];
+                };
+            };
+        };
+    };
+    inventory_suppliers_retrieve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description A UUID string identifying this supplier. */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Supplier"];
+                };
+            };
+        };
+    };
+    inventory_suppliers_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description A UUID string identifying this supplier. */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SupplierRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["SupplierRequest"];
+                "multipart/form-data": components["schemas"]["SupplierRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Supplier"];
+                };
+            };
+        };
+    };
+    inventory_suppliers_destroy: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description A UUID string identifying this supplier. */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No response body */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    inventory_suppliers_partial_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description A UUID string identifying this supplier. */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["PatchedSupplierRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["PatchedSupplierRequest"];
+                "multipart/form-data": components["schemas"]["PatchedSupplierRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Supplier"];
+                };
+            };
+        };
+    };
+    inventory_transactions_list: {
+        parameters: {
+            query?: {
+                /** @description A page number within the paginated result set. */
+                page?: number;
+                /** @description Number of results to return per page. */
+                page_size?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaginatedStockTransactionList"];
+                };
+            };
+        };
+    };
+    inventory_transactions_retrieve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description A UUID string identifying this stock transaction. */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StockTransaction"];
+                };
+            };
+        };
+    };
+    inventory_wastage_list: {
+        parameters: {
+            query?: {
+                /** @description A page number within the paginated result set. */
+                page?: number;
+                /** @description Number of results to return per page. */
+                page_size?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaginatedWastageLogList"];
+                };
+            };
+        };
+    };
+    inventory_wastage_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["WastageLogRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["WastageLogRequest"];
+                "multipart/form-data": components["schemas"]["WastageLogRequest"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WastageLog"];
+                };
+            };
+        };
+    };
+    inventory_wastage_retrieve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description A UUID string identifying this wastage log. */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WastageLog"];
+                };
+            };
+        };
+    };
+    inventory_wastage_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description A UUID string identifying this wastage log. */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["WastageLogRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["WastageLogRequest"];
+                "multipart/form-data": components["schemas"]["WastageLogRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WastageLog"];
+                };
+            };
+        };
+    };
+    inventory_wastage_destroy: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description A UUID string identifying this wastage log. */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No response body */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    inventory_wastage_partial_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description A UUID string identifying this wastage log. */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["PatchedWastageLogRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["PatchedWastageLogRequest"];
+                "multipart/form-data": components["schemas"]["PatchedWastageLogRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WastageLog"];
                 };
             };
         };

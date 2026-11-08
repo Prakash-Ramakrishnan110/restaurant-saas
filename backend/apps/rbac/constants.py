@@ -77,5 +77,9 @@ class Permission:
     PRINTER_REPRINT = "printer.reprint"
     AUDIT_VIEW = "audit.view"
 
+    # Inventory
+    INVENTORY_VIEW = "inventory.view"
+    INVENTORY_MANAGE = "inventory.manage"
+
     # Platform Admin
     PLATFORM_ADMIN = "platform.admin"
