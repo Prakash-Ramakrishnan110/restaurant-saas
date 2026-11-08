@@ -76,7 +76,7 @@ export const MenuPage: React.FC = () => {
         apiClient.get<any>("/menu/categories/"),
         apiClient.get<any>("/menu/items/"),
         apiClient.get<any>("/menu/option-groups/"),
-        apiClient.get<any>("/subscriptions/entitlements/"),
+        apiClient.get<any>("/entitlements/"),
       ]);
       setCategories(catsRes.data.results || catsRes.data || []);
       setItems(itemsRes.data.results || itemsRes.data || []);

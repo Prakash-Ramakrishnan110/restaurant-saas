@@ -41,6 +41,7 @@ api_v1_patterns: list[Any] = [
     path("", include("apps.tenants.urls")),
     path("", include("apps.venues.urls")),
     path("", include("apps.subscriptions.urls")),
+    path("subscriptions/", include("apps.subscriptions.urls")),
     path("menu/", include("apps.menu.urls")),
     path("orders/", include("apps.orders.urls")),
     path("inventory/", include("apps.inventory.urls")),

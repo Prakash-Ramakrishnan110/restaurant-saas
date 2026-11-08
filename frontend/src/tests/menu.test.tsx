@@ -192,7 +192,7 @@ describe("ServeMyFood Menu Utilities & Components (Prompt 4A)", () => {
       if (url.includes("/menu/option-groups/")) {
         return Promise.resolve({ data: { results: [] } });
       }
-      if (url.includes("/subscriptions/entitlements/")) {
+      if (url.includes("entitlements")) {
         return Promise.resolve({ data: { limits: { max_menu_items: { limit: 100 } } } });
       }
       return Promise.resolve({ data: {} });
@@ -294,7 +294,7 @@ describe("ServeMyFood Menu Utilities & Components (Prompt 4A)", () => {
       if (url.includes("/menu/option-groups/")) {
         return Promise.resolve({ data: { results: [] } });
       }
-      if (url.includes("/subscriptions/entitlements/")) {
+      if (url.includes("entitlements")) {
         return Promise.resolve({ data: { limits: { max_menu_items: { limit: 100 } } } });
       }
       return Promise.resolve({ data: {} });

@@ -65,7 +65,7 @@ export const BillingPage: React.FC = () => {
     if (!activeTenant) return;
     try {
       const res = await apiClient.get<ListResponse<TableSessionInfo> | TableSessionInfo[]>(
-        "/sessions/"
+        "/table-sessions/"
       );
       const openSessions = unwrapList<TableSessionInfo>(res.data).filter(
         (s) => s.status === "OPEN"

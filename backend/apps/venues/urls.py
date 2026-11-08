@@ -24,6 +24,7 @@ router.register(r"sections", SectionViewSet, basename="section")
 router.register(r"tables", DiningTableViewSet, basename="dining-table")
 router.register(r"table-groups", TableGroupViewSet, basename="table-group")
 router.register(r"table-sessions", TableSessionViewSet, basename="table-session")
+router.register(r"sessions", TableSessionViewSet, basename="session-alias")
 router.register(r"staff-assignments", StaffSectionAssignmentViewSet, basename="staff-assignment")
 router.register(r"qr-codes", QRCodeViewSet, basename="qr-code")
 
