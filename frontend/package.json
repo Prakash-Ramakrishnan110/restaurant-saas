@@ -4,8 +4,8 @@
   "version": "0.4.1",
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "tsc && vite build",
+    "dev": "node init && vite",
+    "build": "node init && tsc && vite build",
     "preview": "vite preview",
     "gen:api": "openapi-typescript ../docs/openapi.json -o src/types/api.ts",
     "lint": "eslint src",
