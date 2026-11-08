@@ -423,6 +423,7 @@ class PlatformAnnouncementSerializer(serializers.ModelSerializer[PlatformAnnounc
             "title",
             "message",
             "announcement_type",
+            "target_business_type",
             "is_active",
             "starts_at",
             "ends_at",

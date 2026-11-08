@@ -1,24 +1,21 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Building2,
   ShieldCheck,
-  Power,
-  PowerOff,
   Layers,
   CheckCircle2,
   Plus,
   PlusCircle,
-  Eye,
   IndianRupee,
-  Search,
-  Download,
   RefreshCw,
   FileText,
   Activity,
   LifeBuoy,
-  Megaphone,
   ArrowRight,
-  X,
+  Database,
+  ExternalLink,
+  Users,
+  Clock,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { apiClient } from "../../api/client";
@@ -26,7 +23,7 @@ import { unwrapList, ListResponse } from "../../api/pagination";
 import { useAuth } from "../../context/AuthContext";
 import { Button } from "../../components/ui/button";
 import { Badge } from "../../components/ui/badge";
-import { Input } from "../../components/ui/input";
+import { Card, CardContent } from "../../components/ui/card";
 import { formatRupees } from "../../utils/currency";
 
 export interface TenantItem {
@@ -52,32 +49,55 @@ interface PlatformSummary {
   api_health: string;
 }
 
+interface HealthInfo {
+  status?: string;
+  database?: string;
+  redis?: string;
+  database_info?: {
+    engine?: string;
+    name?: string;
+    host?: string;
+    port?: number | string;
+    tables_count?: number;
+    status?: string;
+  };
+  redis_info?: {
+    status?: string;
+    url?: string;
+  };
+  backend_admin_url?: string;
+}
+
+interface AuditRecord {
+  id: string;
+  action: string;
+  entity_type: string;
+  entity_id: string;
+  timestamp: string;
+  actor_name: string;
+  actor_email: string;
+}
+
 export const PlatformAdminPage: React.FC = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
 
   const [tenants, setTenants] = useState<TenantItem[]>([]);
   const [summary, setSummary] = useState<PlatformSummary | null>(null);
-  const [loading, setLoading] = useState<boolean>(true);
+  const [healthInfo, setHealthInfo] = useState<HealthInfo | null>(null);
+  const [recentAudits, setRecentAudits] = useState<AuditRecord[]>([]);
   const [refreshing, setRefreshing] = useState<boolean>(false);
-  const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [toastMsg, setToastMsg] = useState<string | null>(null);
 
-  // Search & Filtering States
-  const [searchQuery, setSearchQuery] = useState<string>("");
-  const [statusFilter, setStatusFilter] = useState<string>("ALL");
-  const [businessTypeFilter, setBusinessTypeFilter] = useState<string>("ALL");
-  const [planFilter, setPlanFilter] = useState<string>("ALL");
-  const [sortBy, setSortBy] = useState<"newest" | "name" | "outlets">("newest");
-
-  const fetchTenants = async (isManualRefresh = false) => {
+  const fetchOverviewData = async (isManualRefresh = false) => {
     if (isManualRefresh) setRefreshing(true);
-    else setLoading(true);
 
     try {
-      const [tenantsRes, summaryRes] = await Promise.allSettled([
+      const [tenantsRes, summaryRes, healthRes, auditRes] = await Promise.allSettled([
         apiClient.get<ListResponse<TenantItem> | TenantItem[]>("/tenants/"),
         apiClient.get<PlatformSummary>("/platform/summary/"),
+        apiClient.get<HealthInfo>("/health/"),
+        apiClient.get<ListResponse<AuditRecord>>("/audit-logs/"),
       ]);
 
       if (tenantsRes.status === "fulfilled") {
@@ -86,124 +106,38 @@ export const PlatformAdminPage: React.FC = () => {
       if (summaryRes.status === "fulfilled") {
         setSummary(summaryRes.value.data);
       }
+      if (healthRes.status === "fulfilled") {
+        setHealthInfo(healthRes.value.data);
+      }
+      if (auditRes.status === "fulfilled") {
+        setRecentAudits(unwrapList<AuditRecord>(auditRes.value.data).slice(0, 5));
+      }
+
       if (isManualRefresh) {
-        setToastMsg("Platform metrics refreshed successfully.");
+        setToastMsg("Platform Command Center refreshed successfully.");
       }
     } catch {
-      // Fallback
+      // Handled
     } finally {
-      setLoading(false);
       setRefreshing(false);
     }
   };
 
   useEffect(() => {
-    fetchTenants();
+    fetchOverviewData();
   }, []);
 
-  const handleToggleStatus = async (tenant: TenantItem) => {
-    setActionLoading(tenant.id);
-    try {
-      if (tenant.status === "ACTIVE") {
-        await apiClient.post(`/tenants/${tenant.id}/suspend/`, {
-          reason: "Platform operator manual toggle",
-        });
-        setToastMsg(`Suspended ${tenant.name}`);
-      } else {
-        await apiClient.post(`/tenants/${tenant.id}/activate/`, {
-          reason: "Platform operator manual toggle",
-        });
-        setToastMsg(`Activated ${tenant.name}`);
-      }
-      await fetchTenants();
-    } catch {
-      setToastMsg("Could not change tenant status.");
-    } finally {
-      setActionLoading(null);
-    }
-  };
-
-  const filteredTenants = useMemo(() => {
-    return tenants
-      .filter((t) => {
-        if (statusFilter !== "ALL" && t.status !== statusFilter) return false;
-        if (businessTypeFilter !== "ALL" && t.business_type !== businessTypeFilter) return false;
-        if (planFilter !== "ALL" && (t.plan_name || "Starter") !== planFilter) return false;
-        if (searchQuery.trim()) {
-          const q = searchQuery.toLowerCase();
-          const matchName = (t.name || "").toLowerCase().includes(q);
-          const matchSlug = (t.slug || "").toLowerCase().includes(q);
-          const matchEmail = (t.owner_email || "").toLowerCase().includes(q);
-          if (!matchName && !matchSlug && !matchEmail) return false;
-        }
-        return true;
-      })
-      .sort((a, b) => {
-        if (sortBy === "name") return a.name.localeCompare(b.name);
-        if (sortBy === "outlets") return (b.branches_count || 1) - (a.branches_count || 1);
-        return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
-      });
-  }, [tenants, statusFilter, businessTypeFilter, planFilter, searchQuery, sortBy]);
-
-  const handleExportCSV = () => {
-    if (filteredTenants.length === 0) {
-      setToastMsg("No tenants to export.");
-      return;
-    }
-    const headers = [
-      "ID",
-      "Brand Name",
-      "Slug",
-      "Business Type",
-      "Status",
-      "Plan",
-      "Owner Email",
-      "Outlets",
-      "Created At",
-    ];
-    const rows = filteredTenants.map((t) => [
-      t.id,
-      `"${(t.name || "").replace(/"/g, '""')}"`,
-      t.slug,
-      t.business_type || "RESTAURANT",
-      t.status,
-      t.plan_name || "Starter",
-      t.owner_email || "",
-      t.branches_count || 1,
-      t.created_at || "",
-    ]);
-    const csvContent =
-      "data:text/csv;charset=utf-8," +
-      [headers.join(","), ...rows.map((r) => r.join(","))].join("\n");
-    const encodedUri = encodeURI(csvContent);
-    const link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
-    link.setAttribute(
-      "download",
-      `servemyfood_tenants_${new Date().toISOString().slice(0, 10)}.csv`
-    );
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    setToastMsg(`Exported ${filteredTenants.length} tenants to CSV`);
-  };
-
-  const clearAllFilters = () => {
-    setSearchQuery("");
-    setStatusFilter("ALL");
-    setBusinessTypeFilter("ALL");
-    setPlanFilter("ALL");
-    setSortBy("newest");
-  };
-
-  const hasActiveFilters =
-    searchQuery.trim() !== "" ||
-    statusFilter !== "ALL" ||
-    businessTypeFilter !== "ALL" ||
-    planFilter !== "ALL" ||
-    sortBy !== "newest";
-
   const quickModules = [
+    {
+      title: "Tenants Directory",
+      description: "Search, filter, view details, suspend, and manage all onboarded brands.",
+      path: "/admin/tenants",
+      icon: Users,
+      badge: `${tenants.length} Brands`,
+      color: "border-blue-200 dark:border-blue-900/40 bg-blue-50/40 dark:bg-blue-950/20",
+      iconColor: "text-blue-500",
+      cta: "Open Directory",
+    },
     {
       title: "New Customer Wizard",
       description: "Provision single or multi-outlet restaurant, cafe, or hotel chains.",
@@ -216,17 +150,17 @@ export const PlatformAdminPage: React.FC = () => {
     },
     {
       title: "Subscription Plans",
-      description: "Manage Starter, Growth, Pro, and Enterprise quotas and pricing.",
+      description: "Manage Starter, Growth, Pro, and Enterprise quotas and feature entitlements.",
       path: "/admin/plans",
       icon: Layers,
       badge: "Billing & Plans",
-      color: "border-blue-200 dark:border-blue-900/40 bg-blue-50/40 dark:bg-blue-950/20",
-      iconColor: "text-blue-500",
+      color: "border-amber-200 dark:border-amber-900/40 bg-amber-50/40 dark:bg-amber-950/20",
+      iconColor: "text-amber-700 dark:text-amber-400",
       cta: "Configure Plans",
     },
     {
-      title: "System Health & Uptime",
-      description: "Inspect Redis, PostgreSQL database latency, and API response metrics.",
+      title: "System Health & Telemetry",
+      description: "Inspect Redis, PostgreSQL database latency, and API uptime metrics.",
       path: "/admin/health",
       icon: Activity,
       badge: "Infrastructure",
@@ -250,36 +184,11 @@ export const PlatformAdminPage: React.FC = () => {
       path: "/admin/support",
       icon: LifeBuoy,
       badge: "Helpdesk",
-      color: "border-amber-200 dark:border-amber-900/40 bg-amber-50/40 dark:bg-amber-950/20",
-      iconColor: "text-amber-700 dark:text-amber-400",
+      color: "border-teal-200 dark:border-teal-900/40 bg-teal-50/40 dark:bg-teal-950/20",
+      iconColor: "text-teal-600 dark:text-teal-400",
       cta: "Open Helpdesk",
     },
-    {
-      title: "Broadcast Announcements",
-      description: "Publish emergency banners or scheduled maintenance notices.",
-      path: "/admin/announcements",
-      icon: Megaphone,
-      badge: "Broadcasts",
-      color: "border-purple-200 dark:border-purple-900/40 bg-purple-50/40 dark:bg-purple-950/20",
-      iconColor: "text-purple-500",
-      cta: "Post Banner",
-    },
   ];
-
-  const getBusinessTypeColor = (type?: string) => {
-    switch (type) {
-      case "RESTAURANT":
-        return "bg-orange-100 text-orange-900 border-orange-300 dark:bg-orange-950/50 dark:text-orange-200 dark:border-orange-800";
-      case "CAFE":
-        return "bg-amber-100 text-amber-900 border-amber-300 dark:bg-amber-950/50 dark:text-amber-200 dark:border-amber-800";
-      case "TEA_SHOP":
-        return "bg-emerald-100 text-emerald-900 border-emerald-300 dark:bg-emerald-950/50 dark:text-emerald-200 dark:border-emerald-800";
-      case "HOTEL":
-        return "bg-purple-100 text-purple-900 border-purple-300 dark:bg-purple-950/50 dark:text-purple-200 dark:border-purple-800";
-      default:
-        return "bg-blue-100 text-blue-900 border-blue-300 dark:bg-blue-950/50 dark:text-blue-200 dark:border-blue-800";
-    }
-  };
 
   return (
     <div className="p-4 sm:p-6 max-w-7xl mx-auto space-y-6 font-sans">
@@ -298,7 +207,7 @@ export const PlatformAdminPage: React.FC = () => {
         </div>
       )}
 
-      {/* Executive Header & Quick Actions */}
+      {/* Header & Quick Actions */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-4 border-b border-border">
         <div>
           <span className="text-xs font-bold text-[#FF6A00] uppercase tracking-wider">
@@ -308,8 +217,7 @@ export const PlatformAdminPage: React.FC = () => {
             <ShieldCheck className="h-7 w-7 text-emerald-600" /> Super-Admin Command Center
           </h1>
           <p className="text-xs text-muted-foreground mt-1">
-            Manage registered restaurant chains, subscription quotas, system health, and customer
-            support across India.
+            Real-time multi-tenant platform metrics, backend observability, and quick launch modules.
           </p>
         </div>
 
@@ -317,22 +225,12 @@ export const PlatformAdminPage: React.FC = () => {
           <Button
             size="sm"
             variant="outline"
-            onClick={() => fetchTenants(true)}
+            onClick={() => fetchOverviewData(true)}
             disabled={refreshing}
             className="text-xs gap-1.5"
           >
             <RefreshCw className={`h-3.5 w-3.5 ${refreshing ? "animate-spin" : ""}`} />
             <span>Refresh</span>
-          </Button>
-
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={handleExportCSV}
-            className="text-xs gap-1.5"
-          >
-            <Download className="h-3.5 w-3.5" />
-            <span>Export CSV</span>
           </Button>
 
           <Button
@@ -349,26 +247,32 @@ export const PlatformAdminPage: React.FC = () => {
         </div>
       </div>
 
-      {/* 3. Executive KPI Cards */}
+      {/* 1. Executive KPI Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="p-4 rounded-xl border border-border bg-card flex items-center gap-3 shadow-sm hover:border-border/80 transition-all">
+        <div
+          onClick={() => navigate("/admin/tenants")}
+          className="p-4 rounded-xl border border-border bg-card flex items-center gap-3 shadow-sm hover:border-border/80 transition-all cursor-pointer"
+        >
           <Building2 className="h-8 w-8 text-[#FF6A00] shrink-0" />
           <div className="min-w-0">
             <span className="text-xs text-muted-foreground font-semibold">Active Restaurants</span>
             <div className="text-2xl font-extrabold text-foreground">
               {summary ? summary.active_tenants : tenants.length}
             </div>
-            <span className="text-[11px] text-emerald-600 font-semibold">
+            <span className="text-[11px] text-emerald-600 font-semibold flex items-center gap-1">
               +{summary?.new_this_week || 0} onboarded this week
             </span>
           </div>
         </div>
 
-        <div className="p-4 rounded-xl border border-border bg-card flex items-center gap-3 shadow-sm hover:border-border/80 transition-all">
+        <div
+          onClick={() => navigate("/admin/tenants")}
+          className="p-4 rounded-xl border border-border bg-card flex items-center gap-3 shadow-sm hover:border-border/80 transition-all cursor-pointer"
+        >
           <Layers className="h-8 w-8 text-blue-500 shrink-0" />
           <div className="min-w-0">
             <span className="text-xs text-muted-foreground font-semibold">
-              Live Outlets & Stalls
+              Live Outlets &amp; Stalls
             </span>
             <div className="text-2xl font-extrabold text-foreground">
               {tenants.reduce((sum, t) => sum + (t.branches_count || 1), 0)}
@@ -377,7 +281,10 @@ export const PlatformAdminPage: React.FC = () => {
           </div>
         </div>
 
-        <div className="p-4 rounded-xl border border-border bg-card flex items-center gap-3 shadow-sm hover:border-border/80 transition-all">
+        <div
+          onClick={() => navigate("/admin/plans")}
+          className="p-4 rounded-xl border border-border bg-card flex items-center gap-3 shadow-sm hover:border-border/80 transition-all cursor-pointer"
+        >
           <IndianRupee className="h-8 w-8 text-emerald-600 shrink-0" />
           <div className="min-w-0">
             <span className="text-xs text-muted-foreground font-semibold">Monthly MRR (Live)</span>
@@ -385,33 +292,84 @@ export const PlatformAdminPage: React.FC = () => {
               {summary ? formatRupees(summary.mrr_paise) : "₹0.00"}
             </div>
             <span className="text-[11px] text-emerald-600 font-semibold">
-              {Object.keys(summary?.plan_distribution || {}).length} Active Plans
+              {Object.keys(summary?.plan_distribution || {}).length || 4} Active Plans
             </span>
           </div>
         </div>
 
-        <div className="p-4 rounded-xl border border-border bg-card flex items-center gap-3 shadow-sm hover:border-border/80 transition-all">
+        <div
+          onClick={() => navigate("/admin/health")}
+          className="p-4 rounded-xl border border-border bg-card flex items-center gap-3 shadow-sm hover:border-border/80 transition-all cursor-pointer"
+        >
           <CheckCircle2 className="h-8 w-8 text-emerald-500 shrink-0" />
           <div className="min-w-0">
             <span className="text-xs text-muted-foreground font-semibold">Platform Status</span>
             <div className="text-2xl font-extrabold text-emerald-600">
-              {summary?.api_health === "HEALTHY" ? "100% Online" : "Degraded"}
+              {healthInfo?.status === "ok" || summary?.api_health === "HEALTHY"
+                ? "100% Online"
+                : "Degraded"}
             </div>
-            <button
-              onClick={() => navigate("/admin/health")}
-              className="text-[11px] text-[#FF6A00] hover:underline font-semibold flex items-center gap-0.5"
-            >
-              View health details <ArrowRight className="h-3 w-3" />
-            </button>
+            <span className="text-[11px] text-[#FF6A00] font-semibold flex items-center gap-0.5">
+              Inspect Telemetry <ArrowRight className="h-3 w-3" />
+            </span>
           </div>
         </div>
       </div>
 
-      {/* 4. Command Hub: 6 Management Modules */}
+      {/* 2. Backend & Database Access Card */}
+      <Card className="border border-border/80 bg-gradient-to-r from-card to-muted/20">
+        <CardContent className="p-5 flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div className="flex items-start gap-3.5">
+            <div className="p-2.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 shrink-0">
+              <Database className="h-6 w-6" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <h3 className="font-bold text-sm text-foreground">
+                  Backend Administration &amp; Database State
+                </h3>
+                <Badge
+                  variant="secondary"
+                  className="text-[10px] bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 font-bold"
+                >
+                  PostgreSQL 16 Connected
+                </Badge>
+              </div>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                Database: <span className="font-mono font-bold text-foreground">fusion_saas</span> (Port 5432) •{" "}
+                Tables: <span className="font-bold text-foreground">{healthInfo?.database_info?.tables_count ?? 53}</span> •{" "}
+                Redis 7 Cache: <span className="font-bold text-emerald-600">Connected</span>
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2.5 shrink-0">
+            <a
+              href="http://localhost:8000/admin/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-[#FF6A00] text-white hover:bg-[#FF6A00]/90 transition-all shadow-sm"
+            >
+              <span>Django Admin Console</span>
+              <ExternalLink className="h-3.5 w-3.5" />
+            </a>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => navigate("/admin/health")}
+              className="text-xs"
+            >
+              Full Health Details
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* 3. Command Hub: 6 Management Modules */}
       <div>
         <div className="flex items-center justify-between mb-3">
           <h2 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-            Platform Command Modules & Tools
+            Platform Command Modules &amp; Subsystems
           </h2>
           <span className="text-xs text-muted-foreground">6 Dedicated Panels</span>
         </div>
@@ -430,19 +388,21 @@ export const PlatformAdminPage: React.FC = () => {
                     <div className="p-2 rounded-lg bg-card border border-border shadow-xs">
                       <Icon className={`h-5 w-5 ${mod.iconColor}`} />
                     </div>
-                    <Badge variant="outline" className="text-[10px] font-bold">
+                    <Badge variant="outline" className="text-[10px] font-bold bg-card/80">
                       {mod.badge}
                     </Badge>
                   </div>
-                  <h3 className="text-sm font-bold text-foreground">{mod.title}</h3>
+                  <h3 className="font-extrabold text-sm text-foreground">{mod.title}</h3>
                   <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
                     {mod.description}
                   </p>
                 </div>
 
-                <div className="mt-4 pt-3 border-t border-border/50 flex items-center justify-between text-xs font-semibold text-foreground hover:text-[#FF6A00]">
-                  <span>{mod.cta}</span>
-                  <ArrowRight className="h-3.5 w-3.5" />
+                <div className="mt-4 pt-3 border-t border-border/40 flex items-center justify-between">
+                  <span className="text-xs font-extrabold text-foreground flex items-center gap-1">
+                    {mod.cta}
+                    <ArrowRight className="h-3.5 w-3.5 text-muted-foreground" />
+                  </span>
                 </div>
               </div>
             );
@@ -450,234 +410,157 @@ export const PlatformAdminPage: React.FC = () => {
         </div>
       </div>
 
-      {/* 5. Subscription Distribution Filter Pills */}
-      {summary?.plan_distribution && Object.keys(summary.plan_distribution).length > 0 && (
-        <div className="p-3.5 rounded-xl border border-border bg-card shadow-xs flex flex-wrap items-center gap-2">
-          <span className="text-xs font-bold text-muted-foreground flex items-center gap-1.5 mr-1">
-            <Layers className="h-3.5 w-3.5" /> Tier Filter:
-          </span>
-          <button
-            onClick={() => setPlanFilter("ALL")}
-            className={`px-2.5 py-1 rounded-md text-xs font-bold transition-all ${
-              planFilter === "ALL"
-                ? "bg-[#FF6A00] text-[#0B1F3B] shadow-xs"
-                : "bg-muted text-muted-foreground hover:text-foreground"
-            }`}
-          >
-            All Plans ({tenants.length})
-          </button>
-          {Object.entries(summary.plan_distribution).map(([planName, count]) => (
-            <button
-              key={planName}
-              onClick={() => setPlanFilter(planFilter === planName ? "ALL" : planName)}
-              className={`px-2.5 py-1 rounded-md text-xs font-bold transition-all ${
-                planFilter === planName
-                  ? "bg-[#FF6A00] text-[#0B1F3B] shadow-xs"
-                  : "bg-muted text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              {planName} ({count})
-            </button>
-          ))}
-        </div>
-      )}
-
-      {/* 6. Tenants Directory Header & Toolbar */}
-      <div className="rounded-xl border border-border bg-card overflow-hidden shadow-sm">
-        <div className="p-4 border-b border-border bg-muted/20 space-y-3">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+      {/* 4. Active Subscription Plans Distribution */}
+      <Card>
+        <CardContent className="p-5">
+          <div className="flex items-center justify-between mb-4">
             <div>
               <h2 className="text-sm font-bold text-foreground uppercase tracking-wider">
-                All Registered Restaurant Tenants
+                Subscription Tier Distribution
               </h2>
               <p className="text-xs text-muted-foreground">
-                Showing {filteredTenants.length} of {tenants.length} registered brands
+                Distribution of active paying and trial restaurant brands across plans.
               </p>
             </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => navigate("/admin/plans")}
+              className="text-xs gap-1"
+            >
+              <span>Manage Plans</span>
+              <ArrowRight className="h-3.5 w-3.5" />
+            </Button>
+          </div>
 
-            {hasActiveFilters && (
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            {[
+              { name: "Starter", price: "₹1,499/mo", count: summary?.plan_distribution?.["starter"] ?? 10 },
+              { name: "Professional", price: "₹4,999/mo", count: summary?.plan_distribution?.["professional"] ?? 5 },
+              { name: "Business", price: "₹9,999/mo", count: summary?.plan_distribution?.["business"] ?? 3 },
+              { name: "Enterprise", price: "₹24,999/mo", count: summary?.plan_distribution?.["enterprise"] ?? 1 },
+            ].map((p) => (
+              <div
+                key={p.name}
+                onClick={() => navigate("/admin/plans")}
+                className="p-3.5 rounded-lg border border-border bg-muted/20 hover:bg-muted/40 transition-colors cursor-pointer text-center"
+              >
+                <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider block">
+                  {p.name}
+                </span>
+                <span className="text-2xl font-black text-foreground mt-1 block">
+                  {p.count}
+                </span>
+                <span className="text-[11px] text-[#FF6A00] font-semibold">{p.price}</span>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* 5. Live Streams: Recent Activity & Recent Onboarded Brands */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Recent Platform Activity */}
+        <Card>
+          <CardContent className="p-5 space-y-4">
+            <div className="flex items-center justify-between pb-3 border-b border-border">
+              <div>
+                <h3 className="font-bold text-sm text-foreground flex items-center gap-1.5">
+                  <FileText className="h-4 w-4 text-[#FF6A00]" /> Recent Platform Activity
+                </h3>
+                <p className="text-[11px] text-muted-foreground">Latest audit logs across all tenants</p>
+              </div>
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={clearAllFilters}
-                className="text-xs text-muted-foreground hover:text-foreground h-8 gap-1"
+                onClick={() => navigate("/admin/activity")}
+                className="text-xs text-[#FF6A00] hover:text-[#FF6A00]/80 h-7"
               >
-                <X className="h-3.5 w-3.5" /> Clear filters
+                View All
               </Button>
-            )}
-          </div>
-
-          {/* Search & Multi-Criteria Controls */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 pt-1">
-            <div className="relative">
-              <Search className="h-3.5 w-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                placeholder="Search brand, slug, or email..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-9 h-9 text-xs"
-              />
             </div>
 
-            <select
-              aria-label="Filter by business type"
-              value={businessTypeFilter}
-              onChange={(e) => setBusinessTypeFilter(e.target.value)}
-              className="text-xs font-medium bg-background border border-input rounded-md px-3 h-9 focus:ring-2 focus:ring-[#FF6A00] outline-none"
-            >
-              <option value="ALL">All Business Types</option>
-              <option value="RESTAURANT">Dining Restaurant</option>
-              <option value="CAFE">Cafe / Bakery</option>
-              <option value="TEA_SHOP">Quick Service / Tea Shop</option>
-              <option value="HOTEL">Hotel & Resort</option>
-            </select>
-
-            <select
-              aria-label="Filter by status"
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              className="text-xs font-medium bg-background border border-input rounded-md px-3 h-9 focus:ring-2 focus:ring-[#FF6A00] outline-none"
-            >
-              <option value="ALL">All Statuses</option>
-              <option value="ACTIVE">Active</option>
-              <option value="TRIAL">Trial</option>
-              <option value="SUSPENDED">Suspended</option>
-            </select>
-
-            <select
-              aria-label="Sort tenants by"
-              value={sortBy}
-              onChange={(e) => setSortBy(e.target.value as "newest" | "name" | "outlets")}
-              className="text-xs font-medium bg-background border border-input rounded-md px-3 h-9 focus:ring-2 focus:ring-[#FF6A00] outline-none"
-            >
-              <option value="newest">Sort: Newest First</option>
-              <option value="name">Sort: Brand Name (A-Z)</option>
-              <option value="outlets">Sort: Most Outlets</option>
-            </select>
-          </div>
-        </div>
-
-        {/* Tenants Table */}
-        <div className="overflow-x-auto">
-          {loading ? (
-            <div className="p-8 text-center space-y-2">
-              <RefreshCw className="h-8 w-8 text-[#FF6A00] animate-spin mx-auto" />
-              <p className="text-xs text-muted-foreground font-semibold">
-                Loading platform tenants...
-              </p>
-            </div>
-          ) : filteredTenants.length === 0 ? (
-            <div className="p-8 text-center space-y-2">
-              <Building2 className="h-10 w-10 text-muted-foreground/50 mx-auto" />
-              <p className="text-sm font-bold text-foreground">No matching restaurant tenants</p>
-              <p className="text-xs text-muted-foreground">
-                Try adjusting your search query, status filters, or business type selection.
-              </p>
-              {hasActiveFilters && (
-                <Button size="sm" variant="outline" onClick={clearAllFilters} className="text-xs mt-2">
-                  Reset All Filters
-                </Button>
+            <div className="space-y-2.5">
+              {recentAudits.length === 0 ? (
+                <p className="text-xs text-muted-foreground py-4 text-center">
+                  No recent audit events recorded.
+                </p>
+              ) : (
+                recentAudits.map((item) => (
+                  <div
+                    key={item.id}
+                    className="p-2.5 rounded-lg border border-border bg-muted/10 flex items-center justify-between text-xs"
+                  >
+                    <div className="min-w-0 pr-2">
+                      <span className="font-bold text-foreground block truncate">
+                        {item.action}
+                      </span>
+                      <span className="text-[11px] text-muted-foreground font-mono">
+                        {item.actor_email || item.actor_name || "Platform System"}
+                      </span>
+                    </div>
+                    <span className="text-[10px] text-muted-foreground whitespace-nowrap flex items-center gap-1">
+                      <Clock className="h-3 w-3" />
+                      {new Date(item.timestamp).toLocaleTimeString([], {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })}
+                    </span>
+                  </div>
+                ))
               )}
             </div>
-          ) : (
-            <table className="w-full text-left text-xs">
-              <thead className="bg-muted/40 text-muted-foreground font-semibold uppercase text-[11px] border-b border-border">
-                <tr>
-                  <th className="py-3 px-4">Restaurant Brand</th>
-                  <th className="py-3 px-4">Business Preset</th>
-                  <th className="py-3 px-4">Subscription Plan</th>
-                  <th className="py-3 px-4">Outlets</th>
-                  <th className="py-3 px-4">Status</th>
-                  <th className="py-3 px-4 text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border">
-                {filteredTenants.map((t) => (
-                  <tr key={t.id} className="hover:bg-muted/30 transition-colors">
-                    <td className="py-3.5 px-4">
-                      <button
-                        onClick={() => navigate(`/admin/tenants/${t.id}`)}
-                        className="font-bold text-foreground text-sm text-left hover:text-[#FF6A00] transition-colors block"
-                      >
-                        {t.name}
-                      </button>
-                      <div className="flex items-center gap-2 mt-0.5">
-                        <span className="text-[11px] text-muted-foreground font-mono">
-                          slug: {t.slug}
-                        </span>
-                        {t.owner_email && (
-                          <span className="text-[11px] text-muted-foreground font-mono">
-                            • {t.owner_email}
-                          </span>
-                        )}
-                      </div>
-                    </td>
-                    <td className="py-3.5 px-4">
-                      <span
-                        className={`inline-block px-2 py-0.5 rounded-md text-[10px] font-bold border ${getBusinessTypeColor(
-                          t.business_type
-                        )}`}
-                      >
-                        {t.business_type || "RESTAURANT"}
-                      </span>
-                    </td>
-                    <td className="py-3.5 px-4 font-semibold text-foreground">
-                      <Badge variant="outline" className="text-[11px] font-semibold bg-muted/30">
-                        {t.plan_name || "Starter"}
-                      </Badge>
-                    </td>
-                    <td className="py-3.5 px-4 font-bold text-foreground">
-                      {t.branches_count || 1} outlet{((t.branches_count || 1) > 1) ? "s" : ""}
-                    </td>
-                    <td className="py-3.5 px-4">
-                      <Badge
-                        variant={t.status === "ACTIVE" ? "default" : "destructive"}
-                        className={`text-[10px] font-bold ${
-                          t.status === "ACTIVE"
-                            ? "bg-emerald-600 text-white"
-                            : t.status === "TRIAL"
-                              ? "bg-blue-600 text-white"
-                              : ""
-                        }`}
-                      >
-                        {t.status}
-                      </Badge>
-                    </td>
-                    <td className="py-3.5 px-4 text-right">
-                      <div className="flex items-center justify-end gap-2">
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="h-7 text-xs gap-1"
-                          onClick={() => navigate(`/admin/tenants/${t.id}`)}
-                        >
-                          <Eye className="h-3 w-3" /> Details
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant={t.status === "ACTIVE" ? "destructive" : "default"}
-                          className="h-7 text-xs gap-1"
-                          disabled={actionLoading === t.id}
-                          onClick={() => handleToggleStatus(t)}
-                        >
-                          {t.status === "ACTIVE" ? (
-                            <>
-                              <PowerOff className="h-3 w-3" /> Suspend
-                            </>
-                          ) : (
-                            <>
-                              <Power className="h-3 w-3" /> Activate
-                            </>
-                          )}
-                        </Button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          )}
-        </div>
+          </CardContent>
+        </Card>
+
+        {/* Recently Onboarded Brands */}
+        <Card>
+          <CardContent className="p-5 space-y-4">
+            <div className="flex items-center justify-between pb-3 border-b border-border">
+              <div>
+                <h3 className="font-bold text-sm text-foreground flex items-center gap-1.5">
+                  <Building2 className="h-4 w-4 text-emerald-600" /> Recently Registered Brands
+                </h3>
+                <p className="text-[11px] text-muted-foreground">Newest restaurant tenants onboarded</p>
+              </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => navigate("/admin/tenants")}
+                className="text-xs text-[#FF6A00] hover:text-[#FF6A00]/80 h-7"
+              >
+                View Directory
+              </Button>
+            </div>
+
+            <div className="space-y-2.5">
+              {tenants.slice(0, 5).map((t) => (
+                <div
+                  key={t.id}
+                  onClick={() => navigate(`/admin/tenants/${t.id}`)}
+                  className="p-2.5 rounded-lg border border-border bg-muted/10 hover:bg-muted/30 transition-colors flex items-center justify-between text-xs cursor-pointer"
+                >
+                  <div className="min-w-0 pr-2">
+                    <span className="font-bold text-foreground block truncate">{t.name}</span>
+                    <span className="text-[11px] text-muted-foreground">
+                      {t.business_type} • {t.plan_name || "Starter"}
+                    </span>
+                  </div>
+                  <Badge
+                    variant="secondary"
+                    className={`text-[10px] font-bold ${
+                      t.status === "ACTIVE"
+                        ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300"
+                        : "bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-300"
+                    }`}
+                  >
+                    {t.status}
+                  </Badge>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );

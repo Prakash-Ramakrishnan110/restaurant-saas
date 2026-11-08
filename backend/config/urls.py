@@ -54,6 +54,8 @@ api_v1_patterns: list[Any] = [
     path("customers/", include(customer_router.urls)),
     path("invoices/", include(invoice_router.urls)),
     path("audit-logs/", include("apps.audit.urls")),
+    path("health/", HealthCheckView.as_view(), name="api-v1-health"),
+    path("health", HealthCheckNoSlashView.as_view(), name="api-v1-health-noslash"),
 ]
 
 urlpatterns = [

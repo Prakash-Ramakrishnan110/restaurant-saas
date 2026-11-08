@@ -19,6 +19,7 @@ interface Announcement {
   title: string;
   message: string;
   announcement_type: "INFO" | "MAINTENANCE" | "FEATURE" | "WARNING";
+  target_business_type?: string;
   is_active: boolean;
   starts_at?: string | null;
   ends_at?: string | null;
@@ -36,6 +37,7 @@ export const PlatformAnnouncementsPage: React.FC = () => {
   const [message, setMessage] = useState("");
   const [announcementType, setAnnouncementType] =
     useState<Announcement["announcement_type"]>("INFO");
+  const [targetBusinessType, setTargetBusinessType] = useState<string>("ALL");
   const [isActive, setIsActive] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
 
@@ -66,12 +68,14 @@ export const PlatformAnnouncementsPage: React.FC = () => {
         title: title.trim(),
         message: message.trim(),
         announcement_type: announcementType,
+        target_business_type: targetBusinessType,
         is_active: isActive,
       });
       setIsCreateOpen(false);
       setTitle("");
       setMessage("");
       setAnnouncementType("INFO");
+      setTargetBusinessType("ALL");
       setIsActive(true);
       fetchAnnouncements();
     } catch {
@@ -187,6 +191,12 @@ export const PlatformAnnouncementsPage: React.FC = () => {
                       {new Date(a.created_at).toLocaleString()}
                     </span>
 
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-muted text-foreground border border-border">
+                      {a.target_business_type === "ALL" || !a.target_business_type
+                        ? "Target: All Businesses"
+                        : `Target: ${a.target_business_type}`}
+                    </span>
+
                     {a.is_active ? (
                       <span className="text-[10px] font-semibold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full">
                         LIVE
@@ -262,6 +272,24 @@ export const PlatformAnnouncementsPage: React.FC = () => {
                 <option value="MAINTENANCE">Scheduled Maintenance</option>
                 <option value="FEATURE">New Feature Release</option>
                 <option value="WARNING">Urgent Service Alert</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="text-xs font-semibold text-muted-foreground block mb-1">
+                Target Business Audience
+              </label>
+              <select
+                value={targetBusinessType}
+                onChange={(e) => setTargetBusinessType(e.target.value)}
+                className="w-full px-3 py-2 text-sm bg-background border border-input rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF6A00]"
+              >
+                <option value="ALL">All Dashboards (Platform-Wide)</option>
+                <option value="RESTAURANT">Dining Restaurants Only</option>
+                <option value="CAFE">Cafes &amp; Bakeries Only</option>
+                <option value="TEA_SHOP">Tea Shops &amp; Quick Service Only</option>
+                <option value="HOTEL">Hotels &amp; Resorts Only</option>
+                <option value="FOOD_COURT">Food Court Stalls Only</option>
               </select>
             </div>
 

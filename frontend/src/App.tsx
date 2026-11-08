@@ -28,6 +28,7 @@ import { KDSPage } from "./pages/kds/KDSPage";
 import { BillingPage } from "./pages/billing/BillingPage";
 import { ShiftCloseoutPage } from "./pages/billing/ShiftCloseoutPage";
 import { PlatformAdminPage } from "./pages/admin/PlatformAdminPage";
+import { TenantsDirectoryPage } from "./pages/admin/TenantsDirectoryPage";
 import { NewCustomerWizardPage } from "./pages/admin/NewCustomerWizardPage";
 import { CustomerDetailPage } from "./pages/admin/CustomerDetailPage";
 import { PublicQRPage } from "./pages/public/PublicQRPage";
@@ -422,7 +423,7 @@ export const App: React.FC = () => {
                 path="/admin/tenants"
                 element={
                   <ProtectedRoute requirePlatformAdmin>
-                    <PlatformAdminPage />
+                    <TenantsDirectoryPage />
                   </ProtectedRoute>
                 }
               />

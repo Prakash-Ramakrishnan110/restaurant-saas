@@ -194,6 +194,12 @@ class PlatformAnnouncement(UUIDModel, TimeStampedModel):
         choices=AnnouncementType.choices,
         default=AnnouncementType.INFO,
     )
+    target_business_type = models.CharField(
+        max_length=32,
+        default="ALL",
+        db_index=True,
+        help_text="Target business type (ALL, RESTAURANT, CAFE, TEA_SHOP, BAKERY, HOTEL, FOOD_COURT)",
+    )
     is_active = models.BooleanField(default=True, db_index=True)
     starts_at = models.DateTimeField(null=True, blank=True)
     ends_at = models.DateTimeField(null=True, blank=True)

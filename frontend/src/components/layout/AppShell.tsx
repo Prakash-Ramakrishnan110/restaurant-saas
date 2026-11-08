@@ -15,6 +15,9 @@ import {
   Utensils,
   Receipt,
   ChefHat,
+  LifeBuoy,
+  Megaphone,
+  CheckCircle2,
 } from "lucide-react";
 import { BrandLogo } from "../brand/BrandLogo";
 import { Button } from "../ui/button";
@@ -23,7 +26,7 @@ import { useAuth } from "../../context/AuthContext";
 import { useTheme } from "../../context/ThemeContext";
 import { apiClient } from "../../api/client";
 import { ordersApi, Order } from "../../api/orders";
-import { unwrapList } from "../../api/pagination";
+import { unwrapList, ListResponse } from "../../api/pagination";
 import { getNavigationGroups, NavItem } from "../../app/navigation";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../ui/dialog";
 
@@ -124,6 +127,67 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
     const timer = setInterval(pollCounts, 15000);
     return () => clearInterval(timer);
   }, [user]);
+
+  // Platform Announcements for Tenant Dashboards
+  const [announcements, setAnnouncements] = useState<any[]>([]);
+  const [dismissedAnnouncements, setDismissedAnnouncements] = useState<string[]>([]);
+
+  // Support Desk Ticket Dialog for Tenants
+  const [supportOpen, setSupportOpen] = useState(false);
+  const [supportSubject, setSupportSubject] = useState("");
+  const [supportDescription, setSupportDescription] = useState("");
+  const [supportPriority, setSupportPriority] = useState("MEDIUM");
+  const [supportPhone, setSupportPhone] = useState("");
+  const [supportSubmitting, setSupportSubmitting] = useState(false);
+  const [supportSuccess, setSupportSuccess] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (user?.is_platform_admin) return;
+
+    apiClient
+      .get<ListResponse<any> | any[]>("/announcements/")
+      .then((res) => {
+        setAnnouncements(unwrapList(res.data));
+      })
+      .catch(() => {});
+  }, [user]);
+
+  const activeAnnouncements = useMemo(() => {
+    if (user?.is_platform_admin) return [];
+    return announcements.filter((a) => {
+      if (!a.is_active || dismissedAnnouncements.includes(a.id)) return false;
+      if (!a.target_business_type || a.target_business_type === "ALL") return true;
+      return a.target_business_type === businessType;
+    });
+  }, [announcements, dismissedAnnouncements, businessType, user]);
+
+  const handleCreateSupportTicket = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!supportSubject.trim() || !supportDescription.trim()) return;
+
+    setSupportSubmitting(true);
+    setSupportSuccess(null);
+    try {
+      await apiClient.post("/support-tickets/", {
+        subject: supportSubject.trim(),
+        description: supportDescription.trim(),
+        priority: supportPriority,
+        contact_phone: supportPhone.trim(),
+        contact_email: user?.email || "",
+      });
+      setSupportSuccess("Ticket submitted successfully! Platform support will respond shortly.");
+      setSupportSubject("");
+      setSupportDescription("");
+      setTimeout(() => {
+        setSupportOpen(false);
+        setSupportSuccess(null);
+      }, 2000);
+    } catch {
+      // Handled
+    } finally {
+      setSupportSubmitting(false);
+    }
+  };
 
   // Command palette keyboard shortcut (Ctrl+K or Cmd+K)
   useEffect(() => {
@@ -293,6 +357,20 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
             {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
           </Button>
 
+          {/* Tenant Support Desk Button */}
+          {!user?.is_platform_admin && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setSupportOpen(true)}
+              className="text-xs font-semibold min-h-[36px] gap-1.5 border-border hover:border-[#FF6A00]"
+              aria-label="Open support desk"
+            >
+              <LifeBuoy className="h-3.5 w-3.5 text-[#FF6A00]" />
+              <span className="hidden md:inline">Support</span>
+            </Button>
+          )}
+
           {/* User & Sign Out */}
           <div className="flex items-center gap-2 border-l border-border pl-2 sm:pl-3">
             <span className="hidden lg:inline text-xs font-medium text-foreground">
@@ -397,6 +475,33 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
           id="main-scroll"
           className="flex-1 overflow-y-auto overscroll-contain p-4 sm:p-8 pb-24 md:pb-8 max-w-7xl mx-auto w-full"
         >
+          {/* Active Platform Announcements Banner for Tenant Dashboards */}
+          {activeAnnouncements.length > 0 && (
+            <div className="mb-4 space-y-2">
+              {activeAnnouncements.map((a) => (
+                <div
+                  key={a.id}
+                  className="p-3.5 rounded-xl border border-amber-300 dark:border-amber-800 bg-amber-50/70 dark:bg-amber-950/40 text-xs flex items-start justify-between gap-3 shadow-xs animate-in slide-in-from-top-1"
+                >
+                  <div className="flex items-start gap-2.5">
+                    <Megaphone className="h-4 w-4 text-amber-800 dark:text-amber-300 mt-0.5 shrink-0" />
+                    <div>
+                      <span className="font-extrabold text-foreground block">{a.title}</span>
+                      <p className="text-muted-foreground mt-0.5 leading-relaxed">{a.message}</p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => setDismissedAnnouncements((prev) => [...prev, a.id])}
+                    className="p-1 text-muted-foreground hover:text-foreground rounded-md shrink-0"
+                    title="Dismiss"
+                    aria-label="Dismiss announcement"
+                  >
+                    <X className="h-3.5 w-3.5" />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
           {children}
         </main>
       </div>
@@ -457,6 +562,106 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
               })
             )}
           </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Tenant Helpdesk Support Ticket Dialog */}
+      <Dialog open={supportOpen} onOpenChange={setSupportOpen}>
+        <DialogContent className="sm:max-w-md font-sans">
+          <DialogHeader>
+            <div className="flex items-center gap-2">
+              <LifeBuoy className="h-5 w-5 text-[#FF6A00]" />
+              <DialogTitle className="text-base font-bold text-foreground">
+                Restaurant Support Helpdesk
+              </DialogTitle>
+            </div>
+          </DialogHeader>
+
+          {supportSuccess ? (
+            <div className="p-4 rounded-lg bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-300 dark:border-emerald-800 text-xs text-emerald-800 dark:text-emerald-300 flex items-center gap-2">
+              <CheckCircle2 className="h-4 w-4 shrink-0" />
+              <span>{supportSuccess}</span>
+            </div>
+          ) : (
+            <form onSubmit={handleCreateSupportTicket} className="space-y-3.5 pt-2">
+              <p className="text-xs text-muted-foreground">
+                Submit an urgent ticket or inquiry directly to the ServeMyFood platform operations team.
+              </p>
+
+              <div>
+                <label className="text-xs font-bold text-foreground block mb-1">
+                  Subject / Issue Title *
+                </label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. Printer not printing KOT receipts"
+                  value={supportSubject}
+                  onChange={(e) => setSupportSubject(e.target.value)}
+                  className="w-full px-3 py-2 text-xs bg-background border border-input rounded-md focus:outline-none focus:ring-2 focus:ring-[#FF6A00]"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="text-xs font-bold text-foreground block mb-1">
+                    Priority Level
+                  </label>
+                  <select
+                    value={supportPriority}
+                    onChange={(e) => setSupportPriority(e.target.value)}
+                    className="w-full px-3 py-2 text-xs bg-background border border-input rounded-md focus:outline-none focus:ring-2 focus:ring-[#FF6A00]"
+                  >
+                    <option value="LOW">Low - General Question</option>
+                    <option value="MEDIUM">Medium - Normal Issue</option>
+                    <option value="HIGH">High - Service Affected</option>
+                    <option value="URGENT">Urgent - Billing / Outage</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="text-xs font-bold text-foreground block mb-1">
+                    Callback Mobile No.
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="+91 98765 43210"
+                    value={supportPhone}
+                    onChange={(e) => setSupportPhone(e.target.value)}
+                    className="w-full px-3 py-2 text-xs bg-background border border-input rounded-md focus:outline-none focus:ring-2 focus:ring-[#FF6A00]"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="text-xs font-bold text-foreground block mb-1">
+                  Detailed Description *
+                </label>
+                <textarea
+                  rows={3}
+                  required
+                  placeholder="Describe what occurred, table/order numbers, or device details..."
+                  value={supportDescription}
+                  onChange={(e) => setSupportDescription(e.target.value)}
+                  className="w-full px-3 py-2 text-xs bg-background border border-input rounded-md focus:outline-none focus:ring-2 focus:ring-[#FF6A00]"
+                />
+              </div>
+
+              <div className="pt-2 flex justify-end gap-2">
+                <Button type="button" variant="outline" size="sm" onClick={() => setSupportOpen(false)}>
+                  Cancel
+                </Button>
+                <Button
+                  type="submit"
+                  size="sm"
+                  disabled={supportSubmitting}
+                  className="bg-[#FF6A00] hover:bg-[#FF6A00]/90 text-white font-bold text-xs"
+                >
+                  {supportSubmitting ? "Submitting..." : "Submit Support Ticket"}
+                </Button>
+              </div>
+            </form>
+          )}
         </DialogContent>
       </Dialog>
 

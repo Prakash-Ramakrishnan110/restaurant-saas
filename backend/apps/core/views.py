@@ -26,15 +26,36 @@ class HealthCheckView(APIView):
         details = {}
 
         # 1. Database check
+        tables_count = 0
         try:
             with connection.cursor() as cursor:
                 cursor.execute("SELECT 1")
                 cursor.fetchone()
+                try:
+                    cursor.execute(
+                        "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = 'public'"
+                    )
+                    row = cursor.fetchone()
+                    if row:
+                        tables_count = row[0]
+                except Exception:
+                    pass
             db_ok = True
             details["database"] = "connected"
         except Exception as exc:
             logger.error("Health check database failure: %s", exc)
             details["database"] = f"error: {str(exc)}"
+
+        db_conf = getattr(settings, "DATABASES", {}).get("default", {})
+        db_engine = db_conf.get("ENGINE", "").split(".")[-1]
+        database_info = {
+            "status": "connected" if db_ok else "error",
+            "engine": db_engine or "postgresql",
+            "name": db_conf.get("NAME", "fusion_restaurant"),
+            "host": db_conf.get("HOST", "127.0.0.1"),
+            "port": db_conf.get("PORT", "5435"),
+            "tables_count": tables_count,
+        }
 
         # 2. Redis check
         try:
@@ -51,6 +72,11 @@ class HealthCheckView(APIView):
                 logger.error("Health check Redis failure: %s", exc)
                 details["redis"] = f"error: {str(exc)}"
 
+        redis_info = {
+            "status": "connected" if redis_ok else "error",
+            "url": str(getattr(settings, "REDIS_URL", "redis://127.0.0.1:6379/1")).split("@")[-1],
+        }
+
         overall_status = "ok" if (db_ok and redis_ok) else "degraded"
         status_code = (
             status.HTTP_200_OK if (db_ok and redis_ok) else status.HTTP_503_SERVICE_UNAVAILABLE
@@ -60,6 +86,9 @@ class HealthCheckView(APIView):
             {
                 "status": overall_status,
                 **details,
+                "database_info": database_info,
+                "redis_info": redis_info,
+                "backend_admin_url": "/admin/",
             },
             status=status_code,
         )

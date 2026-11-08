@@ -993,13 +993,13 @@ class SupportTicketViewSet(viewsets.ModelViewSet):
         user = self.request.user
         if getattr(user, "is_platform_admin", False):
             return SupportTicket.objects.all().select_related("tenant")
-        tenant = getattr(self.request, "tenant", None)
+        tenant = getattr(self.request, "tenant", None) or getattr(user, "tenant", None)
         if not tenant:
             return SupportTicket.objects.none()
         return SupportTicket.objects.filter(tenant=tenant)
 
     def perform_create(self, serializer: serializers.BaseSerializer[SupportTicket]) -> None:
-        tenant = getattr(self.request, "tenant", None)
+        tenant = getattr(self.request, "tenant", None) or getattr(self.request.user, "tenant", None)
         serializer.save(tenant=tenant)
 
 
@@ -1013,7 +1013,16 @@ class PlatformAnnouncementViewSet(viewsets.ModelViewSet):
         user = self.request.user
         if getattr(user, "is_platform_admin", False):
             return PlatformAnnouncement.objects.all()
-        return PlatformAnnouncement.objects.filter(is_active=True)
+        qs = PlatformAnnouncement.objects.filter(is_active=True)
+        tenant = getattr(self.request, "tenant", None) or getattr(user, "tenant", None)
+        if tenant and getattr(tenant, "business_type", None):
+            qs = qs.filter(
+                models.Q(target_business_type="ALL")
+                | models.Q(target_business_type=tenant.business_type)
+            )
+        else:
+            qs = qs.filter(target_business_type="ALL")
+        return qs
 
     def perform_create(self, serializer: serializers.BaseSerializer[PlatformAnnouncement]) -> None:
         if not getattr(self.request.user, "is_platform_admin", False):
