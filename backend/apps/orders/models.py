@@ -138,6 +138,11 @@ class OrderItem(UUIDModel, TimeStampedModel):
         choices=CourseType.choices,
         default=CourseType.MAIN,
     )
+    seat_number = models.PositiveIntegerField(
+        null=True,
+        blank=True,
+        help_text="Chair/Seat number at the table (1..N)",
+    )
     is_fired = models.BooleanField(
         default=True,
         help_text="True if dispatched to kitchen; False if on HOLD for pacing",

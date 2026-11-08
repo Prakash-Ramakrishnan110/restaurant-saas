@@ -187,6 +187,7 @@ def create_order(
                     unit_price_paise=unit_price,
                     subtotal_paise=unit_price * qty,
                     course=course,
+                    seat_number=item_data.get("seat_number"),
                     notes=item_data.get("special_instructions", item_data.get("notes", "")),
                     is_fired=not hold,
                     status=item_status,

@@ -2885,6 +2885,8 @@ export interface components {
              */
             subtotal_paise: number;
             course?: components["schemas"]["CourseEnum"];
+            /** @description Chair/Seat number at the table (1..N) */
+            seat_number?: number | null;
             /** @description True if dispatched to kitchen; False if on HOLD for pacing */
             is_fired?: boolean;
             /** @description Kitchen station routing tag (e.g. MAIN_KITCHEN, TANDOOR, BAR) */
@@ -2906,6 +2908,8 @@ export interface components {
              */
             subtotal_paise: number;
             course?: components["schemas"]["CourseEnum"];
+            /** @description Chair/Seat number at the table (1..N) */
+            seat_number?: number | null;
             /** @description True if dispatched to kitchen; False if on HOLD for pacing */
             is_fired?: boolean;
             /** @description Kitchen station routing tag (e.g. MAIN_KITCHEN, TANDOOR, BAR) */

@@ -266,6 +266,12 @@ export const FloorPOSPage: React.FC = () => {
     setCart((prev) => prev.map((i) => (i.menu_item_id === itemId ? { ...i, course } : i)));
   };
 
+  const updateSeatNumber = (itemId: string, seatNumber: number | null) => {
+    setCart((prev) =>
+      prev.map((i) => (i.menu_item_id === itemId ? { ...i, seat_number: seatNumber } : i))
+    );
+  };
+
   const updateItemNotes = (itemId: string, notes: string) => {
     setCart((prev) => prev.map((i) => (i.menu_item_id === itemId ? { ...i, notes } : i)));
   };
@@ -288,6 +294,7 @@ export const FloorPOSPage: React.FC = () => {
         menu_item_id: i.menu_item_id,
         quantity: i.quantity,
         course: i.course,
+        seat_number: i.seat_number || null,
         is_fired: !(holdMains && i.course === "MAIN"),
         notes: i.notes,
       }));
@@ -630,6 +637,30 @@ export const FloorPOSPage: React.FC = () => {
                         <option value="DESSERT">Dessert</option>
                         <option value="BEVERAGE">Beverage</option>
                       </select>
+
+                      {usesTables && selectedTable && (
+                        <select
+                          value={line.seat_number ?? ""}
+                          onChange={(e) =>
+                            updateSeatNumber(
+                              line.menu_item_id,
+                              e.target.value ? Number(e.target.value) : null
+                            )
+                          }
+                          aria-label="Assign to chair"
+                          className="h-6 text-[11px] px-1 rounded border border-input bg-card font-semibold text-muted-foreground"
+                        >
+                          <option value="">Table Shared</option>
+                          {Array.from(
+                            { length: selectedTable.capacity || 4 },
+                            (_, idx) => idx + 1
+                          ).map((cNum) => (
+                            <option key={cNum} value={cNum}>
+                              Chair #{cNum}
+                            </option>
+                          ))}
+                        </select>
+                      )}
                     </div>
                     <div className="flex items-center gap-2">
                       <button

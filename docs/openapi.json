@@ -7037,6 +7037,12 @@ components:
           description: quantity * unit_price_paise in paise
         course:
           $ref: '#/components/schemas/CourseEnum'
+        seat_number:
+          type: integer
+          maximum: 2147483647
+          minimum: 0
+          nullable: true
+          description: Chair/Seat number at the table (1..N)
         is_fired:
           type: boolean
           description: True if dispatched to kitchen; False if on HOLD for pacing
@@ -7080,6 +7086,12 @@ components:
           description: quantity * unit_price_paise in paise
         course:
           $ref: '#/components/schemas/CourseEnum'
+        seat_number:
+          type: integer
+          maximum: 2147483647
+          minimum: 0
+          nullable: true
+          description: Chair/Seat number at the table (1..N)
         is_fired:
           type: boolean
           description: True if dispatched to kitchen; False if on HOLD for pacing

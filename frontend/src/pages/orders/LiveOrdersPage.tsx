@@ -321,11 +321,18 @@ export const LiveOrdersPage: React.FC = () => {
                   {(selectedOrder.items || []).map((it, idx) => (
                     <div key={idx} className="p-3 flex items-start justify-between text-xs">
                       <div>
-                        <div className="font-semibold text-foreground">
-                          {it.quantity}x {it.item_name}
+                        <div className="font-semibold text-foreground flex items-center gap-1.5 flex-wrap">
+                          <span>
+                            {it.quantity}x {it.item_name}
+                          </span>
+                          {it.seat_number ? (
+                            <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-primary/20 text-foreground">
+                              Chair #{it.seat_number}
+                            </span>
+                          ) : null}
                         </div>
                         {it.notes && (
-                          <div className="text-[11px] text-amber-600 dark:text-amber-400 mt-0.5">
+                          <div className="text-[11px] text-amber-700 dark:text-amber-400 mt-0.5">
                             Note: {it.notes}
                           </div>
                         )}

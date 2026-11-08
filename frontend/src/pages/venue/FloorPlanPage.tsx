@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { LayoutGrid, Utensils, Info, Users, X, ArrowRight } from "lucide-react";
+import { LayoutGrid, Utensils, Info, X, ArrowRight, Armchair } from "lucide-react";
 import { PageHeader } from "../../components/app/PageHeader";
 import { Card, CardContent } from "../../components/ui/card";
 import { Button } from "../../components/ui/button";
@@ -7,6 +7,7 @@ import { apiClient } from "../../api/client";
 import { useAuth } from "../../context/AuthContext";
 import { useTranslation } from "react-i18next";
 import { mapBackendErrorCode } from "../../lib/errorMapper";
+import { TableChairsVisual } from "../../components/venue/TableChairsVisual";
 
 export interface FloorTable {
   id: string;
@@ -48,6 +49,7 @@ export const FloorPlanPage: React.FC = () => {
 
   // Side sheet state
   const [selectedTable, setSelectedTable] = useState<FloorTable | null>(null);
+  const [selectedChair, setSelectedChair] = useState<number | null>(null);
   const [actionLoading, setActionLoading] = useState<boolean>(false);
 
   const fetchData = async () => {
@@ -213,41 +215,52 @@ export const FloorPlanPage: React.FC = () => {
         </Card>
       ) : (
         <div className="p-6 rounded-2xl border border-border bg-card/60 shadow-inner min-h-[450px]">
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6 items-center justify-items-center">
             {activeSectionTables.map((table) => {
-              const theme = statusThemes[table.status] || statusThemes.AVAILABLE;
               const isSelected = selectedTable?.id === table.id;
-              const isRound = table.shape === "ROUND";
 
               return (
-                <button
+                <div
                   key={table.id}
-                  onClick={() => setSelectedTable(table)}
-                  className={`relative p-4 flex flex-col items-center justify-center transition-all cursor-pointer border-2 min-h-[110px] ${
-                    isRound ? "rounded-full aspect-square" : "rounded-2xl"
-                  } ${theme.bg} ${theme.border} ${
-                    isSelected ? "ring-4 ring-[#FF6A00]/40 scale-105" : "hover:scale-102"
+                  className={`flex flex-col items-center justify-center p-3 rounded-2xl border transition-all ${
+                    isSelected
+                      ? "border-[#FF6A00] bg-primary/5 shadow-md scale-105"
+                      : "border-border/60 bg-card hover:border-border hover:shadow-sm"
                   }`}
                 >
-                  <span className="text-base font-black text-foreground font-mono">
-                    {table.label}
-                  </span>
-                  <div className="flex items-center gap-1 text-[11px] text-muted-foreground mt-1 font-semibold">
-                    <Users className="w-3 h-3" />
-                    <span>{table.capacity}</span>
+                  <TableChairsVisual
+                    label={table.label}
+                    shape={table.shape}
+                    capacity={table.capacity}
+                    status={table.status}
+                    isSelected={isSelected}
+                    size="md"
+                    onTableClick={() => {
+                      setSelectedTable(table);
+                      setSelectedChair(null);
+                    }}
+                    onChairClick={(chairNum) => {
+                      setSelectedTable(table);
+                      setSelectedChair(chairNum);
+                    }}
+                  />
+                  <div className="mt-2 flex items-center justify-between w-full px-1 text-[11px] font-semibold text-muted-foreground">
+                    <span className="truncate max-w-[90px]">{table.section?.name}</span>
+                    {table.group ? (
+                      <span className="px-2 py-0.5 text-[9px] font-bold rounded-full bg-primary text-navy">
+                        {table.group.label}
+                      </span>
+                    ) : (
+                      <span className="text-[10px] uppercase font-bold text-muted-foreground">
+                        {table.capacity === 4
+                          ? "4-Seater"
+                          : table.capacity === 6
+                            ? "6-Seater"
+                            : `${table.capacity} Seats`}
+                      </span>
+                    )}
                   </div>
-                  <span
-                    className={`text-[10px] font-bold uppercase tracking-wider mt-1.5 ${theme.text}`}
-                  >
-                    {table.status}
-                  </span>
-
-                  {table.group && (
-                    <span className="absolute -top-2 px-2 py-0.5 text-[9px] font-bold rounded-full bg-primary text-navy">
-                      Group
-                    </span>
-                  )}
-                </button>
+                </div>
               );
             })}
           </div>
@@ -323,6 +336,77 @@ export const FloorPlanPage: React.FC = () => {
                   </span>
                 </div>
               )}
+
+              {/* Seating Layout & Chair Breakdown */}
+              <div className="p-3.5 rounded-xl border border-border bg-card space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="font-bold text-foreground flex items-center gap-1.5">
+                    <Armchair className="w-4 h-4 text-[#FF6A00]" />
+                    Chairs & Seating ({selectedTable.capacity} Chairs)
+                  </span>
+                  <span className="text-[11px] font-mono text-muted-foreground">
+                    {selectedTable.capacity === 4
+                      ? "4-Seater Format"
+                      : selectedTable.capacity === 6
+                        ? "6-Seater Format"
+                        : `${selectedTable.capacity}-Chair Custom`}
+                  </span>
+                </div>
+
+                {/* Mini Visual Preview */}
+                <div className="flex justify-center py-2 bg-muted/20 rounded-lg border border-border/40">
+                  <TableChairsVisual
+                    label={selectedTable.label}
+                    shape={selectedTable.shape}
+                    capacity={selectedTable.capacity}
+                    status={selectedTable.status}
+                    selectedChair={selectedChair}
+                    onChairClick={(chairNum) => setSelectedChair(chairNum)}
+                    size="sm"
+                  />
+                </div>
+
+                {/* Chair Selection Pills */}
+                <div className="grid grid-cols-4 gap-1.5 pt-1">
+                  {Array.from({ length: selectedTable.capacity }, (_, idx) => idx + 1).map(
+                    (chairNum) => (
+                      <button
+                        key={chairNum}
+                        type="button"
+                        onClick={() => setSelectedChair(chairNum)}
+                        className={`p-2 rounded-lg border text-center transition-all cursor-pointer ${
+                          selectedChair === chairNum
+                            ? "border-[#FF6A00] bg-[#FF6A00]/10 text-foreground font-bold shadow-xs"
+                            : "border-border/60 bg-muted/30 text-muted-foreground hover:bg-muted/60"
+                        }`}
+                      >
+                        <span className="block text-[10px] font-semibold">Seat</span>
+                        <span className="block text-sm font-black font-mono">#{chairNum}</span>
+                      </button>
+                    )
+                  )}
+                </div>
+
+                {selectedChair ? (
+                  <div className="p-2.5 rounded-lg bg-primary/10 border border-primary/20 text-[11px] text-foreground flex items-center justify-between">
+                    <span>
+                      Selected: <strong>Chair #{selectedChair}</strong>
+                    </span>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setSelectedChair(null)}
+                      className="h-6 px-1.5 text-xs text-muted-foreground"
+                    >
+                      Clear
+                    </Button>
+                  </div>
+                ) : (
+                  <p className="text-[10px] text-muted-foreground italic text-center">
+                    Click any chair node to inspect or assign individual seat orders.
+                  </p>
+                )}
+              </div>
 
               {/* Status Update Actions */}
               {canUpdateStatus && (

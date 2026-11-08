@@ -4,6 +4,7 @@ export interface OrderItemPayload {
   menu_item_id: string;
   quantity: number;
   course?: "STARTER" | "MAIN" | "DESSERT" | "BEVERAGE";
+  seat_number?: number | null;
   is_fired?: boolean;
   notes?: string;
 }
@@ -25,6 +26,7 @@ export interface OrderItem {
   unit_price_paise: number;
   subtotal_paise: number;
   course: string;
+  seat_number?: number | null;
   is_fired: boolean;
   station: string;
   notes: string;

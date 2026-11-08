@@ -25,6 +25,7 @@ class OrderItemSerializer(serializers.ModelSerializer[OrderItem]):
             "unit_price_paise",
             "subtotal_paise",
             "course",
+            "seat_number",
             "is_fired",
             "station",
             "notes",
@@ -91,6 +92,7 @@ class CreateOrderItemInputSerializer(serializers.Serializer):
     menu_item_id = serializers.UUIDField()
     quantity = serializers.IntegerField(min_value=1, default=1)
     course = serializers.ChoiceField(choices=CourseType.choices, default=CourseType.MAIN)
+    seat_number = serializers.IntegerField(required=False, allow_null=True, min_value=1)
     is_fired = serializers.BooleanField(default=True)
     notes = serializers.CharField(required=False, allow_blank=True, default="")
 

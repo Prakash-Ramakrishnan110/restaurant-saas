@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from "react";
-import { Utensils, Plus, Copy, Link2, Unlink, QrCode, Search, Power } from "lucide-react";
+import { Utensils, Plus, Copy, Link2, Unlink, QrCode, Search, Power, Armchair } from "lucide-react";
 import { PageHeader } from "../../components/app/PageHeader";
 import { Card, CardContent } from "../../components/ui/card";
 import { Button } from "../../components/ui/button";
+import { TableChairsVisual } from "../../components/venue/TableChairsVisual";
 import {
   Dialog,
   DialogContent,
@@ -465,7 +466,19 @@ export const TablesPage: React.FC = () => {
                     )}
                   </td>
                   <td className="p-3.5 text-muted-foreground">{table.section?.name || "-"}</td>
-                  <td className="p-3.5 font-medium">{table.capacity} seats</td>
+                  <td className="p-3.5 font-medium">
+                    <div className="flex items-center gap-1.5">
+                      <Armchair className="w-3.5 h-3.5 text-muted-foreground" />
+                      <span>{table.capacity} Chairs</span>
+                      <span className="text-[10px] font-bold text-muted-foreground px-1.5 py-0.5 rounded bg-muted/40">
+                        {table.capacity === 4
+                          ? "4-Seater"
+                          : table.capacity === 6
+                            ? "6-Seater"
+                            : `${table.capacity}S`}
+                      </span>
+                    </div>
+                  </td>
                   <td className="p-3.5 text-muted-foreground">
                     {table.table_type} • {table.shape}
                   </td>
@@ -616,10 +629,64 @@ export const TablesPage: React.FC = () => {
                 <span className="font-mono text-primary font-bold">{getBulkPreviewString()}</span>
               </div>
 
+              {/* Seating Presets */}
+              <div>
+                <label className="font-semibold block mb-1 text-foreground flex items-center gap-1.5">
+                  <Armchair className="w-3.5 h-3.5 text-[#FF6A00]" />
+                  Seating Preset (Chairs)
+                </label>
+                <div className="grid grid-cols-4 gap-1.5 mb-2">
+                  <Button
+                    type="button"
+                    variant={bulkForm.capacity === 4 ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setBulkForm({ ...bulkForm, capacity: 4, shape: "SQUARE" })}
+                    className={`h-8 text-xs font-bold ${
+                      bulkForm.capacity === 4 ? "bg-[#FF6A00] text-navy hover:bg-[#E55F00]" : ""
+                    }`}
+                  >
+                    4-Seater
+                  </Button>
+                  <Button
+                    type="button"
+                    variant={bulkForm.capacity === 6 ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setBulkForm({ ...bulkForm, capacity: 6, shape: "RECTANGLE" })}
+                    className={`h-8 text-xs font-bold ${
+                      bulkForm.capacity === 6 ? "bg-[#FF6A00] text-navy hover:bg-[#E55F00]" : ""
+                    }`}
+                  >
+                    6-Seater
+                  </Button>
+                  <Button
+                    type="button"
+                    variant={bulkForm.capacity === 2 ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setBulkForm({ ...bulkForm, capacity: 2, shape: "SQUARE" })}
+                    className={`h-8 text-xs font-bold ${
+                      bulkForm.capacity === 2 ? "bg-[#FF6A00] text-navy hover:bg-[#E55F00]" : ""
+                    }`}
+                  >
+                    2-Seater
+                  </Button>
+                  <Button
+                    type="button"
+                    variant={bulkForm.capacity === 8 ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setBulkForm({ ...bulkForm, capacity: 8, shape: "RECTANGLE" })}
+                    className={`h-8 text-xs font-bold ${
+                      bulkForm.capacity === 8 ? "bg-[#FF6A00] text-navy hover:bg-[#E55F00]" : ""
+                    }`}
+                  >
+                    8-Seater
+                  </Button>
+                </div>
+              </div>
+
               <div className="grid grid-cols-2 gap-2">
                 <div>
                   <label className="font-semibold block mb-1 text-foreground">
-                    {t("tables.seats")}
+                    {t("tables.seats")} / Chairs
                   </label>
                   <input
                     type="number"
@@ -643,6 +710,20 @@ export const TablesPage: React.FC = () => {
                     <option value="RECTANGLE">Rectangle</option>
                   </select>
                 </div>
+              </div>
+
+              {/* Live Visual Preview */}
+              <div className="flex flex-col items-center justify-center p-3 rounded-xl bg-muted/20 border border-border/50">
+                <span className="text-[11px] font-semibold text-muted-foreground mb-1">
+                  Live Seating Preview ({bulkForm.capacity} Chairs)
+                </span>
+                <TableChairsVisual
+                  label={bulkForm.prefix + (bulkForm.start_number || 1)}
+                  shape={bulkForm.shape}
+                  capacity={bulkForm.capacity}
+                  status="AVAILABLE"
+                  size="sm"
+                />
               </div>
             </div>
             <DialogFooter>
@@ -698,10 +779,68 @@ export const TablesPage: React.FC = () => {
                 />
               </div>
 
+              {/* Seating Presets */}
+              <div>
+                <label className="font-semibold block mb-1 text-foreground flex items-center gap-1.5">
+                  <Armchair className="w-3.5 h-3.5 text-[#FF6A00]" />
+                  Seating Preset (Chairs)
+                </label>
+                <div className="grid grid-cols-4 gap-1.5 mb-2">
+                  <Button
+                    type="button"
+                    variant={singleForm.capacity === 4 ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setSingleForm({ ...singleForm, capacity: 4, shape: "SQUARE" })}
+                    className={`h-8 text-xs font-bold ${
+                      singleForm.capacity === 4 ? "bg-[#FF6A00] text-navy hover:bg-[#E55F00]" : ""
+                    }`}
+                  >
+                    4-Seater
+                  </Button>
+                  <Button
+                    type="button"
+                    variant={singleForm.capacity === 6 ? "default" : "outline"}
+                    size="sm"
+                    onClick={() =>
+                      setSingleForm({ ...singleForm, capacity: 6, shape: "RECTANGLE" })
+                    }
+                    className={`h-8 text-xs font-bold ${
+                      singleForm.capacity === 6 ? "bg-[#FF6A00] text-navy hover:bg-[#E55F00]" : ""
+                    }`}
+                  >
+                    6-Seater
+                  </Button>
+                  <Button
+                    type="button"
+                    variant={singleForm.capacity === 2 ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setSingleForm({ ...singleForm, capacity: 2, shape: "SQUARE" })}
+                    className={`h-8 text-xs font-bold ${
+                      singleForm.capacity === 2 ? "bg-[#FF6A00] text-navy hover:bg-[#E55F00]" : ""
+                    }`}
+                  >
+                    2-Seater
+                  </Button>
+                  <Button
+                    type="button"
+                    variant={singleForm.capacity === 8 ? "default" : "outline"}
+                    size="sm"
+                    onClick={() =>
+                      setSingleForm({ ...singleForm, capacity: 8, shape: "RECTANGLE" })
+                    }
+                    className={`h-8 text-xs font-bold ${
+                      singleForm.capacity === 8 ? "bg-[#FF6A00] text-navy hover:bg-[#E55F00]" : ""
+                    }`}
+                  >
+                    8-Seater
+                  </Button>
+                </div>
+              </div>
+
               <div className="grid grid-cols-2 gap-2">
                 <div>
                   <label className="font-semibold block mb-1 text-foreground">
-                    {t("tables.seats")}
+                    {t("tables.seats")} / Chairs
                   </label>
                   <input
                     type="number"
@@ -727,6 +866,20 @@ export const TablesPage: React.FC = () => {
                     <option value="RECTANGLE">Rectangle</option>
                   </select>
                 </div>
+              </div>
+
+              {/* Live Preview */}
+              <div className="flex flex-col items-center justify-center p-3 rounded-xl bg-muted/20 border border-border/50">
+                <span className="text-[11px] font-semibold text-muted-foreground mb-1">
+                  Live Seating Preview ({singleForm.capacity} Chairs)
+                </span>
+                <TableChairsVisual
+                  label={singleForm.label || "T-NEW"}
+                  shape={singleForm.shape}
+                  capacity={singleForm.capacity}
+                  status="AVAILABLE"
+                  size="md"
+                />
               </div>
             </div>
             <DialogFooter>
