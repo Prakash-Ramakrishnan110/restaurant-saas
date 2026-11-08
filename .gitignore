@@ -62,11 +62,9 @@ playwright-report/
 test-results/
 
 # Environment & Secrets
-.env
-.env.local
 
 # IDE
 .idea/
-.vscode/
 *.swp
 *.swo
+config.bat
