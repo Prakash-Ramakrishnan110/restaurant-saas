@@ -28,7 +28,6 @@ import { Button } from "../../components/ui/button";
 import { Badge } from "../../components/ui/badge";
 import { Input } from "../../components/ui/input";
 import { formatRupees } from "../../utils/currency";
-import { PlatformAdminNav } from "../../components/admin/PlatformAdminNav";
 
 export interface TenantItem {
   id: string;
@@ -299,10 +298,7 @@ export const PlatformAdminPage: React.FC = () => {
         </div>
       )}
 
-      {/* 1. Super Admin Sub-Navigation Bar */}
-      <PlatformAdminNav />
-
-      {/* 2. Executive Header & Quick Actions */}
+      {/* Executive Header & Quick Actions */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-4 border-b border-border">
         <div>
           <span className="text-xs font-bold text-[#FF6A00] uppercase tracking-wider">

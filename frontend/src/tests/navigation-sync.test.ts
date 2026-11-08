@@ -67,7 +67,16 @@ describe("Sidebar Map & Navigation Synchronization", () => {
     expect(groups[0].label).toBe("Super Admin");
 
     const paths = groups.flatMap((g) => g.items.map((i) => i.path));
-    expect(paths).toEqual(["/admin", "/admin/tenants", "/admin/tenants/new"]);
+    expect(paths).toEqual([
+      "/admin",
+      "/admin/tenants",
+      "/admin/tenants/new",
+      "/admin/plans",
+      "/admin/health",
+      "/admin/activity",
+      "/admin/support",
+      "/admin/announcements",
+    ]);
 
     // Strictly forbidden from operational restaurant routes
     expect(paths).not.toContain("/pos");
@@ -238,10 +247,10 @@ describe("Sidebar Map & Navigation Synchronization", () => {
       "/settings/payments",
       "/settings/notifications",
       "/settings/integrations",
-      "/admin/plans",
       "/admin/subscriptions",
-      "/admin/support",
-      "/admin/health",
+      "/admin/templates",
+      "/admin/users",
+      "/admin/requests",
     ];
 
     for (const ctx of allRoles) {
