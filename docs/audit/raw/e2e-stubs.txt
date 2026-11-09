@@ -1,0 +1,154 @@
+﻿
+frontend\e2e\capture-closeout4.spec.ts:13:  await page.route("**/api/v1/auth/refresh/", async (route: any) => {
+frontend\e2e\capture-closeout4.spec.ts:21:  await page.route("**/api/v1/auth/me/", async (route: any) => {
+frontend\e2e\capture-closeout4.spec.ts:49:  await page.route("**/api/v1/business/", async (route: any) => {
+frontend\e2e\capture-closeout4.spec.ts:84:  await page.route("**/api/v1/branches/", async (route: any) => {
+frontend\e2e\capture-closeout4.spec.ts:102:  await page.route("**/api/v1/branches/br-1/", async (route: any) => {
+frontend\e2e\capture-closeout4.spec.ts:116:  await page.route("**/api/v1/layout-templates/**", async (route: any) => {
+frontend\e2e\capture-closeout4.spec.ts:162:  await page.route("**/api/v1/qr-codes/", async (route: any) => {
+frontend\e2e\capture-closeout4.spec.ts:182:  await page.route("**/api/v1/qr-codes/sheet-data/", async (route: any) => {
+frontend\e2e\capture-closeout4.spec.ts:203:  await page.route("**/api/v1/onboarding/status/", async (route: any) => {
+frontend\e2e\capture-closeout4.spec.ts:383:    await page.route("**/api/v1/public/qr/valid-token-123/", async (route) 
+=> {
+frontend\e2e\capture-closeout4.spec.ts:405:    await page.route("**/api/v1/public/qr/invalid-token-404/", async 
+(route) => {
+frontend\e2e\capture-closeout4.spec.ts:430:    await page.route("**/api/v1/subscription/entitlements/", async (route) 
+=> {
+frontend\e2e\capture-closeout5.spec.ts:15:  await page.route("**/api/v1/auth/refresh/", async (route: any) => {
+frontend\e2e\capture-closeout5.spec.ts:23:  await page.route("**/api/v1/auth/me/", async (route: any) => {
+frontend\e2e\capture-closeout5.spec.ts:52:  await page.route("**/api/v1/business/", async (route: any) => {
+frontend\e2e\capture-closeout5.spec.ts:71:  await page.route("**/api/v1/entitlements/**", async (route: any) => {
+frontend\e2e\capture-closeout5.spec.ts:85:  await page.route("**/api/v1/branches/", async (route: any) => {
+frontend\e2e\capture-closeout5.spec.ts:114:  await page.route("**/api/v1/branches/br-1/capabilities/", async (route: 
+any) => {
+frontend\e2e\capture-closeout5.spec.ts:138:  await page.route("**/api/v1/service-areas/**", async (route: any) => {
+frontend\e2e\capture-closeout5.spec.ts:149:  await page.route("**/api/v1/sections/**", async (route: any) => {
+frontend\e2e\capture-closeout5.spec.ts:161:  await page.route("**/api/v1/tables/**", async (route: any) => {
+frontend\e2e\capture-closeout5.spec.ts:175:  await page.route("**/api/v1/staff/**", async (route: any) => {
+frontend\e2e\demo-journey.spec.ts:63:  await page.route("**/api/v1/auth/refresh/", async (route: any) => {
+frontend\e2e\demo-journey.spec.ts:71:  await page.route("**/api/v1/auth/me/", async (route: any) => {
+frontend\e2e\demo-journey.spec.ts:103:  await page.route("**/api/v1/business/", async (route: any) => {
+frontend\e2e\demo-journey.spec.ts:126:  await page.route(/\/api\/v1\/(subscriptions\/)?entitlements/, async (route: 
+any) => {
+frontend\e2e\demo-journey.spec.ts:147:  await page.route(/\/api\/v1\/onboarding\/status/, async (route: any) => {
+frontend\e2e\demo-journey.spec.ts:174:  await page.route("**/api/v1/branches/", async (route: any) => {
+frontend\e2e\demo-journey.spec.ts:184:  await page.route(/\/api\/v1\/tables/, async (route: any) => {
+frontend\e2e\demo-journey.spec.ts:199:  await page.route(/\/api\/v1\/areas/, async (route: any) => {
+frontend\e2e\demo-journey.spec.ts:214:  await page.route(/\/api\/v1\/menu\/categories/, async (route: any) => {
+frontend\e2e\demo-journey.spec.ts:228:  await page.route(/\/api\/v1\/menu\/items/, async (route: any) => {
+frontend\e2e\demo-journey.spec.ts:271:  await page.route(/\/api\/v1\/menu\/availability/, async (route: any) => {
+frontend\e2e\demo-journey.spec.ts:279:  await page.route(/\/api\/v1\/orders\/service-requests/, async (route: any) => {
+frontend\e2e\demo-journey.spec.ts:287:  await page.route(/\/api\/v1\/sessions/, async (route: any) => {
+frontend\e2e\demo-journey.spec.ts:307:  await page.route(/\/api\/v1\/orders\/kds/, async (route: any) => {
+frontend\e2e\demo-journey.spec.ts:362:  await page.route(/\/api\/v1\/orders\/?(\?.*)?$/, async (route: any) => {
+frontend\e2e\demo-journey.spec.ts:387:  await page.route(/\/api\/v1\/orders\/billing\/session\//, async (route: any) 
+=> {
+frontend\e2e\demo-journey.spec.ts:443:  await page.route(/\/api\/v1\/reports\/today\//, async (route: any) => {
+frontend\e2e\demo-journey.spec.ts:680:    await page.route("**/api/v1/orders/", async (route: any) => {
+frontend\e2e\demo-journey.spec.ts:703:    await page.route("**/api/v1/orders/other-tenant-ord/**", async (route: any) 
+=> {
+frontend\e2e\flows.spec.ts:6:    await page.route("**/api/v1/auth/login/", async (route) => {
+frontend\e2e\flows.spec.ts:23:    await page.route("**/api/v1/auth/me/", async (route) => {
+frontend\e2e\flows.spec.ts:51:    await page.route("**/api/v1/onboarding/status/", async (route) => {
+frontend\e2e\flows.spec.ts:65:    await page.route("**/api/v1/entitlements/", async (route) => {
+frontend\e2e\flows.spec.ts:77:    await page.route("**/api/v1/auth/logout/", async (route) => {
+frontend\e2e\flows.spec.ts:97:    await page.route("**/api/v1/auth/login/", async (route) => {
+frontend\e2e\flows.spec.ts:121:    await page.route("**/api/v1/auth/login/", async (route) => {
+frontend\e2e\flows.spec.ts:149:    await page.route("**/api/v1/auth/login/", async (route) => {
+frontend\e2e\flows.spec.ts:166:    await page.route("**/api/v1/auth/me/", async (route) => {
+frontend\e2e\flows.spec.ts:194:    await page.route("**/api/v1/auth/change-password/", async (route) => {
+frontend\e2e\flows.spec.ts:205:    await page.route("**/api/v1/onboarding/status/", async (route) => {
+frontend\e2e\flows.spec.ts:213:    await page.route("**/api/v1/entitlements/", async (route) => {
+frontend\e2e\flows.spec.ts:248:    await page.route("**/api/v1/auth/login/", async (route) => {
+frontend\e2e\flows.spec.ts:265:    await page.route("**/api/v1/auth/me/", async (route) => {
+frontend\e2e\flows.spec.ts:293:    await page.route("**/api/v1/onboarding/status/", async (route) => {
+frontend\e2e\flows.spec.ts:303:    await page.route("**/api/v1/entitlements/", async (route) => {
+frontend\e2e\orders-operations-flows.spec.ts:35:  await page.route("**/api/v1/auth/refresh/", async (route: any) => {
+frontend\e2e\orders-operations-flows.spec.ts:43:  await page.route("**/api/v1/auth/me/", async (route: any) => {
+frontend\e2e\orders-operations-flows.spec.ts:72:  await page.route("**/api/v1/business/", async (route: any) => {
+frontend\e2e\orders-operations-flows.spec.ts:95:  await page.route("**/api/v1/subscriptions/entitlements/", async 
+(route: any) => {
+frontend\e2e\orders-operations-flows.spec.ts:109:  await page.route("**/api/v1/branches/", async (route: any) => {
+frontend\e2e\orders-operations-flows.spec.ts:144:  await page.route("**/api/v1/tables/", async (route: any) => {
+frontend\e2e\orders-operations-flows.spec.ts:164:  await page.route("**/api/v1/sessions/**", async (route: any) => {
+frontend\e2e\orders-operations-flows.spec.ts:192:  await page.route("**/api/v1/menu/categories/", async (route: any) 
+=> {
+frontend\e2e\orders-operations-flows.spec.ts:206:  await page.route("**/api/v1/menu/items/", async (route: any) => {
+frontend\e2e\orders-operations-flows.spec.ts:241:  await page.route("**/api/v1/menu/availability/**", async (route: 
+any) => {
+frontend\e2e\orders-operations-flows.spec.ts:250:  await page.route("**/api/v1/orders/service-requests/**", async 
+(route: any) => {
+frontend\e2e\orders-operations-flows.spec.ts:296:  await page.route("**/api/v1/orders/kds/**", async (route: any) => {
+frontend\e2e\orders-operations-flows.spec.ts:313:  await page.route("**/api/v1/orders/billing/session/**", async 
+(route: any) => {
+frontend\e2e\orders-operations-flows.spec.ts:365:  await page.route("**/api/v1/orders/billing/invoices/", async 
+(route: any) => {
+frontend\e2e\orders-operations-flows.spec.ts:390:  await page.route("**/api/v1/invoices/**", async (route: any) => {
+frontend\e2e\orders-operations-flows.spec.ts:427:  await page.route("**/api/v1/orders/", async (route: any) => {
+frontend\e2e\orders-operations-flows.spec.ts:450:  await page.route("**/api/v1/tenants/**", async (route: any) => {
+frontend\e2e\orders-operations-flows.spec.ts:670:    await page.route("**/api/v1/orders/?status=READY", async (route: 
+any) => {
+frontend\e2e\orders-operations-flows.spec.ts:700:    await page.route("**/api/v1/orders/ord-ready-101/serve/", async 
+(route: any) => {
+frontend\e2e\orders-operations-flows.spec.ts:728:    await page.route("**/api/v1/orders/", async (route: any) => {
+frontend\e2e\prompt3b-flows.spec.ts:14:  await page.route("**/api/v1/auth/refresh/", async (route: any) => {
+frontend\e2e\prompt3b-flows.spec.ts:22:  await page.route("**/api/v1/auth/me/", async (route: any) => {
+frontend\e2e\prompt3b-flows.spec.ts:63:  await page.route("**/api/v1/business/", async (route: any) => {
+frontend\e2e\prompt3b-flows.spec.ts:97:  await page.route("**/api/v1/branches/", async (route: any) => {
+frontend\e2e\prompt3b-flows.spec.ts:126:    await page.route("**/api/v1/onboarding/status/", async (route) => {
+frontend\e2e\prompt3b-flows.spec.ts:173:    await page.route("**/api/v1/onboarding/status/", async (route) => {
+frontend\e2e\prompt3b-flows.spec.ts:194:    await 
+page.route("**/api/v1/layout-templates/?venue_profile=QUICK_SERVICE", async (route) => {
+frontend\e2e\prompt3b-flows.spec.ts:236:    await page.route("**/api/v1/onboarding/status/", async (route) => {
+frontend\e2e\prompt3b-flows.spec.ts:269:    await page.route("**/api/v1/onboarding/status/", async (route) => {
+frontend\e2e\prompt3b-flows.spec.ts:282:    await page.route("**/api/v1/layout-templates/**", async (route) => {
+frontend\e2e\prompt3b-flows.spec.ts:298:    await 
+page.route("**/api/v1/branches/*/layout-templates/*/apply/?dry_run=true", async (route) => {
+frontend\e2e\prompt3b-flows.spec.ts:338:    await page.route("**/api/v1/qr-codes/", async (route) => {
+frontend\e2e\prompt3b-flows.spec.ts:369:    await page.route("**/api/v1/qr-codes/sheet-data/", async (route) => {
+frontend\e2e\prompt3b-flows.spec.ts:423:    await page.route("**/api/v1/public/qr/guest-token-123/", async (route) => {
+frontend\e2e\prompt3b-flows.spec.ts:459:    await page.route("**/api/v1/auth/me/", async (route) => {
+frontend\e2e\prompt3b-flows.spec.ts:476:    await page.route("**/api/v1/qr-codes/", async (route) => {
+frontend\e2e\prompt3b-flows.spec.ts:497:    await page.route("**/api/v1/qr-codes/sheet-data/", async (route) => {
+frontend\e2e\prompt3c-flows.spec.ts:3:// Helper to setup mock authentication state via page.route
+frontend\e2e\prompt3c-flows.spec.ts:47:  await page.route("**/api/v1/auth/refresh/", async (route: any) => {
+frontend\e2e\prompt3c-flows.spec.ts:55:  await page.route("**/api/v1/auth/me/", async (route: any) => {
+frontend\e2e\prompt3c-flows.spec.ts:84:  await page.route("**/api/v1/business/", async (route: any) => {
+frontend\e2e\prompt3c-flows.spec.ts:103:  await page.route("**/api/v1/entitlements/**", async (route: any) => {
+frontend\e2e\prompt3c-flows.spec.ts:117:  await page.route("**/api/v1/branches/", async (route: any) => {
+frontend\e2e\prompt3c-flows.spec.ts:136:  await page.route("**/api/v1/branches/br-main-1/capabilities/", async (route: 
+any) => {
+frontend\e2e\prompt3c-flows.spec.ts:160:  await page.route("**/api/v1/service-areas/**", async (route: any) => {
+frontend\e2e\prompt3c-flows.spec.ts:176:  await page.route("**/api/v1/sections/**", async (route: any) => {
+frontend\e2e\prompt3c-flows.spec.ts:192:  await page.route("**/api/v1/tables/**", async (route: any) => {
+frontend\e2e\prompt3c-flows.spec.ts:231:  await page.route("**/api/v1/staff/**", async (route: any) => {
+frontend\e2e\prompt4a-menu-flows.spec.ts:40:  await page.route("**/api/v1/auth/refresh/", async (route: any) => {
+frontend\e2e\prompt4a-menu-flows.spec.ts:48:  await page.route("**/api/v1/auth/me/", async (route: any) => {
+frontend\e2e\prompt4a-menu-flows.spec.ts:77:  await page.route("**/api/v1/business/", async (route: any) => {
+frontend\e2e\prompt4a-menu-flows.spec.ts:89:  await page.route("**/api/v1/subscriptions/entitlements/", async (route: 
+any) => {
+frontend\e2e\prompt4a-menu-flows.spec.ts:103:  await page.route("**/api/v1/branches/", async (route: any) => {
+frontend\e2e\prompt4a-menu-flows.spec.ts:213:  await page.route("**/api/v1/menu/categories/**", async (route: any) => {
+frontend\e2e\prompt4a-menu-flows.spec.ts:229:  await page.route("**/api/v1/menu/option-groups/**", async (route: any) 
+=> {
+frontend\e2e\prompt4a-menu-flows.spec.ts:242:  await page.route("**/api/v1/menu/items/bulk-create/", async (route: 
+any) => {
+frontend\e2e\prompt4a-menu-flows.spec.ts:252:  await page.route("**/api/v1/menu/items/**", async (route: any) => {
+frontend\e2e\prompt4a-menu-flows.spec.ts:276:  await page.route("**/api/v1/menu/availability/**", async (route: any) 
+=> {
+frontend\e2e\prompt4a-menu-flows.spec.ts:399:    await page.route("**/api/v1/menu/availability/**", async (route: any) 
+=> {
+frontend\e2e\qr-decoding.spec.ts:11:  await page.route("**/api/v1/auth/refresh/", async (route) => {
+frontend\e2e\qr-decoding.spec.ts:19:  await page.route("**/api/v1/auth/me/", async (route) => {
+frontend\e2e\qr-decoding.spec.ts:60:  await page.route("**/api/v1/business/", async (route) => {
+frontend\e2e\qr-decoding.spec.ts:122:    await page.route("**/api/v1/qr-codes/", async (route) => {
+frontend\e2e\qr-decoding.spec.ts:141:    await page.route("**/api/v1/qr-codes/sheet-data/", async (route) => {
+frontend\e2e\screenshots.spec.ts:9:  await page.route("**/api/v1/auth/login/", async (route: any) => {
+frontend\e2e\screenshots.spec.ts:38:  await page.route("**/api/v1/auth/refresh/", async (route: any) => {
+frontend\e2e\screenshots.spec.ts:46:  await page.route("**/api/v1/auth/me/", async (route: any) => {
+frontend\e2e\screenshots.spec.ts:74:  await page.route("**/api/v1/business/", async (route: any) => {
+frontend\e2e\screenshots.spec.ts:97:  await page.route("**/api/v1/subscriptions/entitlements/", async (route: any) => {
+frontend\e2e\screenshots.spec.ts:112:  await page.route("**/api/v1/venues/tables/", async (route: any) => {
+frontend\e2e\screenshots.spec.ts:126:  await page.route("**/api/v1/branches/", async (route: any) => {
+
+

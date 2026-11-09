@@ -1,0 +1,25 @@
+=== UX CRAWL AUDIT REPORT ===
+Total page checks executed: 480
+Total HTTP errors encountered: 7
+Total Console errors encountered: 7
+Total Uncaught exceptions encountered: 0
+Total Horizontal overflow pages: 0
+Total Pages with serious/critical accessibility violations: 381
+
+--- HTTP ERRORS ENCOUNTERED ---
+  [owner_table] /serve: 401 http://127.0.0.1:5173/api/v1/auth/refresh/; 401 http://127.0.0.1:5173/api/v1/auth/refresh/
+  [waiter_table] /pos: 401 http://127.0.0.1:5173/api/v1/auth/refresh/; 401 http://127.0.0.1:5173/api/v1/auth/refresh/
+  [kitchen_table] /kds: 401 http://127.0.0.1:5173/api/v1/auth/refresh/; 401 http://127.0.0.1:5173/api/v1/auth/refresh/
+  [cashier_counter] /billing: 401 http://127.0.0.1:5173/api/v1/auth/refresh/; 401 http://127.0.0.1:5173/api/v1/auth/refresh/
+  [owner_counter] /dashboard: 401 http://127.0.0.1:5173/api/v1/auth/refresh/; 401 http://127.0.0.1:5173/api/v1/auth/refresh/
+  [owner_hotel] /dashboard: 401 http://127.0.0.1:5173/api/v1/auth/refresh/; 401 http://127.0.0.1:5173/api/v1/auth/refresh/
+  [platform_admin] /admin: 401 http://127.0.0.1:5173/api/v1/auth/refresh/; 401 http://127.0.0.1:5173/api/v1/auth/refresh/
+
+--- CONSOLE ERRORS & CRASHES ---
+  [owner_table] /serve: Console: Failed to load resource: the server responded with a status of 401 (Unauthorized); Failed to load resource: the server responded with a status of 401 (Unauthorized) | Uncaught: NONE
+  [waiter_table] /pos: Console: Failed to load resource: the server responded with a status of 401 (Unauthorized); Failed to load resource: the server responded with a status of 401 (Unauthorized) | Uncaught: NONE
+  [kitchen_table] /kds: Console: Failed to load resource: the server responded with a status of 401 (Unauthorized); Failed to load resource: the server responded with a status of 401 (Unauthorized) | Uncaught: NONE
+  [cashier_counter] /billing: Console: Failed to load resource: the server responded with a status of 401 (Unauthorized); Failed to load resource: the server responded with a status of 401 (Unauthorized) | Uncaught: NONE
+  [owner_counter] /dashboard: Console: Failed to load resource: the server responded with a status of 401 (Unauthorized); Failed to load resource: the server responded with a status of 401 (Unauthorized) | Uncaught: NONE
+  [owner_hotel] /dashboard: Console: Failed to load resource: the server responded with a status of 401 (Unauthorized); Failed to load resource: the server responded with a status of 401 (Unauthorized) | Uncaught: NONE
+  [platform_admin] /admin: Console: Failed to load resource: the server responded with a status of 401 (Unauthorized); Failed to load resource: the server responded with a status of 401 (Unauthorized) | Uncaught: NONE

@@ -1,0 +1,80 @@
+=== ROUTE INVENTORY AUDIT RAW REPORT ===
+Total routes parsed: 70
+WORKING: 17
+PARTIAL: 16
+STUB:    4
+MOCK:    0
+DEAD:    1
+HIDDEN:  32
+
+--- INVENTORY BREAKDOWN ---
+* | frontend/src/pages/error/NotFoundPage.tsx | LOC:32 | Guard:PUBLIC | Status:STUB
+/ | UNKNOWN | LOC:0 | Guard:PUBLIC | Status:STUB
+/403 | frontend/src/pages/error/ForbiddenPage.tsx | LOC:34 | Guard:PUBLIC | Status:STUB
+/activity | frontend/src/pages/activity/ActivityLogPage.tsx | LOC:338 | Guard:AUTHENTICATED | Status:HIDDEN
+/admin | frontend/src/pages/admin/PlatformAdminPage.tsx | LOC:567 | Guard:PLATFORM_ADMIN | Status:PARTIAL
+/admin/activity | frontend/src/pages/admin/PlatformActivityPage.tsx | LOC:248 | Guard:PLATFORM_ADMIN | Status:WORKING
+/admin/announcements | frontend/src/pages/admin/PlatformAnnouncementsPage.tsx | LOC:337 | Guard:PLATFORM_ADMIN | Status:WORKING
+/admin/dashboard | frontend/src/pages/admin/PlatformAdminPage.tsx | LOC:567 | Guard:PLATFORM_ADMIN | Status:HIDDEN
+/admin/health | frontend/src/pages/admin/PlatformHealthPage.tsx | LOC:412 | Guard:PLATFORM_ADMIN | Status:WORKING
+/admin/plans | frontend/src/pages/admin/PlatformPlansPage.tsx | LOC:432 | Guard:PLATFORM_ADMIN | Status:WORKING
+/admin/support | frontend/src/pages/admin/PlatformSupportPage.tsx | LOC:306 | Guard:PLATFORM_ADMIN | Status:WORKING
+/admin/tenants | frontend/src/pages/admin/TenantsDirectoryPage.tsx | LOC:513 | Guard:PLATFORM_ADMIN | Status:WORKING
+/admin/tenants/:id | frontend/src/pages/admin/CustomerDetailPage.tsx | LOC:896 | Guard:PLATFORM_ADMIN | Status:HIDDEN
+/admin/tenants/new | frontend/src/pages/admin/NewCustomerWizardPage.tsx | LOC:961 | Guard:PLATFORM_ADMIN | Status:PARTIAL
+/billing | frontend/src/pages/billing/BillingPage.tsx | LOC:458 | Guard:AUTHENTICATED | Status:PARTIAL
+/billing/bills | frontend/src/pages/billing/InvoicesHistoryPage.tsx | LOC:287 | Guard:AUTHENTICATED | Status:WORKING
+/billing/closeout | frontend/src/pages/billing/ShiftCloseoutPage.tsx | LOC:229 | Guard:AUTHENTICATED | Status:PARTIAL
+/billing/invoices | frontend/src/pages/billing/InvoicesHistoryPage.tsx | LOC:287 | Guard:AUTHENTICATED | Status:HIDDEN
+/billing/room-charges | frontend/src/pages/billing/RoomChargesPage.tsx | LOC:230 | Guard:AUTHENTICATED | Status:HIDDEN
+/branches | frontend/src/pages/venue/BranchesPage.tsx | LOC:530 | Guard:AUTHENTICATED | Status:PARTIAL
+/change-password | frontend/src/pages/auth/ChangePasswordPage.tsx | LOC:176 | Guard:PUBLIC | Status:WORKING
+/customers | frontend/src/pages/customers/CustomersPage.tsx | LOC:413 | Guard:AUTHENTICATED | Status:HIDDEN
+/dashboard | frontend/src/pages/dashboard/DashboardPage.tsx | LOC:644 | Guard:AUTHENTICATED | Status:WORKING
+/dev/brand | frontend/src/pages/dev/DevBrandPage.tsx | LOC:361 | Guard:PUBLIC | Status:PARTIAL
+/dev/design-system | frontend/src/pages/dev/DevDesignSystemPage.tsx | LOC:590 | Guard:PUBLIC | Status:WORKING
+/inventory | frontend/src/pages/inventory/StockOverviewPage.tsx | LOC:559 | Guard:AUTHENTICATED | Status:HIDDEN
+/inventory/purchases | frontend/src/pages/inventory/SuppliersPurchasesPage.tsx | LOC:749 | Guard:AUTHENTICATED | Status:HIDDEN
+/inventory/recipes | frontend/src/pages/inventory/RecipesPage.tsx | LOC:483 | Guard:AUTHENTICATED | Status:HIDDEN
+/inventory/reports | frontend/src/pages/inventory/InventoryReportsPage.tsx | LOC:363 | Guard:AUTHENTICATED | Status:HIDDEN
+/inventory/wastage | frontend/src/pages/inventory/WastagePage.tsx | LOC:408 | Guard:AUTHENTICATED | Status:HIDDEN
+/kds | frontend/src/pages/kds/KDSPage.tsx | LOC:278 | Guard:AUTHENTICATED | Status:WORKING
+/login | frontend/src/pages/auth/LoginPage.tsx | LOC:553 | Guard:PUBLIC | Status:PARTIAL
+/menu | frontend/src/pages/menu/MenuPage.tsx | LOC:716 | Guard:AUTHENTICATED | Status:WORKING
+/menu/availability | frontend/src/pages/menu/MenuAvailabilityPage.tsx | LOC:356 | Guard:AUTHENTICATED | Status:WORKING
+/menu/options | frontend/src/pages/menu/MenuOptionsPage.tsx | LOC:437 | Guard:AUTHENTICATED | Status:HIDDEN
+/onboarding | frontend/src/pages/onboarding/OnboardingPage.tsx | LOC:8 | Guard:AUTHENTICATED | Status:STUB
+/orders | frontend/src/pages/orders/LiveOrdersPage.tsx | LOC:450 | Guard:AUTHENTICATED | Status:WORKING
+/orders/billing | frontend/src/pages/billing/BillingPage.tsx | LOC:458 | Guard:AUTHENTICATED | Status:HIDDEN
+/orders/floor | frontend/src/pages/orders/FloorPOSPage.tsx | LOC:804 | Guard:AUTHENTICATED | Status:HIDDEN
+/orders/kds | frontend/src/pages/kds/KDSPage.tsx | LOC:278 | Guard:AUTHENTICATED | Status:HIDDEN
+/orders/live | frontend/src/pages/orders/LiveOrdersPage.tsx | LOC:450 | Guard:AUTHENTICATED | Status:HIDDEN
+/orders/ready | frontend/src/pages/orders/ReadyToServePage.tsx | LOC:174 | Guard:AUTHENTICATED | Status:HIDDEN
+/pos | frontend/src/pages/orders/FloorPOSPage.tsx | LOC:804 | Guard:AUTHENTICATED | Status:WORKING
+/q/:token | frontend/src/pages/public/PublicQRPage.tsx | LOC:173 | Guard:PUBLIC | Status:PARTIAL
+/qr | frontend/src/pages/venue/QRCodesPage.tsx | LOC:578 | Guard:AUTHENTICATED | Status:WORKING
+/reports/exceptions | frontend/src/pages/reports/ExceptionsReportPage.tsx | LOC:349 | Guard:AUTHENTICATED | Status:HIDDEN
+/reports/items | frontend/src/pages/reports/ItemReportsPage.tsx | LOC:312 | Guard:AUTHENTICATED | Status:HIDDEN
+/reports/outlets | frontend/src/pages/reports/OutletComparisonPage.tsx | LOC:213 | Guard:AUTHENTICATED | Status:HIDDEN
+/reports/payments | frontend/src/pages/reports/PaymentReportsPage.tsx | LOC:347 | Guard:AUTHENTICATED | Status:HIDDEN
+/reports/sales | frontend/src/pages/reports/SalesReportsPage.tsx | LOC:333 | Guard:AUTHENTICATED | Status:HIDDEN
+/reports/staff | frontend/src/pages/reports/StaffReportPage.tsx | LOC:197 | Guard:AUTHENTICATED | Status:HIDDEN
+/room-service | frontend/src/pages/orders/RoomServicePage.tsx | LOC:330 | Guard:AUTHENTICATED | Status:HIDDEN
+/serve | frontend/src/pages/orders/ReadyToServePage.tsx | LOC:174 | Guard:AUTHENTICATED | Status:PARTIAL
+/settings/account | frontend/src/pages/settings/AccountPage.tsx | LOC:239 | Guard:AUTHENTICATED | Status:HIDDEN
+/settings/branding | frontend/src/pages/settings/BrandingSettingsPage.tsx | LOC:570 | Guard:AUTHENTICATED | Status:WORKING
+/settings/devices | frontend/src/pages/settings/DeviceSettingsPage.tsx | LOC:302 | Guard:AUTHENTICATED | Status:HIDDEN
+/settings/sound | frontend/src/pages/settings/SoundSettingsPage.tsx | LOC:280 | Guard:AUTHENTICATED | Status:HIDDEN
+/settings/venue | frontend/src/pages/settings/VenueSettingsPage.tsx | LOC:390 | Guard:AUTHENTICATED | Status:PARTIAL
+/staff | frontend/src/pages/staff/StaffPage.tsx | LOC:669 | Guard:AUTHENTICATED | Status:PARTIAL
+/suspended | frontend/src/pages/error/SuspendedPage.tsx | LOC:58 | Guard:PUBLIC | Status:PARTIAL
+/takeaway | frontend/src/pages/orders/TakeawayPage.tsx | LOC:414 | Guard:AUTHENTICATED | Status:HIDDEN
+/team/roles | frontend/src/pages/team/RolesGuidePage.tsx | LOC:275 | Guard:AUTHENTICATED | Status:HIDDEN
+/venue/areas | frontend/src/pages/venue/AreasPage.tsx | LOC:901 | Guard:AUTHENTICATED | Status:PARTIAL
+/venue/branches | frontend/src/pages/venue/BranchesPage.tsx | LOC:530 | Guard:AUTHENTICATED | Status:HIDDEN
+/venue/counters | frontend/src/pages/venue/CountersPage.tsx | LOC:441 | Guard:AUTHENTICATED | Status:PARTIAL
+/venue/floor | frontend/src/pages/venue/FloorPlanPage.tsx | LOC:449 | Guard:AUTHENTICATED | Status:PARTIAL
+/venue/floor-plan | frontend/src/pages/venue/FloorPlanPage.tsx | LOC:449 | Guard:AUTHENTICATED | Status:HIDDEN
+/venue/rooms | frontend/src/pages/venue/RoomsPage.tsx | LOC:423 | Guard:AUTHENTICATED | Status:HIDDEN
+/venue/tables | frontend/src/pages/venue/TablesPage.tsx | LOC:988 | Guard:AUTHENTICATED | Status:PARTIAL
+UNROUTED | frontend/src/pages/onboarding/OnboardingWizardPage.tsx | LOC:1207 | Guard:NONE | Status:DEAD
