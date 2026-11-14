@@ -1,10 +1,12 @@
 import io
+from datetime import timedelta
 from typing import Any
 
 from django.contrib.auth import get_user_model
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.core.management.base import BaseCommand
 from django.db import transaction
+from django.utils import timezone
 from PIL import Image, ImageDraw
 
 from apps.accounts.models import Membership
@@ -213,7 +215,11 @@ class Command(BaseCommand):
         )
         Subscription.objects.update_or_create(
             tenant=t1,
-            defaults={"plan": plans["starter"], "status": SubscriptionStatus.ACTIVE},
+            defaults={
+                "plan": plans["starter"],
+                "status": SubscriptionStatus.ACTIVE,
+                "ends_at": timezone.now() + timedelta(days=30),
+            },
         )
         b1, _ = Branch.objects.get_or_create(
             tenant=t1,
@@ -280,7 +286,11 @@ class Command(BaseCommand):
         )
         Subscription.objects.update_or_create(
             tenant=t2,
-            defaults={"plan": plans["starter"], "status": SubscriptionStatus.ACTIVE},
+            defaults={
+                "plan": plans["starter"],
+                "status": SubscriptionStatus.ACTIVE,
+                "ends_at": timezone.now() + timedelta(days=30),
+            },
         )
         b2, _ = Branch.objects.get_or_create(
             tenant=t2,
@@ -366,7 +376,11 @@ class Command(BaseCommand):
         )
         Subscription.objects.update_or_create(
             tenant=t3,
-            defaults={"plan": plans["professional"], "status": SubscriptionStatus.ACTIVE},
+            defaults={
+                "plan": plans["professional"],
+                "status": SubscriptionStatus.ACTIVE,
+                "ends_at": timezone.now() + timedelta(days=90),
+            },
         )
         b3, _ = Branch.objects.get_or_create(
             tenant=t3,
@@ -541,7 +555,11 @@ class Command(BaseCommand):
         )
         Subscription.objects.update_or_create(
             tenant=t4,
-            defaults={"plan": plans["enterprise"], "status": SubscriptionStatus.ACTIVE},
+            defaults={
+                "plan": plans["enterprise"],
+                "status": SubscriptionStatus.ACTIVE,
+                "ends_at": timezone.now() + timedelta(days=365),
+            },
         )
         b4, _ = Branch.objects.get_or_create(
             tenant=t4,
@@ -650,7 +668,11 @@ class Command(BaseCommand):
         )
         Subscription.objects.update_or_create(
             tenant=t5,
-            defaults={"plan": plans["business"], "status": SubscriptionStatus.ACTIVE},
+            defaults={
+                "plan": plans["business"],
+                "status": SubscriptionStatus.ACTIVE,
+                "ends_at": timezone.now() + timedelta(days=180),
+            },
         )
         b5, _ = Branch.objects.get_or_create(
             tenant=t5,
@@ -736,7 +758,11 @@ class Command(BaseCommand):
         )
         Subscription.objects.update_or_create(
             tenant=t6,
-            defaults={"plan": plans["starter"], "status": SubscriptionStatus.ACTIVE},
+            defaults={
+                "plan": plans["starter"],
+                "status": SubscriptionStatus.ACTIVE,
+                "ends_at": timezone.now() + timedelta(days=5),
+            },
         )
         b6, _ = Branch.objects.get_or_create(
             tenant=t6,
@@ -803,7 +829,11 @@ class Command(BaseCommand):
         )
         Subscription.objects.update_or_create(
             tenant=t7,
-            defaults={"plan": plans["enterprise"], "status": SubscriptionStatus.ACTIVE},
+            defaults={
+                "plan": plans["enterprise"],
+                "status": SubscriptionStatus.ACTIVE,
+                "ends_at": timezone.now() + timedelta(days=365),
+            },
         )
         b7, _ = Branch.objects.get_or_create(
             tenant=t7,

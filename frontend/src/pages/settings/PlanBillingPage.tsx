@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { CreditCard, AlertTriangle, Layers, Calendar, Clock } from "lucide-react";
+import { CreditCard, AlertTriangle, Layers, Calendar, Clock, CheckCircle2 } from "lucide-react";
 import { PageHeader } from "../../components/app/PageHeader";
 import {
   Card,
@@ -9,6 +9,7 @@ import {
   CardContent,
 } from "../../components/ui/card";
 import { Badge } from "../../components/ui/badge";
+import { Button } from "../../components/ui/button";
 import { apiClient } from "../../api/client";
 import { formatRupees } from "../../utils/currency";
 import { mapBackendErrorCode } from "../../lib/errorMapper";
@@ -82,6 +83,30 @@ export const PlanBillingPage: React.FC = () => {
   const [summary, setSummary] = useState<EntitlementsSummary | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [renewalSubmitting, setRenewalSubmitting] = useState(false);
+  const [renewalSent, setRenewalSent] = useState(false);
+  const [renewalError, setRenewalError] = useState<string | null>(null);
+
+  const handleRequestRenewal = async () => {
+    if (!summary || renewalSubmitting || renewalSent) return;
+    setRenewalSubmitting(true);
+    setRenewalError(null);
+    try {
+      const expiryInfo = summary.ends_at
+        ? formatDateLabel(summary.ends_at, "No expiry set")
+        : "Not set";
+      await apiClient.post("/support-tickets/", {
+        subject: `Subscription Renewal Request — ${summary.plan_name}`,
+        description: `Requesting subscription renewal for ${summary.plan_name} (Current Status: ${summary.status}, Expiry Date: ${expiryInfo}).`,
+        priority: summary.is_expired ? "HIGH" : "MEDIUM",
+      });
+      setRenewalSent(true);
+    } catch (err) {
+      setRenewalError(mapBackendErrorCode(err));
+    } finally {
+      setRenewalSubmitting(false);
+    }
+  };
 
   useEffect(() => {
     let mounted = true;
@@ -148,23 +173,42 @@ export const PlanBillingPage: React.FC = () => {
           {isExpiredState && summary && (
             <div
               role="alert"
-              className="rounded-xl border border-destructive/40 bg-destructive/10 p-4 flex items-start gap-3"
+              className="rounded-xl border border-destructive/40 bg-destructive/10 p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4"
             >
-              <AlertTriangle className="h-5 w-5 text-destructive shrink-0 mt-0.5" />
-              <div className="space-y-1 text-sm">
-                <p className="font-bold text-destructive">
-                  Subscription {summary.status === "SUSPENDED" ? "Suspended" : "Expired"} —{" "}
-                  {formatRemainingLabel(summary.days_remaining, true)}
-                </p>
-                <p className="text-foreground/90">
-                  Your <strong>{summary.plan_name}</strong>{" "}
-                  {summary.ends_at
-                    ? `ended on ${formatDateLabel(summary.ends_at, "—")}.`
-                    : "is currently inactive."}{" "}
-                  Operations such as placing new orders, adding branches, or creating tables may be
-                  restricted until the subscription is renewed. Contact your ServeMyFood account
-                  administrator to renew and restore full access.
-                </p>
+              <div className="flex items-start gap-3">
+                <AlertTriangle className="h-5 w-5 text-destructive shrink-0 mt-0.5" />
+                <div className="space-y-1 text-sm">
+                  <p className="font-bold text-destructive">
+                    Subscription {summary.status === "SUSPENDED" ? "Suspended" : "Expired"} —{" "}
+                    {formatRemainingLabel(summary.days_remaining, true)}
+                  </p>
+                  <p className="text-foreground/90">
+                    Your <strong>{summary.plan_name}</strong>{" "}
+                    {summary.ends_at
+                      ? `ended on ${formatDateLabel(summary.ends_at, "—")}.`
+                      : "is currently inactive."}{" "}
+                    Operations such as placing new orders, adding branches, or creating tables may
+                    be restricted until the subscription is renewed.
+                  </p>
+                  {renewalError && <p className="text-xs text-destructive">{renewalError}</p>}
+                </div>
+              </div>
+              <div className="shrink-0">
+                {renewalSent ? (
+                  <span className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-500/15 px-3 py-2 text-xs font-semibold text-emerald-700 dark:text-emerald-300">
+                    <CheckCircle2 className="h-4 w-4" />
+                    Renewal request sent
+                  </span>
+                ) : (
+                  <Button
+                    type="button"
+                    onClick={handleRequestRenewal}
+                    disabled={renewalSubmitting}
+                    className="bg-[#FF6A00] hover:bg-[#FF6A00]/90 text-[#0B1F3B] font-bold"
+                  >
+                    {renewalSubmitting ? "Sending..." : "Request Renewal"}
+                  </Button>
+                )}
               </div>
             </div>
           )}
@@ -172,18 +216,39 @@ export const PlanBillingPage: React.FC = () => {
           {isExpiringSoonState && summary && (
             <div
               role="status"
-              className="rounded-xl border border-amber-500/40 bg-amber-500/10 p-4 flex items-start gap-3"
+              className="rounded-xl border border-amber-500/40 bg-amber-500/10 p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4"
             >
-              <Clock className="h-5 w-5 text-amber-600 shrink-0 mt-0.5" />
-              <div className="space-y-1 text-sm">
-                <p className="font-bold text-amber-800 dark:text-amber-300">
-                  Subscription Expiring Soon — {formatRemainingLabel(summary.days_remaining, false)}
-                </p>
-                <p className="text-foreground/90">
-                  Your <strong>{summary.plan_name}</strong> is scheduled to expire on{" "}
-                  <strong>{formatDateLabel(summary.ends_at, "—")}</strong>. Renew before this date
-                  to avoid service interruption.
-                </p>
+              <div className="flex items-start gap-3">
+                <Clock className="h-5 w-5 text-amber-600 shrink-0 mt-0.5" />
+                <div className="space-y-1 text-sm">
+                  <p className="font-bold text-amber-800 dark:text-amber-300">
+                    Subscription Expiring Soon —{" "}
+                    {formatRemainingLabel(summary.days_remaining, false)}
+                  </p>
+                  <p className="text-foreground/90">
+                    Your <strong>{summary.plan_name}</strong> is scheduled to expire on{" "}
+                    <strong>{formatDateLabel(summary.ends_at, "—")}</strong>. Renew before this date
+                    to avoid service interruption.
+                  </p>
+                  {renewalError && <p className="text-xs text-destructive">{renewalError}</p>}
+                </div>
+              </div>
+              <div className="shrink-0">
+                {renewalSent ? (
+                  <span className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-500/15 px-3 py-2 text-xs font-semibold text-emerald-700 dark:text-emerald-300">
+                    <CheckCircle2 className="h-4 w-4" />
+                    Renewal request sent
+                  </span>
+                ) : (
+                  <Button
+                    type="button"
+                    onClick={handleRequestRenewal}
+                    disabled={renewalSubmitting}
+                    className="bg-[#FF6A00] hover:bg-[#FF6A00]/90 text-[#0B1F3B] font-bold"
+                  >
+                    {renewalSubmitting ? "Sending..." : "Request Renewal"}
+                  </Button>
+                )}
               </div>
             </div>
           )}

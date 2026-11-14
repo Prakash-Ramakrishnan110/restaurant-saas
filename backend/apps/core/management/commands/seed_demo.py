@@ -74,9 +74,13 @@ class Command(BaseCommand):
             },
         )
 
-        Subscription.objects.get_or_create(
+        Subscription.objects.update_or_create(
             tenant=t,
-            defaults={"plan": plan, "status": SubscriptionStatus.ACTIVE},
+            defaults={
+                "plan": plan,
+                "status": SubscriptionStatus.ACTIVE,
+                "ends_at": timezone.now() + timedelta(days=30),
+            },
         )
 
         b, _ = Branch.objects.get_or_create(
@@ -347,9 +351,13 @@ class Command(BaseCommand):
             },
         )
 
-        Subscription.objects.get_or_create(
+        Subscription.objects.update_or_create(
             tenant=t,
-            defaults={"plan": plan, "status": SubscriptionStatus.ACTIVE},
+            defaults={
+                "plan": plan,
+                "status": SubscriptionStatus.ACTIVE,
+                "ends_at": timezone.now() + timedelta(days=30),
+            },
         )
 
         b, _ = Branch.objects.get_or_create(
