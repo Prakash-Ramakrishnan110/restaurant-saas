@@ -1,0 +1,670 @@
+import hashlib
+import json
+import secrets
+from datetime import timedelta
+from typing import Any
+
+from django.conf import settings
+from django.core.signing import BadSignature, SignatureExpired, TimestampSigner
+from django.db import IntegrityError, transaction
+from django.db.models import Prefetch
+from django.http import Http404
+from django.utils import timezone
+from rest_framework import status
+from rest_framework.permissions import AllowAny
+from rest_framework.request import Request
+from rest_framework.response import Response
+from rest_framework.throttling import AnonRateThrottle, SimpleRateThrottle
+from rest_framework.views import APIView
+
+from apps.core.context import reset_current_tenant, set_current_tenant
+from apps.core.exceptions import BusinessRuleError
+from apps.menu.models import BranchItemAvailability, ItemOptionGroup, MenuCategory, MenuItem
+from apps.orders.models import (
+    Order,
+    OrderPaymentStatus,
+    OrderSource,
+    OrderStatus,
+    OrderWorkflow,
+)
+from apps.orders.services import create_order
+from apps.subscriptions.services import is_tenant_allowed
+from apps.tenants.services import get_public_qr_code
+from apps.venues.constants import (
+    OpenedVia,
+    PaymentTiming,
+    QROrderingMode,
+    QRSessionPolicy,
+    QRTargetType,
+    SessionStatus,
+    TableType,
+)
+from apps.venues.models import TableSession
+from apps.venues.services import next_token, open_session
+
+DEFAULT_QR_LIMITS: dict[str, int] = {
+    "MAX_LINES_PER_ORDER": 30,
+    "MIN_QTY_PER_LINE": 1,
+    "MAX_QTY_PER_LINE": 10,
+    "MAX_LINE_NOTE_CHARS": 200,
+    "MAX_ORDER_NOTE_CHARS": 300,
+    "MAX_OPEN_QR_ORDERS_PER_SESSION": 3,
+    "MAX_QR_ORDERS_PER_10_MIN": 5,
+    "MAX_ORDER_TOTAL_PAISE": 1_000_000,
+    "TRACKING_EXPIRE_HOURS": 12,
+}
+
+
+def get_qr_limits() -> dict[str, int]:
+    configured = getattr(settings, "PUBLIC_QR_ORDER_LIMITS", {})
+    return {**DEFAULT_QR_LIMITS, **configured}
+
+
+class PublicQRIPThrottle(AnonRateThrottle):
+    scope = "public_qr_ip"
+
+
+class PublicQRTokenThrottle(SimpleRateThrottle):
+    scope = "public_qr_token"
+
+    def get_cache_key(self, request: Request, view: Any) -> str | None:
+        token = view.kwargs.get("token") if hasattr(view, "kwargs") else None
+        if not token:
+            return None
+        return self.cache_format % {"scope": self.scope, "ident": str(token)}
+
+
+class PublicOrderTrackThrottle(AnonRateThrottle):
+    scope = "public_order_track"
+
+
+def _resolve_active_qr(token: str) -> Any:
+    qr = get_public_qr_code(token)
+    if not qr or not qr.is_active or not qr.branch.is_active:
+        raise Http404("QR code is invalid or deactivated.")
+    if not is_tenant_allowed(qr.branch.tenant):
+        raise Http404("QR code is invalid or deactivated.")
+    return qr
+
+
+def _build_target_label(qr: Any) -> tuple[str, str]:
+    """Returns (target_type, target_label) for table, room, or counter QR."""
+    if qr.table:
+        if qr.table.table_type == TableType.ROOM or qr.target_type == QRTargetType.ROOM:
+            return QRTargetType.ROOM, qr.table.label
+        return QRTargetType.TABLE, qr.table.label
+    if qr.target_type == QRTargetType.COUNTER or qr.service_area:
+        area_name = qr.service_area.name if qr.service_area else "Counter"
+        return QRTargetType.COUNTER, area_name
+    return qr.target_type, getattr(qr, "label", "") or ""
+
+
+def _status_message_key(order: Order, payment_timing: str) -> str:
+    if order.status == OrderStatus.PENDING_APPROVAL:
+        return "WAITING_FOR_APPROVAL"
+    if order.status == OrderStatus.AWAITING_PAYMENT:
+        return "PAY_AT_COUNTER_TO_START"
+    if order.status == OrderStatus.PLACED:
+        return "ORDER_RECEIVED"
+    if order.status == OrderStatus.PREPARING:
+        return "ORDER_PREPARING"
+    if order.status == OrderStatus.READY:
+        return "ORDER_READY"
+    if order.status == OrderStatus.SERVED:
+        return "ORDER_SERVED"
+    if order.status == OrderStatus.COMPLETED:
+        return "ORDER_COMPLETED"
+    if order.status == OrderStatus.CANCELLED:
+        return "ORDER_REJECTED" if order.rejected_reason else "ORDER_CANCELLED"
+    return "ORDER_RECEIVED"
+
+
+class PublicQRMenuView(APIView):
+    """Public unauthenticated read-only endpoint returning branch menu for a scanned QR."""
+
+    permission_classes = [AllowAny]
+    throttle_classes = [PublicQRIPThrottle, PublicQRTokenThrottle]
+
+    def get(self, request: Request, token: str) -> Response:
+        qr = _resolve_active_qr(token)
+        tenant = qr.branch.tenant
+        ctx_token = set_current_tenant(tenant)
+
+        try:
+            capabilities = getattr(qr.branch, "capabilities", None)
+            ordering_mode = (
+                capabilities.qr_ordering_mode
+                if capabilities
+                else QROrderingMode.ORDER_WITH_APPROVAL
+            )
+            payment_timing = (
+                capabilities.payment_timing if capabilities else PaymentTiming.PAY_LATER
+            )
+            session_policy = (
+                capabilities.qr_session_policy
+                if capabilities
+                else QRSessionPolicy.CUSTOMER_CAN_OPEN
+            )
+
+            business_settings = getattr(tenant, "business_settings", None)
+            display_name = (
+                business_settings.legal_name
+                if business_settings and business_settings.legal_name
+                else tenant.name
+            )
+            logo_url = business_settings.logo_url if business_settings else ""
+            brand_color = business_settings.brand_primary_color if business_settings else "#FF6A00"
+            target_type, target_label = _build_target_label(qr)
+
+            active_session = (
+                TableSession.objects.filter(table=qr.table, status=SessionStatus.OPEN).first()
+                if qr.table
+                else None
+            )
+
+            categories_payload: list[dict[str, Any]] = []
+            if ordering_mode != QROrderingMode.DISABLED:
+                unavailable_ids = set(
+                    BranchItemAvailability.objects.filter(
+                        branch=qr.branch, is_available=False
+                    ).values_list("item_id", flat=True)
+                )
+
+                categories = list(
+                    MenuCategory.objects.filter(tenant=tenant, is_active=True).order_by(
+                        "sort_order", "name"
+                    )
+                )
+                items = list(
+                    MenuItem.objects.filter(tenant=tenant, is_active=True, category__is_active=True)
+                    .select_related("category")
+                    .prefetch_related(
+                        "variants",
+                        Prefetch(
+                            "item_option_groups",
+                            queryset=ItemOptionGroup.objects.filter(group__is_active=True)
+                            .select_related("group")
+                            .prefetch_related("group__options")
+                            .order_by("sort_order", "id"),
+                        ),
+                    )
+                    .order_by("sort_order", "name")
+                )
+
+                items_by_cat: dict[str, list[dict[str, Any]]] = {}
+                for item in items:
+                    variants_list = [
+                        {
+                            "id": str(v.id),
+                            "name": v.name,
+                            "name_ta": v.name_ta,
+                            "price_paise": v.price_paise,
+                            "is_default": v.is_default,
+                        }
+                        for v in sorted(
+                            item.variants.all(), key=lambda x: (x.sort_order, str(x.id))
+                        )
+                    ]
+
+                    option_groups_list: list[dict[str, Any]] = []
+                    for link in item.item_option_groups.all():
+                        grp = link.group
+                        active_opts = [
+                            {
+                                "id": str(opt.id),
+                                "name": opt.name,
+                                "name_ta": opt.name_ta,
+                                "price_delta_paise": opt.price_delta_paise,
+                                "is_default": opt.is_default,
+                            }
+                            for opt in sorted(
+                                grp.options.all(), key=lambda x: (x.sort_order, x.name)
+                            )
+                            if opt.is_active
+                        ]
+                        if active_opts:
+                            option_groups_list.append(
+                                {
+                                    "id": str(grp.id),
+                                    "name": grp.name,
+                                    "name_ta": grp.name_ta,
+                                    "min_select": grp.min_select,
+                                    "max_select": grp.max_select,
+                                    "options": active_opts,
+                                }
+                            )
+
+                    items_by_cat.setdefault(str(item.category_id), []).append(
+                        {
+                            "id": str(item.id),
+                            "name": item.name,
+                            "name_ta": item.name_ta,
+                            "description": item.description,
+                            "description_ta": item.description_ta,
+                            "price_paise": item.base_price_paise,
+                            "food_type": item.food_type,
+                            "is_bestseller": item.is_bestseller,
+                            "image_card": item.image_card,
+                            "image_thumb": item.image_thumb,
+                            "is_available": item.id not in unavailable_ids,
+                            "variants": variants_list,
+                            "option_groups": option_groups_list,
+                        }
+                    )
+
+                for cat in categories:
+                    cat_items = items_by_cat.get(str(cat.id), [])
+                    if cat_items:
+                        categories_payload.append(
+                            {
+                                "id": str(cat.id),
+                                "name": cat.name,
+                                "name_ta": cat.name_ta,
+                                "items": cat_items,
+                            }
+                        )
+
+            payload = {
+                "display_name": display_name,
+                "logo_url": logo_url,
+                "brand_primary_color": brand_color,
+                "branch_name": qr.branch.name,
+                "area_name": (
+                    qr.table.section.service_area.name
+                    if (qr.table and qr.table.section and qr.table.section.service_area)
+                    else (qr.service_area.name if qr.service_area else "")
+                ),
+                "target_type": target_type,
+                "target_label": target_label,
+                "ordering_mode": ordering_mode,
+                "payment_timing": payment_timing,
+                "session_policy": session_policy,
+                "active_session_open": active_session is not None,
+                "categories": categories_payload,
+            }
+
+            etag_raw = json.dumps(payload, sort_keys=True, separators=(",", ":")).encode("utf-8")
+            etag = f'"{hashlib.sha256(etag_raw).hexdigest()[:24]}"'
+            if request.META.get("HTTP_IF_NONE_MATCH") == etag:
+                resp_304 = Response(status=status.HTTP_304_NOT_MODIFIED)
+                resp_304["ETag"] = etag
+                resp_304["Cache-Control"] = "public, max-age=30"
+                return resp_304
+
+            resp = Response(payload, status=status.HTTP_200_OK)
+            resp["ETag"] = etag
+            resp["Cache-Control"] = "public, max-age=30"
+            return resp
+        finally:
+            reset_current_tenant(ctx_token)
+
+
+class PublicQROrderCreateView(APIView):
+    """Public unauthenticated endpoint to place a server-priced QR order."""
+
+    permission_classes = [AllowAny]
+    throttle_classes = [PublicQRIPThrottle, PublicQRTokenThrottle]
+
+    def post(self, request: Request, token: str) -> Response:
+        qr = _resolve_active_qr(token)
+        tenant = qr.branch.tenant
+        ctx_token = set_current_tenant(tenant)
+
+        try:
+            capabilities = getattr(qr.branch, "capabilities", None)
+            ordering_mode = (
+                capabilities.qr_ordering_mode
+                if capabilities
+                else QROrderingMode.ORDER_WITH_APPROVAL
+            )
+            payment_timing = (
+                capabilities.payment_timing if capabilities else PaymentTiming.PAY_LATER
+            )
+            session_policy = (
+                capabilities.qr_session_policy
+                if capabilities
+                else QRSessionPolicy.CUSTOMER_CAN_OPEN
+            )
+
+            if ordering_mode in (QROrderingMode.DISABLED, QROrderingMode.BROWSE_ONLY):
+                raise BusinessRuleError(
+                    "ORDERING_DISABLED",
+                    "Ordering from this QR code is currently disabled.",
+                    status_code=403,
+                )
+
+            idem_key = (
+                request.META.get("HTTP_IDEMPOTENCY_KEY")
+                or request.headers.get("Idempotency-Key")
+                or ""
+            ).strip()
+            if not idem_key or len(idem_key) > 128:
+                raise BusinessRuleError(
+                    "IDEMPOTENCY_KEY_REQUIRED",
+                    "A valid Idempotency-Key header is required.",
+                    status_code=400,
+                )
+
+            # Return existing order on idempotent retry
+            existing = Order.objects.filter(branch=qr.branch, idempotency_key=idem_key).first()
+            if existing:
+                return Response(
+                    {
+                        "order_number": existing.order_number,
+                        "token_number": existing.token_number,
+                        "status": existing.status,
+                        "payment_status": existing.payment_status,
+                        "customer_message_key": _status_message_key(existing, payment_timing),
+                        "tracking_token": existing.tracking_token,
+                        "tracking_url": f"/q/{token}/o/{existing.tracking_token}",
+                        "total_paise": existing.total_paise,
+                    },
+                    status=status.HTTP_200_OK,
+                )
+
+            limits = get_qr_limits()
+            items = request.data.get("items")
+            if not isinstance(items, list) or len(items) == 0:
+                raise BusinessRuleError(
+                    "INVALID_ORDER_ITEMS",
+                    "Order must include at least one item.",
+                    status_code=400,
+                )
+            if len(items) > limits["MAX_LINES_PER_ORDER"]:
+                raise BusinessRuleError(
+                    "ORDER_LIMIT_EXCEEDED",
+                    f"Maximum {limits['MAX_LINES_PER_ORDER']} items allowed per order.",
+                    status_code=400,
+                )
+
+            order_notes = str(request.data.get("notes") or "").strip()
+            if len(order_notes) > limits["MAX_ORDER_NOTE_CHARS"]:
+                raise BusinessRuleError(
+                    "NOTE_TOO_LONG",
+                    f"Order note cannot exceed {limits['MAX_ORDER_NOTE_CHARS']} characters.",
+                    status_code=400,
+                )
+
+            normalized_items: list[dict[str, Any]] = []
+            for idx, raw in enumerate(items):
+                if not isinstance(raw, dict) or not raw.get("menu_item_id"):
+                    raise BusinessRuleError(
+                        "INVALID_REFERENCE",
+                        f"Item at position {idx + 1} is invalid.",
+                        status_code=400,
+                    )
+                try:
+                    qty = int(raw.get("quantity", 1))
+                except (TypeError, ValueError):
+                    raise BusinessRuleError(
+                        "INVALID_QUANTITY",
+                        "Item quantity must be a whole number.",
+                        status_code=400,
+                    ) from None
+                if qty < limits["MIN_QTY_PER_LINE"] or qty > limits["MAX_QTY_PER_LINE"]:
+                    raise BusinessRuleError(
+                        "INVALID_QUANTITY",
+                        f"Quantity per item must be between {limits['MIN_QTY_PER_LINE']} and {limits['MAX_QTY_PER_LINE']}.",
+                        status_code=400,
+                    )
+
+                line_note = str(raw.get("notes") or "").strip()
+                if len(line_note) > limits["MAX_LINE_NOTE_CHARS"]:
+                    raise BusinessRuleError(
+                        "NOTE_TOO_LONG",
+                        f"Item note cannot exceed {limits['MAX_LINE_NOTE_CHARS']} characters.",
+                        status_code=400,
+                    )
+
+                option_ids = raw.get("option_ids") or []
+                if not isinstance(option_ids, list):
+                    raise BusinessRuleError(
+                        "INVALID_REFERENCE",
+                        "option_ids must be a list.",
+                        status_code=400,
+                    )
+
+                normalized_items.append(
+                    {
+                        "menu_item_id": str(raw["menu_item_id"]),
+                        "variant_id": str(raw["variant_id"]) if raw.get("variant_id") else None,
+                        "option_ids": [str(oid) for oid in option_ids],
+                        "quantity": qty,
+                        "notes": line_note,
+                    }
+                )
+
+            # Resolve table session or counter token
+            table_session: TableSession | None = None
+            token_number: int | None = None
+            target_type, _ = _build_target_label(qr)
+
+            if target_type in (QRTargetType.TABLE, QRTargetType.ROOM):
+                workflow = (
+                    OrderWorkflow.ROOM_SERVICE
+                    if target_type == QRTargetType.ROOM
+                    else OrderWorkflow.TABLE_SERVICE
+                )
+                raw_session_token = (
+                    request.META.get("HTTP_X_QR_SESSION") or request.data.get("session_token") or ""
+                ).strip()
+
+                if raw_session_token:
+                    signer = TimestampSigner(salt="qr-session")
+                    try:
+                        session_code = signer.unsign(raw_session_token, max_age=86400)
+                    except (BadSignature, SignatureExpired):
+                        raise BusinessRuleError(
+                            "INVALID_SESSION_TOKEN",
+                            "Table session token is invalid or expired.",
+                            status_code=403,
+                        ) from None
+                    table_session = TableSession.objects.filter(
+                        table=qr.table, session_code=session_code, status=SessionStatus.OPEN
+                    ).first()
+                    if not table_session:
+                        raise BusinessRuleError(
+                            "SESSION_CLOSED",
+                            "This table session is no longer open.",
+                            status_code=403,
+                        )
+                else:
+                    table_session = TableSession.objects.filter(
+                        table=qr.table, status=SessionStatus.OPEN
+                    ).first()
+                    if not table_session:
+                        if session_policy == QRSessionPolicy.STAFF_ONLY:
+                            raise BusinessRuleError(
+                                "STAFF_ACTION_REQUIRED",
+                                "This table requires staff to open a session.",
+                                status_code=403,
+                            )
+                        table_session = open_session(
+                            branch=qr.branch,
+                            table=qr.table,
+                            opened_via=OpenedVia.QR_CUSTOMER,
+                            guest_count=1,
+                            actor=None,
+                            request=request,
+                        )
+
+                # Per-session abuse checks
+                open_qr_count = Order.objects.filter(
+                    table_session=table_session,
+                    source=OrderSource.QR,
+                    status__in=[
+                        OrderStatus.PENDING_APPROVAL,
+                        OrderStatus.AWAITING_PAYMENT,
+                        OrderStatus.PLACED,
+                        OrderStatus.PREPARING,
+                        OrderStatus.READY,
+                    ],
+                ).count()
+                if open_qr_count >= limits["MAX_OPEN_QR_ORDERS_PER_SESSION"]:
+                    raise BusinessRuleError(
+                        "TOO_MANY_OPEN_ORDERS",
+                        "Too many active orders on this table. Please wait for current orders to be served.",
+                        status_code=429,
+                    )
+
+                ten_min_ago = timezone.now() - timedelta(minutes=10)
+                recent_qr_count = Order.objects.filter(
+                    table_session=table_session,
+                    source=OrderSource.QR,
+                    placed_at__gte=ten_min_ago,
+                ).count()
+                if recent_qr_count >= limits["MAX_QR_ORDERS_PER_10_MIN"]:
+                    raise BusinessRuleError(
+                        "ORDER_RATE_LIMIT",
+                        "Too many orders placed recently. Please wait a few minutes.",
+                        status_code=429,
+                    )
+            else:
+                workflow = OrderWorkflow.COUNTER_TOKEN
+                ten_min_ago = timezone.now() - timedelta(minutes=10)
+                recent_counter_count = Order.objects.filter(
+                    branch=qr.branch,
+                    source=OrderSource.QR,
+                    order_workflow=OrderWorkflow.COUNTER_TOKEN,
+                    placed_at__gte=ten_min_ago,
+                ).count()
+                if recent_counter_count >= limits["MAX_QR_ORDERS_PER_10_MIN"]:
+                    raise BusinessRuleError(
+                        "ORDER_RATE_LIMIT",
+                        "Too many orders placed recently. Please wait a few minutes.",
+                        status_code=429,
+                    )
+                token_number = next_token(qr.branch, qr.service_area)
+
+            if ordering_mode == QROrderingMode.ORDER_WITH_APPROVAL:
+                initial_status = OrderStatus.PENDING_APPROVAL
+            elif payment_timing == PaymentTiming.PAY_FIRST:
+                initial_status = OrderStatus.AWAITING_PAYMENT
+            else:
+                initial_status = OrderStatus.PLACED
+
+            tracking_token = secrets.token_urlsafe(16)
+
+            try:
+                with transaction.atomic():
+                    order = create_order(
+                        branch=qr.branch,
+                        items_data=normalized_items,
+                        user_membership=None,
+                        table_session=table_session,
+                        token_number=token_number,
+                        order_workflow=workflow,
+                        notes=order_notes,
+                        source=OrderSource.QR,
+                        initial_status=initial_status,
+                        payment_status=OrderPaymentStatus.UNPAID,
+                        tracking_token=tracking_token,
+                        idempotency_key=idem_key,
+                    )
+                    if order.total_paise > limits["MAX_ORDER_TOTAL_PAISE"]:
+                        raise BusinessRuleError(
+                            "ORDER_TOTAL_EXCEEDED",
+                            "Order total exceeds the maximum allowed for QR ordering.",
+                            status_code=400,
+                        )
+            except IntegrityError:
+                existing = Order.objects.filter(branch=qr.branch, idempotency_key=idem_key).first()
+                if existing:
+                    return Response(
+                        {
+                            "order_number": existing.order_number,
+                            "token_number": existing.token_number,
+                            "status": existing.status,
+                            "payment_status": existing.payment_status,
+                            "customer_message_key": _status_message_key(existing, payment_timing),
+                            "tracking_token": existing.tracking_token,
+                            "tracking_url": f"/q/{token}/o/{existing.tracking_token}",
+                            "total_paise": existing.total_paise,
+                        },
+                        status=status.HTTP_200_OK,
+                    )
+                raise
+
+            return Response(
+                {
+                    "order_number": order.order_number,
+                    "token_number": order.token_number,
+                    "status": order.status,
+                    "payment_status": order.payment_status,
+                    "customer_message_key": _status_message_key(order, payment_timing),
+                    "tracking_token": order.tracking_token,
+                    "tracking_url": f"/q/{token}/o/{order.tracking_token}",
+                    "total_paise": order.total_paise,
+                },
+                status=status.HTTP_201_CREATED,
+            )
+        finally:
+            reset_current_tenant(ctx_token)
+
+
+class PublicOrderTrackerView(APIView):
+    """Public read-only order status tracker by random 128-bit tracking_token."""
+
+    permission_classes = [AllowAny]
+    throttle_classes = [PublicOrderTrackThrottle]
+
+    def get(self, request: Request, tracking_token: str) -> Response:
+        order = (
+            Order.unscoped.select_related(
+                "branch", "branch__tenant", "branch__capabilities", "table_session__table"
+            )
+            .prefetch_related("items")
+            .filter(tracking_token=tracking_token)
+            .first()
+        )
+        if not order:
+            raise Http404("Order not found.")
+
+        limits = get_qr_limits()
+        if order.status in (OrderStatus.COMPLETED, OrderStatus.CANCELLED):
+            ref_time = order.completed_at or order.cancelled_at or order.updated_at
+            if ref_time and (timezone.now() - ref_time) > timedelta(
+                hours=limits["TRACKING_EXPIRE_HOURS"]
+            ):
+                raise Http404("Order tracking has expired.")
+
+        capabilities = getattr(order.branch, "capabilities", None)
+        payment_timing = capabilities.payment_timing if capabilities else PaymentTiming.PAY_LATER
+
+        target_label = ""
+        if order.table_session and order.table_session.table:
+            target_label = order.table_session.table.label
+        elif order.token_number is not None:
+            target_label = f"Token #{order.token_number}"
+
+        return Response(
+            {
+                "order_number": order.order_number,
+                "status": order.status,
+                "status_key": _status_message_key(order, payment_timing),
+                "payment_status": order.payment_status,
+                "payment_timing": payment_timing,
+                "target_label": target_label,
+                "token_number": order.token_number,
+                "rejected_reason": order.rejected_reason,
+                "total_paise": order.total_paise,
+                "placed_at": order.placed_at.isoformat() if order.placed_at else None,
+                "ready_at": order.ready_at.isoformat() if order.ready_at else None,
+                "served_at": order.served_at.isoformat() if order.served_at else None,
+                "completed_at": order.completed_at.isoformat() if order.completed_at else None,
+                "cancelled_at": order.cancelled_at.isoformat() if order.cancelled_at else None,
+                "items": [
+                    {
+                        "item_name": it.item_name,
+                        "variant_name": it.variant_name,
+                        "options": it.options_snapshot,
+                        "quantity": it.quantity,
+                        "notes": it.notes,
+                        "unit_price_paise": it.unit_price_paise,
+                        "subtotal_paise": it.subtotal_paise,
+                    }
+                    for it in order.items.all()
+                ],
+            },
+            status=status.HTTP_200_OK,
+        )

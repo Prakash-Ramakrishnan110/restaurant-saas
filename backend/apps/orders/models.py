@@ -12,12 +12,24 @@ class OrderWorkflow(models.TextChoices):
 
 
 class OrderStatus(models.TextChoices):
+    PENDING_APPROVAL = "PENDING_APPROVAL", "Pending Approval"
+    AWAITING_PAYMENT = "AWAITING_PAYMENT", "Awaiting Payment"
     PLACED = "PLACED", "Placed"
     PREPARING = "PREPARING", "Preparing"
     READY = "READY", "Ready to Serve"
     SERVED = "SERVED", "Served"
     COMPLETED = "COMPLETED", "Completed"
     CANCELLED = "CANCELLED", "Cancelled"
+
+
+class OrderSource(models.TextChoices):
+    STAFF = "STAFF", "Staff"
+    QR = "QR", "QR Code"
+
+
+class OrderPaymentStatus(models.TextChoices):
+    UNPAID = "UNPAID", "Unpaid"
+    PAID = "PAID", "Paid"
 
 
 class CourseType(models.TextChoices):
@@ -77,9 +89,37 @@ class Order(BranchOwnedModel):
         help_text="Sequential daily token number for counter service",
     )
     status = models.CharField(
-        max_length=20,
+        max_length=24,
         choices=OrderStatus.choices,
         default=OrderStatus.PLACED,
+        db_index=True,
+    )
+    source = models.CharField(
+        max_length=16,
+        choices=OrderSource.choices,
+        default=OrderSource.STAFF,
+        db_index=True,
+    )
+    payment_status = models.CharField(
+        max_length=16,
+        choices=OrderPaymentStatus.choices,
+        default=OrderPaymentStatus.UNPAID,
+        db_index=True,
+    )
+    tracking_token = models.CharField(
+        max_length=64,
+        unique=True,
+        null=True,
+        blank=True,
+        db_index=True,
+    )
+    rejected_reason = models.TextField(blank=True, default="")
+    completed_at = models.DateTimeField(null=True, blank=True)
+    cancelled_at = models.DateTimeField(null=True, blank=True)
+    idempotency_key = models.CharField(
+        max_length=128,
+        blank=True,
+        default="",
         db_index=True,
     )
     placed_by = models.ForeignKey(
@@ -99,6 +139,13 @@ class Order(BranchOwnedModel):
         indexes = [
             models.Index(fields=["tenant", "branch", "status"]),
             models.Index(fields=["table_session", "status"]),
+        ]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["branch", "idempotency_key"],
+                condition=~models.Q(idempotency_key=""),
+                name="unique_branch_order_idempotency_key",
+            )
         ]
 
     def __str__(self) -> str:
@@ -128,6 +175,8 @@ class OrderItem(UUIDModel, TimeStampedModel):
         related_name="order_items",
     )
     item_name = models.CharField(max_length=255)
+    variant_name = models.CharField(max_length=100, blank=True, default="")
+    options_snapshot = models.JSONField(default=list, blank=True)
     quantity = models.PositiveIntegerField(default=1)
     unit_price_paise = models.BigIntegerField(
         help_text="Snapshot unit price in paise at order time"

@@ -7,9 +7,10 @@ from django.utils import timezone
 from rest_framework.exceptions import ValidationError
 
 from apps.accounts.models import Membership
+from apps.audit.services import log_audit_event
 from apps.core.context import get_current_tenant, reset_current_tenant, set_current_tenant
 from apps.core.exceptions import BusinessRuleError
-from apps.menu.models import BranchItemAvailability, MenuItem
+from apps.menu.models import BranchItemAvailability, ItemOptionGroup, ItemVariant, MenuItem, Option
 from apps.orders.models import (
     BillInvoice,
     CourseType,
@@ -17,14 +18,23 @@ from apps.orders.models import (
     OrderEvent,
     OrderEventType,
     OrderItem,
+    OrderPaymentStatus,
+    OrderSource,
     OrderStatus,
     OrderWorkflow,
     PaymentMethod,
 )
 from apps.tenants.models import Branch, Tenant
+from apps.venues.constants import PaymentTiming
 from apps.venues.models import DiningTable, TableSession, TableStatus
 
 ALLOWED_TRANSITIONS: dict[str, list[str]] = {
+    OrderStatus.PENDING_APPROVAL: [
+        OrderStatus.PLACED,
+        OrderStatus.AWAITING_PAYMENT,
+        OrderStatus.CANCELLED,
+    ],
+    OrderStatus.AWAITING_PAYMENT: [OrderStatus.PLACED, OrderStatus.CANCELLED],
     OrderStatus.PLACED: [OrderStatus.PREPARING, OrderStatus.CANCELLED],
     OrderStatus.PREPARING: [OrderStatus.READY, OrderStatus.CANCELLED],
     OrderStatus.READY: [OrderStatus.SERVED, OrderStatus.CANCELLED],
@@ -62,6 +72,11 @@ def transition_order_status(
         order.ready_at = now
     elif new_status == OrderStatus.SERVED:
         order.served_at = now
+    elif new_status == OrderStatus.COMPLETED:
+        order.completed_at = now
+    elif new_status == OrderStatus.CANCELLED:
+        order.cancelled_at = now
+        order.rejected_reason = reason.strip()
 
     order.save()
 
@@ -100,6 +115,12 @@ def create_order(
     token_number: int | None = None,
     order_workflow: str = OrderWorkflow.TABLE_SERVICE,
     notes: str = "",
+    *,
+    source: str = OrderSource.STAFF,
+    initial_status: str = OrderStatus.PLACED,
+    payment_status: str = OrderPaymentStatus.UNPAID,
+    tracking_token: str | None = None,
+    idempotency_key: str = "",
 ) -> Order:
     """Creates a production kitchen order ticket with authoritative server-side pricing."""
     if not items_data:
@@ -123,14 +144,17 @@ def create_order(
             )
 
         # Bulk fetch menu items strictly within active tenant
-        item_ids = [item["menu_item_id"] for item in items_data]
+        item_ids = [str(item["menu_item_id"]) for item in items_data]
         menu_items_map = {
             str(mi.id): mi for mi in MenuItem.objects.filter(tenant=branch.tenant, id__in=item_ids)
         }
 
         if len(menu_items_map) != len(set(item_ids)):
-            missing = set(item_ids) - set(menu_items_map.keys())
-            raise ValidationError({"items": f"Invalid or foreign menu items: {list(missing)}"})
+            raise BusinessRuleError(
+                "INVALID_REFERENCE",
+                "One or more menu items are invalid.",
+                status_code=400,
+            )
 
         # Check for 86'd / sold-out items
         unavailable_item_ids = set(
@@ -139,14 +163,32 @@ def create_order(
             ).values_list("item_id", flat=True)
         )
 
+        sold_out_ids: list[str] = []
         for item_data in items_data:
             m_item = menu_items_map[str(item_data["menu_item_id"])]
             if not m_item.is_active or m_item.id in unavailable_item_ids:
-                raise ValidationError(
-                    {"items": f"'{m_item.name}' is currently sold out and cannot be ordered."}
-                )
+                sold_out_ids.append(str(m_item.id))
             if int(item_data.get("quantity", 1)) < 1:
                 raise ValidationError({"quantity": "Quantity must be at least 1."})
+
+        if sold_out_ids:
+            raise BusinessRuleError(
+                "ITEM_UNAVAILABLE",
+                "One or more selected items are currently sold out or unavailable.",
+                status_code=400,
+                details={"item_ids": sold_out_ids},
+            )
+
+        # Preload variants and option groups for selected items
+        variants_by_id = {str(v.id): v for v in ItemVariant.objects.filter(item_id__in=item_ids)}
+        item_option_links = (
+            ItemOptionGroup.objects.filter(item_id__in=item_ids, group__is_active=True)
+            .select_related("group")
+            .prefetch_related("group__options")
+        )
+        groups_by_item: dict[str, list[Any]] = {}
+        for link in item_option_links:
+            groups_by_item.setdefault(str(link.item_id), []).append(link.group)
 
         # Lock branch to serialize order sequence generation concurrently
         Branch.objects.select_for_update().only("id").get(pk=branch.pk)
@@ -162,7 +204,11 @@ def create_order(
             order_number=order_number,
             table_session=table_session,
             order_workflow=order_workflow,
-            status=OrderStatus.PLACED,
+            status=initial_status,
+            source=source,
+            payment_status=payment_status,
+            tracking_token=tracking_token,
+            idempotency_key=idempotency_key,
             token_number=token_number,
             placed_by=user_membership,
             notes=notes or "",
@@ -173,23 +219,100 @@ def create_order(
         for item_data in items_data:
             m_item = menu_items_map[str(item_data["menu_item_id"])]
             qty = int(item_data.get("quantity", 1))
-            unit_price = getattr(m_item, "base_price_paise", getattr(m_item, "price_paise", 0))
+            base_price = getattr(m_item, "base_price_paise", getattr(m_item, "price_paise", 0))
+            variant_name = ""
+
+            variant_id = item_data.get("variant_id")
+            if variant_id:
+                variant = variants_by_id.get(str(variant_id))
+                if not variant or str(variant.item_id) != str(m_item.id):
+                    raise BusinessRuleError(
+                        "INVALID_REFERENCE",
+                        "Selected variant is invalid for this item.",
+                        status_code=400,
+                    )
+                base_price = variant.price_paise
+                variant_name = variant.name
+
+            raw_option_ids = item_data.get("option_ids")
+            options_snapshot: list[dict[str, Any]] = []
+            options_extra_paise = 0
+
+            if raw_option_ids is not None or source == OrderSource.QR:
+                selected_ids = [str(oid) for oid in (raw_option_ids or [])]
+                item_groups = groups_by_item.get(str(m_item.id), [])
+                valid_options_by_id: dict[str, Option] = {}
+                group_option_ids: dict[str, set[str]] = {}
+                for grp in item_groups:
+                    opt_ids_for_grp: set[str] = set()
+                    for opt in grp.options.all():
+                        if opt.is_active:
+                            valid_options_by_id[str(opt.id)] = opt
+                            opt_ids_for_grp.add(str(opt.id))
+                    group_option_ids[str(grp.id)] = opt_ids_for_grp
+
+                for oid in selected_ids:
+                    if oid not in valid_options_by_id:
+                        raise BusinessRuleError(
+                            "INVALID_REFERENCE",
+                            "One or more selected options are invalid for this item.",
+                            status_code=400,
+                        )
+
+                selected_set = set(selected_ids)
+                for grp in item_groups:
+                    count_in_grp = len(selected_set & group_option_ids.get(str(grp.id), set()))
+                    if count_in_grp < grp.min_select or (
+                        grp.max_select > 0 and count_in_grp > grp.max_select
+                    ):
+                        raise ValidationError(
+                            {
+                                "options": (
+                                    f"Option group '{grp.name}' requires between "
+                                    f"{grp.min_select} and {grp.max_select} selections."
+                                )
+                            }
+                        )
+
+                for oid in selected_set:
+                    opt = valid_options_by_id[oid]
+                    options_extra_paise += opt.price_delta_paise
+                    options_snapshot.append(
+                        {
+                            "id": str(opt.id),
+                            "name": opt.name,
+                            "name_ta": opt.name_ta,
+                            "price_delta_paise": opt.price_delta_paise,
+                        }
+                    )
+
+            unit_price = base_price + options_extra_paise
             course = item_data.get("course", CourseType.MAIN)
             hold = bool(item_data.get("hold_mains", False) and course == CourseType.MAIN)
-            item_status = "PENDING" if hold else "COOKING"
+            item_status = (
+                "PENDING"
+                if (
+                    hold
+                    or initial_status
+                    in (OrderStatus.PENDING_APPROVAL, OrderStatus.AWAITING_PAYMENT)
+                )
+                else "COOKING"
+            )
 
             order_items.append(
                 OrderItem(
                     order=order,
                     menu_item=m_item,
                     item_name=m_item.name,
+                    variant_name=variant_name,
+                    options_snapshot=options_snapshot,
                     quantity=qty,
                     unit_price_paise=unit_price,
                     subtotal_paise=unit_price * qty,
                     course=course,
                     seat_number=item_data.get("seat_number"),
                     notes=item_data.get("special_instructions", item_data.get("notes", "")),
-                    is_fired=not hold,
+                    is_fired=not hold and initial_status == OrderStatus.PLACED,
                     status=item_status,
                 )
             )
@@ -202,7 +325,7 @@ def create_order(
             branch=branch,
             order=order,
             event_type=OrderEventType.CREATED,
-            to_status=OrderStatus.PLACED,
+            to_status=initial_status,
             user=user_membership,
             notes=notes or "Order placed",
         )
@@ -359,9 +482,12 @@ def settle_bill(
             status=OrderStatus.CANCELLED
         ):
             old_st = ord_obj.status
+            now = timezone.now()
             ord_obj.status = OrderStatus.COMPLETED
-            ord_obj.served_at = timezone.now()
-            ord_obj.save(update_fields=["status", "served_at"])
+            ord_obj.payment_status = OrderPaymentStatus.PAID
+            ord_obj.served_at = ord_obj.served_at or now
+            ord_obj.completed_at = now
+            ord_obj.save(update_fields=["status", "payment_status", "served_at", "completed_at"])
 
             OrderEvent.objects.create(
                 tenant=table_session.tenant,
@@ -457,20 +583,39 @@ def settle_order_bill(
         )
 
         old_st = order.status
-        order.status = OrderStatus.COMPLETED
-        order.served_at = timezone.now()
-        order.save(update_fields=["status", "served_at"])
+        now = timezone.now()
+        order.payment_status = OrderPaymentStatus.PAID
+        if old_st == OrderStatus.AWAITING_PAYMENT:
+            # Pay-first order becomes PLACED so kitchen can prepare it
+            order.status = OrderStatus.PLACED
+            order.save(update_fields=["status", "payment_status"])
+            order.items.filter(status="PENDING").update(status="COOKING", is_fired=True)
+            OrderEvent.objects.create(
+                tenant=order.tenant,
+                branch=order.branch,
+                order=order,
+                event_type=OrderEventType.STATUS_CHANGED,
+                from_status=old_st,
+                to_status=OrderStatus.PLACED,
+                user=user_membership,
+                notes=f"Pay-first order paid on invoice {invoice.invoice_number}; released to kitchen",
+            )
+        else:
+            order.status = OrderStatus.COMPLETED
+            order.served_at = order.served_at or now
+            order.completed_at = now
+            order.save(update_fields=["status", "payment_status", "served_at", "completed_at"])
 
-        OrderEvent.objects.create(
-            tenant=order.tenant,
-            branch=order.branch,
-            order=order,
-            event_type=OrderEventType.COMPLETED,
-            from_status=old_st,
-            to_status=OrderStatus.COMPLETED,
-            user=user_membership,
-            notes=f"Settled on counter invoice {invoice.invoice_number}",
-        )
+            OrderEvent.objects.create(
+                tenant=order.tenant,
+                branch=order.branch,
+                order=order,
+                event_type=OrderEventType.COMPLETED,
+                from_status=old_st,
+                to_status=OrderStatus.COMPLETED,
+                user=user_membership,
+                notes=f"Settled on counter invoice {invoice.invoice_number}",
+            )
         return invoice
     finally:
         if token is not None:
@@ -938,3 +1083,103 @@ def transfer_table_session(
         old_table.save(update_fields=["status"])
 
     return table_session
+
+
+@transaction.atomic
+def approve_qr_order(
+    order: Order,
+    user_membership: Membership | None = None,
+    request: Any = None,
+) -> Order:
+    """Approve a PENDING_APPROVAL QR order, moving it to AWAITING_PAYMENT (if PAY_FIRST) or PLACED."""
+    if order.status != OrderStatus.PENDING_APPROVAL:
+        raise BusinessRuleError(
+            "INVALID_STATUS_TRANSITION",
+            f"Order is in '{order.status}' status and cannot be approved.",
+            status_code=400,
+        )
+
+    capabilities = getattr(order.branch, "capabilities", None)
+    is_pay_first = bool(capabilities and capabilities.payment_timing == PaymentTiming.PAY_FIRST)
+    next_status = (
+        OrderStatus.AWAITING_PAYMENT
+        if is_pay_first and order.payment_status != OrderPaymentStatus.PAID
+        else OrderStatus.PLACED
+    )
+
+    order.status = next_status
+    order.save(update_fields=["status"])
+
+    if next_status == OrderStatus.PLACED:
+        order.items.filter(status="PENDING").update(status="COOKING", is_fired=True)
+
+    OrderEvent.objects.create(
+        tenant=order.tenant,
+        branch=order.branch,
+        order=order,
+        event_type=OrderEventType.STATUS_CHANGED,
+        from_status=OrderStatus.PENDING_APPROVAL,
+        to_status=next_status,
+        user=user_membership,
+        notes="QR order approved by staff",
+    )
+
+    log_audit_event(
+        action="order.qr_approved",
+        entity_type="Order",
+        entity_id=str(order.id),
+        actor=user_membership.user if user_membership else None,
+        tenant=order.tenant,
+        before_state={"status": OrderStatus.PENDING_APPROVAL},
+        after_state={"status": next_status},
+        request=request,
+    )
+    return order
+
+
+@transaction.atomic
+def reject_qr_order(
+    order: Order,
+    reason: str,
+    user_membership: Membership | None = None,
+    request: Any = None,
+) -> Order:
+    """Reject a PENDING_APPROVAL QR order with a mandatory customer-visible reason."""
+    clean_reason = (reason or "").strip()
+    if not clean_reason:
+        raise ValidationError({"reason": "A rejection reason is required."})
+
+    if order.status != OrderStatus.PENDING_APPROVAL:
+        raise BusinessRuleError(
+            "INVALID_STATUS_TRANSITION",
+            f"Order is in '{order.status}' status and cannot be rejected.",
+            status_code=400,
+        )
+
+    order.status = OrderStatus.CANCELLED
+    order.rejected_reason = clean_reason
+    order.cancelled_at = timezone.now()
+    order.save(update_fields=["status", "rejected_reason", "cancelled_at"])
+
+    OrderEvent.objects.create(
+        tenant=order.tenant,
+        branch=order.branch,
+        order=order,
+        event_type=OrderEventType.CANCELLED,
+        from_status=OrderStatus.PENDING_APPROVAL,
+        to_status=OrderStatus.CANCELLED,
+        user=user_membership,
+        notes=clean_reason,
+    )
+
+    log_audit_event(
+        action="order.qr_rejected",
+        entity_type="Order",
+        entity_id=str(order.id),
+        actor=user_membership.user if user_membership else None,
+        tenant=order.tenant,
+        before_state={"status": OrderStatus.PENDING_APPROVAL},
+        after_state={"status": OrderStatus.CANCELLED, "rejected_reason": clean_reason},
+        request=request,
+    )
+    return order

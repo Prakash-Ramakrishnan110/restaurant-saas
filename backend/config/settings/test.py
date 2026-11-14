@@ -51,4 +51,7 @@ REST_FRAMEWORK["DEFAULT_THROTTLE_RATES"] = {  # noqa: F405
     "login_ip": "10000/minute",
     "login_email": "10000/minute",
     "change_password": "10000/minute",
+    "public_qr_ip": "10000/minute",
+    "public_qr_token": "10000/minute",
+    "public_order_track": "10000/minute",
 }

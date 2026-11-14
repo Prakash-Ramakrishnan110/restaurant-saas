@@ -187,7 +187,22 @@ REST_FRAMEWORK = {
         "login_ip": "10/minute",
         "login_email": "5/minute",
         "change_password": "5/minute",
+        "public_qr_ip": "30/minute",
+        "public_qr_token": "20/minute",
+        "public_order_track": "60/minute",
     },
+}
+
+PUBLIC_QR_ORDER_LIMITS = {
+    "MAX_LINES_PER_ORDER": env.int("QR_MAX_LINES_PER_ORDER", default=30),
+    "MIN_QTY_PER_LINE": env.int("QR_MIN_QTY_PER_LINE", default=1),
+    "MAX_QTY_PER_LINE": env.int("QR_MAX_QTY_PER_LINE", default=10),
+    "MAX_LINE_NOTE_CHARS": env.int("QR_MAX_LINE_NOTE_CHARS", default=200),
+    "MAX_ORDER_NOTE_CHARS": env.int("QR_MAX_ORDER_NOTE_CHARS", default=300),
+    "MAX_OPEN_QR_ORDERS_PER_SESSION": env.int("QR_MAX_OPEN_ORDERS_PER_SESSION", default=3),
+    "MAX_QR_ORDERS_PER_10_MIN": env.int("QR_MAX_ORDERS_PER_10_MIN", default=5),
+    "MAX_ORDER_TOTAL_PAISE": env.int("QR_MAX_ORDER_TOTAL_PAISE", default=1_000_000),
+    "TRACKING_EXPIRE_HOURS": env.int("QR_TRACKING_EXPIRE_HOURS", default=12),
 }
 
 # SimpleJWT settings

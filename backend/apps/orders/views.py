@@ -34,6 +34,7 @@ from apps.orders.serializers import (
     SettleBillSerializer,
 )
 from apps.orders.services import (
+    approve_qr_order,
     calculate_bill,
     create_order,
     get_exceptions_report,
@@ -42,6 +43,7 @@ from apps.orders.services import (
     get_range_report,
     get_staff_report,
     get_today_report,
+    reject_qr_order,
     settle_bill,
     settle_order_bill,
     transition_order_status,
@@ -64,6 +66,8 @@ class OrderViewSet(viewsets.ModelViewSet):
         "cancel": Permission.ORDER_CANCEL,
         "serve": Permission.ORDER_CREATE,
         "fire_mains": Permission.ORDER_CREATE,
+        "approve": Permission.ORDER_CREATE,
+        "reject": Permission.ORDER_CREATE,
     }
 
     def get_queryset(self):
@@ -183,6 +187,39 @@ class OrderViewSet(viewsets.ModelViewSet):
             is_fired=True, status="COOKING"
         )
         return Response({"fired_count": updated_count, "order_id": str(order.id)})
+
+    def _check_qr_review_access(self, request: Request, order: Order) -> Any:
+        membership = getattr(request, "membership", None)
+        role = getattr(membership, "role", "")
+        if role not in {"OWNER", "BRANCH_MANAGER", "CASHIER", "WAITER"} and not getattr(
+            request.user, "is_platform_admin", False
+        ):
+            raise PermissionDenied(
+                "Only Owner, Branch Manager, Cashier, or Waiter can approve or reject QR orders."
+            )
+        if (
+            membership
+            and role != "OWNER"
+            and membership.branches.exists()
+            and not membership.branches.filter(id=order.branch_id).exists()
+        ):
+            raise PermissionDenied("You do not have access to this branch's orders.")
+        return membership
+
+    @action(detail=True, methods=["post"], url_path="approve")
+    def approve(self, request: Request, pk: str | None = None) -> Response:
+        order = self.get_object()
+        membership = self._check_qr_review_access(request, order)
+        updated = approve_qr_order(order, user_membership=membership, request=request)
+        return Response(OrderSerializer(updated).data, status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=["post"], url_path="reject")
+    def reject(self, request: Request, pk: str | None = None) -> Response:
+        order = self.get_object()
+        membership = self._check_qr_review_access(request, order)
+        reason = str(request.data.get("reason", "")).strip()
+        updated = reject_qr_order(order, reason=reason, user_membership=membership, request=request)
+        return Response(OrderSerializer(updated).data, status=status.HTTP_200_OK)
 
 
 class KDSViewSet(viewsets.ReadOnlyModelViewSet):

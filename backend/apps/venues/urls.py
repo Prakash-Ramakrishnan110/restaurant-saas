@@ -1,6 +1,11 @@
 from django.urls import include, path
 from rest_framework.routers import DefaultRouter
 
+from apps.orders.public_views import (
+    PublicOrderTrackerView,
+    PublicQRMenuView,
+    PublicQROrderCreateView,
+)
 from apps.venues.views import (
     BranchCapabilitiesView,
     DiningTableViewSet,
@@ -51,6 +56,21 @@ urlpatterns = [
         "public/qr/<str:token>/session/",
         PublicQROpenSessionView.as_view(),
         name="public-qr-session",
+    ),
+    path(
+        "public/qr/<str:token>/menu/",
+        PublicQRMenuView.as_view(),
+        name="public-qr-menu",
+    ),
+    path(
+        "public/qr/<str:token>/orders/",
+        PublicQROrderCreateView.as_view(),
+        name="public-qr-orders",
+    ),
+    path(
+        "public/orders/<str:tracking_token>/",
+        PublicOrderTrackerView.as_view(),
+        name="public-order-tracker",
     ),
     path("", include(router.urls)),
 ]
