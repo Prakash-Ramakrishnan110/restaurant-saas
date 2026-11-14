@@ -399,12 +399,12 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
       <OfflineBanner />
 
       {/* Top Application Bar */}
-      <header className="sticky top-0 z-30 shrink-0 border-b border-border bg-card/95 backdrop-blur px-4 sm:px-6 py-2.5 flex items-center justify-between">
-        <div className="flex items-center gap-4">
+      <header className="sticky top-0 z-30 shrink-0 border-b border-border bg-card/95 backdrop-blur px-2 sm:px-6 py-2 flex items-center justify-between gap-1 min-w-0">
+        <div className="flex items-center gap-1.5 sm:gap-4 min-w-0">
           <button
             type="button"
             onClick={() => setSidebarOpen(!sidebarOpen)}
-            className="md:hidden p-2 rounded-md hover:bg-muted text-foreground min-h-[44px] min-w-[44px] flex items-center justify-center"
+            className="md:hidden p-1.5 rounded-md hover:bg-muted text-foreground min-h-[40px] min-w-[40px] flex items-center justify-center shrink-0"
             aria-label="Toggle navigation menu"
           >
             {sidebarOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
@@ -412,9 +412,9 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
 
           <Link
             to={user?.is_platform_admin ? "/admin" : "/dashboard"}
-            className="flex items-center"
+            className="flex items-center shrink-0"
           >
-            <BrandLogo size={32} theme={theme === "dark" ? "dark" : "auto"} />
+            <BrandLogo size={28} theme={theme === "dark" ? "dark" : "auto"} />
           </Link>
 
           {/* Quick Command Palette Button */}
@@ -453,7 +453,7 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
         </div>
 
         {/* Status Pills & Controls */}
-        <div className="flex items-center gap-2 sm:gap-3">
+        <div className="flex items-center gap-0.5 sm:gap-3 shrink-0">
           {/* Connection Status Indicator */}
           <div
             className={`hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold border ${
@@ -471,11 +471,11 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
             variant="ghost"
             size="sm"
             onClick={toggleLanguage}
-            className="text-xs font-semibold min-h-[36px]"
+            className="text-xs font-semibold min-h-[36px] px-1.5 sm:px-2.5"
             aria-label="Switch language"
           >
-            <Globe className="h-3.5 w-3.5 mr-1" />
-            {i18n.language.startsWith("ta") ? "தமிழ்" : "EN"}
+            <Globe className="h-3.5 w-3.5 sm:mr-1" />
+            <span className="ml-0.5">{i18n.language.startsWith("ta") ? "தமிழ்" : "EN"}</span>
           </Button>
 
           {/* Sound Alerts Switcher */}
@@ -514,7 +514,7 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
                 setSupportOpen(true);
                 setSupportTab(tenantTickets.length > 0 ? "history" : "new");
               }}
-              className="text-xs font-semibold min-h-[36px] gap-1.5 border-border hover:border-[#FF6A00] relative"
+              className="hidden sm:inline-flex text-xs font-semibold min-h-[36px] gap-1.5 border-border hover:border-[#FF6A00] relative"
               aria-label="Open support desk"
             >
               <LifeBuoy className="h-3.5 w-3.5 text-[#FF6A00]" />
@@ -532,7 +532,7 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
           )}
 
           {/* User & Sign Out */}
-          <div className="flex items-center gap-2 border-l border-border pl-2 sm:pl-3">
+          <div className="flex items-center gap-1 sm:gap-2 border-l border-border pl-1 sm:pl-3">
             <span className="hidden lg:inline text-xs font-medium text-foreground">
               {user?.full_name}
             </span>
@@ -540,7 +540,7 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
               variant="outline"
               size="sm"
               onClick={handleLogout}
-              className="text-xs min-h-[36px]"
+              className="text-xs min-h-[36px] px-2 sm:px-3"
               aria-label="Sign out"
             >
               <LogOut className="h-3.5 w-3.5 sm:mr-1" />

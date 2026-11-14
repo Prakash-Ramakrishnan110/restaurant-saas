@@ -86,13 +86,13 @@ export const KDSPage: React.FC = () => {
   const ticketList = Array.isArray(tickets) ? tickets : [];
 
   return (
-    <div className="flex flex-col h-[calc(100vh-4rem)] bg-background font-sans overflow-hidden">
+    <div className="flex flex-col min-h-[calc(100vh-8rem)] md:h-[calc(100vh-4rem)] bg-background font-sans md:overflow-hidden">
       {/* Header Bar */}
-      <div className="border-b border-border bg-card px-4 py-3 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <ChefHat className="h-6 w-6 text-[#FF6A00]" />
-          <div>
-            <h1 className="text-lg font-extrabold font-heading text-foreground">
+      <div className="border-b border-border bg-card px-3 sm:px-4 py-3 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
+        <div className="flex items-center gap-3 min-w-0">
+          <ChefHat className="h-6 w-6 shrink-0 text-[#FF6A00]" />
+          <div className="min-w-0">
+            <h1 className="text-base sm:text-lg font-extrabold font-heading text-foreground leading-tight">
               Kitchen Display System (KDS)
             </h1>
             <p className="text-xs text-muted-foreground">
@@ -102,8 +102,8 @@ export const KDSPage: React.FC = () => {
         </div>
 
         {/* Station Filter & Sound Toggle */}
-        <div className="flex items-center gap-2">
-          <div className="flex gap-1 border border-border rounded-lg p-0.5 bg-muted/40">
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="flex flex-wrap gap-1 border border-border rounded-lg p-0.5 bg-muted/40 max-w-full">
             {STATIONS.map((st) => (
               <button
                 key={st.id}
@@ -154,7 +154,7 @@ export const KDSPage: React.FC = () => {
       </div>
 
       {/* Ticket Cards Grid */}
-      <div className="flex-1 overflow-x-auto p-4 flex gap-4 items-start">
+      <div className="flex-1 p-3 sm:p-4 grid grid-cols-1 md:flex md:flex-row md:overflow-x-auto gap-4 items-start">
         {ticketList.length === 0 ? (
           <div className="w-full h-full flex flex-col items-center justify-center text-center p-12 text-muted-foreground">
             <CheckCircle2 className="h-12 w-12 text-emerald-500/40 mb-3" />
@@ -171,9 +171,9 @@ export const KDSPage: React.FC = () => {
             return (
               <div
                 key={t.id}
-                className={`w-80 shrink-0 rounded-xl border flex flex-col bg-card shadow-sm transition-all ${
+                className={`w-full md:w-80 md:shrink-0 rounded-xl border flex flex-col bg-card shadow-sm transition-all ${
                   isLate
-                    ? "border-destructive ring-2 ring-destructive/40 animate-pulse bg-red-50/20 dark:bg-red-950/20"
+                    ? "border-destructive ring-2 ring-destructive/40 bg-red-50/20 dark:bg-red-950/20"
                     : isWarning
                       ? "border-amber-400 bg-amber-50/20 dark:bg-amber-950/20"
                       : "border-border"
@@ -245,7 +245,7 @@ export const KDSPage: React.FC = () => {
                   {t.status === "PLACED" && (
                     <Button
                       onClick={() => handleBump(t.id)}
-                      className="w-full h-10 font-bold text-xs bg-amber-500 hover:bg-amber-600 text-white gap-1.5"
+                      className="w-full h-10 font-bold text-xs bg-[#FF6A00] hover:bg-[#E05D00] text-[#0B1F3B] gap-1.5"
                     >
                       <Flame className="h-4 w-4" /> Start Cooking
                     </Button>
