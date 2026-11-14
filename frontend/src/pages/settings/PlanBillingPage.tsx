@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { CreditCard, CheckCircle2, AlertTriangle, Sparkles, Layers } from "lucide-react";
+import { CreditCard, AlertTriangle, Layers, Calendar, Clock } from "lucide-react";
 import { PageHeader } from "../../components/app/PageHeader";
 import {
   Card,
@@ -10,7 +10,6 @@ import {
 } from "../../components/ui/card";
 import { Badge } from "../../components/ui/badge";
 import { apiClient } from "../../api/client";
-import { unwrapList } from "../../api/pagination";
 import { formatRupees } from "../../utils/currency";
 import { mapBackendErrorCode } from "../../lib/errorMapper";
 
@@ -23,7 +22,13 @@ interface LimitMetric {
 
 interface EntitlementsSummary {
   plan_name: string;
+  price_paise: number;
   status: string;
+  starts_at: string | null;
+  ends_at: string | null;
+  days_remaining: number | null;
+  is_expired: boolean;
+  is_expiring_soon: boolean;
   limits: {
     max_branches?: LimitMetric;
     max_service_areas?: LimitMetric;
@@ -31,16 +36,6 @@ interface EntitlementsSummary {
     max_menu_items?: LimitMetric;
     max_image_storage_mb?: LimitMetric;
   };
-  features?: Record<string, boolean>;
-}
-
-interface PlanOption {
-  id: string;
-  name: string;
-  slug: string;
-  price_paise: number;
-  entitlements: Record<string, number | boolean | null>;
-  is_active: boolean;
 }
 
 const LIMIT_LABELS: Array<{
@@ -55,21 +50,36 @@ const LIMIT_LABELS: Array<{
   { key: "max_image_storage_mb", label: "Image Storage", unit: "MB" },
 ];
 
-const FEATURE_LABELS: Record<string, string> = {
-  floor_editor: "Visual Floor Plan Editor",
-  table_merge: "Table Join & Split",
-  courses: "Multi-Course Kitchen Firing",
-  allows_huts: "Dhaba Huts & Lawn Seating",
-  allows_waiter_call: "QR Waiter Call Alerts",
-  allows_minimum_spend: "Minimum Spend Controls",
-  allows_room_service: "Hotel Room Service",
-  allows_room_folio: "Hotel Room Folio Billing",
-  kds_multi_station: "Multi-Station KDS Routing",
-};
+function formatDateLabel(iso: string | null | undefined, fallback: string): string {
+  if (!iso) return fallback;
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) return fallback;
+  return date.toLocaleDateString("en-IN", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  });
+}
+
+function formatRemainingLabel(
+  daysRemaining: number | null | undefined,
+  isExpired: boolean | undefined
+): string {
+  if (daysRemaining === null || daysRemaining === undefined) {
+    return isExpired ? "Expired" : "Ongoing";
+  }
+  if (daysRemaining < 0) {
+    const overdue = Math.abs(daysRemaining);
+    return `Expired ${overdue} ${overdue === 1 ? "day" : "days"} ago`;
+  }
+  if (daysRemaining === 0) {
+    return isExpired ? "Expired today" : "Expires today";
+  }
+  return `${daysRemaining} ${daysRemaining === 1 ? "day" : "days"} remaining`;
+}
 
 export const PlanBillingPage: React.FC = () => {
   const [summary, setSummary] = useState<EntitlementsSummary | null>(null);
-  const [plans, setPlans] = useState<PlanOption[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -79,13 +89,9 @@ export const PlanBillingPage: React.FC = () => {
       setLoading(true);
       setError(null);
       try {
-        const [entRes, plansRes] = await Promise.all([
-          apiClient.get<EntitlementsSummary>("/entitlements/"),
-          apiClient.get<PlanOption[] | { results: PlanOption[] }>("/plans/"),
-        ]);
+        const entRes = await apiClient.get<EntitlementsSummary>("/entitlements/");
         if (!mounted) return;
         setSummary(entRes.data);
-        setPlans(unwrapList<PlanOption>(plansRes.data));
       } catch (err) {
         if (!mounted) return;
         setError(mapBackendErrorCode(err));
@@ -99,15 +105,21 @@ export const PlanBillingPage: React.FC = () => {
     };
   }, []);
 
-  const currentPlanMatch = plans.find(
-    (p) => summary && p.name.toLowerCase() === summary.plan_name.toLowerCase()
-  );
+  const isExpiredState =
+    Boolean(summary?.is_expired) ||
+    summary?.status === "EXPIRED" ||
+    summary?.status === "SUSPENDED";
+  const isExpiringSoonState =
+    !isExpiredState &&
+    (Boolean(summary?.is_expiring_soon) ||
+      summary?.status === "EXPIRING" ||
+      summary?.status === "GRACE");
 
   return (
     <div className="space-y-6">
       <PageHeader
         title="Your Plan & Billing"
-        description="View your active subscription plan, usage limits, and included capabilities."
+        description="Active subscription details, renewal timeline, and live resource usage."
         breadcrumbs={[
           { label: "Dashboard", href: "/dashboard" },
           { label: "Settings" },
@@ -126,13 +138,57 @@ export const PlanBillingPage: React.FC = () => {
       )}
 
       {loading ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <Card className="h-40 animate-pulse bg-muted/40" />
-          <Card className="h-40 animate-pulse bg-muted/40" />
+        <div className="space-y-4">
+          <Card className="h-44 animate-pulse bg-muted/40" />
+          <Card className="h-44 animate-pulse bg-muted/40" />
         </div>
       ) : (
         <>
-          {/* Current Plan Summary */}
+          {/* Expiry / Renewal Lifecycle Alert */}
+          {isExpiredState && summary && (
+            <div
+              role="alert"
+              className="rounded-xl border border-destructive/40 bg-destructive/10 p-4 flex items-start gap-3"
+            >
+              <AlertTriangle className="h-5 w-5 text-destructive shrink-0 mt-0.5" />
+              <div className="space-y-1 text-sm">
+                <p className="font-bold text-destructive">
+                  Subscription {summary.status === "SUSPENDED" ? "Suspended" : "Expired"} —{" "}
+                  {formatRemainingLabel(summary.days_remaining, true)}
+                </p>
+                <p className="text-foreground/90">
+                  Your <strong>{summary.plan_name}</strong>{" "}
+                  {summary.ends_at
+                    ? `ended on ${formatDateLabel(summary.ends_at, "—")}.`
+                    : "is currently inactive."}{" "}
+                  Operations such as placing new orders, adding branches, or creating tables may be
+                  restricted until the subscription is renewed. Contact your ServeMyFood account
+                  administrator to renew and restore full access.
+                </p>
+              </div>
+            </div>
+          )}
+
+          {isExpiringSoonState && summary && (
+            <div
+              role="status"
+              className="rounded-xl border border-amber-500/40 bg-amber-500/10 p-4 flex items-start gap-3"
+            >
+              <Clock className="h-5 w-5 text-amber-600 shrink-0 mt-0.5" />
+              <div className="space-y-1 text-sm">
+                <p className="font-bold text-amber-800 dark:text-amber-300">
+                  Subscription Expiring Soon — {formatRemainingLabel(summary.days_remaining, false)}
+                </p>
+                <p className="text-foreground/90">
+                  Your <strong>{summary.plan_name}</strong> is scheduled to expire on{" "}
+                  <strong>{formatDateLabel(summary.ends_at, "—")}</strong>. Renew before this date
+                  to avoid service interruption.
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* Active Plan Summary */}
           <Card>
             <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
               <div className="flex items-start gap-3">
@@ -144,32 +200,78 @@ export const PlanBillingPage: React.FC = () => {
                     {summary?.plan_name || "Active Subscription"}
                   </CardTitle>
                   <CardDescription>
-                    Current subscription status and monthly plan rate
+                    Current subscription status, billing cycle, and monthly plan rate
                   </CardDescription>
                 </div>
               </div>
               <div className="flex items-center gap-3">
                 <Badge
-                  variant={summary?.status === "ACTIVE" ? "default" : "secondary"}
+                  variant={
+                    isExpiredState
+                      ? "destructive"
+                      : summary?.status === "ACTIVE"
+                        ? "default"
+                        : "secondary"
+                  }
                   className={
-                    summary?.status === "ACTIVE"
+                    !isExpiredState && summary?.status === "ACTIVE"
                       ? "bg-[#FF6A00] text-[#0B1F3B] font-bold"
                       : "font-semibold"
                   }
                 >
                   {summary?.status || "UNKNOWN"}
                 </Badge>
-                {currentPlanMatch && (
+                {summary && (
                   <span className="font-heading font-extrabold text-xl text-foreground">
-                    {formatRupees(currentPlanMatch.price_paise)}
+                    {formatRupees(summary.price_paise)}
                     <span className="text-xs font-normal text-muted-foreground"> / month</span>
                   </span>
                 )}
               </div>
             </CardHeader>
+
+            {summary && (
+              <CardContent className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-0">
+                <div className="rounded-lg border border-border bg-background p-3">
+                  <div className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground">
+                    <Calendar className="h-3.5 w-3.5 text-[#FF6A00]" />
+                    Start Date
+                  </div>
+                  <div className="mt-1 text-sm font-bold text-foreground">
+                    {formatDateLabel(summary.starts_at, "—")}
+                  </div>
+                </div>
+                <div className="rounded-lg border border-border bg-background p-3">
+                  <div className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground">
+                    <Calendar className="h-3.5 w-3.5 text-[#FF6A00]" />
+                    Expiry / Renewal Date
+                  </div>
+                  <div className="mt-1 text-sm font-bold text-foreground">
+                    {formatDateLabel(summary.ends_at, "No expiry set")}
+                  </div>
+                </div>
+                <div className="rounded-lg border border-border bg-background p-3">
+                  <div className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground">
+                    <Clock className="h-3.5 w-3.5 text-[#FF6A00]" />
+                    Validity Status
+                  </div>
+                  <div
+                    className={`mt-1 text-sm font-bold ${
+                      isExpiredState
+                        ? "text-destructive"
+                        : isExpiringSoonState
+                          ? "text-amber-600"
+                          : "text-foreground"
+                    }`}
+                  >
+                    {formatRemainingLabel(summary.days_remaining, isExpiredState)}
+                  </div>
+                </div>
+              </CardContent>
+            )}
           </Card>
 
-          {/* Usage & Limits */}
+          {/* Resource Usage & Limits */}
           <Card>
             <CardHeader>
               <CardTitle className="text-base flex items-center gap-2">
@@ -185,8 +287,9 @@ export const PlanBillingPage: React.FC = () => {
                 const metric = summary?.limits?.[key];
                 if (!metric) return null;
                 const limitVal = metric.limit;
+                const isUnlimited = limitVal === null || limitVal < 0;
                 const pct =
-                  limitVal && limitVal > 0
+                  !isUnlimited && limitVal > 0
                     ? Math.min(100, Math.round((metric.current / limitVal) * 100))
                     : 0;
                 return (
@@ -206,10 +309,10 @@ export const PlanBillingPage: React.FC = () => {
                       {metric.current}
                       {unit ? ` ${unit}` : ""}{" "}
                       <span className="text-xs font-normal text-muted-foreground">
-                        / {limitVal === null ? "Unlimited" : `${limitVal}${unit ? ` ${unit}` : ""}`}
+                        / {isUnlimited ? "Unlimited" : `${limitVal}${unit ? ` ${unit}` : ""}`}
                       </span>
                     </div>
-                    {limitVal !== null && (
+                    {!isUnlimited && (
                       <div className="h-2 w-full rounded-full bg-muted overflow-hidden">
                         <div
                           className={`h-full rounded-full transition-all ${
@@ -224,89 +327,6 @@ export const PlanBillingPage: React.FC = () => {
               })}
             </CardContent>
           </Card>
-
-          {/* Included Features */}
-          {summary?.features && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-base flex items-center gap-2">
-                  <Sparkles className="h-4 w-4 text-[#FF6A00]" />
-                  Included Capabilities
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="flex flex-wrap gap-2">
-                {Object.entries(summary.features).map(([key, enabled]) => {
-                  if (!enabled) return null;
-                  return (
-                    <Badge
-                      key={key}
-                      variant="outline"
-                      className="px-3 py-1 text-xs font-medium flex items-center gap-1.5"
-                    >
-                      <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
-                      {FEATURE_LABELS[key] || key}
-                    </Badge>
-                  );
-                })}
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Available Plans */}
-          {plans.length > 0 && (
-            <div className="space-y-3">
-              <h2 className="text-base font-bold font-heading text-foreground">Available Plans</h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                {plans.map((plan) => {
-                  const isCurrent =
-                    summary && plan.name.toLowerCase() === summary.plan_name.toLowerCase();
-                  return (
-                    <Card
-                      key={plan.id}
-                      className={
-                        isCurrent ? "border-[#FF6A00] ring-1 ring-[#FF6A00]/40" : "border-border"
-                      }
-                    >
-                      <CardHeader className="pb-2">
-                        <div className="flex items-center justify-between gap-2">
-                          <CardTitle className="text-base">{plan.name}</CardTitle>
-                          {isCurrent && (
-                            <Badge className="bg-[#FF6A00] text-[#0B1F3B] text-[10px] font-bold">
-                              Current
-                            </Badge>
-                          )}
-                        </div>
-                        <div className="text-2xl font-extrabold font-heading text-foreground pt-1">
-                          {formatRupees(plan.price_paise)}
-                          <span className="text-xs font-normal text-muted-foreground"> / mo</span>
-                        </div>
-                      </CardHeader>
-                      <CardContent className="text-xs text-muted-foreground space-y-1.5">
-                        <div>
-                          Branches:{" "}
-                          <strong className="text-foreground">
-                            {plan.entitlements?.max_branches ?? "Unlimited"}
-                          </strong>
-                        </div>
-                        <div>
-                          Tables / Rooms:{" "}
-                          <strong className="text-foreground">
-                            {plan.entitlements?.max_tables ?? "Unlimited"}
-                          </strong>
-                        </div>
-                        <div>
-                          Menu Items:{" "}
-                          <strong className="text-foreground">
-                            {plan.entitlements?.max_menu_items ?? "Unlimited"}
-                          </strong>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  );
-                })}
-              </div>
-            </div>
-          )}
         </>
       )}
     </div>

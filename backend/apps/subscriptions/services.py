@@ -1,7 +1,9 @@
 from typing import Any
 
+from django.utils import timezone
+
 from apps.core.exceptions import BusinessRuleError
-from apps.subscriptions.constants import ALLOWED_SUBSCRIPTION_STATUSES
+from apps.subscriptions.constants import ALLOWED_SUBSCRIPTION_STATUSES, SubscriptionStatus
 
 
 class EntitlementLimitReached(BusinessRuleError):
@@ -85,7 +87,19 @@ def get_tenant_entitlements_summary(tenant: Any) -> dict[str, Any]:
 
     subscription = Subscription.objects.select_related("plan").filter(tenant_id=tenant.id).first()
     plan_name = subscription.plan.name if subscription and subscription.plan else "Free Trial"
+    price_paise = subscription.plan.price_paise if subscription and subscription.plan else 0
     status_str = subscription.status if subscription else "NONE"
+    starts_at = subscription.starts_at if subscription else None
+    ends_at = subscription.ends_at if subscription else None
+    now = timezone.now()
+    days_remaining = (ends_at.date() - now.date()).days if ends_at is not None else None
+    is_expired = status_str in {SubscriptionStatus.EXPIRED, SubscriptionStatus.SUSPENDED} or (
+        ends_at is not None and ends_at < now
+    )
+    is_expiring_soon = not is_expired and (
+        status_str in {SubscriptionStatus.EXPIRING, SubscriptionStatus.GRACE}
+        or (days_remaining is not None and days_remaining <= 7)
+    )
 
     branch_count = Branch.objects.filter(tenant=tenant, is_active=True).count()
     sa_count = ServiceArea.objects.filter(tenant=tenant).count()
@@ -122,16 +136,22 @@ def get_tenant_entitlements_summary(tenant: Any) -> dict[str, Any]:
     kds_multi_station = bool(get_entitlement(tenant, "kds_multi_station", False))
 
     def calc_remaining(limit_val: int | None, current_val: int) -> int | None:
-        if limit_val is None:
+        if limit_val is None or limit_val < 0:
             return None
         return max(0, limit_val - current_val)
 
     def is_over(limit_val: int | None, current_val: int) -> bool:
-        return limit_val is not None and current_val > limit_val
+        return limit_val is not None and limit_val >= 0 and current_val > limit_val
 
     return {
         "plan_name": plan_name,
+        "price_paise": price_paise,
         "status": status_str,
+        "starts_at": starts_at.isoformat() if starts_at else None,
+        "ends_at": ends_at.isoformat() if ends_at else None,
+        "days_remaining": days_remaining,
+        "is_expired": is_expired,
+        "is_expiring_soon": is_expiring_soon,
         "limits": {
             "max_branches": {
                 "limit": max_branches,

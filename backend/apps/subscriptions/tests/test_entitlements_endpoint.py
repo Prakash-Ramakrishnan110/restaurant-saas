@@ -188,3 +188,56 @@ def test_plans_list_view(entitlements_fixture):
     assert pro["name"] == "Pro Restaurant Plan"
     assert pro["price_paise"] == 499900
     assert pro["entitlements"]["max_branches"] == 2
+
+
+@pytest.mark.django_db
+def test_entitlements_unlimited_and_expiry_lifecycle(entitlements_fixture):
+    """Verify -1 limits normalize to None (unlimited) and expiry metadata is returned."""
+    from datetime import timedelta
+
+    from django.utils import timezone
+
+    from apps.subscriptions.services import get_tenant_entitlements_summary
+
+    fixture = entitlements_fixture
+    enterprise_plan = Plan.objects.create(
+        name="Enterprise Unlimited",
+        slug="enterprise-unlimited",
+        price_paise=1999900,
+        entitlements={
+            "max_branches": -1,
+            "max_service_areas": -1,
+            "max_tables": -1,
+            "max_menu_items": 500,
+        },
+    )
+    sub = Subscription.objects.get(tenant=fixture["tenant_a"])
+    sub.plan = enterprise_plan
+    sub.status = SubscriptionStatus.GRACE
+    sub.ends_at = timezone.now() - timedelta(days=5)
+    sub.save()
+
+    client = make_client(fixture["owner_a"], fixture["tenant_a"])
+    res = client.get("/api/v1/entitlements/")
+    assert res.status_code == status.HTTP_200_OK
+    assert res.data["plan_name"] == "Enterprise Unlimited"
+    assert res.data["price_paise"] == 1999900
+    assert res.data["status"] == SubscriptionStatus.GRACE
+    assert res.data["is_expired"] is True
+    assert res.data["is_expiring_soon"] is False
+    assert res.data["days_remaining"] == -5
+    assert res.data["starts_at"] is not None
+    assert res.data["ends_at"] is not None
+
+    branches_limit = res.data["limits"]["max_branches"]
+    assert branches_limit["limit"] is None
+    assert branches_limit["remaining"] is None
+    assert branches_limit["over_limit"] is False
+
+    # Also verify EXPIRED status directly in summary service
+    sub.status = SubscriptionStatus.EXPIRED
+    sub.save()
+    direct_summary = get_tenant_entitlements_summary(fixture["tenant_a"])
+    assert direct_summary["status"] == SubscriptionStatus.EXPIRED
+    assert direct_summary["is_expired"] is True
+    assert direct_summary["days_remaining"] == -5
