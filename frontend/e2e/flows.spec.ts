@@ -84,7 +84,7 @@ test.describe("ServeMyFood 8 Core E2E Flows", () => {
     await page.getByRole("button", { name: /Sign In|உள்நுழைக/i }).click();
 
     await expect(page).toHaveURL(/.*dashboard/);
-    await expect(page.getByText("Manage Tables")).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Venue Layout" })).toBeVisible();
 
     // Trigger logout
     const logoutBtn = page.getByRole("button", { name: /Sign Out/i }).first();
@@ -231,7 +231,7 @@ test.describe("ServeMyFood 8 Core E2E Flows", () => {
     await page.getByLabel(/Confirm New Password/i).fill("PermanentPass123!");
     await page.getByRole("button", { name: /Update Password/i }).click();
 
-    await expect(page).toHaveURL(/.*dashboard/);
+    await expect(page).toHaveURL(/.*pos/);
   });
 
   // Flow 5: Tenant Suspension Page

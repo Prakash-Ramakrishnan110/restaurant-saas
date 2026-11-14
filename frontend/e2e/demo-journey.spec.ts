@@ -284,7 +284,7 @@ async function setupDemoMockRoutes(page: any, state: DemoState) {
     });
   });
 
-  await page.route(/\/api\/v1\/sessions/, async (route: any) => {
+  await page.route(/\/api\/v1\/(table-)?sessions/, async (route: any) => {
     const mockSessions = [
       {
         id: "sess-t1",

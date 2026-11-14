@@ -86,7 +86,7 @@ async function setupMenuRoutes(page: any, role: string = "OWNER") {
     });
   });
 
-  await page.route("**/api/v1/subscriptions/entitlements/", async (route: any) => {
+  await page.route("**/api/v1/entitlements/", async (route: any) => {
     await route.fulfill({
       status: 200,
       contentType: "application/json",

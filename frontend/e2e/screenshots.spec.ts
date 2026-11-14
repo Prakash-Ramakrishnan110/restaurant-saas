@@ -158,7 +158,7 @@ async function loginAsSeededOwner(page: any) {
   // Assert Dashboard content is rendered
   await expect(page.locator("h1")).toBeVisible();
   await expect(page.getByRole("main").getByText("Spice Garden")).toBeVisible();
-  await expect(page.getByText("Manage Tables")).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Venue Layout" })).toBeVisible();
   await expect(page.getByText("Onboarding Checklist")).toBeVisible();
   await expect(page.getByRole("heading", { name: "Your plan" })).toBeVisible();
 

@@ -161,7 +161,7 @@ async function setupOperationsMock(
     },
   ];
 
-  await page.route("**/api/v1/sessions/**", async (route: any) => {
+  await page.route("**/api/v1/table-sessions/**", async (route: any) => {
     if (route.request().method() === "POST") {
       const newSess = {
         id: "sess-new",
@@ -501,10 +501,10 @@ test.describe("Production Operational & Sidebar Suite", () => {
     await ensureSidebarVisible(page);
 
     // Owner must see all operational daily work links
-    await expect(page.getByRole("link", { name: "Floor POS" })).toBeVisible();
+    await expect(page.getByRole("link", { name: "Floor POS", exact: true })).toBeVisible();
     await expect(page.getByRole("link", { name: "Kitchen KDS" })).toBeVisible();
     await expect(page.getByRole("link", { name: "Cashier Billing" })).toBeVisible();
-    await expect(page.getByRole("link", { name: "Menu", exact: true })).toBeVisible();
+    await expect(page.getByRole("link", { name: "Menu", exact: true }).first()).toBeVisible();
 
     // Owner must NOT see Super Admin by default
     await expect(page.getByText("Super Admin")).not.toBeVisible();
@@ -653,8 +653,8 @@ test.describe("Production Operational & Sidebar Suite", () => {
     await page.waitForLoadState("networkidle");
 
     // Header
-    await expect(page.getByText("Super-Admin Command Center")).toBeVisible();
-    await expect(page.getByText("All Registered Restaurant Tenants")).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Customers Directory" })).toBeVisible();
+    await expect(page.getByText("All Registered Brands & Venues")).toBeVisible();
 
     // Verify tenants in directory table
     await expect(page.getByRole("table").getByText("Grand Spice Haven")).toBeVisible();
