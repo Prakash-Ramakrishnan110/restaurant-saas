@@ -132,7 +132,8 @@ paths:
   /api/v1/audit-logs/:
     get:
       operationId: audit_logs_list
-      description: List audit log records for the tenant, with sensitive fields redacted.
+      description: List audit log records for the tenant, or platform-wide for platform
+        admin.
       parameters:
       - name: page
         required: false
@@ -785,6 +786,23 @@ paths:
                 type: object
                 additionalProperties: {}
           description: ''
+  /api/v1/health/:
+    get:
+      operationId: health_retrieve
+      description: System health check endpoint verifying database and Redis connectivity.
+      tags:
+      - health
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
   /api/v1/inventory/ingredients/:
     get:
       operationId: inventory_ingredients_list
@@ -1017,7 +1035,6 @@ paths:
           multipart/form-data:
             schema:
               $ref: '#/components/schemas/PurchaseOrderRequest'
-        required: true
       security:
       - jwtAuth: []
       responses:
@@ -1072,7 +1089,6 @@ paths:
           multipart/form-data:
             schema:
               $ref: '#/components/schemas/PurchaseOrderRequest'
-        required: true
       security:
       - jwtAuth: []
       responses:
@@ -1155,7 +1171,6 @@ paths:
           multipart/form-data:
             schema:
               $ref: '#/components/schemas/PurchaseOrderRequest'
-        required: true
       security:
       - jwtAuth: []
       responses:
@@ -3570,6 +3585,36 @@ paths:
                 type: object
                 additionalProperties: {}
           description: ''
+    post:
+      operationId: plans_create
+      description: 'Platform admin only: create a new subscription plan with pricing
+        and entitlements.'
+      summary: Create subscription plan
+      tags:
+      - plans
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/v1/plans/{id}/:
+    patch:
+      operationId: plans_partial_update
+      description: View, update or toggle individual subscription plans.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - plans
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          description: No response body
   /api/v1/platform/customers/:
     post:
       operationId: platform_customers_create
@@ -4196,6 +4241,95 @@ paths:
       responses:
         '204':
           description: No response body
+  /api/v1/sessions/:
+    get:
+      operationId: sessions_list
+      description: Manage table dining sessions.
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      tags:
+      - sessions
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedTableSessionList'
+          description: ''
+  /api/v1/sessions/{id}/:
+    get:
+      operationId: sessions_retrieve
+      description: Manage table dining sessions.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this table session.
+        required: true
+      tags:
+      - sessions
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TableSession'
+          description: ''
+  /api/v1/sessions/{id}/close/:
+    post:
+      operationId: sessions_close_create
+      description: Manage table dining sessions.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this table session.
+        required: true
+      tags:
+      - sessions
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TableSession'
+          description: ''
+  /api/v1/sessions/open/:
+    post:
+      operationId: sessions_open_create
+      description: Manage table dining sessions.
+      tags:
+      - sessions
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TableSession'
+          description: ''
   /api/v1/staff/:
     get:
       operationId: staff_list
@@ -4439,6 +4573,72 @@ paths:
                 type: object
                 additionalProperties: {}
           description: ''
+  /api/v1/subscriptions/entitlements/:
+    get:
+      operationId: subscriptions_entitlements_retrieve
+      description: Returns plan name, subscription status, numeric limits with remaining
+        headroom, and feature flags.
+      summary: Get tenant subscription entitlements and usage
+      tags:
+      - subscriptions
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+  /api/v1/subscriptions/plans/:
+    get:
+      operationId: subscriptions_plans_retrieve
+      description: Returns list of available SaaS plans, pricing in paise, and entitlement
+        limits.
+      summary: List all subscription plans
+      tags:
+      - subscriptions
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+    post:
+      operationId: subscriptions_plans_create
+      description: 'Platform admin only: create a new subscription plan with pricing
+        and entitlements.'
+      summary: Create subscription plan
+      tags:
+      - subscriptions
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/v1/subscriptions/plans/{id}/:
+    patch:
+      operationId: subscriptions_plans_partial_update
+      description: View, update or toggle individual subscription plans.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - subscriptions
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          description: No response body
   /api/v1/support-tickets/:
     get:
       operationId: support_tickets_list
@@ -5252,7 +5452,7 @@ paths:
           description: ''
   /health/:
     get:
-      operationId: health_retrieve
+      operationId: health_retrieve_2
       description: System health check endpoint verifying database and Redis connectivity.
       tags:
       - health
@@ -5639,6 +5839,8 @@ components:
         name:
           type: string
           maxLength: 255
+        venue_profile:
+          $ref: '#/components/schemas/VenueProfile'
         is_active:
           type: boolean
       required:
@@ -5651,6 +5853,8 @@ components:
           type: string
           minLength: 1
           maxLength: 255
+        venue_profile:
+          $ref: '#/components/schemas/VenueProfile'
         is_active:
           type: boolean
       required:
@@ -5830,6 +6034,7 @@ components:
       - BAKERY
       - CAFE
       - RESTAURANT
+      - DHABA
       - FINE_DINING
       - HOTEL
       - FOOD_COURT
@@ -5840,6 +6045,7 @@ components:
         * `BAKERY` - Bakery
         * `CAFE` - Café
         * `RESTAURANT` - Restaurant
+        * `DHABA` - Dhaba / Highway Dining
         * `FINE_DINING` - Fine Dining
         * `HOTEL` - Hotel
         * `FOOD_COURT` - Food Court
@@ -6516,6 +6722,9 @@ components:
         tenant_status:
           type: string
           readOnly: true
+        business_type:
+          type: string
+          readOnly: true
         role:
           type: string
           maxLength: 32
@@ -6528,6 +6737,7 @@ components:
           type: boolean
       required:
       - branches
+      - business_type
       - id
       - role
       - tenant_id
@@ -8190,6 +8400,12 @@ components:
           minLength: 1
         announcement_type:
           $ref: '#/components/schemas/AnnouncementTypeEnum'
+        target_business_type:
+          type: string
+          minLength: 1
+          description: Target business type (ALL, RESTAURANT, CAFE, TEA_SHOP, BAKERY,
+            HOTEL, FOOD_COURT)
+          maxLength: 32
         is_active:
           type: boolean
         starts_at:
@@ -8205,8 +8421,6 @@ components:
       properties:
         order_number:
           type: string
-          minLength: 1
-          maxLength: 50
         supplier:
           type: string
           format: uuid
@@ -8411,18 +8625,6 @@ components:
         * `PAY_FIRST` - Pay First
         * `PAY_LATER` - Pay Later
         * `EITHER` - Either
-    PlanSlugEnum:
-      enum:
-      - starter
-      - professional
-      - business
-      - enterprise
-      type: string
-      description: |-
-        * `starter` - starter
-        * `professional` - professional
-        * `business` - business
-        * `enterprise` - enterprise
     PlatformAnnouncement:
       type: object
       properties:
@@ -8437,6 +8639,11 @@ components:
           type: string
         announcement_type:
           $ref: '#/components/schemas/AnnouncementTypeEnum'
+        target_business_type:
+          type: string
+          description: Target business type (ALL, RESTAURANT, CAFE, TEA_SHOP, BAKERY,
+            HOTEL, FOOD_COURT)
+          maxLength: 32
         is_active:
           type: boolean
         starts_at:
@@ -8473,6 +8680,12 @@ components:
           minLength: 1
         announcement_type:
           $ref: '#/components/schemas/AnnouncementTypeEnum'
+        target_business_type:
+          type: string
+          minLength: 1
+          description: Target business type (ALL, RESTAURANT, CAFE, TEA_SHOP, BAKERY,
+            HOTEL, FOOD_COURT)
+          maxLength: 32
         is_active:
           type: boolean
         starts_at:
@@ -8517,10 +8730,15 @@ components:
           type: string
           format: email
           minLength: 1
+        initial_password:
+          type: string
+          default: ''
+          maxLength: 128
         plan_slug:
-          allOf:
-          - $ref: '#/components/schemas/PlanSlugEnum'
+          type: string
+          minLength: 1
           default: starter
+          maxLength: 64
         trial_days:
           type: integer
           maximum: 90
@@ -8626,7 +8844,6 @@ components:
           readOnly: true
         order_number:
           type: string
-          maxLength: 50
         supplier:
           type: string
           format: uuid
@@ -8668,7 +8885,6 @@ components:
       required:
       - created_at
       - id
-      - order_number
       - received_at
       - status
       - supplier_name
@@ -8751,8 +8967,6 @@ components:
       properties:
         order_number:
           type: string
-          minLength: 1
-          maxLength: 50
         supplier:
           type: string
           format: uuid
@@ -8771,8 +8985,6 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/PurchaseOrderItemRequest'
-      required:
-      - order_number
     PurchaseOrderStatusEnum:
       enum:
       - DRAFT
@@ -8807,6 +9019,10 @@ components:
         table_label:
           type: string
           readOnly: true
+        section_name:
+          type: string
+          readOnly: true
+          default: ''
         service_area:
           type: string
           format: uuid
@@ -8815,6 +9031,7 @@ components:
         service_area_name:
           type: string
           readOnly: true
+          default: ''
         public_token:
           type: string
           readOnly: true
@@ -8844,6 +9061,7 @@ components:
       - is_active
       - public_token
       - rotated_at
+      - section_name
       - service_area
       - service_area_name
       - table
@@ -9149,12 +9367,16 @@ components:
       - OUTDOOR
       - VIP
       - PRIVATE_ROOM
+      - GARDEN_HUTS
+      - DHABA_LAWN
       type: string
       description: |-
         * `INDOOR` - Indoor
         * `OUTDOOR` - Outdoor
         * `VIP` - VIP
         * `PRIVATE_ROOM` - Private Room
+        * `GARDEN_HUTS` - Garden Huts / Cabanas
+        * `DHABA_LAWN` - Dhaba Lawn
     ServiceArea:
       type: object
       properties:
@@ -9786,6 +10008,8 @@ components:
     TableType:
       enum:
       - TABLE
+      - HUT
+      - CABANA
       - BOOTH
       - BAR_SEAT
       - ROOM
@@ -9795,6 +10019,8 @@ components:
       type: string
       description: |-
         * `TABLE` - Dining Table
+        * `HUT` - Dhaba Hut / Gazebo / Cottage
+        * `CABANA` - Garden Cabana / Tent
         * `BOOTH` - Booth Seating
         * `BAR_SEAT` - Bar Stool
         * `ROOM` - Hotel Room
