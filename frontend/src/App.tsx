@@ -34,6 +34,7 @@ import { TenantsDirectoryPage } from "./pages/admin/TenantsDirectoryPage";
 import { NewCustomerWizardPage } from "./pages/admin/NewCustomerWizardPage";
 import { CustomerDetailPage } from "./pages/admin/CustomerDetailPage";
 import { PublicQRPage } from "./pages/public/PublicQRPage";
+import { PublicOrderTrackerPage } from "./pages/public/PublicOrderTrackerPage";
 import { SuspendedPage } from "./pages/error/SuspendedPage";
 import { ForbiddenPage } from "./pages/error/ForbiddenPage";
 import { NotFoundPage } from "./pages/error/NotFoundPage";
@@ -151,10 +152,15 @@ export const App: React.FC = () => {
               <Route path="/suspended" element={<SuspendedPage />} />
               <Route path="/403" element={<ForbiddenPage />} />
               <Route path="/q/:token" element={<PublicQRPage />} />
+              <Route path="/q/:token/o/:trackingToken" element={<PublicOrderTrackerPage />} />
 
-              {/* Dev Showcase Routes */}
-              <Route path="/dev/brand" element={<DevBrandPage />} />
-              <Route path="/dev/design-system" element={<DevDesignSystemPage />} />
+              {/* Dev Showcase Routes (DEV builds only) */}
+              {import.meta.env.DEV && (
+                <>
+                  <Route path="/dev/brand" element={<DevBrandPage />} />
+                  <Route path="/dev/design-system" element={<DevDesignSystemPage />} />
+                </>
+              )}
 
               {/* Protected App Routes inside AppShell */}
               <Route

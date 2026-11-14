@@ -74,6 +74,7 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
 
   const [activeOrdersCount, setActiveOrdersCount] = useState<number>(0);
   const [readyOrdersCount, setReadyOrdersCount] = useState<number>(0);
+  const [pendingApprovalsCount, setPendingApprovalsCount] = useState<number>(0);
 
   useEffect(() => {
     const handleOnline = () => setIsOnline(true);
@@ -178,8 +179,10 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
         const orders = unwrapList<Order>(res.data);
         const active = orders.filter((o) => o.status === "NEW" || o.status === "PREPARING").length;
         const ready = orders.filter((o) => o.status === "READY").length;
+        const pendingApprovals = orders.filter((o) => o.status === "PENDING_APPROVAL").length;
         setActiveOrdersCount(active);
         setReadyOrdersCount(ready);
+        setPendingApprovalsCount(pendingApprovals);
       } catch {
         // Silently skip if network or endpoint fails
       }
@@ -568,8 +571,11 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
                   {group.items.map((item) => {
                     const Icon = item.icon;
                     const isActive = location.pathname === item.path;
-                    const badgeCount =
-                      item.badgeKey === "activeOrders"
+                    const isOrdersNav = item.path === "/orders";
+                    const hasPendingApprovals = isOrdersNav && pendingApprovalsCount > 0;
+                    const badgeCount = hasPendingApprovals
+                      ? pendingApprovalsCount
+                      : item.badgeKey === "activeOrders"
                         ? activeOrdersCount
                         : item.badgeKey === "readyOrders"
                           ? readyOrdersCount

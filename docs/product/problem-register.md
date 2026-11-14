@@ -83,13 +83,13 @@ Rule: a new idea is added here first, gets an ID, and is built only when its pha
 
 ## 5. Guest (G)
 
-| ID | Problem | Answer | Phase |
-|---|---|---|---|
-| G-01 | Do not want to install an app | QR opens a web page | P2 |
-| G-02 | Want to know when food is ready | Order tracking page | P2 |
-| G-03 | Want Tamil or English | Language switch | P2 |
-| G-04 | Worried about phone number privacy | Collect only with consent; no personal data spoken aloud | P2 |
-| G-05 | Want to pay by UPI | Online payment through the restaurant's own account | P2 |
+| ID | Problem | Answer | Phase | Status |
+|---|---|---|---|---|
+| G-01 | Do not want to install an app | QR opens a web page | P2 | done |
+| G-02 | Want to know when food is ready | Order tracking page | P2 | done |
+| G-03 | Want Tamil or English | Language switch | P2 | done |
+| G-04 | Worried about phone number privacy | Collect only with consent; no personal data spoken aloud | P2 | done |
+| G-05 | Want to pay by UPI | Online payment through the restaurant's own account | P2 | not started |
 
 ## 6. What we do NOT promise yet
 - Any tax rate, tax invoice format, service charge rule or liquor rule (ADVICE items).

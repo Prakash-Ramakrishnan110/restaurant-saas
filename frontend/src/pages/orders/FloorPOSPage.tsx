@@ -85,6 +85,7 @@ export const FloorPOSPage: React.FC = () => {
   const [menuItems, setMenuItems] = useState<MenuItemData[]>([]);
   const [availabilityMap, setAvailabilityMap] = useState<Record<string, boolean>>({});
   const [activeSessions, setActiveSessions] = useState<any[]>([]);
+  const [qrTableLabels, setQrTableLabels] = useState<Set<string>>(new Set());
   const [serviceRequests, setServiceRequests] = useState<any[]>([]);
 
   // Selection states
@@ -134,17 +135,32 @@ export const FloorPOSPage: React.FC = () => {
   const fetchData = async () => {
     if (!activeTenant) return;
     try {
-      const [tblRes, catRes, itemRes, sessRes, srvRes, availRes] = await Promise.all([
+      const [tblRes, catRes, itemRes, sessRes, srvRes, availRes, ordRes] = await Promise.all([
         usesTables ? apiClient.get<any>("/tables/") : Promise.resolve({ data: [] }),
         apiClient.get<any>("/menu/categories/"),
         apiClient.get<any>("/menu/items/"),
         apiClient.get<any>("/sessions/").catch(() => ({ data: [] })),
         ordersApi.getServiceRequests("PENDING").catch(() => ({ data: [] })),
         apiClient.get<any>("/menu/availability/").catch(() => ({ data: [] })),
+        ordersApi.getOrders().catch(() => ({ data: [] })),
       ]);
 
       const tblData = tblRes.data?.results || tblRes.data || [];
       const sessData = sessRes.data?.results || sessRes.data || [];
+      const rawOrd = ordRes.data as { results?: any[] } | any[];
+      const ordData = Array.isArray(rawOrd) ? rawOrd : rawOrd?.results || [];
+      const qrLabels = new Set<string>(
+        ordData
+          .filter(
+            (o: any) =>
+              o.source === "QR" &&
+              o.status !== "BILLED" &&
+              o.status !== "CANCELLED" &&
+              o.table_number
+          )
+          .map((o: any) => String(o.table_number))
+      );
+      setQrTableLabels(qrLabels);
       setTables(tblData);
       setCategories(catRes.data?.results || catRes.data || []);
       setMenuItems(itemRes.data?.results || itemRes.data || []);
@@ -440,8 +456,13 @@ export const FloorPOSPage: React.FC = () => {
                     }`}
                   >
                     <div className="flex items-center justify-between w-full">
-                      <span className="font-heading font-extrabold text-base text-foreground">
-                        {tbl.label}
+                      <span className="font-heading font-extrabold text-base text-foreground flex items-center gap-1.5">
+                        <span>{tbl.label}</span>
+                        {qrTableLabels.has(tbl.label) && (
+                          <span className="px-1.5 py-0.5 text-[10px] font-extrabold rounded bg-[#FF6A00] text-[#0B1F3B]">
+                            QR
+                          </span>
+                        )}
                       </span>
                       <Badge
                         variant={isOccupied ? "destructive" : isCleaning ? "outline" : "secondary"}

@@ -2849,6 +2849,41 @@ paths:
       responses:
         '204':
           description: No response body
+  /api/v1/orders/{id}/approve/:
+    post:
+      operationId: orders_approve_create
+      description: Production ViewSet for placing, tracking, serving, and cancelling
+        orders.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this order.
+        required: true
+      tags:
+      - orders
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OrderRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/OrderRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/OrderRequest'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Order'
+          description: ''
   /api/v1/orders/{id}/cancel/:
     post:
       operationId: orders_cancel_create
@@ -2887,6 +2922,41 @@ paths:
   /api/v1/orders/{id}/fire-mains/:
     post:
       operationId: orders_fire_mains_create
+      description: Production ViewSet for placing, tracking, serving, and cancelling
+        orders.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this order.
+        required: true
+      tags:
+      - orders
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OrderRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/OrderRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/OrderRequest'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Order'
+          description: ''
+  /api/v1/orders/{id}/reject/:
+    post:
+      operationId: orders_reject_create
       description: Production ViewSet for placing, tracking, serving, and cancelling
         orders.
       parameters:
@@ -3666,6 +3736,24 @@ paths:
                 additionalProperties: {}
                 description: Unspecified response body
           description: ''
+  /api/v1/public/orders/{tracking_token}/:
+    get:
+      operationId: public_orders_retrieve
+      description: Public read-only order status tracker by random 128-bit tracking_token.
+      parameters:
+      - in: path
+        name: tracking_token
+        schema:
+          type: string
+        required: true
+      tags:
+      - public
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          description: No response body
   /api/v1/public/qr/{token}/:
     get:
       operationId: public_qr_retrieve
@@ -3688,6 +3776,43 @@ paths:
               schema:
                 $ref: '#/components/schemas/PublicQRDetail'
           description: ''
+  /api/v1/public/qr/{token}/menu/:
+    get:
+      operationId: public_qr_menu_retrieve
+      description: Public unauthenticated read-only endpoint returning branch menu
+        for a scanned QR.
+      parameters:
+      - in: path
+        name: token
+        schema:
+          type: string
+        required: true
+      tags:
+      - public
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          description: No response body
+  /api/v1/public/qr/{token}/orders/:
+    post:
+      operationId: public_qr_orders_create
+      description: Public unauthenticated endpoint to place a server-priced QR order.
+      parameters:
+      - in: path
+        name: token
+        schema:
+          type: string
+        required: true
+      tags:
+      - public
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          description: No response body
   /api/v1/public/qr/{token}/session/:
     post:
       operationId: public_qr_session_create
@@ -6542,7 +6667,7 @@ components:
           nullable: true
           description: Sequential daily token number for counter service
         status:
-          $ref: '#/components/schemas/StatusC2bEnum'
+          $ref: '#/components/schemas/Status92cEnum'
         placed_at:
           type: string
           format: date-time
@@ -6579,7 +6704,7 @@ components:
           nullable: true
           description: Sequential daily token number for counter service
         status:
-          $ref: '#/components/schemas/StatusC2bEnum'
+          $ref: '#/components/schemas/Status92cEnum'
         placed_at:
           type: string
           format: date-time
@@ -7139,7 +7264,13 @@ components:
           nullable: true
           description: Sequential daily token number for counter service
         status:
-          $ref: '#/components/schemas/StatusC2bEnum'
+          $ref: '#/components/schemas/Status92cEnum'
+        source:
+          $ref: '#/components/schemas/SourceEnum'
+        payment_status:
+          $ref: '#/components/schemas/PaymentStatusEnum'
+        rejected_reason:
+          type: string
         placed_at:
           type: string
           format: date-time
@@ -7148,6 +7279,14 @@ components:
           format: date-time
           nullable: true
         served_at:
+          type: string
+          format: date-time
+          nullable: true
+        completed_at:
+          type: string
+          format: date-time
+          nullable: true
+        cancelled_at:
           type: string
           format: date-time
           nullable: true
@@ -7229,6 +7368,10 @@ components:
         item_name:
           type: string
           maxLength: 255
+        variant_name:
+          type: string
+          maxLength: 100
+        options_snapshot: {}
         quantity:
           type: integer
           maximum: 2147483647
@@ -7278,6 +7421,10 @@ components:
           type: string
           minLength: 1
           maxLength: 255
+        variant_name:
+          type: string
+          maxLength: 100
+        options_snapshot: {}
         quantity:
           type: integer
           maximum: 2147483647
@@ -7347,7 +7494,13 @@ components:
           nullable: true
           description: Sequential daily token number for counter service
         status:
-          $ref: '#/components/schemas/StatusC2bEnum'
+          $ref: '#/components/schemas/Status92cEnum'
+        source:
+          $ref: '#/components/schemas/SourceEnum'
+        payment_status:
+          $ref: '#/components/schemas/PaymentStatusEnum'
+        rejected_reason:
+          type: string
         placed_at:
           type: string
           format: date-time
@@ -7356,6 +7509,14 @@ components:
           format: date-time
           nullable: true
         served_at:
+          type: string
+          format: date-time
+          nullable: true
+        completed_at:
+          type: string
+          format: date-time
+          nullable: true
+        cancelled_at:
           type: string
           format: date-time
           nullable: true
@@ -8374,7 +8535,13 @@ components:
           nullable: true
           description: Sequential daily token number for counter service
         status:
-          $ref: '#/components/schemas/StatusC2bEnum'
+          $ref: '#/components/schemas/Status92cEnum'
+        source:
+          $ref: '#/components/schemas/SourceEnum'
+        payment_status:
+          $ref: '#/components/schemas/PaymentStatusEnum'
+        rejected_reason:
+          type: string
         placed_at:
           type: string
           format: date-time
@@ -8383,6 +8550,14 @@ components:
           format: date-time
           nullable: true
         served_at:
+          type: string
+          format: date-time
+          nullable: true
+        completed_at:
+          type: string
+          format: date-time
+          nullable: true
+        cancelled_at:
           type: string
           format: date-time
           nullable: true
@@ -8615,6 +8790,14 @@ components:
         * `UPI` - UPI QR
         * `CARD` - Debit / Credit Card
         * `ROOM_FOLIO` - Room Folio Charge
+    PaymentStatusEnum:
+      enum:
+      - UNPAID
+      - PAID
+      type: string
+      description: |-
+        * `UNPAID` - Unpaid
+        * `PAID` - Paid
     PaymentTiming:
       enum:
       - PAY_FIRST
@@ -9512,6 +9695,14 @@ components:
       description: |-
         * `OPEN` - Open
         * `CLOSED` - Closed
+    SourceEnum:
+      enum:
+      - STAFF
+      - QR
+      type: string
+      description: |-
+        * `STAFF` - Staff
+        * `QR` - QR Code
     StaffDetail:
       type: object
       properties:
@@ -9622,8 +9813,10 @@ components:
       - branch
       - membership
       - section
-    StatusC2bEnum:
+    Status92cEnum:
       enum:
+      - PENDING_APPROVAL
+      - AWAITING_PAYMENT
       - PLACED
       - PREPARING
       - READY
@@ -9632,6 +9825,8 @@ components:
       - CANCELLED
       type: string
       description: |-
+        * `PENDING_APPROVAL` - Pending Approval
+        * `AWAITING_PAYMENT` - Awaiting Payment
         * `PLACED` - Placed
         * `PREPARING` - Preparing
         * `READY` - Ready to Serve

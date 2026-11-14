@@ -1,0 +1,277 @@
+import React from "react";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+import { MemoryRouter, Route, Routes } from "react-router-dom";
+import { axe } from "vitest-axe";
+import { PublicQRPage } from "../pages/public/PublicQRPage";
+import { PublicOrderTrackerPage } from "../pages/public/PublicOrderTrackerPage";
+import { publicQrApi, PublicQRMenuResponse, PublicOrderTrackerResponse } from "../api/publicQr";
+import { PUBLIC_QR_COPY } from "../pages/public/publicQrStrings";
+import { formatRupees } from "../utils/currency";
+
+vi.mock("../api/publicQr", () => ({
+  publicQrApi: {
+    getMenu: vi.fn(),
+    openSession: vi.fn(),
+    createOrder: vi.fn(),
+    trackOrder: vi.fn(),
+  },
+}));
+
+const SAMPLE_MENU: PublicQRMenuResponse = {
+  display_name: "Spice Garden",
+  logo_url: "",
+  brand_primary_color: "#FF6A00",
+  branch_name: "Main Branch",
+  area_name: "AC Hall",
+  target_type: "TABLE",
+  target_label: "T4",
+  ordering_mode: "ORDER_DIRECT",
+  payment_timing: "PAY_LATER",
+  session_policy: "CUSTOMER_CAN_OPEN",
+  active_session_open: true,
+  categories: [
+    {
+      id: "cat-1",
+      name: "Dosa & Tiffin",
+      name_ta: "தோசை மற்றும் டிபன்",
+      items: [
+        {
+          id: "item-1",
+          name: "Masala Dosa",
+          name_ta: "மசாலா தோசை",
+          description: "Crispy dosa with potato masala",
+          description_ta: "உருளைக்கிழங்கு மசாலாவுடன் மொறுமொறு தோசை",
+          price_paise: 12000,
+          food_type: "VEG",
+          is_bestseller: true,
+          image_card: "",
+          image_thumb: "",
+          is_available: true,
+          variants: [],
+          option_groups: [
+            {
+              id: "grp-1",
+              name: "Chutney Choice",
+              name_ta: "சட்னி தேர்வு",
+              min_select: 1,
+              max_select: 2,
+              options: [
+                {
+                  id: "opt-1",
+                  name: "Coconut Chutney",
+                  name_ta: "தேங்காய் சட்னி",
+                  price_delta_paise: 0,
+                  is_default: false,
+                },
+                {
+                  id: "opt-2",
+                  name: "Extra Ghee",
+                  name_ta: "கூடுதல் நெய்",
+                  price_delta_paise: 2500,
+                  is_default: false,
+                },
+              ],
+            },
+          ],
+        },
+        {
+          id: "item-2",
+          name: "Filter Coffee",
+          name_ta: "பில்டர் காபி",
+          description: "Traditional brass davara coffee",
+          description_ta: "பாரம்பரிய பில்டர் காபி",
+          price_paise: 5000,
+          food_type: "VEG",
+          is_bestseller: false,
+          image_card: "",
+          image_thumb: "",
+          is_available: false,
+          variants: [],
+          option_groups: [],
+        },
+      ],
+    },
+  ],
+};
+
+function renderQRPage(token = "test-qr-token") {
+  return render(
+    <MemoryRouter initialEntries={[`/q/${token}`]}>
+      <Routes>
+        <Route path="/q/:token" element={<PublicQRPage />} />
+        <Route path="/q/:token/o/:trackingToken" element={<PublicOrderTrackerPage />} />
+      </Routes>
+    </MemoryRouter>
+  );
+}
+
+function renderTrackerPage(token = "test-qr-token", trackingToken = "track-123") {
+  return render(
+    <MemoryRouter initialEntries={[`/q/${token}/o/${trackingToken}`]}>
+      <Routes>
+        <Route path="/q/:token" element={<PublicQRPage />} />
+        <Route path="/q/:token/o/:trackingToken" element={<PublicOrderTrackerPage />} />
+      </Routes>
+    </MemoryRouter>
+  );
+}
+
+describe("Customer Phone QR Ordering", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    localStorage.clear();
+    sessionStorage.clear();
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it("formats Indian rupee amounts without floating point issues", () => {
+    expect(formatRupees(12000)).toBe("₹120.00");
+    expect(formatRupees(15000000)).toBe("₹1,50,000.00");
+  });
+
+  it("contains no internal jargon in customer English copy", () => {
+    const forbidden = /\b(tenant|entitlement|paise|preset|flag|session)\b/i;
+    Object.values(PUBLIC_QR_COPY.en).forEach((val) => {
+      if (typeof val === "string") {
+        expect(val).not.toMatch(forbidden);
+      }
+    });
+  });
+
+  it("switches language between English and Tamil and enforces option min/max rules", async () => {
+    vi.mocked(publicQrApi.getMenu).mockResolvedValue({ data: SAMPLE_MENU } as any);
+    const localSetSpy = vi.spyOn(Storage.prototype, "setItem");
+
+    const { container } = renderQRPage();
+    await waitFor(() => {
+      expect(screen.getByText("Masala Dosa")).toBeInTheDocument();
+    });
+
+    // Switch to Tamil
+    fireEvent.click(screen.getByRole("button", { name: "தமிழ்" }));
+    expect(screen.getByText("மசாலா தோசை")).toBeInTheDocument();
+
+    // Switch back to English
+    fireEvent.click(screen.getByRole("button", { name: "English" }));
+    expect(screen.getByText("Masala Dosa")).toBeInTheDocument();
+
+    // Open customization sheet for Masala Dosa
+    fireEvent.click(screen.getByRole("button", { name: /Add/i }));
+    expect(screen.getByText("Chutney Choice")).toBeInTheDocument();
+
+    // Try adding without selecting required option (min_select = 1)
+    fireEvent.click(screen.getByRole("button", { name: /Add to order/i }));
+    expect(screen.getByText(/Please choose at least 1 for Chutney Choice/i)).toBeInTheDocument();
+
+    // Select Coconut Chutney and add to order
+    fireEvent.click(screen.getByRole("button", { name: /Coconut Chutney/i }));
+    fireEvent.click(screen.getByRole("button", { name: /Add to order/i }));
+
+    // Cart bar appears, sessionStorage has cart, localStorage remains untouched
+    expect(screen.getByText(/1 item/i)).toBeInTheDocument();
+    expect(localStorage.length).toBe(0);
+    const localCalls = localSetSpy.mock.calls.filter(
+      ([key]) => !String(key).startsWith("smf_qr_cart_")
+    );
+    expect(localCalls.length).toBe(0);
+    expect(sessionStorage.getItem("smf_qr_cart_test-qr-token")).toContain("item-1");
+
+    // Accessibility check
+    const results = await axe(container);
+    const serious = results.violations.filter(
+      (v) => v.impact === "serious" || v.impact === "critical"
+    );
+    expect(serious).toEqual([]);
+  });
+
+  it("renders BROWSE_ONLY and DISABLED states cleanly with zero serious a11y violations", async () => {
+    vi.mocked(publicQrApi.getMenu).mockResolvedValueOnce({
+      data: { ...SAMPLE_MENU, ordering_mode: "BROWSE_ONLY" },
+    } as any);
+
+    const browseView = renderQRPage("browse-token");
+    await waitFor(() => {
+      expect(screen.getByText("Please ask our staff to order")).toBeInTheDocument();
+    });
+    expect(screen.queryByRole("button", { name: /Add/i })).not.toBeInTheDocument();
+    const browseAxe = await axe(browseView.container);
+    expect(
+      browseAxe.violations.filter((v) => v.impact === "serious" || v.impact === "critical")
+    ).toEqual([]);
+    browseView.unmount();
+
+    vi.mocked(publicQrApi.getMenu).mockResolvedValueOnce({
+      data: { ...SAMPLE_MENU, ordering_mode: "DISABLED" },
+    } as any);
+
+    const disabledView = renderQRPage("disabled-token");
+    await waitFor(() => {
+      expect(screen.getByText("Ordering is closed")).toBeInTheDocument();
+    });
+    const disabledAxe = await axe(disabledView.container);
+    expect(
+      disabledAxe.violations.filter((v) => v.impact === "serious" || v.impact === "critical")
+    ).toEqual([]);
+  });
+
+  it("renders tracker states (AWAITING_PAYMENT, PREPARING, REJECTED) with zero serious a11y violations", async () => {
+    const baseTracker: PublicOrderTrackerResponse = {
+      order_number: "ORD-101",
+      status: "AWAITING_PAYMENT",
+      status_key: "AWAITING_PAYMENT",
+      payment_status: "UNPAID",
+      payment_timing: "PAY_FIRST",
+      target_label: "Token #12",
+      token_number: 12,
+      rejected_reason: "",
+      total_paise: 12000,
+      placed_at: new Date().toISOString(),
+      ready_at: null,
+      served_at: null,
+      completed_at: null,
+      cancelled_at: null,
+      items: [
+        {
+          item_name: "Masala Dosa",
+          variant_name: "",
+          options: [],
+          quantity: 1,
+          notes: "",
+          unit_price_paise: 12000,
+          subtotal_paise: 12000,
+        },
+      ],
+    };
+
+    vi.mocked(publicQrApi.trackOrder).mockResolvedValueOnce({ data: baseTracker } as any);
+    const payFirstView = renderTrackerPage("tok", "trk-1");
+    await waitFor(() => {
+      expect(
+        screen.getByText("Please pay at the counter to start your order")
+      ).toBeInTheDocument();
+      expect(screen.getByText("#12")).toBeInTheDocument();
+    });
+    const payFirstAxe = await axe(payFirstView.container);
+    expect(
+      payFirstAxe.violations.filter((v) => v.impact === "serious" || v.impact === "critical")
+    ).toEqual([]);
+    payFirstView.unmount();
+
+    vi.mocked(publicQrApi.trackOrder).mockResolvedValueOnce({
+      data: { ...baseTracker, status: "CANCELLED", rejected_reason: "Dish sold out" },
+    } as any);
+    const rejectedView = renderTrackerPage("tok", "trk-2");
+    await waitFor(() => {
+      expect(screen.getByText("Order could not be accepted")).toBeInTheDocument();
+      expect(screen.getByText("Dish sold out")).toBeInTheDocument();
+    });
+    const rejectedAxe = await axe(rejectedView.container);
+    expect(
+      rejectedAxe.violations.filter((v) => v.impact === "serious" || v.impact === "critical")
+    ).toEqual([]);
+  });
+});

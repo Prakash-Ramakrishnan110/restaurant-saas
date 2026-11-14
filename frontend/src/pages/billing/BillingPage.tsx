@@ -11,7 +11,7 @@ import {
   ShieldCheck,
 } from "lucide-react";
 import { apiClient } from "../../api/client";
-import { ordersApi, BillCalculation, BillInvoice } from "../../api/orders";
+import { ordersApi, BillCalculation, BillInvoice, Order } from "../../api/orders";
 import { useAuth } from "../../context/AuthContext";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
@@ -42,6 +42,11 @@ export const BillingPage: React.FC = () => {
 
   // Sessions and Active Selection
   const [sessions, setSessions] = useState<TableSessionInfo[]>([]);
+  const [awaitingPaymentOrders, setAwaitingPaymentOrders] = useState<Order[]>([]);
+  const [settlingOrderId, setSettlingOrderId] = useState<string | null>(null);
+  const [orderPaymentMethods, setOrderPaymentMethods] = useState<
+    Record<string, "CASH" | "UPI" | "CARD">
+  >({});
   const [selectedSessionId, setSelectedSessionId] = useState<string | null>(null);
   const [billData, setBillData] = useState<BillCalculation | null>(null);
   const [settling, setSettling] = useState<boolean>(false);
@@ -64,13 +69,15 @@ export const BillingPage: React.FC = () => {
   const fetchSessions = async () => {
     if (!activeTenant) return;
     try {
-      const res = await apiClient.get<ListResponse<TableSessionInfo> | TableSessionInfo[]>(
-        "/table-sessions/"
-      );
-      const openSessions = unwrapList<TableSessionInfo>(res.data).filter(
+      const [sessRes, awaitRes] = await Promise.all([
+        apiClient.get<ListResponse<TableSessionInfo> | TableSessionInfo[]>("/table-sessions/"),
+        ordersApi.getOrders({ status: "AWAITING_PAYMENT" }).catch(() => ({ data: [] })),
+      ]);
+      const openSessions = unwrapList<TableSessionInfo>(sessRes.data).filter(
         (s) => s.status === "OPEN"
       );
       setSessions(openSessions);
+      setAwaitingPaymentOrders(unwrapList<Order>(awaitRes.data));
 
       const targetId =
         searchParams.get("session_id") || (openSessions.length > 0 ? openSessions[0].id : null);
@@ -80,6 +87,29 @@ export const BillingPage: React.FC = () => {
       }
     } catch {
       setErrorMessage("Failed to load active dining sessions.");
+    }
+  };
+
+  const handleSettleAwaitingOrder = async (ord: Order) => {
+    setSettlingOrderId(ord.id);
+    setErrorMessage(null);
+    try {
+      const method = orderPaymentMethods[ord.id] || "CASH";
+      await ordersApi.settleOrder(ord.id, {
+        payment_method: method,
+        amount_tendered_paise: ord.total_paise || 0,
+        discount_paise: 0,
+        notes: "Counter QR pay-first settlement",
+      });
+      await fetchSessions();
+    } catch (err: any) {
+      setErrorMessage(
+        err.response?.data?.error?.message ||
+          err.response?.data?.detail ||
+          "Failed to mark order as paid."
+      );
+    } finally {
+      setSettlingOrderId(null);
     }
   };
 
@@ -178,6 +208,78 @@ export const BillingPage: React.FC = () => {
           <button onClick={() => setErrorMessage(null)} className="underline text-[11px]">
             Dismiss
           </button>
+        </div>
+      )}
+
+      {/* Awaiting Payment (Pay-First Counter / QR) */}
+      {awaitingPaymentOrders.length > 0 && (
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
+              Awaiting Payment — Counter / QR ({awaitingPaymentOrders.length})
+            </span>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+            {awaitingPaymentOrders.map((ord) => {
+              const method = orderPaymentMethods[ord.id] || "CASH";
+              return (
+                <div
+                  key={ord.id}
+                  className="p-4 rounded-xl border border-amber-300 bg-amber-50/40 dark:bg-amber-950/20 space-y-3"
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <div>
+                      <div className="flex items-center gap-1.5">
+                        <span className="font-mono font-bold text-sm text-foreground">
+                          {ord.daily_token ? `Token #${ord.daily_token}` : ord.order_number}
+                        </span>
+                        {ord.source === "QR" && (
+                          <span className="px-1.5 py-0.5 text-[10px] font-extrabold rounded bg-[#FF6A00] text-[#0B1F3B]">
+                            QR
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-[11px] text-muted-foreground mt-0.5">
+                        {ord.table_number ? `Table ${ord.table_number}` : "Counter"} •{" "}
+                        {ord.order_number}
+                      </p>
+                    </div>
+                    <div className="font-bold text-sm text-foreground">
+                      {formatRupees(ord.total_paise || 0)}
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    {(["CASH", "UPI", "CARD"] as const).map((m) => (
+                      <button
+                        key={m}
+                        type="button"
+                        onClick={() =>
+                          setOrderPaymentMethods((prev) => ({ ...prev, [ord.id]: m }))
+                        }
+                        className={`flex-1 py-1.5 rounded text-[11px] font-semibold border transition-colors ${
+                          method === m
+                            ? "bg-[#0B1F3B] text-white border-[#0B1F3B]"
+                            : "bg-card text-foreground border-border"
+                        }`}
+                      >
+                        {m}
+                      </button>
+                    ))}
+                  </div>
+                  <Button
+                    size="sm"
+                    disabled={settlingOrderId === ord.id}
+                    onClick={() => handleSettleAwaitingOrder(ord)}
+                    className="w-full min-h-[40px] bg-[#FF6A00] hover:bg-[#E55F00] text-[#0B1F3B] font-bold text-xs"
+                  >
+                    {settlingOrderId === ord.id
+                      ? "Processing..."
+                      : "Mark Paid & Send to Kitchen"}
+                  </Button>
+                </div>
+              );
+            })}
+          </div>
         </div>
       )}
 

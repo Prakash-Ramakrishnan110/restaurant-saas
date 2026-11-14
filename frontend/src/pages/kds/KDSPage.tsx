@@ -191,6 +191,11 @@ export const KDSPage: React.FC = () => {
                 >
                   <div className="flex items-center gap-2">
                     <span className="font-heading font-extrabold text-base">{t.table_label}</span>
+                    {t.source === "QR" && (
+                      <Badge className="text-[10px] bg-[#FF6A00] text-[#0B1F3B] font-bold border-none">
+                        QR
+                      </Badge>
+                    )}
                     <Badge
                       variant="outline"
                       className="text-[10px] bg-black/20 text-white border-none"

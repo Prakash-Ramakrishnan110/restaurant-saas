@@ -181,6 +181,20 @@ MATRIX_TEST_CASES = [
     ("business_logo_upload", Role.WAITER, 403),
     ("business_logo_upload", Role.KITCHEN, 403),
     ("business_logo_upload", Role.INVENTORY_MANAGER, 403),
+    # 16. QR Order Approve -> order.approve (OWNER, BM, CASHIER, WAITER)
+    ("qr_order_approve", Role.OWNER, 200),
+    ("qr_order_approve", Role.BRANCH_MANAGER, 200),
+    ("qr_order_approve", Role.CASHIER, 200),
+    ("qr_order_approve", Role.WAITER, 200),
+    ("qr_order_approve", Role.KITCHEN, 403),
+    ("qr_order_approve", Role.INVENTORY_MANAGER, 403),
+    # 17. QR Order Reject -> order.approve (OWNER, BM, CASHIER, WAITER)
+    ("qr_order_reject", Role.OWNER, 200),
+    ("qr_order_reject", Role.BRANCH_MANAGER, 200),
+    ("qr_order_reject", Role.CASHIER, 200),
+    ("qr_order_reject", Role.WAITER, 200),
+    ("qr_order_reject", Role.KITCHEN, 403),
+    ("qr_order_reject", Role.INVENTORY_MANAGER, 403),
 ]
 
 
@@ -350,4 +364,19 @@ def test_role_x_endpoint_access(matrix_env, endpoint, role, expected_status):
         buf.seek(0)
         buf.name = f"logo_{role.lower()}.png"
         res = client.post("/api/v1/business/logo/", {"logo": buf}, format="multipart")
+        assert res.status_code == expected_status
+
+    elif endpoint in ("qr_order_approve", "qr_order_reject"):
+        from apps.orders.models import Order, OrderSource, OrderStatus
+
+        ord_obj = Order.objects.create(
+            tenant=tenant,
+            branch=branch,
+            order_number=f"QR-{endpoint}-{role}",
+            status=OrderStatus.PENDING_APPROVAL,
+            source=OrderSource.QR,
+        )
+        action = "approve" if endpoint == "qr_order_approve" else "reject"
+        payload = {"reason": "Out of stock"} if action == "reject" else {}
+        res = client.post(f"/api/v1/orders/{ord_obj.id}/{action}/", payload, format="json")
         assert res.status_code == expected_status

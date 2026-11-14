@@ -11,7 +11,6 @@ import {
   Coffee,
   ShoppingBag,
   Hotel,
-  QrCode,
   ExternalLink,
 } from "lucide-react";
 import { BrandLogo } from "../../components/brand/BrandLogo";
@@ -35,7 +34,7 @@ export interface DemoAccount {
   email: string;
   password?: string;
   role: string;
-  category: "all" | "kitchen" | "dine_in" | "counter" | "hotel" | "admin" | "customer";
+  category: "all" | "kitchen" | "dine_in" | "counter" | "hotel" | "admin";
   venueType: string;
   tagline: string;
   isExternalLink?: boolean;
@@ -45,7 +44,6 @@ export interface DemoAccount {
 const DEMO_CATEGORIES = [
   { id: "all", label: "All Accounts" },
   { id: "kitchen", label: "Kitchen KDS" },
-  { id: "customer", label: "Customer QR" },
   { id: "dine_in", label: "Dine-In" },
   { id: "counter", label: "Counters" },
   { id: "hotel", label: "Hotel" },
@@ -62,17 +60,6 @@ const DEMO_ACCOUNTS: DemoAccount[] = [
     category: "kitchen",
     venueType: "RESTAURANT",
     tagline: "Live kitchen tickets • Cook/Ready timers • 86 items",
-  },
-  {
-    id: "guest-qr",
-    name: "Demo Customer (Table T4)",
-    email: "",
-    role: "GUEST",
-    category: "customer",
-    venueType: "QR MENU",
-    tagline: "Customer digital dining card • Scan Table T4",
-    isExternalLink: true,
-    linkUrl: "/q/demo-spice-t4",
   },
   {
     id: "restaurant-owner",
@@ -180,8 +167,6 @@ export const LoginPage: React.FC = () => {
   const getDemoIcon = (item: DemoAccount) => {
     if (item.category === "kitchen")
       return <ChefHat className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />;
-    if (item.category === "customer")
-      return <QrCode className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />;
     if (item.category === "admin")
       return <ShieldCheck className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />;
     if (item.category === "hotel")

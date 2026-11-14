@@ -27,6 +27,7 @@ ServeMyFood is a resilient, multi-tenant restaurant management and digital floor
 | **REQ-KDS-01** | Kitchen Display | Pilot 1: Live kitchen station tickets, prep countdowns, course bumping, and item status callbacks. | ADR 0013, Pilot 1 Milestone | **PROVEN (v0.8.0)** |
 | **REQ-BILL-01** | Cashier & Billing | Pilot 1: Cash/UPI reconciliation, and printable thermal demo receipts without tax lines. | ADR 0017, Pilot 1 Milestone | **PROVEN (v0.8.0)** |
 | **REQ-RPT-01** | Sales & Close-Out | Pilot 1: Owner daily sales dashboard, shift close-out (Z-report), and cashier cash drawer reconciliation. | ADR 0017, Pilot 1 Milestone | **PROVEN (v0.8.0)** |
+| **REQ-QR-01** | Guest Phone QR Ordering | Mobile-first guest ordering from scanned QR codes (`ORDER_DIRECT`, `ORDER_WITH_APPROVAL`, `BROWSE_ONLY`, `DISABLED`, `PAY_FIRST`, `PAY_LATER`), server-side pricing, staff approval queue, and live token/status tracking. | ADR 0023, `public_views.py`, `PublicQRPage.tsx`, `PublicOrderTrackerPage.tsx` | **PROVEN (v1.1.0-qr-ordering)** |
 
 ---
 

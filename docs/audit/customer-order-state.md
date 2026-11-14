@@ -65,3 +65,4 @@
 ## 3. Code to Remove or Rename
 - **`frontend/src/pages/auth/LoginPage.tsx`**: Contains `Demo Customer (Table T4)` (`linkUrl: "/q/demo-spice-t4"`) in `DEMO_ACCOUNTS`. Even though the panel is wrapped in `import.meta.env.DEV`, remove the demo customer shortcut from `DEMO_ACCOUNTS` so zero customer QR shortcuts ship in production bundles.
 - **`frontend/src/pages/public/PublicQRPage.tsx`**: `PublicQRResponse` currently expects `table_identifier` while `PublicQRDetailView` returns `table_label` — align field naming to `table_label` / `target_label` / `target_type` consistently.
+

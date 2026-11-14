@@ -48,7 +48,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** @description List audit log records for the tenant, with sensitive fields redacted. */
+        /** @description List audit log records for the tenant, or platform-wide for platform admin. */
         get: operations["audit_logs_list"];
         put?: never;
         post?: never;
@@ -320,6 +320,23 @@ export interface paths {
          * @description Returns plan name, subscription status, numeric limits with remaining headroom, and feature flags.
          */
         get: operations["entitlements_retrieve"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/health/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description System health check endpoint verifying database and Redis connectivity. */
+        get: operations["health_retrieve"];
         put?: never;
         post?: never;
         delete?: never;
@@ -955,6 +972,23 @@ export interface paths {
         patch: operations["orders_partial_update"];
         trace?: never;
     };
+    "/api/v1/orders/{id}/approve/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** @description Production ViewSet for placing, tracking, serving, and cancelling orders. */
+        post: operations["orders_approve_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/orders/{id}/cancel/": {
         parameters: {
             query?: never;
@@ -983,6 +1017,23 @@ export interface paths {
         put?: never;
         /** @description Production ViewSet for placing, tracking, serving, and cancelling orders. */
         post: operations["orders_fire_mains_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/orders/{id}/reject/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** @description Production ViewSet for placing, tracking, serving, and cancelling orders. */
+        post: operations["orders_reject_create"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1265,11 +1316,32 @@ export interface paths {
          */
         get: operations["plans_retrieve"];
         put?: never;
-        post?: never;
+        /**
+         * Create subscription plan
+         * @description Platform admin only: create a new subscription plan with pricing and entitlements.
+         */
+        post: operations["plans_create"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
+        trace?: never;
+    };
+    "/api/v1/plans/{id}/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** @description View, update or toggle individual subscription plans. */
+        patch: operations["plans_partial_update"];
         trace?: never;
     };
     "/api/v1/platform/customers/": {
@@ -1312,6 +1384,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/public/orders/{tracking_token}/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description Public read-only order status tracker by random 128-bit tracking_token. */
+        get: operations["public_orders_retrieve"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/public/qr/{token}/": {
         parameters: {
             query?: never;
@@ -1323,6 +1412,40 @@ export interface paths {
         get: operations["public_qr_retrieve"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/public/qr/{token}/menu/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description Public unauthenticated read-only endpoint returning branch menu for a scanned QR. */
+        get: operations["public_qr_menu_retrieve"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/public/qr/{token}/orders/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** @description Public unauthenticated endpoint to place a server-priced QR order. */
+        post: operations["public_qr_orders_create"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1618,6 +1741,74 @@ export interface paths {
         patch: operations["service_areas_partial_update"];
         trace?: never;
     };
+    "/api/v1/sessions/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description Manage table dining sessions. */
+        get: operations["sessions_list"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/sessions/{id}/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description Manage table dining sessions. */
+        get: operations["sessions_retrieve"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/sessions/{id}/close/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** @description Manage table dining sessions. */
+        post: operations["sessions_close_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/sessions/open/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** @description Manage table dining sessions. */
+        post: operations["sessions_open_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/staff/": {
         parameters: {
             query?: never;
@@ -1706,6 +1897,67 @@ export interface paths {
         options?: never;
         head?: never;
         patch?: never;
+        trace?: never;
+    };
+    "/api/v1/subscriptions/entitlements/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get tenant subscription entitlements and usage
+         * @description Returns plan name, subscription status, numeric limits with remaining headroom, and feature flags.
+         */
+        get: operations["subscriptions_entitlements_retrieve"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/subscriptions/plans/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List all subscription plans
+         * @description Returns list of available SaaS plans, pricing in paise, and entitlement limits.
+         */
+        get: operations["subscriptions_plans_retrieve"];
+        put?: never;
+        /**
+         * Create subscription plan
+         * @description Platform admin only: create a new subscription plan with pricing and entitlements.
+         */
+        post: operations["subscriptions_plans_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/subscriptions/plans/{id}/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** @description View, update or toggle individual subscription plans. */
+        patch: operations["subscriptions_plans_partial_update"];
         trace?: never;
     };
     "/api/v1/support-tickets/": {
@@ -2121,7 +2373,7 @@ export interface paths {
             cookie?: never;
         };
         /** @description System health check endpoint verifying database and Redis connectivity. */
-        get: operations["health_retrieve"];
+        get: operations["health_retrieve_2"];
         put?: never;
         post?: never;
         delete?: never;
@@ -2292,10 +2544,12 @@ export interface components {
             /** Format: uuid */
             readonly id: string;
             name: string;
+            venue_profile?: components["schemas"]["VenueProfile"];
             is_active?: boolean;
         };
         BranchSummaryRequest: {
             name: string;
+            venue_profile?: components["schemas"]["VenueProfile"];
             is_active?: boolean;
         };
         BusinessLogoResponse: {
@@ -2367,13 +2621,14 @@ export interface components {
          *     * `BAKERY` - Bakery
          *     * `CAFE` - Café
          *     * `RESTAURANT` - Restaurant
+         *     * `DHABA` - Dhaba / Highway Dining
          *     * `FINE_DINING` - Fine Dining
          *     * `HOTEL` - Hotel
          *     * `FOOD_COURT` - Food Court
          *     * `CHAIN` - Chain
          * @enum {string}
          */
-        BusinessType: "TEA_SHOP" | "BAKERY" | "CAFE" | "RESTAURANT" | "FINE_DINING" | "HOTEL" | "FOOD_COURT" | "CHAIN";
+        BusinessType: "TEA_SHOP" | "BAKERY" | "CAFE" | "RESTAURANT" | "DHABA" | "FINE_DINING" | "HOTEL" | "FOOD_COURT" | "CHAIN";
         /**
          * @description * `DRY_GOODS` - Dry Goods & Grains
          *     * `DAIRY` - Dairy & Eggs
@@ -2603,7 +2858,7 @@ export interface components {
             order_workflow?: components["schemas"]["OrderWorkflowDafEnum"];
             /** @description Sequential daily token number for counter service */
             token_number?: number | null;
-            status?: components["schemas"]["StatusC2bEnum"];
+            status?: components["schemas"]["Status92cEnum"];
             /** Format: date-time */
             placed_at?: string;
             readonly elapsed_minutes: number;
@@ -2616,7 +2871,7 @@ export interface components {
             order_workflow?: components["schemas"]["OrderWorkflowDafEnum"];
             /** @description Sequential daily token number for counter service */
             token_number?: number | null;
-            status?: components["schemas"]["StatusC2bEnum"];
+            status?: components["schemas"]["Status92cEnum"];
             /** Format: date-time */
             placed_at?: string;
             notes?: string;
@@ -2687,6 +2942,7 @@ export interface components {
             readonly tenant_name: string;
             readonly tenant_slug: string;
             readonly tenant_status: string;
+            readonly business_type: string;
             role: string;
             readonly branches: components["schemas"]["BranchSummary"][];
             is_active?: boolean;
@@ -2838,13 +3094,20 @@ export interface components {
             order_workflow?: components["schemas"]["OrderWorkflowDafEnum"];
             /** @description Sequential daily token number for counter service */
             token_number?: number | null;
-            status?: components["schemas"]["StatusC2bEnum"];
+            status?: components["schemas"]["Status92cEnum"];
+            source?: components["schemas"]["SourceEnum"];
+            payment_status?: components["schemas"]["PaymentStatusEnum"];
+            rejected_reason?: string;
             /** Format: date-time */
             placed_at?: string;
             /** Format: date-time */
             ready_at?: string | null;
             /** Format: date-time */
             served_at?: string | null;
+            /** Format: date-time */
+            completed_at?: string | null;
+            /** Format: date-time */
+            cancelled_at?: string | null;
             notes?: string;
             readonly items: components["schemas"]["OrderItem"][];
             readonly events: components["schemas"]["OrderEvent"][];
@@ -2873,6 +3136,8 @@ export interface components {
             /** Format: uuid */
             readonly menu_item_id: string;
             item_name: string;
+            variant_name?: string;
+            options_snapshot?: unknown;
             quantity?: number;
             /**
              * Format: int64
@@ -2896,6 +3161,8 @@ export interface components {
         };
         OrderItemRequest: {
             item_name: string;
+            variant_name?: string;
+            options_snapshot?: unknown;
             quantity?: number;
             /**
              * Format: int64
@@ -2931,13 +3198,20 @@ export interface components {
             order_workflow?: components["schemas"]["OrderWorkflowDafEnum"];
             /** @description Sequential daily token number for counter service */
             token_number?: number | null;
-            status?: components["schemas"]["StatusC2bEnum"];
+            status?: components["schemas"]["Status92cEnum"];
+            source?: components["schemas"]["SourceEnum"];
+            payment_status?: components["schemas"]["PaymentStatusEnum"];
+            rejected_reason?: string;
             /** Format: date-time */
             placed_at?: string;
             /** Format: date-time */
             ready_at?: string | null;
             /** Format: date-time */
             served_at?: string | null;
+            /** Format: date-time */
+            completed_at?: string | null;
+            /** Format: date-time */
+            cancelled_at?: string | null;
             notes?: string;
         };
         /**
@@ -3534,19 +3808,28 @@ export interface components {
             order_workflow?: components["schemas"]["OrderWorkflowDafEnum"];
             /** @description Sequential daily token number for counter service */
             token_number?: number | null;
-            status?: components["schemas"]["StatusC2bEnum"];
+            status?: components["schemas"]["Status92cEnum"];
+            source?: components["schemas"]["SourceEnum"];
+            payment_status?: components["schemas"]["PaymentStatusEnum"];
+            rejected_reason?: string;
             /** Format: date-time */
             placed_at?: string;
             /** Format: date-time */
             ready_at?: string | null;
             /** Format: date-time */
             served_at?: string | null;
+            /** Format: date-time */
+            completed_at?: string | null;
+            /** Format: date-time */
+            cancelled_at?: string | null;
             notes?: string;
         };
         PatchedPlatformAnnouncementRequest: {
             title?: string;
             message?: string;
             announcement_type?: components["schemas"]["AnnouncementTypeEnum"];
+            /** @description Target business type (ALL, RESTAURANT, CAFE, TEA_SHOP, BAKERY, HOTEL, FOOD_COURT) */
+            target_business_type?: string;
             is_active?: boolean;
             /** Format: date-time */
             starts_at?: string | null;
@@ -3650,26 +3933,26 @@ export interface components {
          */
         PaymentMethodEnum: "CASH" | "UPI" | "CARD" | "ROOM_FOLIO";
         /**
+         * @description * `UNPAID` - Unpaid
+         *     * `PAID` - Paid
+         * @enum {string}
+         */
+        PaymentStatusEnum: "UNPAID" | "PAID";
+        /**
          * @description * `PAY_FIRST` - Pay First
          *     * `PAY_LATER` - Pay Later
          *     * `EITHER` - Either
          * @enum {string}
          */
         PaymentTiming: "PAY_FIRST" | "PAY_LATER" | "EITHER";
-        /**
-         * @description * `starter` - starter
-         *     * `professional` - professional
-         *     * `business` - business
-         *     * `enterprise` - enterprise
-         * @enum {string}
-         */
-        PlanSlugEnum: "starter" | "professional" | "business" | "enterprise";
         PlatformAnnouncement: {
             /** Format: uuid */
             readonly id: string;
             title: string;
             message: string;
             announcement_type?: components["schemas"]["AnnouncementTypeEnum"];
+            /** @description Target business type (ALL, RESTAURANT, CAFE, TEA_SHOP, BAKERY, HOTEL, FOOD_COURT) */
+            target_business_type?: string;
             is_active?: boolean;
             /** Format: date-time */
             starts_at?: string | null;
@@ -3684,6 +3967,8 @@ export interface components {
             title: string;
             message: string;
             announcement_type?: components["schemas"]["AnnouncementTypeEnum"];
+            /** @description Target business type (ALL, RESTAURANT, CAFE, TEA_SHOP, BAKERY, HOTEL, FOOD_COURT) */
+            target_business_type?: string;
             is_active?: boolean;
             /** Format: date-time */
             starts_at?: string | null;
@@ -3703,8 +3988,10 @@ export interface components {
             owner_phone: string;
             /** Format: email */
             owner_email: string;
+            /** @default  */
+            initial_password: string;
             /** @default starter */
-            plan_slug: components["schemas"]["PlanSlugEnum"];
+            plan_slug: string;
             /** @default 14 */
             trial_days: number;
             /** @default 1 */
@@ -3747,7 +4034,7 @@ export interface components {
         PurchaseOrder: {
             /** Format: uuid */
             readonly id: string;
-            order_number: string;
+            order_number?: string;
             /** Format: uuid */
             supplier?: string | null;
             readonly supplier_name: string;
@@ -3795,7 +4082,7 @@ export interface components {
             expiry_date?: string | null;
         };
         PurchaseOrderRequest: {
-            order_number: string;
+            order_number?: string;
             /** Format: uuid */
             supplier?: string | null;
             invoice_number?: string;
@@ -3821,8 +4108,11 @@ export interface components {
             /** Format: uuid */
             readonly table: string | null;
             readonly table_label: string;
+            /** @default  */
+            readonly section_name: string;
             /** Format: uuid */
             readonly service_area: string | null;
+            /** @default  */
             readonly service_area_name: string;
             readonly public_token: string;
             /** @default true */
@@ -3977,9 +4267,11 @@ export interface components {
          *     * `OUTDOOR` - Outdoor
          *     * `VIP` - VIP
          *     * `PRIVATE_ROOM` - Private Room
+         *     * `GARDEN_HUTS` - Garden Huts / Cabanas
+         *     * `DHABA_LAWN` - Dhaba Lawn
          * @enum {string}
          */
-        SectionTypeEnum: "INDOOR" | "OUTDOOR" | "VIP" | "PRIVATE_ROOM";
+        SectionTypeEnum: "INDOOR" | "OUTDOOR" | "VIP" | "PRIVATE_ROOM" | "GARDEN_HUTS" | "DHABA_LAWN";
         ServiceArea: {
             /** Format: uuid */
             readonly id: string;
@@ -4041,6 +4333,12 @@ export interface components {
          * @enum {string}
          */
         SessionStatus: "OPEN" | "CLOSED";
+        /**
+         * @description * `STAFF` - Staff
+         *     * `QR` - QR Code
+         * @enum {string}
+         */
+        SourceEnum: "STAFF" | "QR";
         StaffDetail: {
             /** Format: uuid */
             readonly id: string;
@@ -4089,7 +4387,9 @@ export interface components {
             valid_to?: string | null;
         };
         /**
-         * @description * `PLACED` - Placed
+         * @description * `PENDING_APPROVAL` - Pending Approval
+         *     * `AWAITING_PAYMENT` - Awaiting Payment
+         *     * `PLACED` - Placed
          *     * `PREPARING` - Preparing
          *     * `READY` - Ready to Serve
          *     * `SERVED` - Served
@@ -4097,7 +4397,7 @@ export interface components {
          *     * `CANCELLED` - Cancelled
          * @enum {string}
          */
-        StatusC2bEnum: "PLACED" | "PREPARING" | "READY" | "SERVED" | "COMPLETED" | "CANCELLED";
+        Status92cEnum: "PENDING_APPROVAL" | "AWAITING_PAYMENT" | "PLACED" | "PREPARING" | "READY" | "SERVED" | "COMPLETED" | "CANCELLED";
         /**
          * @description * `PENDING` - Pending
          *     * `ACKNOWLEDGED` - Acknowledged
@@ -4255,6 +4555,8 @@ export interface components {
         TableStatus: "AVAILABLE" | "OCCUPIED" | "RESERVED" | "CLEANING" | "BLOCKED";
         /**
          * @description * `TABLE` - Dining Table
+         *     * `HUT` - Dhaba Hut / Gazebo / Cottage
+         *     * `CABANA` - Garden Cabana / Tent
          *     * `BOOTH` - Booth Seating
          *     * `BAR_SEAT` - Bar Stool
          *     * `ROOM` - Hotel Room
@@ -4263,7 +4565,7 @@ export interface components {
          *     * `TAKEAWAY_POINT` - Takeaway Point
          * @enum {string}
          */
-        TableType: "TABLE" | "BOOTH" | "BAR_SEAT" | "ROOM" | "COUNTER" | "BANQUET_TABLE" | "TAKEAWAY_POINT";
+        TableType: "TABLE" | "HUT" | "CABANA" | "BOOTH" | "BAR_SEAT" | "ROOM" | "COUNTER" | "BANQUET_TABLE" | "TAKEAWAY_POINT";
         /**
          * @description * `INCLUSIVE` - Tax Inclusive
          *     * `EXCLUSIVE` - Tax Exclusive
@@ -5145,6 +5447,27 @@ export interface operations {
             };
         };
     };
+    health_retrieve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+        };
+    };
     inventory_ingredients_list: {
         parameters: {
             query?: {
@@ -5352,7 +5675,7 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
-        requestBody: {
+        requestBody?: {
             content: {
                 "application/json": components["schemas"]["PurchaseOrderRequest"];
                 "application/x-www-form-urlencoded": components["schemas"]["PurchaseOrderRequest"];
@@ -5402,7 +5725,7 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody: {
+        requestBody?: {
             content: {
                 "application/json": components["schemas"]["PurchaseOrderRequest"];
                 "application/x-www-form-urlencoded": components["schemas"]["PurchaseOrderRequest"];
@@ -5479,7 +5802,7 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody: {
+        requestBody?: {
             content: {
                 "application/json": components["schemas"]["PurchaseOrderRequest"];
                 "application/x-www-form-urlencoded": components["schemas"]["PurchaseOrderRequest"];
@@ -7079,6 +7402,34 @@ export interface operations {
             };
         };
     };
+    orders_approve_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description A UUID string identifying this order. */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["OrderRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["OrderRequest"];
+                "multipart/form-data": components["schemas"]["OrderRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Order"];
+                };
+            };
+        };
+    };
     orders_cancel_create: {
         parameters: {
             query?: never;
@@ -7108,6 +7459,34 @@ export interface operations {
         };
     };
     orders_fire_mains_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description A UUID string identifying this order. */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["OrderRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["OrderRequest"];
+                "multipart/form-data": components["schemas"]["OrderRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Order"];
+                };
+            };
+        };
+    };
+    orders_reject_create: {
         parameters: {
             query?: never;
             header?: never;
@@ -7724,6 +8103,44 @@ export interface operations {
             };
         };
     };
+    plans_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No response body */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    plans_partial_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No response body */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     platform_customers_create: {
         parameters: {
             query?: never;
@@ -7772,6 +8189,26 @@ export interface operations {
             };
         };
     };
+    public_orders_retrieve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                tracking_token: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No response body */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     public_qr_retrieve: {
         parameters: {
             query?: never;
@@ -7790,6 +8227,46 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["PublicQRDetail"];
                 };
+            };
+        };
+    };
+    public_qr_menu_retrieve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                token: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No response body */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    public_qr_orders_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                token: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No response body */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };
@@ -8346,6 +8823,93 @@ export interface operations {
             };
         };
     };
+    sessions_list: {
+        parameters: {
+            query?: {
+                /** @description A page number within the paginated result set. */
+                page?: number;
+                /** @description Number of results to return per page. */
+                page_size?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaginatedTableSessionList"];
+                };
+            };
+        };
+    };
+    sessions_retrieve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description A UUID string identifying this table session. */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TableSession"];
+                };
+            };
+        };
+    };
+    sessions_close_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description A UUID string identifying this table session. */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TableSession"];
+                };
+            };
+        };
+    };
+    sessions_open_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TableSession"];
+                };
+            };
+        };
+    };
     staff_list: {
         parameters: {
             query?: {
@@ -8575,6 +9139,86 @@ export interface operations {
                         [key: string]: unknown;
                     };
                 };
+            };
+        };
+    };
+    subscriptions_entitlements_retrieve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+        };
+    };
+    subscriptions_plans_retrieve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+        };
+    };
+    subscriptions_plans_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No response body */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    subscriptions_plans_partial_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No response body */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };
@@ -9325,7 +9969,7 @@ export interface operations {
             };
         };
     };
-    health_retrieve: {
+    health_retrieve_2: {
         parameters: {
             query?: never;
             header?: never;

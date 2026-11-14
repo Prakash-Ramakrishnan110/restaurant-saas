@@ -22,6 +22,13 @@ export interface OrderItem {
   id: string;
   menu_item_id: string;
   item_name: string;
+  variant_name?: string;
+  options_snapshot?: Array<{
+    id: string;
+    name: string;
+    name_ta?: string;
+    price_delta_paise: number;
+  }>;
   quantity: number;
   unit_price_paise: number;
   subtotal_paise: number;
@@ -45,7 +52,19 @@ export interface Order {
   token_number?: number;
   daily_token?: number;
   status:
-    "PLACED" | "NEW" | "PREPARING" | "READY" | "SERVED" | "COMPLETED" | "BILLED" | "CANCELLED";
+    | "PENDING_APPROVAL"
+    | "AWAITING_PAYMENT"
+    | "PLACED"
+    | "NEW"
+    | "PREPARING"
+    | "READY"
+    | "SERVED"
+    | "COMPLETED"
+    | "BILLED"
+    | "CANCELLED";
+  source?: "STAFF" | "QR";
+  payment_status?: "UNPAID" | "PAID";
+  rejected_reason?: string;
   placed_at?: string;
   created_at?: string;
   ready_at?: string;
@@ -174,6 +193,11 @@ export const ordersApi = {
 
   fireMains: (orderId: string) =>
     apiClient.post<{ fired_count: number; order_id: string }>(`/orders/${orderId}/fire-mains/`),
+
+  approveOrder: (orderId: string) => apiClient.post<Order>(`/orders/${orderId}/approve/`),
+
+  rejectOrder: (orderId: string, reason: string) =>
+    apiClient.post<Order>(`/orders/${orderId}/reject/`, { reason }),
 
   getKDSTickets: (station?: string) =>
     apiClient.get<KDSTicket[]>("/orders/kds/", { params: { station } }),

@@ -57,3 +57,4 @@ All limits live in Django settings (`PUBLIC_QR_ORDER_LIMITS`) and are enforced s
 - Zero personal data collected (no customer phone numbers, emails, or OTPs).
 - Application logs never record order notes or IP addresses outside the ephemeral throttle cache.
 - Public pages never store tokens in `localStorage`; cart state (item IDs, variant/option IDs, quantities, notes) may use `sessionStorage`.
+

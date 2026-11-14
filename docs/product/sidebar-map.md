@@ -19,7 +19,7 @@ Never show an item that has no working page. Hidden items are listed here with t
 |---|---|---|---|---|
 | Dashboard | /dashboard | O M | | NOW (setup), P1 (sales) |
 | Tables & Orders (counter venues: Counter Orders) | /pos | O M C W | | P1 |
-| Live Orders | /orders | O M C W | badge: open orders | P1 |
+| Live Orders | /orders | O M C W | badge: open orders (shows Needs approval count when QR orders await approval) | P1 |
 | Ready to Serve (counter venues: Ready for Pickup) | /serve | O M C W | badge: ready | P1 |
 | Kitchen | /kds | K O M | badge: new orders | P1 |
 | Takeaway | /takeaway | O M C W | filter in Live Orders first | P1, own page P2 |
