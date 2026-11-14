@@ -117,7 +117,9 @@ export const PlatformAdminPage: React.FC = () => {
       }
       if (ticketsRes.status === "fulfilled") {
         const tList = unwrapList(ticketsRes.value.data);
-        const openCount = tList.filter((t: any) => t.status === "OPEN" || t.status === "IN_PROGRESS").length;
+        const openCount = tList.filter(
+          (t: any) => t.status === "OPEN" || t.status === "IN_PROGRESS"
+        ).length;
         setOpenTicketsCount(openCount);
       }
 
@@ -172,7 +174,8 @@ export const PlatformAdminPage: React.FC = () => {
       path: "/admin/health",
       icon: Activity,
       badge: "Infrastructure",
-      color: "border-emerald-200 dark:border-emerald-900/40 bg-emerald-50/40 dark:bg-emerald-950/20",
+      color:
+        "border-emerald-200 dark:border-emerald-900/40 bg-emerald-50/40 dark:bg-emerald-950/20",
       iconColor: "text-emerald-500",
       cta: "View Health",
     },
@@ -191,11 +194,18 @@ export const PlatformAdminPage: React.FC = () => {
       description: "Triage customer incident tickets, track priorities, and resolution SLAs.",
       path: "/admin/support",
       icon: LifeBuoy,
-      badge: openTicketsCount > 0 ? `${openTicketsCount} Active Ticket${openTicketsCount > 1 ? "s" : ""}` : "Helpdesk",
-      color: openTicketsCount > 0
-        ? "border-amber-300 dark:border-amber-800 bg-amber-50/50 dark:bg-amber-950/20"
-        : "border-teal-200 dark:border-teal-900/40 bg-teal-50/40 dark:bg-teal-950/20",
-      iconColor: openTicketsCount > 0 ? "text-amber-600 dark:text-amber-400" : "text-teal-600 dark:text-teal-400",
+      badge:
+        openTicketsCount > 0
+          ? `${openTicketsCount} Active Ticket${openTicketsCount > 1 ? "s" : ""}`
+          : "Helpdesk",
+      color:
+        openTicketsCount > 0
+          ? "border-amber-300 dark:border-amber-800 bg-amber-50/50 dark:bg-amber-950/20"
+          : "border-teal-200 dark:border-teal-900/40 bg-teal-50/40 dark:bg-teal-950/20",
+      iconColor:
+        openTicketsCount > 0
+          ? "text-amber-600 dark:text-amber-400"
+          : "text-teal-600 dark:text-teal-400",
       cta: "Open Helpdesk",
     },
   ];
@@ -227,7 +237,8 @@ export const PlatformAdminPage: React.FC = () => {
             <ShieldCheck className="h-7 w-7 text-emerald-600" /> Super-Admin Command Center
           </h1>
           <p className="text-xs text-muted-foreground mt-1">
-            Real-time multi-tenant platform metrics, backend observability, and quick launch modules.
+            Real-time multi-tenant platform metrics, backend observability, and quick launch
+            modules.
           </p>
         </div>
 
@@ -354,9 +365,12 @@ export const PlatformAdminPage: React.FC = () => {
                 </Badge>
               </div>
               <p className="text-xs text-muted-foreground mt-0.5">
-                Database: <span className="font-mono font-bold text-foreground">fusion_saas</span> (Port 5432) •{" "}
-                Tables: <span className="font-bold text-foreground">{healthInfo?.database_info?.tables_count ?? 53}</span> •{" "}
-                Redis 7 Cache: <span className="font-bold text-emerald-600">Connected</span>
+                Database: <span className="font-mono font-bold text-foreground">fusion_saas</span>{" "}
+                (Port 5432) • Tables:{" "}
+                <span className="font-bold text-foreground">
+                  {healthInfo?.database_info?.tables_count ?? 53}
+                </span>{" "}
+                • Redis 7 Cache: <span className="font-bold text-emerald-600">Connected</span>
               </p>
             </div>
           </div>
@@ -453,10 +467,26 @@ export const PlatformAdminPage: React.FC = () => {
 
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             {[
-              { name: "Starter", price: "₹1,499/mo", count: summary?.plan_distribution?.["starter"] ?? 10 },
-              { name: "Professional", price: "₹4,999/mo", count: summary?.plan_distribution?.["professional"] ?? 5 },
-              { name: "Business", price: "₹9,999/mo", count: summary?.plan_distribution?.["business"] ?? 3 },
-              { name: "Enterprise", price: "₹24,999/mo", count: summary?.plan_distribution?.["enterprise"] ?? 1 },
+              {
+                name: "Starter",
+                price: "₹1,499/mo",
+                count: summary?.plan_distribution?.["starter"] ?? 10,
+              },
+              {
+                name: "Professional",
+                price: "₹4,999/mo",
+                count: summary?.plan_distribution?.["professional"] ?? 5,
+              },
+              {
+                name: "Business",
+                price: "₹9,999/mo",
+                count: summary?.plan_distribution?.["business"] ?? 3,
+              },
+              {
+                name: "Enterprise",
+                price: "₹24,999/mo",
+                count: summary?.plan_distribution?.["enterprise"] ?? 1,
+              },
             ].map((p) => (
               <div
                 key={p.name}
@@ -466,9 +496,7 @@ export const PlatformAdminPage: React.FC = () => {
                 <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider block">
                   {p.name}
                 </span>
-                <span className="text-2xl font-black text-foreground mt-1 block">
-                  {p.count}
-                </span>
+                <span className="text-2xl font-black text-foreground mt-1 block">{p.count}</span>
                 <span className="text-[11px] text-[#FF6A00] font-semibold">{p.price}</span>
               </div>
             ))}
@@ -486,7 +514,9 @@ export const PlatformAdminPage: React.FC = () => {
                 <h3 className="font-bold text-sm text-foreground flex items-center gap-1.5">
                   <FileText className="h-4 w-4 text-[#FF6A00]" /> Recent Platform Activity
                 </h3>
-                <p className="text-[11px] text-muted-foreground">Latest audit logs across all tenants</p>
+                <p className="text-[11px] text-muted-foreground">
+                  Latest audit logs across all tenants
+                </p>
               </div>
               <Button
                 variant="ghost"
@@ -539,7 +569,9 @@ export const PlatformAdminPage: React.FC = () => {
                 <h3 className="font-bold text-sm text-foreground flex items-center gap-1.5">
                   <Building2 className="h-4 w-4 text-emerald-600" /> Recently Registered Brands
                 </h3>
-                <p className="text-[11px] text-muted-foreground">Newest restaurant tenants onboarded</p>
+                <p className="text-[11px] text-muted-foreground">
+                  Newest restaurant tenants onboarded
+                </p>
               </div>
               <Button
                 variant="ghost"

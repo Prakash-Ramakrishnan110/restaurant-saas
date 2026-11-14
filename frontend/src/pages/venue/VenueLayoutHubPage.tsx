@@ -51,20 +51,15 @@ export const VenueLayoutHubPage: React.FC = () => {
           venue_profile: vProf,
           allows_room_service: Boolean(roomSvc),
           uses_tables:
-            bType !== "TEA_SHOP" &&
-            bType !== "QUICK_SERVICE" &&
-            vProf !== "QUICK_SERVICE",
+            bType !== "TEA_SHOP" && bType !== "QUICK_SERVICE" && vProf !== "QUICK_SERVICE",
         });
       })
       .catch(() => {});
   }, [activeTenant]);
 
-  const businessType =
-    businessInfo.business_type || activeTenant?.business_type || "";
-  const venueProfile =
-    businessInfo.venue_profile || activeTenant?.venue_profile || "";
-  const usesTables =
-    businessInfo.uses_tables ?? activeTenant?.uses_tables ?? true;
+  const businessType = businessInfo.business_type || activeTenant?.business_type || "";
+  const venueProfile = businessInfo.venue_profile || activeTenant?.venue_profile || "";
+  const usesTables = businessInfo.uses_tables ?? activeTenant?.uses_tables ?? true;
 
   const isHotel =
     businessType === "HOTEL" ||
@@ -205,7 +200,9 @@ export const VenueLayoutHubPage: React.FC = () => {
                 aria-label={`Switch to ${tab.label}`}
                 aria-current={isActive ? "page" : undefined}
               >
-                <Icon className={`h-4 w-4 shrink-0 ${isActive ? "text-[#0B1F3B]" : "text-muted-foreground"}`} />
+                <Icon
+                  className={`h-4 w-4 shrink-0 ${isActive ? "text-[#0B1F3B]" : "text-muted-foreground"}`}
+                />
                 <span>{tab.label}</span>
               </button>
             );

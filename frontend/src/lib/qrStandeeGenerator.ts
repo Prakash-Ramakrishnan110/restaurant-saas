@@ -75,7 +75,8 @@ export function resolveTableIdentity(options: {
   // 2. Table / Area Name resolution (many hotels/restaurants have custom named tables or sections)
   let nameStr = (options.tableName || options.areaName || "").trim();
   if (!nameStr) {
-    nameStr = type === "ROOM" ? "Guest Rooms" : type === "COUNTER" ? "Counter Service" : "Main Dining";
+    nameStr =
+      type === "ROOM" ? "Guest Rooms" : type === "COUNTER" ? "Counter Service" : "Main Dining";
   }
 
   return {
@@ -110,7 +111,8 @@ function roundRect(
   h: number,
   radius: number | { tl: number; tr: number; br: number; bl: number }
 ) {
-  const r = typeof radius === "number" ? { tl: radius, tr: radius, br: radius, bl: radius } : radius;
+  const r =
+    typeof radius === "number" ? { tl: radius, tr: radius, br: radius, bl: radius } : radius;
   ctx.beginPath();
   ctx.moveTo(x + r.tl, y);
   ctx.lineTo(x + w - r.tr, y);
@@ -411,9 +413,7 @@ export async function downloadStandeeCardPNG(
       if (!blob) return;
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
-      const safeName = (
-        filename || `standee-${identity.numberHeading}-${identity.tableName}`
-      )
+      const safeName = (filename || `standee-${identity.numberHeading}-${identity.tableName}`)
         .replace(/[^a-zA-Z0-9_-]/g, "_")
         .toLowerCase();
       link.href = url;

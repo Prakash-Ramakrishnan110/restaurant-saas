@@ -615,7 +615,7 @@ test.describe("ServeMyFood: 5-Minute End-to-End Live Demo Journey (D1)", () => {
     // -------------------------------------------------------------------------
     demoState.role = "OWNER";
     await page.goto("/dashboard");
-    await page.waitForLoadState("networkidle");
+    await page.waitForLoadState("domcontentloaded");
 
     // Verify Today's Sales Cards & Velocity
     await expect(page.getByTestId("metric-today-sales")).toHaveText("₹3,050.00", { timeout: 10000 });

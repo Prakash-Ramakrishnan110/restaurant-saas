@@ -49,14 +49,7 @@ export interface NavigationContext {
 }
 
 export function getNavigationGroups(ctx: NavigationContext): NavGroup[] {
-  const {
-    role,
-    isPlatformAdmin,
-    businessType,
-    venueProfile,
-    usesTables = true,
-    can,
-  } = ctx;
+  const { role, isPlatformAdmin, businessType, venueProfile, usesTables = true, can } = ctx;
 
   const isQuickService =
     !usesTables ||
@@ -263,4 +256,3 @@ export function getRoleHome(role?: string | null, isPlatformAdmin?: boolean): st
       return "/dashboard";
   }
 }
-

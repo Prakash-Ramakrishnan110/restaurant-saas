@@ -161,4 +161,3 @@ describe("Venue Chair Seating & Table Presets", () => {
     });
   });
 });
-

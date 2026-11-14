@@ -118,7 +118,9 @@ export const SuppliersPurchasesPage: React.FC = () => {
       {
         ingredient: ingredients[0]?.id || "",
         quantity: "10.000",
-        unitPriceRupees: ingredients[0] ? formatRupees(ingredients[0].cost_paise).replace("₹", "").trim() : "100.00",
+        unitPriceRupees: ingredients[0]
+          ? formatRupees(ingredients[0].cost_paise).replace("₹", "").trim()
+          : "100.00",
         batchNumber: "",
       },
     ]);
@@ -152,7 +154,9 @@ export const SuppliersPurchasesPage: React.FC = () => {
         if (i !== idx) return item;
         if (field === "ingredient") {
           const ing = ingredients.find((ing) => ing.id === val);
-          const defaultPrice = ing ? formatRupees(ing.cost_paise).replace("₹", "").trim() : item.unitPriceRupees;
+          const defaultPrice = ing
+            ? formatRupees(ing.cost_paise).replace("₹", "").trim()
+            : item.unitPriceRupees;
           return { ...item, ingredient: val, unitPriceRupees: defaultPrice };
         }
         return { ...item, [field]: val };

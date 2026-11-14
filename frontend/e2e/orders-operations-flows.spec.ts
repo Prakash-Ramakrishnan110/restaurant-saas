@@ -531,7 +531,8 @@ test.describe("Production Operational & Sidebar Suite", () => {
     // 4. Kitchen view
     await setupOperationsMock(page, "KITCHEN", false);
     await page.goto("/dashboard");
-    await page.waitForLoadState("networkidle");
+    await page.waitForURL(/\/kds/, { timeout: 10000 });
+    await page.waitForLoadState("domcontentloaded");
     await ensureSidebarVisible(page);
     await expect(page.getByRole("link", { name: "Kitchen KDS" })).toBeVisible();
     await expect(page.getByRole("link", { name: "Today's Availability" })).toBeVisible();

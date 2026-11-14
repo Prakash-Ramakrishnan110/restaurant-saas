@@ -16,8 +16,7 @@ test.describe("Branding Logo Upload & Preview Suite", () => {
     await page.waitForURL((url) => !url.pathname.includes("/login"), { timeout: 15000 });
 
     // 2. Navigate to Branding Settings
-    await page.goto("/settings/branding");
-    await page.waitForLoadState("domcontentloaded");
+    await page.goto("/settings/branding", { waitUntil: "load" });
 
     await expect(page.getByRole("heading", { name: /Branding & Business Identity/i })).toBeVisible({
       timeout: 10000,

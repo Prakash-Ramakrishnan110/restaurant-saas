@@ -39,10 +39,9 @@ describe("i18n Plain Language & Jargon Invariants (Step 3.3)", () => {
       }
     }
 
-    expect(
-      violations,
-      `Found jargon in English i18n resources:\n${violations.join("\n")}`
-    ).toEqual([]);
+    expect(violations, `Found jargon in English i18n resources:\n${violations.join("\n")}`).toEqual(
+      []
+    );
   });
 
   it("verifies Tamil (ta) dictionary contains zero technical jargon words", () => {
@@ -58,10 +57,9 @@ describe("i18n Plain Language & Jargon Invariants (Step 3.3)", () => {
       }
     }
 
-    expect(
-      violations,
-      `Found jargon in Tamil i18n resources:\n${violations.join("\n")}`
-    ).toEqual([]);
+    expect(violations, `Found jargon in Tamil i18n resources:\n${violations.join("\n")}`).toEqual(
+      []
+    );
   });
 
   it("verifies parity between en and ta translation keys", () => {
@@ -74,8 +72,9 @@ describe("i18n Plain Language & Jargon Invariants (Step 3.3)", () => {
     const missingInTa = [...enKeys].filter((k) => !taKeys.has(k));
     const extraInTa = [...taKeys].filter((k) => !enKeys.has(k));
 
-    expect(missingInTa, `Keys present in en but missing in ta: ${missingInTa.join(", ")}`).toEqual([]);
+    expect(missingInTa, `Keys present in en but missing in ta: ${missingInTa.join(", ")}`).toEqual(
+      []
+    );
     expect(extraInTa, `Keys present in ta but missing in en: ${extraInTa.join(", ")}`).toEqual([]);
   });
 });
-

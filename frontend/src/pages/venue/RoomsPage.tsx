@@ -170,7 +170,8 @@ export const RoomsPage: React.FC = () => {
         <div className="flex items-center gap-2.5">
           <Utensils className="w-4 h-4 text-[#FF6A00] flex-shrink-0" />
           <span className="text-foreground">
-            <strong>In-Room Dining & Suites:</strong> You are managing hotel guest rooms. To manage dining tables in your hotel restaurant or banquet, visit Dining Tables.
+            <strong>In-Room Dining & Suites:</strong> You are managing hotel guest rooms. To manage
+            dining tables in your hotel restaurant or banquet, visit Dining Tables.
           </span>
         </div>
         <Button

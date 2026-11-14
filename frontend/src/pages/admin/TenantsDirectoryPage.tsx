@@ -145,7 +145,17 @@ export const TenantsDirectoryPage: React.FC = () => {
   }, [tenants, statusFilter, businessTypeFilter, planFilter, searchQuery, sortBy]);
 
   const handleExportCSV = () => {
-    const headers = ["ID", "Name", "Slug", "Type", "Status", "Plan", "Owner Email", "Branches", "Created"];
+    const headers = [
+      "ID",
+      "Name",
+      "Slug",
+      "Type",
+      "Status",
+      "Plan",
+      "Owner Email",
+      "Branches",
+      "Created",
+    ];
     const rows = filteredTenants.map((t) => [
       t.id,
       `"${t.name.replace(/"/g, '""')}"`,
@@ -230,7 +240,8 @@ export const TenantsDirectoryPage: React.FC = () => {
             <Users className="h-7 w-7 text-[#FF6A00]" /> Customers Directory
           </h1>
           <p className="text-xs text-muted-foreground mt-1">
-            Search, filter, inspect, and manage all registered restaurant chains, cafes, tea shops, and hotels.
+            Search, filter, inspect, and manage all registered restaurant chains, cafes, tea shops,
+            and hotels.
           </p>
         </div>
 
@@ -246,12 +257,7 @@ export const TenantsDirectoryPage: React.FC = () => {
             <span>Refresh</span>
           </Button>
 
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={handleExportCSV}
-            className="text-xs gap-1.5"
-          >
+          <Button size="sm" variant="outline" onClick={handleExportCSV} className="text-xs gap-1.5">
             <Download className="h-3.5 w-3.5" />
             <span>Export CSV</span>
           </Button>
@@ -398,10 +404,7 @@ export const TenantsDirectoryPage: React.FC = () => {
                   const isActionBusy = actionLoading === tenant.id;
 
                   return (
-                    <tr
-                      key={tenant.id}
-                      className="hover:bg-muted/30 transition-colors group"
-                    >
+                    <tr key={tenant.id} className="hover:bg-muted/30 transition-colors group">
                       <td className="py-3 px-4">
                         <div className="font-bold text-foreground text-sm flex items-center gap-2">
                           {tenant.name}

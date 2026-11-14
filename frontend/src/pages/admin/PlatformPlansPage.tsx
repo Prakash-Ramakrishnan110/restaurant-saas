@@ -18,7 +18,13 @@ import {
 import { Button } from "../../components/ui/button";
 import { Badge } from "../../components/ui/badge";
 import { Card } from "../../components/ui/card";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "../../components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "../../components/ui/dialog";
 import { Skeleton } from "../../components/ui/skeleton";
 import { apiClient } from "../../api/client";
 import { unwrapList, ListResponse } from "../../api/pagination";
@@ -161,7 +167,9 @@ export const PlatformPlansPage: React.FC = () => {
 
   const applyBlueprint = (type: "dhaba" | "hotel" | "dining" | "qsr") => {
     if (type === "dhaba") {
-      setFormName(editingPlan ? "Dhaba & Outdoor Huts Edition" : getUniqueName("Dhaba & Outdoor Huts Edition"));
+      setFormName(
+        editingPlan ? "Dhaba & Outdoor Huts Edition" : getUniqueName("Dhaba & Outdoor Huts Edition")
+      );
       if (!editingPlan) setFormSlug(getUniqueSlug("dhaba-huts"));
       setFormPriceRupees(2999);
       setFormMaxBranches(3);
@@ -215,7 +223,9 @@ export const PlatformPlansPage: React.FC = () => {
       setFormTableMerge(true);
       setFormCourses(false);
     } else if (type === "qsr") {
-      setFormName(editingPlan ? "Express Counter Edition" : getUniqueName("Express Counter Edition"));
+      setFormName(
+        editingPlan ? "Express Counter Edition" : getUniqueName("Express Counter Edition")
+      );
       if (!editingPlan) setFormSlug(getUniqueSlug("express-counter"));
       setFormPriceRupees(999);
       setFormMaxBranches(1);
@@ -362,7 +372,8 @@ export const PlatformPlansPage: React.FC = () => {
             SaaS Subscription Plans
           </h1>
           <p className="text-xs text-muted-foreground mt-1">
-            Compact pricing cards with operational quotas and feature entitlements. Click any plan card to inspect full details.
+            Compact pricing cards with operational quotas and feature entitlements. Click any plan
+            card to inspect full details.
           </p>
         </div>
 
@@ -438,7 +449,10 @@ export const PlatformPlansPage: React.FC = () => {
                     <h2 className="text-base font-extrabold text-foreground group-hover:text-[#FF6A00] transition-colors">
                       {p.name}
                     </h2>
-                    <Badge variant="outline" className="text-[10px] font-mono uppercase bg-muted/30">
+                    <Badge
+                      variant="outline"
+                      className="text-[10px] font-mono uppercase bg-muted/30"
+                    >
                       {p.slug}
                     </Badge>
                   </div>
@@ -531,7 +545,9 @@ export const PlatformPlansPage: React.FC = () => {
                   <span className="text-2xl font-black text-foreground">
                     {formatRupees(selectedPlan.price_paise)}
                   </span>
-                  <span className="text-xs text-muted-foreground block">per month (billed monthly)</span>
+                  <span className="text-xs text-muted-foreground block">
+                    per month (billed monthly)
+                  </span>
                 </div>
               </div>
             </DialogHeader>
@@ -691,7 +707,9 @@ export const PlatformPlansPage: React.FC = () => {
                         <div className="flex items-center gap-2">
                           <Building2 className="w-3.5 h-3.5 text-[#FF6A00]" />
                           <span className="font-bold text-foreground">{t.name}</span>
-                          <span className="text-[10px] text-muted-foreground font-mono">({t.business_type})</span>
+                          <span className="text-[10px] text-muted-foreground font-mono">
+                            ({t.business_type})
+                          </span>
                         </div>
                         <Badge variant="outline" className="text-[10px] font-bold">
                           {t.status}
@@ -746,7 +764,8 @@ export const PlatformPlansPage: React.FC = () => {
               {editingPlan ? `Edit Plan: ${editingPlan.name}` : "Create New Subscription Plan"}
             </DialogTitle>
             <p className="text-xs text-muted-foreground">
-              Configure operational quotas and feature entitlement toggles for Dhabas, Hotels, or Dining.
+              Configure operational quotas and feature entitlement toggles for Dhabas, Hotels, or
+              Dining.
             </p>
           </DialogHeader>
 
@@ -787,9 +806,7 @@ export const PlatformPlansPage: React.FC = () => {
                 onClick={() => applyBlueprint("dining")}
                 className="p-2.5 rounded-lg border border-border bg-muted/30 hover:bg-muted/60 text-left transition-colors"
               >
-                <span className="text-xs font-bold text-foreground block">
-                  Casual Dining
-                </span>
+                <span className="text-xs font-bold text-foreground block">Casual Dining</span>
                 <span className="text-[10px] text-muted-foreground block mt-0.5">
                   ₹1,999/mo • 50 Tables + Floor
                 </span>
@@ -800,9 +817,7 @@ export const PlatformPlansPage: React.FC = () => {
                 onClick={() => applyBlueprint("qsr")}
                 className="p-2.5 rounded-lg border border-border bg-muted/30 hover:bg-muted/60 text-left transition-colors"
               >
-                <span className="text-xs font-bold text-foreground block">
-                  Express Counter
-                </span>
+                <span className="text-xs font-bold text-foreground block">Express Counter</span>
                 <span className="text-[10px] text-muted-foreground block mt-0.5">
                   ₹999/mo • 1 Outlet + Token
                 </span>
@@ -834,9 +849,7 @@ export const PlatformPlansPage: React.FC = () => {
               </div>
 
               <div className="space-y-1">
-                <label className="text-xs font-bold text-foreground">
-                  Slug Identifier
-                </label>
+                <label className="text-xs font-bold text-foreground">Slug Identifier</label>
                 <input
                   type="text"
                   value={formSlug}
@@ -848,11 +861,11 @@ export const PlatformPlansPage: React.FC = () => {
             </div>
 
             <div className="space-y-1">
-              <label className="text-xs font-bold text-foreground">
-                Monthly Price (₹ INR)
-              </label>
+              <label className="text-xs font-bold text-foreground">Monthly Price (₹ INR)</label>
               <div className="relative">
-                <span className="absolute left-3 top-2 text-xs font-bold text-muted-foreground">₹</span>
+                <span className="absolute left-3 top-2 text-xs font-bold text-muted-foreground">
+                  ₹
+                </span>
                 <input
                   type="number"
                   min="0"
@@ -872,7 +885,9 @@ export const PlatformPlansPage: React.FC = () => {
               </span>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
                 <div className="space-y-1">
-                  <label className="text-[11px] text-muted-foreground font-semibold">Max Outlets</label>
+                  <label className="text-[11px] text-muted-foreground font-semibold">
+                    Max Outlets
+                  </label>
                   <input
                     type="number"
                     value={formMaxBranches}
@@ -881,7 +896,9 @@ export const PlatformPlansPage: React.FC = () => {
                   />
                 </div>
                 <div className="space-y-1">
-                  <label className="text-[11px] text-muted-foreground font-semibold">Max Tables / Rooms</label>
+                  <label className="text-[11px] text-muted-foreground font-semibold">
+                    Max Tables / Rooms
+                  </label>
                   <input
                     type="number"
                     value={formMaxTables}
@@ -890,7 +907,9 @@ export const PlatformPlansPage: React.FC = () => {
                   />
                 </div>
                 <div className="space-y-1">
-                  <label className="text-[11px] text-muted-foreground font-semibold">Max Service Areas</label>
+                  <label className="text-[11px] text-muted-foreground font-semibold">
+                    Max Service Areas
+                  </label>
                   <input
                     type="number"
                     value={formMaxServiceAreas}
@@ -899,7 +918,9 @@ export const PlatformPlansPage: React.FC = () => {
                   />
                 </div>
                 <div className="space-y-1">
-                  <label className="text-[11px] text-muted-foreground font-semibold">Max Menu Items</label>
+                  <label className="text-[11px] text-muted-foreground font-semibold">
+                    Max Menu Items
+                  </label>
                   <input
                     type="number"
                     value={formMaxMenuItems}
@@ -925,7 +946,9 @@ export const PlatformPlansPage: React.FC = () => {
                       onChange={(e) => setFormAllowsHuts(e.target.checked)}
                       className="rounded border-input text-amber-600 focus:ring-amber-500"
                     />
-                    <span><strong>Dhaba Huts &amp; Cabanas</strong> (HUT/CABANA units)</span>
+                    <span>
+                      <strong>Dhaba Huts &amp; Cabanas</strong> (HUT/CABANA units)
+                    </span>
                   </label>
                   <label className="flex items-center gap-2 cursor-pointer">
                     <input
@@ -934,7 +957,9 @@ export const PlatformPlansPage: React.FC = () => {
                       onChange={(e) => setFormAllowsWaiterCall(e.target.checked)}
                       className="rounded border-input text-amber-600 focus:ring-amber-500"
                     />
-                    <span><strong>Waiter Call Bell</strong> (QR digital buzzer)</span>
+                    <span>
+                      <strong>Waiter Call Bell</strong> (QR digital buzzer)
+                    </span>
                   </label>
                   <label className="flex items-center gap-2 cursor-pointer">
                     <input
@@ -943,7 +968,9 @@ export const PlatformPlansPage: React.FC = () => {
                       onChange={(e) => setFormAllowsMinSpend(e.target.checked)}
                       className="rounded border-input text-amber-600 focus:ring-amber-500"
                     />
-                    <span><strong>Minimum Order Spend</strong> (VIP hut rule)</span>
+                    <span>
+                      <strong>Minimum Order Spend</strong> (VIP hut rule)
+                    </span>
                   </label>
                   <label className="flex items-center gap-2 cursor-pointer">
                     <input
@@ -952,7 +979,9 @@ export const PlatformPlansPage: React.FC = () => {
                       onChange={(e) => setFormOutdoorSections(e.target.checked)}
                       className="rounded border-input text-amber-600 focus:ring-amber-500"
                     />
-                    <span><strong>Outdoor Lawns &amp; Zones</strong></span>
+                    <span>
+                      <strong>Outdoor Lawns &amp; Zones</strong>
+                    </span>
                   </label>
                 </div>
               </div>
@@ -970,7 +999,9 @@ export const PlatformPlansPage: React.FC = () => {
                       onChange={(e) => setFormAllowsRoomService(e.target.checked)}
                       className="rounded border-input text-purple-600 focus:ring-purple-500"
                     />
-                    <span><strong>In-Room Dining</strong> (Room food delivery)</span>
+                    <span>
+                      <strong>In-Room Dining</strong> (Room food delivery)
+                    </span>
                   </label>
                   <label className="flex items-center gap-2 cursor-pointer">
                     <input
@@ -979,7 +1010,9 @@ export const PlatformPlansPage: React.FC = () => {
                       onChange={(e) => setFormAllowsRoomFolio(e.target.checked)}
                       className="rounded border-input text-purple-600 focus:ring-purple-500"
                     />
-                    <span><strong>Room Folio Billing</strong> (Post to room tab)</span>
+                    <span>
+                      <strong>Room Folio Billing</strong> (Post to room tab)
+                    </span>
                   </label>
                   <label className="flex items-center gap-2 cursor-pointer">
                     <input
@@ -988,7 +1021,9 @@ export const PlatformPlansPage: React.FC = () => {
                       onChange={(e) => setFormHousekeeping(e.target.checked)}
                       className="rounded border-input text-purple-600 focus:ring-purple-500"
                     />
-                    <span><strong>Housekeeping Turnover</strong> (Clean/Dirty)</span>
+                    <span>
+                      <strong>Housekeeping Turnover</strong> (Clean/Dirty)
+                    </span>
                   </label>
                 </div>
               </div>

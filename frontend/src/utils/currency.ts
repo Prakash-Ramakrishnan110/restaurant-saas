@@ -4,10 +4,7 @@
  * Single canonical formatter (formatRupees) and parser (parseRupees).
  */
 
-export function formatRupees(
-  paise: number,
-  options?: { forceDecimals?: boolean }
-): string {
+export function formatRupees(paise: number, options?: { forceDecimals?: boolean }): string {
   if (isNaN(paise) || !isFinite(paise) || paise === null || paise === undefined) {
     return options?.forceDecimals === false ? "₹0" : "₹0.00";
   }

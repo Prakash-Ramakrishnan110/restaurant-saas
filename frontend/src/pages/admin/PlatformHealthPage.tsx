@@ -131,7 +131,8 @@ export const PlatformHealthPage: React.FC = () => {
             System Health &amp; Infrastructure Monitor
           </h1>
           <p className="text-xs text-muted-foreground mt-1">
-            Real-time API response latency, PostgreSQL cluster status, Redis 7 cache, and backend administrative console.
+            Real-time API response latency, PostgreSQL cluster status, Redis 7 cache, and backend
+            administrative console.
           </p>
         </div>
 
@@ -185,9 +186,8 @@ export const PlatformHealthPage: React.FC = () => {
                 : "Platform Services Degraded"}
             </h2>
             <p className="text-xs opacity-90 mt-0.5">
-              API roundtrip latency:{" "}
-              <span className="font-mono font-bold">{latencyMs}ms</span> • Database:{" "}
-              <span className="font-bold capitalize">{dbInfo.status}</span> • Cache:{" "}
+              API roundtrip latency: <span className="font-mono font-bold">{latencyMs}ms</span> •
+              Database: <span className="font-bold capitalize">{dbInfo.status}</span> • Cache:{" "}
               <span className="font-bold capitalize">{redisInfo.status}</span>
             </p>
           </div>
@@ -228,12 +228,15 @@ export const PlatformHealthPage: React.FC = () => {
           </CardHeader>
           <CardContent className="p-4 space-y-3 text-xs">
             <p className="text-muted-foreground leading-relaxed">
-              Direct access to the low-level Django ORM management console for user groups, sessions, tokens, and raw table rows.
+              Direct access to the low-level Django ORM management console for user groups,
+              sessions, tokens, and raw table rows.
             </p>
             <div className="p-3 rounded-lg border border-border bg-muted/10 space-y-1.5 text-[11px]">
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Console URL:</span>
-                <span className="font-mono font-bold text-foreground">http://localhost:8000/admin/</span>
+                <span className="font-mono font-bold text-foreground">
+                  http://localhost:8000/admin/
+                </span>
               </div>
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Admin Auth:</span>
@@ -395,7 +398,9 @@ export const PlatformHealthPage: React.FC = () => {
             <div className="p-3 rounded-lg border border-border bg-card flex items-start gap-3">
               <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400 mt-0.5 shrink-0" />
               <div>
-                <span className="font-bold text-foreground block">Billing &amp; Entitlements Engine</span>
+                <span className="font-bold text-foreground block">
+                  Billing &amp; Entitlements Engine
+                </span>
                 <span className="text-[11px] text-muted-foreground block">
                   Subscription quotas and table caps
                 </span>

@@ -285,7 +285,8 @@ export const NewCustomerWizardPage: React.FC = () => {
             <PlusCircle className="h-7 w-7 text-[#FF6A00]" /> New Customer Provisioning
           </h1>
           <p className="text-xs text-muted-foreground mt-1">
-            Provision a new restaurant tenant, initial outlets, venue presets, and administrator credentials.
+            Provision a new restaurant tenant, initial outlets, venue presets, and administrator
+            credentials.
           </p>
         </div>
 
@@ -452,10 +453,10 @@ export const NewCustomerWizardPage: React.FC = () => {
                       <div className="space-y-1.5">
                         <div className="flex items-center justify-between gap-2">
                           <div className="flex items-center gap-2">
-                            <Icon className={`h-4 w-4 ${isSelected ? "text-[#FF6A00]" : "text-muted-foreground"}`} />
-                            <span className="text-xs font-black text-foreground">
-                              {bt.label}
-                            </span>
+                            <Icon
+                              className={`h-4 w-4 ${isSelected ? "text-[#FF6A00]" : "text-muted-foreground"}`}
+                            />
+                            <span className="text-xs font-black text-foreground">{bt.label}</span>
                           </div>
                           <span
                             className={`inline-block px-2 py-0.5 rounded-md text-[10px] font-bold border ${getBusinessTypeColor(
@@ -490,11 +491,13 @@ export const NewCustomerWizardPage: React.FC = () => {
                 Document Language (Invoices, Receipts &amp; Public QR)
               </label>
               <div className="flex flex-wrap gap-4">
-                <label className={`flex items-center gap-2 px-3 py-2 rounded-lg border text-xs font-semibold cursor-pointer transition-all ${
-                  form.language === "en"
-                    ? "border-[#FF6A00] bg-[#FF6A00]/5 ring-1 ring-[#FF6A00]"
-                    : "border-border bg-card hover:bg-muted/40"
-                }`}>
+                <label
+                  className={`flex items-center gap-2 px-3 py-2 rounded-lg border text-xs font-semibold cursor-pointer transition-all ${
+                    form.language === "en"
+                      ? "border-[#FF6A00] bg-[#FF6A00]/5 ring-1 ring-[#FF6A00]"
+                      : "border-border bg-card hover:bg-muted/40"
+                  }`}
+                >
                   <input
                     type="radio"
                     name="lang"
@@ -505,11 +508,13 @@ export const NewCustomerWizardPage: React.FC = () => {
                   <span>English (Default Standard)</span>
                 </label>
 
-                <label className={`flex items-center gap-2 px-3 py-2 rounded-lg border text-xs font-semibold cursor-pointer transition-all ${
-                  form.language === "ta"
-                    ? "border-[#FF6A00] bg-[#FF6A00]/5 ring-1 ring-[#FF6A00]"
-                    : "border-border bg-card hover:bg-muted/40"
-                }`}>
+                <label
+                  className={`flex items-center gap-2 px-3 py-2 rounded-lg border text-xs font-semibold cursor-pointer transition-all ${
+                    form.language === "ta"
+                      ? "border-[#FF6A00] bg-[#FF6A00]/5 ring-1 ring-[#FF6A00]"
+                      : "border-border bg-card hover:bg-muted/40"
+                  }`}
+                >
                   <input
                     type="radio"
                     name="lang"
@@ -524,7 +529,10 @@ export const NewCustomerWizardPage: React.FC = () => {
 
             {/* Step 1 Actions */}
             <div className="pt-4 border-t border-border flex justify-end">
-              <Button onClick={handleNext} className="gap-2 bg-[#FF6A00] hover:bg-[#FF6A00]/90 text-[#0B1F3B] font-bold text-xs">
+              <Button
+                onClick={handleNext}
+                className="gap-2 bg-[#FF6A00] hover:bg-[#FF6A00]/90 text-[#0B1F3B] font-bold text-xs"
+              >
                 <span>Continue to Owner Account</span>
                 <ArrowRight className="h-4 w-4" />
               </Button>
@@ -586,7 +594,8 @@ export const NewCustomerWizardPage: React.FC = () => {
                   className="h-10 text-sm font-mono"
                 />
                 <p className="text-[11px] text-muted-foreground mt-1">
-                  If left blank, the platform automatically generates a cryptographically secure credential.
+                  If left blank, the platform automatically generates a cryptographically secure
+                  credential.
                 </p>
               </div>
             </div>
@@ -596,7 +605,10 @@ export const NewCustomerWizardPage: React.FC = () => {
               <Button variant="outline" onClick={handleBack} className="gap-2 text-xs">
                 <ArrowLeft className="h-4 w-4" /> Back
               </Button>
-              <Button onClick={handleNext} className="gap-2 bg-[#FF6A00] hover:bg-[#FF6A00]/90 text-[#0B1F3B] font-bold text-xs">
+              <Button
+                onClick={handleNext}
+                className="gap-2 bg-[#FF6A00] hover:bg-[#FF6A00]/90 text-[#0B1F3B] font-bold text-xs"
+              >
                 <span>Continue to Subscription Plan</span>
                 <ArrowRight className="h-4 w-4" />
               </Button>
@@ -632,9 +644,7 @@ export const NewCustomerWizardPage: React.FC = () => {
                     >
                       <div>
                         <div className="flex items-center justify-between gap-1 mb-1">
-                          <span className="font-extrabold text-sm text-foreground">
-                            {p.name}
-                          </span>
+                          <span className="font-extrabold text-sm text-foreground">{p.name}</span>
                           {p.popular && (
                             <Badge className="bg-[#FF6A00] text-[#0B1F3B] text-[9px] px-1.5 py-0 font-bold uppercase">
                               Popular
@@ -655,7 +665,9 @@ export const NewCustomerWizardPage: React.FC = () => {
                         </span>
                         <div
                           className={`w-4 h-4 rounded-full border flex items-center justify-center ${
-                            isSelected ? "border-[#FF6A00] bg-[#FF6A00]" : "border-muted-foreground/40"
+                            isSelected
+                              ? "border-[#FF6A00] bg-[#FF6A00]"
+                              : "border-muted-foreground/40"
                           }`}
                         >
                           {isSelected && <span className="w-1.5 h-1.5 rounded-full bg-white" />}
@@ -697,7 +709,8 @@ export const NewCustomerWizardPage: React.FC = () => {
                 </div>
               </div>
               <p className="text-[11px] text-muted-foreground mt-1.5">
-                Default: 14 days free trial. The account remains fully functional until converted or billed.
+                Default: 14 days free trial. The account remains fully functional until converted or
+                billed.
               </p>
             </div>
 
@@ -706,7 +719,10 @@ export const NewCustomerWizardPage: React.FC = () => {
               <Button variant="outline" onClick={handleBack} className="gap-2 text-xs">
                 <ArrowLeft className="h-4 w-4" /> Back
               </Button>
-              <Button onClick={handleNext} className="gap-2 bg-[#FF6A00] hover:bg-[#FF6A00]/90 text-[#0B1F3B] font-bold text-xs">
+              <Button
+                onClick={handleNext}
+                className="gap-2 bg-[#FF6A00] hover:bg-[#FF6A00]/90 text-[#0B1F3B] font-bold text-xs"
+              >
                 <span>Continue to Outlets</span>
                 <ArrowRight className="h-4 w-4" />
               </Button>
@@ -746,7 +762,11 @@ export const NewCustomerWizardPage: React.FC = () => {
                         onClick={() => {
                           const names = [...form.outlet_names];
                           while (names.length < num) names.push("");
-                          setForm({ ...form, outlets_count: num, outlet_names: names.slice(0, num) });
+                          setForm({
+                            ...form,
+                            outlets_count: num,
+                            outlet_names: names.slice(0, num),
+                          });
                         }}
                         className={`text-xs h-9 ${form.outlets_count === num ? "bg-[#FF6A00] hover:bg-[#FF6A00]/90 text-[#0B1F3B] font-bold" : ""}`}
                       >
@@ -791,7 +811,10 @@ export const NewCustomerWizardPage: React.FC = () => {
               <Button variant="outline" onClick={handleBack} className="gap-2 text-xs">
                 <ArrowLeft className="h-4 w-4" /> Back
               </Button>
-              <Button onClick={handleNext} className="gap-2 bg-[#FF6A00] hover:bg-[#FF6A00]/90 text-[#0B1F3B] font-bold text-xs">
+              <Button
+                onClick={handleNext}
+                className="gap-2 bg-[#FF6A00] hover:bg-[#FF6A00]/90 text-[#0B1F3B] font-bold text-xs"
+              >
                 <span>Review Configuration</span>
                 <ArrowRight className="h-4 w-4" />
               </Button>
@@ -816,17 +839,25 @@ export const NewCustomerWizardPage: React.FC = () => {
                     <td className="py-3 px-4 font-bold text-foreground">Brand / Entity Name</td>
                     <td className="py-3 px-4 font-extrabold text-foreground">{form.name}</td>
                     <td className="py-3 px-4">
-                      <span className={`inline-block px-2.5 py-0.5 rounded-md text-[10px] font-bold border ${getBusinessTypeColor(form.business_type)}`}>
+                      <span
+                        className={`inline-block px-2.5 py-0.5 rounded-md text-[10px] font-bold border ${getBusinessTypeColor(form.business_type)}`}
+                      >
                         {form.business_type}
                       </span>
                     </td>
                   </tr>
                   <tr className="hover:bg-muted/30">
-                    <td className="py-3 px-4 font-bold text-foreground">Headquarters &amp; Language</td>
-                    <td className="py-3 px-4 text-foreground font-semibold">{form.city || "Not specified"}</td>
+                    <td className="py-3 px-4 font-bold text-foreground">
+                      Headquarters &amp; Language
+                    </td>
+                    <td className="py-3 px-4 text-foreground font-semibold">
+                      {form.city || "Not specified"}
+                    </td>
                     <td className="py-3 px-4">
                       <Badge variant="outline" className="text-[10px] font-mono">
-                        {form.language === "ta" ? "English + Tamil (Bilingual)" : "English (Standard)"}
+                        {form.language === "ta"
+                          ? "English + Tamil (Bilingual)"
+                          : "English (Standard)"}
                       </Badge>
                     </td>
                   </tr>
@@ -839,18 +870,26 @@ export const NewCustomerWizardPage: React.FC = () => {
                   </tr>
                   <tr className="hover:bg-muted/30">
                     <td className="py-3 px-4 font-bold text-foreground">Subscription Tier</td>
-                    <td className="py-3 px-4 text-foreground font-extrabold capitalize">{form.plan_slug} Plan</td>
+                    <td className="py-3 px-4 text-foreground font-extrabold capitalize">
+                      {form.plan_slug} Plan
+                    </td>
                     <td className="py-3 px-4">
-                      <Badge variant="outline" className="text-[10px] bg-muted/40 font-bold text-[#FF6A00]">
+                      <Badge
+                        variant="outline"
+                        className="text-[10px] bg-muted/40 font-bold text-[#FF6A00]"
+                      >
                         {form.trial_days} Days Free Trial
                       </Badge>
                     </td>
                   </tr>
                   <tr className="hover:bg-muted/30">
                     <td className="py-3 px-4 font-bold text-foreground">Outlets to Provision</td>
-                    <td className="py-3 px-4 text-foreground font-extrabold">{form.outlets_count} Outlet(s)</td>
+                    <td className="py-3 px-4 text-foreground font-extrabold">
+                      {form.outlets_count} Outlet(s)
+                    </td>
                     <td className="py-3 px-4 text-muted-foreground text-[11px]">
-                      {form.outlet_names.filter((n) => n.trim().length > 0).join(", ") || "Default Main Branch"}
+                      {form.outlet_names.filter((n) => n.trim().length > 0).join(", ") ||
+                        "Default Main Branch"}
                     </td>
                   </tr>
                 </tbody>

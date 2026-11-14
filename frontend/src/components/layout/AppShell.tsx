@@ -88,8 +88,12 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
     };
   }, []);
 
-  const [venueProfile, setVenueProfile] = useState<string>(() => (activeTenant as any)?.venue_profile || "");
-  const [businessType, setBusinessType] = useState<string>(() => (activeTenant as any)?.business_type || "");
+  const [venueProfile, setVenueProfile] = useState<string>(
+    () => (activeTenant as any)?.venue_profile || ""
+  );
+  const [businessType, setBusinessType] = useState<string>(
+    () => (activeTenant as any)?.business_type || ""
+  );
   const [allowsRoomService, setAllowsRoomService] = useState<boolean>(false);
   const [usesTables, setUsesTables] = useState<boolean>(() => {
     const tenant: any = activeTenant;
@@ -481,7 +485,11 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
             onClick={handleToggleSound}
             className={`min-h-[36px] min-w-[36px] p-2 ${soundOn ? "text-[#FF6A00]" : "text-muted-foreground"}`}
             aria-label={soundOn ? "Mute order sound alerts" : "Enable order sound alerts"}
-            title={soundOn ? "Order sound alerts active (click to mute)" : "Order sound alerts muted (click to enable)"}
+            title={
+              soundOn
+                ? "Order sound alerts active (click to mute)"
+                : "Order sound alerts muted (click to enable)"
+            }
           >
             {soundOn ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
           </Button>
@@ -511,9 +519,13 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
             >
               <LifeBuoy className="h-3.5 w-3.5 text-[#FF6A00]" />
               <span className="hidden md:inline">Support</span>
-              {tenantTickets.filter((t) => t.status === "OPEN" || t.status === "IN_PROGRESS").length > 0 && (
+              {tenantTickets.filter((t) => t.status === "OPEN" || t.status === "IN_PROGRESS")
+                .length > 0 && (
                 <span className="inline-flex items-center justify-center px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-[#FF6A00] text-[#0B1F3B]">
-                  {tenantTickets.filter((t) => t.status === "OPEN" || t.status === "IN_PROGRESS").length}
+                  {
+                    tenantTickets.filter((t) => t.status === "OPEN" || t.status === "IN_PROGRESS")
+                      .length
+                  }
                 </span>
               )}
             </Button>
@@ -634,26 +646,26 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
                 const bannerBorderBg = isCritical
                   ? "border-red-300 dark:border-red-900/60 bg-red-50/80 dark:bg-red-950/40"
                   : isWarning
-                  ? "border-amber-300 dark:border-amber-800 bg-amber-50/70 dark:bg-amber-950/40"
-                  : isMaint
-                  ? "border-purple-300 dark:border-purple-800 bg-purple-50/70 dark:bg-purple-950/40"
-                  : "border-blue-300 dark:border-blue-800 bg-blue-50/70 dark:bg-blue-950/40";
+                    ? "border-amber-300 dark:border-amber-800 bg-amber-50/70 dark:bg-amber-950/40"
+                    : isMaint
+                      ? "border-purple-300 dark:border-purple-800 bg-purple-50/70 dark:bg-purple-950/40"
+                      : "border-blue-300 dark:border-blue-800 bg-blue-50/70 dark:bg-blue-950/40";
 
                 const iconColor = isCritical
                   ? "text-red-600 dark:text-red-400"
                   : isWarning
-                  ? "text-amber-600 dark:text-amber-400"
-                  : isMaint
-                  ? "text-purple-600 dark:text-purple-400"
-                  : "text-blue-600 dark:text-blue-400";
+                    ? "text-amber-600 dark:text-amber-400"
+                    : isMaint
+                      ? "text-purple-600 dark:text-purple-400"
+                      : "text-blue-600 dark:text-blue-400";
 
                 const typeBadgeColor = isCritical
                   ? "bg-red-100 text-red-800 dark:bg-red-950 dark:text-red-300 border-red-300"
                   : isWarning
-                  ? "bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300 border-amber-300"
-                  : isMaint
-                  ? "bg-purple-100 text-purple-800 dark:bg-purple-950 dark:text-purple-300 border-purple-300"
-                  : "bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-300 border-blue-300";
+                    ? "bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300 border-amber-300"
+                    : isMaint
+                      ? "bg-purple-100 text-purple-800 dark:bg-purple-950 dark:text-purple-300 border-purple-300"
+                      : "bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-300 border-blue-300";
 
                 return (
                   <div
@@ -665,7 +677,9 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
                       <div>
                         <div className="flex items-center gap-2">
                           <span className="font-extrabold text-foreground">{a.title}</span>
-                          <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded border uppercase ${typeBadgeColor}`}>
+                          <span
+                            className={`text-[10px] font-bold px-1.5 py-0.5 rounded border uppercase ${typeBadgeColor}`}
+                          >
                             {a.announcement_type || "ANNOUNCEMENT"}
                           </span>
                         </div>
@@ -834,17 +848,17 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
                       t.status === "RESOLVED"
                         ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300 border-emerald-300 dark:border-emerald-800"
                         : t.status === "IN_PROGRESS"
-                        ? "bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300 border-amber-300 dark:border-amber-800"
-                        : t.status === "CLOSED"
-                        ? "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300 border-gray-300"
-                        : "bg-blue-100 text-blue-800 dark:bg-blue-950/60 dark:text-blue-300 border-blue-300 dark:border-blue-800";
+                          ? "bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300 border-amber-300 dark:border-amber-800"
+                          : t.status === "CLOSED"
+                            ? "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300 border-gray-300"
+                            : "bg-blue-100 text-blue-800 dark:bg-blue-950/60 dark:text-blue-300 border-blue-300 dark:border-blue-800";
 
                     const priorityColor =
                       t.priority === "URGENT"
                         ? "text-red-600 dark:text-red-400 font-bold"
                         : t.priority === "HIGH"
-                        ? "text-orange-600 dark:text-orange-400 font-semibold"
-                        : "text-muted-foreground";
+                          ? "text-orange-600 dark:text-orange-400 font-semibold"
+                          : "text-muted-foreground";
 
                     return (
                       <div
@@ -855,12 +869,17 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
                           <div>
                             <h4 className="font-extrabold text-sm text-foreground">{t.subject}</h4>
                             <div className="flex items-center gap-2 mt-0.5 text-[11px] text-muted-foreground">
-                              <span>Priority: <strong className={priorityColor}>{t.priority}</strong></span>
+                              <span>
+                                Priority: <strong className={priorityColor}>{t.priority}</strong>
+                              </span>
                               <span>•</span>
                               <span>{new Date(t.created_at).toLocaleDateString()}</span>
                             </div>
                           </div>
-                          <Badge variant="outline" className={`text-[10px] font-bold uppercase ${statusColor}`}>
+                          <Badge
+                            variant="outline"
+                            className={`text-[10px] font-bold uppercase ${statusColor}`}
+                          >
                             {t.status.replace("_", " ")}
                           </Badge>
                         </div>
@@ -873,7 +892,8 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
                         {t.admin_notes && (
                           <div className="p-2.5 rounded-md bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-900/60 space-y-1">
                             <span className="font-bold text-[11px] text-emerald-800 dark:text-emerald-300 flex items-center gap-1">
-                              <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600" /> Platform Support Response:
+                              <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600" /> Platform
+                              Support Response:
                             </span>
                             <p className="text-xs text-foreground font-medium pl-4">
                               {t.admin_notes}
@@ -883,7 +903,8 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
 
                         {t.resolved_at && (
                           <div className="text-[11px] text-emerald-600 dark:text-emerald-400 font-medium flex items-center gap-1">
-                            <Clock className="h-3 w-3" /> Resolved on {new Date(t.resolved_at).toLocaleDateString()}
+                            <Clock className="h-3 w-3" /> Resolved on{" "}
+                            {new Date(t.resolved_at).toLocaleDateString()}
                           </div>
                         )}
                       </div>
@@ -900,7 +921,8 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
           ) : (
             <form onSubmit={handleCreateSupportTicket} className="space-y-3.5 pt-2">
               <p className="text-xs text-muted-foreground">
-                Submit an urgent ticket or inquiry directly to the ServeMyFood platform operations team.
+                Submit an urgent ticket or inquiry directly to the ServeMyFood platform operations
+                team.
               </p>
 
               <div>
@@ -963,7 +985,12 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
               </div>
 
               <div className="pt-2 flex justify-end gap-2">
-                <Button type="button" variant="outline" size="sm" onClick={() => setSupportOpen(false)}>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setSupportOpen(false)}
+                >
                   Cancel
                 </Button>
                 <Button

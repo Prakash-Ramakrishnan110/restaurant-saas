@@ -1,5 +1,16 @@
 import React, { useState, useEffect } from "react";
-import { Utensils, Plus, Copy, Link2, Unlink, QrCode, Search, Power, Armchair, Bed } from "lucide-react";
+import {
+  Utensils,
+  Plus,
+  Copy,
+  Link2,
+  Unlink,
+  QrCode,
+  Search,
+  Power,
+  Armchair,
+  Bed,
+} from "lucide-react";
 import { PageHeader } from "../../components/app/PageHeader";
 import { Card, CardContent } from "../../components/ui/card";
 import { Button } from "../../components/ui/button";
@@ -356,8 +367,8 @@ export const TablesPage: React.FC = () => {
                 Hotel Venue Mode: Dining Tables & Banquets
               </span>
               <span className="text-muted-foreground">
-                You are managing physical dine-in tables for your hotel's ground floor dining and banquet hall.
-                To manage hotel guest rooms & suites, visit Hotel Rooms.
+                You are managing physical dine-in tables for your hotel's ground floor dining and
+                banquet hall. To manage hotel guest rooms & suites, visit Hotel Rooms.
               </span>
             </div>
           </div>
@@ -794,9 +805,7 @@ export const TablesPage: React.FC = () => {
         <DialogContent className="max-w-md">
           <form onSubmit={handleSingleSubmit}>
             <DialogHeader>
-              <DialogTitle>
-                {isHotelVenue ? "Add Dining Table" : t("tables.addTable")}
-              </DialogTitle>
+              <DialogTitle>{isHotelVenue ? "Add Dining Table" : t("tables.addTable")}</DialogTitle>
             </DialogHeader>
             <div className="space-y-4 py-4 text-xs">
               <div>

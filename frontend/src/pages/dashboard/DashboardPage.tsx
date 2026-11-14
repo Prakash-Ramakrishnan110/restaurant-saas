@@ -196,20 +196,15 @@ export const DashboardPage: React.FC = () => {
           venue_profile: vProf,
           allows_room_service: Boolean(roomSvc),
           uses_tables:
-            bType !== "TEA_SHOP" &&
-            bType !== "QUICK_SERVICE" &&
-            vProf !== "QUICK_SERVICE",
+            bType !== "TEA_SHOP" && bType !== "QUICK_SERVICE" && vProf !== "QUICK_SERVICE",
         });
       })
       .catch(() => {});
   }, [activeTenant]);
 
-  const businessType =
-    businessInfo.business_type || activeTenant?.business_type || "";
-  const venueProfile =
-    businessInfo.venue_profile || activeTenant?.venue_profile || "";
-  const usesTables =
-    businessInfo.uses_tables ?? activeTenant?.uses_tables ?? true;
+  const businessType = businessInfo.business_type || activeTenant?.business_type || "";
+  const venueProfile = businessInfo.venue_profile || activeTenant?.venue_profile || "";
+  const usesTables = businessInfo.uses_tables ?? activeTenant?.uses_tables ?? true;
 
   const isHotel =
     businessType === "HOTEL" ||
@@ -231,7 +226,7 @@ export const DashboardPage: React.FC = () => {
   const [entitlements, setEntitlements] = useState<EntitlementsResponse | null>(null);
   const [onboarding, setOnboarding] = useState<OnboardingResponse | null>(null);
   const [todayReport, setTodayReport] = useState<TodayReportResponse | null>(null);
-  const [reportError, setReportError] = useState<string | null>(null);
+  const [, setReportError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [upgradeOpen, setUpgradeOpen] = useState(false);
   const [overLimitKey, setOverLimitKey] = useState<string>("tables");
@@ -239,15 +234,25 @@ export const DashboardPage: React.FC = () => {
   // Operational widgets state
   const [occupancy, setOccupancy] = useState<TableOccupancy | null>(null);
   const [delayedTickets, setDelayedTickets] = useState<KDSTicket[]>([]);
-  const [waiterCallActive, setWaiterCallActive] = useState<{ id: string; target: string; time: string } | null>(null);
+  const [waiterCallActive, setWaiterCallActive] = useState<{
+    id: string;
+    target: string;
+    time: string;
+  } | null>(null);
   const [lowStockAlerts, setLowStockAlerts] = useState<LowStockAlert[]>([]);
   const [totalIngredientsCount, setTotalIngredientsCount] = useState<number>(0);
   const [sevenDayTrend, setSevenDayTrend] = useState<DailyTrendPoint[]>([]);
 
   // Historical export controls
-  const [exportPreset, setExportPreset] = useState<"today" | "yesterday" | "7d" | "30d" | "custom">("today");
-  const [exportStartDate, setExportStartDate] = useState<string>(() => new Date().toISOString().split("T")[0]);
-  const [exportEndDate, setExportEndDate] = useState<string>(() => new Date().toISOString().split("T")[0]);
+  const [exportPreset, setExportPreset] = useState<"today" | "yesterday" | "7d" | "30d" | "custom">(
+    "today"
+  );
+  const [exportStartDate, setExportStartDate] = useState<string>(
+    () => new Date().toISOString().split("T")[0]
+  );
+  const [exportEndDate, setExportEndDate] = useState<string>(
+    () => new Date().toISOString().split("T")[0]
+  );
   const [isExporting, setIsExporting] = useState(false);
 
   // Audio alert tracking
@@ -320,7 +325,9 @@ export const DashboardPage: React.FC = () => {
             const rawTables = unwrapList<any>(tablesRes.value.data);
             const total = rawTables.length;
             const occupied = rawTables.filter((t: any) => t.status === "OCCUPIED").length;
-            const available = rawTables.filter((t: any) => t.status === "AVAILABLE" || !t.status).length;
+            const available = rawTables.filter(
+              (t: any) => t.status === "AVAILABLE" || !t.status
+            ).length;
             const reserved = rawTables.filter((t: any) => t.status === "RESERVED").length;
             const percent = total > 0 ? Math.round((occupied / total) * 100) : 0;
             setOccupancy({ total, occupied, available, reserved, percent });
@@ -422,13 +429,9 @@ export const DashboardPage: React.FC = () => {
       const rows = [
         ["Date", "Settled Bills", "Gross Sales (INR)", "Average Order Value (INR)"],
         ...(data.daily_breakdown || []).map((b) => {
-          const aov = b.invoices_count > 0 ? (b.sales_paise / b.invoices_count / 100).toFixed(2) : "0.00";
-          return [
-            b.date,
-            b.invoices_count,
-            (b.sales_paise / 100).toFixed(2),
-            aov,
-          ];
+          const aov =
+            b.invoices_count > 0 ? (b.sales_paise / b.invoices_count / 100).toFixed(2) : "0.00";
+          return [b.date, b.invoices_count, (b.sales_paise / 100).toFixed(2), aov];
         }),
         [],
         ["Total Settled Bills", data.settled_invoices_count],
@@ -440,10 +443,7 @@ export const DashboardPage: React.FC = () => {
       const encodedUri = encodeURI(csvContent);
       const link = document.createElement("a");
       link.setAttribute("href", encodedUri);
-      link.setAttribute(
-        "download",
-        `sales_report_${exportStartDate}_to_${exportEndDate}.csv`
-      );
+      link.setAttribute("download", `sales_report_${exportStartDate}_to_${exportEndDate}.csv`);
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -458,7 +458,9 @@ export const DashboardPage: React.FC = () => {
   const handleShareWhatsApp = () => {
     const venueName = activeTenant?.tenant_name || "Restaurant";
     const dateLabel =
-      exportStartDate === exportEndDate ? exportStartDate : `${exportStartDate} to ${exportEndDate}`;
+      exportStartDate === exportEndDate
+        ? exportStartDate
+        : `${exportStartDate} to ${exportEndDate}`;
     const totalSales = formatRupees(todayReport?.sales_paise || 0);
     const billsCount = todayReport?.settled_invoices_count || 0;
     const aov = formatRupees(todayReport?.average_order_value_paise || 0);
@@ -831,7 +833,10 @@ export const DashboardPage: React.FC = () => {
               <div className="space-y-2">
                 <div className="h-40 flex items-end justify-between gap-2 sm:gap-4 pt-6 px-2">
                   {sevenDayTrend.map((point) => {
-                    const heightPct = Math.max(8, Math.round((point.sales_paise / maxTrendPaise) * 100));
+                    const heightPct = Math.max(
+                      8,
+                      Math.round((point.sales_paise / maxTrendPaise) * 100)
+                    );
                     const isToday = point.date === new Date().toISOString().split("T")[0];
                     return (
                       <div
@@ -846,9 +851,7 @@ export const DashboardPage: React.FC = () => {
                         {/* Bar */}
                         <div
                           className={`w-full max-w-[48px] rounded-t-md transition-all ${
-                            isToday
-                              ? "bg-[#FF6A00]"
-                              : "bg-[#FF6A00]/40 hover:bg-[#FF6A00]/80"
+                            isToday ? "bg-[#FF6A00]" : "bg-[#FF6A00]/40 hover:bg-[#FF6A00]/80"
                           }`}
                           style={{ height: `${heightPct}%` }}
                         />
@@ -1187,7 +1190,11 @@ export const DashboardPage: React.FC = () => {
               {[
                 { key: "max_branches", label: "Active Branches", icon: GitBranchWrapper },
                 { key: "max_service_areas", label: "Service Areas", icon: LayoutGrid },
-                { key: "max_tables", label: isHotel ? "Rooms & Tables" : isDhaba ? "Huts & Tables" : "Dining Tables", icon: Utensils },
+                {
+                  key: "max_tables",
+                  label: isHotel ? "Rooms & Tables" : isDhaba ? "Huts & Tables" : "Dining Tables",
+                  icon: Utensils,
+                },
               ].map(({ key, label, icon: Icon }) => {
                 const metric = entitlements?.limits?.[key as keyof typeof entitlements.limits];
                 const limit = metric?.limit ?? 10;

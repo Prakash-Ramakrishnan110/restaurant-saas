@@ -134,11 +134,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         res.data?.user?.must_change_password
       );
       const isPlatformAdmin = Boolean(
-        profile?.user?.is_platform_admin ?? (profile as unknown as { is_platform_admin?: boolean })?.is_platform_admin
+        profile?.user?.is_platform_admin ??
+        (profile as unknown as { is_platform_admin?: boolean })?.is_platform_admin
       );
       const role =
         profile?.active_role ??
-        (profile?.memberships && profile.memberships.length > 0 ? profile.memberships[0].role : null);
+        (profile?.memberships && profile.memberships.length > 0
+          ? profile.memberships[0].role
+          : null);
       return { mustChangePassword: needsChange, isPlatformAdmin, role };
     } finally {
       setIsLoading(false);

@@ -178,9 +178,7 @@ function getTargetDetails(item: QRCodeItem | SheetDataItem, origin: string) {
   }
   const qItem = item as QRCodeItem;
   const label =
-    qItem.table_label ||
-    qItem.table?.name ||
-    (qItem.target_type === "ROOM" ? "Room" : "Table");
+    qItem.table_label || qItem.table?.name || (qItem.target_type === "ROOM" ? "Room" : "Table");
   const area =
     qItem.section_name ||
     qItem.service_area_name ||
@@ -247,9 +245,18 @@ export const QRCodesPage: React.FC = () => {
       setQrCodes(qrRes.data.results || []);
       const bData = bizRes.data;
       const bSettings = bData.business_settings || {};
-      setBusinessName(bData.display_name || bSettings.display_name || bData.name || "ServeMyFood Venue");
-      setBrandColor(bData.brand_primary_color || bData.primary_color || bSettings.brand_primary_color || "#FF6A00");
-      setLogoUrl(bData.logo_128_url || bData.logo_url || bSettings.logo_128_url || bSettings.logo_url || null);
+      setBusinessName(
+        bData.display_name || bSettings.display_name || bData.name || "ServeMyFood Venue"
+      );
+      setBrandColor(
+        bData.brand_primary_color ||
+          bData.primary_color ||
+          bSettings.brand_primary_color ||
+          "#FF6A00"
+      );
+      setLogoUrl(
+        bData.logo_128_url || bData.logo_url || bSettings.logo_128_url || bSettings.logo_url || null
+      );
       setSheetLanguage(bData.document_language || bSettings.document_language || "EN");
       setSheetData(sheetRes.data || []);
     } catch (err: unknown) {
@@ -335,9 +342,15 @@ export const QRCodesPage: React.FC = () => {
       const identity = resolveTableIdentity(standeeOpts);
 
       if (format === "svg") {
-        await downloadStandeeCardSVG(standeeOpts, `standee-${identity.numberHeading}-${identity.tableName}`);
+        await downloadStandeeCardSVG(
+          standeeOpts,
+          `standee-${identity.numberHeading}-${identity.tableName}`
+        );
       } else {
-        await downloadStandeeCardPNG(standeeOpts, `standee-${identity.numberHeading}-${identity.tableName}`);
+        await downloadStandeeCardPNG(
+          standeeOpts,
+          `standee-${identity.numberHeading}-${identity.tableName}`
+        );
       }
       setSuccessMessage(`Downloaded designed standee card for ${identity.numberHeading}!`);
       setTimeout(() => setSuccessMessage(null), 3000);
@@ -658,7 +671,10 @@ export const QRCodesPage: React.FC = () => {
       </div>
 
       {/* Standee Card Live Preview & Customizer Dialog */}
-      <Dialog open={Boolean(previewTarget)} onOpenChange={(open) => !open && setPreviewTarget(null)}>
+      <Dialog
+        open={Boolean(previewTarget)}
+        onOpenChange={(open) => !open && setPreviewTarget(null)}
+      >
         <DialogContent className="max-w-md max-h-[95vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
@@ -667,149 +683,156 @@ export const QRCodesPage: React.FC = () => {
             </DialogTitle>
           </DialogHeader>
 
-          {previewTarget && (() => {
-            const details = getTargetDetails(previewTarget, window.location.origin);
-            const identity = resolveTableIdentity({
-              targetLabel: details.label,
-              tableName: previewTableName,
-              tableNumber: previewTableNumber,
-              areaName: details.area,
-              targetType: details.targetType,
-            });
-            const pUrl = details.publicUrl;
+          {previewTarget &&
+            (() => {
+              const details = getTargetDetails(previewTarget, window.location.origin);
+              const identity = resolveTableIdentity({
+                targetLabel: details.label,
+                tableName: previewTableName,
+                tableNumber: previewTableNumber,
+                areaName: details.area,
+                targetType: details.targetType,
+              });
+              const pUrl = details.publicUrl;
 
-            return (
-              <div className="py-2 flex flex-col items-center">
-                {/* Standee Card Frame Mock */}
-                <div
-                  className="w-72 bg-white rounded-2xl shadow-xl border border-slate-200 overflow-hidden text-center transition-all duration-200 flex flex-col"
-                  style={{
-                    borderTop: `8px solid ${brandColor}`,
-                  }}
-                >
-                  <div className="pt-4 px-4 pb-2 border-b border-slate-100 flex flex-col items-center">
-                    {includeLogo && logoUrl ? (
-                      <div className="w-14 h-14 rounded-full border border-slate-200 bg-white p-1 flex items-center justify-center mb-1.5 shadow-sm">
-                        <img src={logoUrl} alt="Logo" className="max-w-full max-h-full object-contain" />
-                      </div>
-                    ) : (
-                      <div
-                        className="w-12 h-12 rounded-xl flex items-center justify-center font-black text-base mb-1.5 shadow-sm"
-                        style={{
-                          backgroundColor: brandColor,
-                          color: badgeTextColor,
-                        }}
-                      >
-                        {businessName.slice(0, 2).toUpperCase()}
-                      </div>
-                    )}
-                    <h4 className="font-extrabold text-sm text-slate-900 tracking-tight uppercase">
-                      {businessName}
-                    </h4>
+              return (
+                <div className="py-2 flex flex-col items-center">
+                  {/* Standee Card Frame Mock */}
+                  <div
+                    className="w-72 bg-white rounded-2xl shadow-xl border border-slate-200 overflow-hidden text-center transition-all duration-200 flex flex-col"
+                    style={{
+                      borderTop: `8px solid ${brandColor}`,
+                    }}
+                  >
+                    <div className="pt-4 px-4 pb-2 border-b border-slate-100 flex flex-col items-center">
+                      {includeLogo && logoUrl ? (
+                        <div className="w-14 h-14 rounded-full border border-slate-200 bg-white p-1 flex items-center justify-center mb-1.5 shadow-sm">
+                          <img
+                            src={logoUrl}
+                            alt="Logo"
+                            className="max-w-full max-h-full object-contain"
+                          />
+                        </div>
+                      ) : (
+                        <div
+                          className="w-12 h-12 rounded-xl flex items-center justify-center font-black text-base mb-1.5 shadow-sm"
+                          style={{
+                            backgroundColor: brandColor,
+                            color: badgeTextColor,
+                          }}
+                        >
+                          {businessName.slice(0, 2).toUpperCase()}
+                        </div>
+                      )}
+                      <h4 className="font-extrabold text-sm text-slate-900 tracking-tight uppercase">
+                        {businessName}
+                      </h4>
 
-                    {/* Table Name Pill Badge */}
-                    <div className="mt-1 inline-block px-2.5 py-0.5 rounded-full bg-slate-100 text-[10px] font-bold text-slate-700 tracking-wide uppercase">
-                      Table Name: {identity.tableName}
+                      {/* Table Name Pill Badge */}
+                      <div className="mt-1 inline-block px-2.5 py-0.5 rounded-full bg-slate-100 text-[10px] font-bold text-slate-700 tracking-wide uppercase">
+                        Table Name: {identity.tableName}
+                      </div>
+
+                      {/* Prominent Table Number Heading */}
+                      <div className="mt-1 text-base font-black text-slate-900 tracking-tight">
+                        {identity.numberHeading}
+                      </div>
+
+                      {sheetLanguage === "EN_TA" && (
+                        <p className="text-[10px] text-slate-500 font-semibold mt-0.5">
+                          {identity.tamilHeading}
+                        </p>
+                      )}
                     </div>
 
-                    {/* Prominent Table Number Heading */}
-                    <div className="mt-1 text-base font-black text-slate-900 tracking-tight">
-                      {identity.numberHeading}
-                    </div>
-
-                    {sheetLanguage === "EN_TA" && (
-                      <p className="text-[10px] text-slate-500 font-semibold mt-0.5">
-                        {identity.tamilHeading}
+                    <div className="p-3 flex flex-col items-center">
+                      <div className="p-2 bg-white border-2 border-slate-200 rounded-xl shadow-inner mb-2">
+                        <ClientQRCodeCanvas
+                          value={pUrl}
+                          size={160}
+                          logoUrl={includeLogo ? logoUrl : null}
+                          darkColor="#0B1F3B"
+                        />
+                      </div>
+                      <p className="text-xs font-bold text-slate-900 tracking-tight">
+                        Scan to see our menu
                       </p>
-                    )}
+                      {sheetLanguage === "EN_TA" && (
+                        <p className="text-[10px] text-slate-500 font-medium">
+                          மெனுவை பார்க்க ஸ்கேன் செய்யவும்
+                        </p>
+                      )}
+                      <p className="text-[10px] text-slate-400 mt-0.5">
+                        Point phone camera to browse &amp; order
+                      </p>
+                    </div>
+
+                    <div className="bg-slate-50 px-3 py-2 border-t border-slate-100 text-[9px] text-slate-400 flex items-center justify-between">
+                      <span className="truncate max-w-[170px]">Ref #{identity.numberHeading}</span>
+                      <span className="font-bold">ServeMyFood</span>
+                    </div>
                   </div>
 
-                  <div className="p-3 flex flex-col items-center">
-                    <div className="p-2 bg-white border-2 border-slate-200 rounded-xl shadow-inner mb-2">
-                      <ClientQRCodeCanvas
-                        value={pUrl}
-                        size={160}
-                        logoUrl={includeLogo ? logoUrl : null}
-                        darkColor="#0B1F3B"
+                  {/* Live Name & Number Editing Box */}
+                  <div className="w-full bg-muted/40 p-3 rounded-xl border border-border grid grid-cols-2 gap-3 text-xs mt-3">
+                    <div>
+                      <label className="font-bold text-foreground block mb-1">
+                        Table / Section Name
+                      </label>
+                      <input
+                        type="text"
+                        value={previewTableName}
+                        onChange={(e) => setPreviewTableName(e.target.value)}
+                        placeholder="e.g. Patio Open, Rooftop"
+                        className="w-full px-2.5 py-1.5 rounded-md border border-input bg-card text-foreground font-medium"
                       />
                     </div>
-                    <p className="text-xs font-bold text-slate-900 tracking-tight">Scan to see our menu</p>
-                    {sheetLanguage === "EN_TA" && (
-                      <p className="text-[10px] text-slate-500 font-medium">
-                        மெனுவை பார்க்க ஸ்கேன் செய்யவும்
-                      </p>
-                    )}
-                    <p className="text-[10px] text-slate-400 mt-0.5">
-                      Point phone camera to browse &amp; order
-                    </p>
+                    <div>
+                      <label className="font-bold text-foreground block mb-1">
+                        Table / Room Number
+                      </label>
+                      <input
+                        type="text"
+                        value={previewTableNumber}
+                        onChange={(e) => setPreviewTableNumber(e.target.value)}
+                        placeholder="e.g. 30, T30, Room 101"
+                        className="w-full px-2.5 py-1.5 rounded-md border border-input bg-card text-foreground font-medium"
+                      />
+                    </div>
                   </div>
 
-                  <div className="bg-slate-50 px-3 py-2 border-t border-slate-100 text-[9px] text-slate-400 flex items-center justify-between">
-                    <span className="truncate max-w-[170px]">Ref #{identity.numberHeading}</span>
-                    <span className="font-bold">ServeMyFood</span>
+                  <div className="mt-3 flex flex-wrap items-center justify-center gap-2 w-full">
+                    <Button
+                      onClick={() =>
+                        handleDownloadStandee(previewTarget, "png", {
+                          tableName: previewTableName,
+                          tableNumber: previewTableNumber,
+                        })
+                      }
+                      disabled={actionLoading}
+                      className="bg-[#FF6A00] hover:bg-[#E55F00] text-navy font-bold flex-1 min-h-[40px]"
+                    >
+                      <Download className="w-4 h-4 mr-2" />
+                      Download PNG (With Design)
+                    </Button>
+                    <Button
+                      variant="outline"
+                      onClick={() =>
+                        handleDownloadStandee(previewTarget, "svg", {
+                          tableName: previewTableName,
+                          tableNumber: previewTableNumber,
+                        })
+                      }
+                      disabled={actionLoading}
+                      className="min-h-[40px]"
+                    >
+                      <FileCode className="w-4 h-4 mr-1.5" />
+                      SVG
+                    </Button>
                   </div>
                 </div>
-
-                {/* Live Name & Number Editing Box */}
-                <div className="w-full bg-muted/40 p-3 rounded-xl border border-border grid grid-cols-2 gap-3 text-xs mt-3">
-                  <div>
-                    <label className="font-bold text-foreground block mb-1">
-                      Table / Section Name
-                    </label>
-                    <input
-                      type="text"
-                      value={previewTableName}
-                      onChange={(e) => setPreviewTableName(e.target.value)}
-                      placeholder="e.g. Patio Open, Rooftop"
-                      className="w-full px-2.5 py-1.5 rounded-md border border-input bg-card text-foreground font-medium"
-                    />
-                  </div>
-                  <div>
-                    <label className="font-bold text-foreground block mb-1">
-                      Table / Room Number
-                    </label>
-                    <input
-                      type="text"
-                      value={previewTableNumber}
-                      onChange={(e) => setPreviewTableNumber(e.target.value)}
-                      placeholder="e.g. 30, T30, Room 101"
-                      className="w-full px-2.5 py-1.5 rounded-md border border-input bg-card text-foreground font-medium"
-                    />
-                  </div>
-                </div>
-
-                <div className="mt-3 flex flex-wrap items-center justify-center gap-2 w-full">
-                  <Button
-                    onClick={() =>
-                      handleDownloadStandee(previewTarget, "png", {
-                        tableName: previewTableName,
-                        tableNumber: previewTableNumber,
-                      })
-                    }
-                    disabled={actionLoading}
-                    className="bg-[#FF6A00] hover:bg-[#E55F00] text-navy font-bold flex-1 min-h-[40px]"
-                  >
-                    <Download className="w-4 h-4 mr-2" />
-                    Download PNG (With Design)
-                  </Button>
-                  <Button
-                    variant="outline"
-                    onClick={() =>
-                      handleDownloadStandee(previewTarget, "svg", {
-                        tableName: previewTableName,
-                        tableNumber: previewTableNumber,
-                      })
-                    }
-                    disabled={actionLoading}
-                    className="min-h-[40px]"
-                  >
-                    <FileCode className="w-4 h-4 mr-1.5" />
-                    SVG
-                  </Button>
-                </div>
-              </div>
-            );
-          })()}
+              );
+            })()}
         </DialogContent>
       </Dialog>
 
@@ -973,9 +996,7 @@ export const QRCodesPage: React.FC = () => {
                         {t("qr.scanToOrder")}
                       </p>
                       {sheetLanguage === "EN_TA" && (
-                        <p className="text-[8px] text-slate-500">
-                          மெனுவை பார்க்க ஸ்கேன் செய்யவும்
-                        </p>
+                        <p className="text-[8px] text-slate-500">மெனுவை பார்க்க ஸ்கேன் செய்யவும்</p>
                       )}
                       {/* B2: Never print secret token prefix. Use short non-secret card reference */}
                       <p className="text-[8px] text-slate-400 mt-0.5 font-mono">
