@@ -1,6 +1,6 @@
 import React from "react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor, fireEvent } from "@testing-library/react";
 import { BrowserRouter } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { SalesReportsPage } from "../pages/reports/SalesReportsPage";
@@ -191,6 +191,71 @@ describe("P1 Reports & Operational Settings Suites", () => {
       // 299900 paise = ₹2,999.00
       expect(screen.getByText("₹2,999.00")).toBeInTheDocument();
       expect(screen.getByText("Visual Floor Plan Editor")).toBeInTheDocument();
+    });
+  });
+
+  it("PlatformPlansPage renders Dhaba & Hotel plan badges and opens Plan Builder with presets", async () => {
+    vi.mocked(apiClient.get).mockImplementation((url: string) => {
+      if (url.includes("/plans/")) {
+        return Promise.resolve({
+          data: [
+            {
+              id: "dhaba-1",
+              name: "Dhaba & Outdoor Huts Edition",
+              slug: "dhaba-huts",
+              price_paise: 299900,
+              entitlements: {
+                max_branches: 3,
+                max_tables: 35,
+                allows_huts: true,
+                allows_waiter_call: true,
+                allows_minimum_spend: true,
+                outdoor_sections: true,
+                floor_editor: true,
+              },
+              is_active: true,
+            },
+            {
+              id: "hotel-1",
+              name: "Hotel & Resort Edition",
+              slug: "hotel-resort",
+              price_paise: 499900,
+              entitlements: {
+                max_branches: 5,
+                max_tables: 100,
+                allows_room_service: true,
+                allows_room_folio: true,
+                housekeeping_tracking: true,
+                floor_editor: true,
+              },
+              is_active: true,
+            },
+          ],
+        } as any);
+      }
+      return Promise.resolve({ data: [] } as any);
+    });
+
+    renderWithProviders(<PlatformPlansPage />);
+
+    await waitFor(() => {
+      expect(screen.getByText("Dhaba & Outdoor Huts Edition")).toBeInTheDocument();
+      expect(screen.getByText("Dhaba Huts")).toBeInTheDocument();
+      expect(screen.getByText("Waiter Bell")).toBeInTheDocument();
+      expect(screen.getByText("Hotel & Resort Edition")).toBeInTheDocument();
+      expect(screen.getByText("Hotel Rooms")).toBeInTheDocument();
+    });
+
+    // Verify "+ Create Plan" button is present and clickable
+    const createBtn = screen.getByRole("button", { name: /Create Plan/i });
+    expect(createBtn).toBeInTheDocument();
+    fireEvent.click(createBtn);
+
+    // Verify Plan Builder dialog opens with 1-click industry presets
+    await waitFor(() => {
+      expect(screen.getByText(/Create New Subscription Plan/i)).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: /Dhaba & Huts/i })).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: /Hotel & Resort/i })).toBeInTheDocument();
     });
   });
 });

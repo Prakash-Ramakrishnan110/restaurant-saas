@@ -7,8 +7,9 @@ import { AppShell } from "./components/layout/AppShell";
 import { LoginPage } from "./pages/auth/LoginPage";
 import { ChangePasswordPage } from "./pages/auth/ChangePasswordPage";
 import { DashboardPage } from "./pages/dashboard/DashboardPage";
-import { OnboardingPage } from "./pages/onboarding/OnboardingPage";
+import { OnboardingWizardPage } from "./pages/onboarding/OnboardingWizardPage";
 import { BranchesPage } from "./pages/venue/BranchesPage";
+import { VenueLayoutHubPage } from "./pages/venue/VenueLayoutHubPage";
 import { AreasPage } from "./pages/venue/AreasPage";
 import { TablesPage } from "./pages/venue/TablesPage";
 import { CountersPage } from "./pages/venue/CountersPage";
@@ -495,7 +496,7 @@ export const App: React.FC = () => {
                 path="/onboarding"
                 element={
                   <ProtectedRoute>
-                    <OnboardingPage />
+                    <OnboardingWizardPage />
                   </ProtectedRoute>
                 }
               />
@@ -504,6 +505,22 @@ export const App: React.FC = () => {
                 element={
                   <ProtectedRoute>
                     <BranchesPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/venue"
+                element={
+                  <ProtectedRoute>
+                    <VenueLayoutHubPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/venue/layout"
+                element={
+                  <ProtectedRoute>
+                    <VenueLayoutHubPage />
                   </ProtectedRoute>
                 }
               />

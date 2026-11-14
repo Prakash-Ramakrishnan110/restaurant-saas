@@ -11,7 +11,6 @@ import {
   GitBranch,
   Layers,
   LayoutGrid,
-  Zap,
   Users,
   Palette,
   Sliders,
@@ -23,6 +22,7 @@ import {
   PlusCircle,
   LifeBuoy,
   Megaphone,
+  Boxes,
 } from "lucide-react";
 
 export interface NavItem {
@@ -44,16 +44,27 @@ export interface NavigationContext {
   businessType?: string;
   venueProfile?: string;
   usesTables?: boolean;
+  allowsRoomService?: boolean;
   can: (perm: string) => boolean;
 }
 
 export function getNavigationGroups(ctx: NavigationContext): NavGroup[] {
-  const { role, isPlatformAdmin, businessType, venueProfile, usesTables = true, can } = ctx;
+  const {
+    role,
+    isPlatformAdmin,
+    businessType,
+    venueProfile,
+    usesTables = true,
+    can,
+  } = ctx;
 
   const isQuickService =
     !usesTables ||
     businessType === "TEA_SHOP" ||
+    businessType === "BAKERY" ||
     businessType === "FOOD_COURT" ||
+    businessType === "FOOD_TRUCK_COURT" ||
+    businessType === "QUICK_SERVICE" ||
     venueProfile === "QUICK_SERVICE";
 
   // 1. Platform Admin role: Platform console only, NEVER restaurant data
@@ -130,14 +141,6 @@ export function getNavigationGroups(ctx: NavigationContext): NavGroup[] {
   // 5. Manager & Owner roles (exactly 4 groups: Daily work, Restaurant setup, Team, Settings)
   const isManager = role === "BRANCH_MANAGER";
 
-  const setupVenueItem: NavItem = isQuickService
-    ? { label: "Counters and Tokens", path: "/venue/counters", icon: Zap, permission: "area.view" }
-    : { label: "Tables", path: "/venue/tables", icon: Utensils, permission: "table.view" };
-
-  const floorPlanItem: NavItem | null = isQuickService
-    ? null
-    : { label: "Floor Plan", path: "/venue/floor", icon: LayoutGrid, permission: "floor.manage" };
-
   const dailyItems: NavItem[] = [
     { label: "Dashboard", path: "/dashboard", icon: LayoutDashboard },
     {
@@ -157,6 +160,12 @@ export function getNavigationGroups(ctx: NavigationContext): NavGroup[] {
     { label: "Cashier Billing", path: "/billing", icon: Receipt, permission: "order.create" },
     { label: "Bills", path: "/billing/bills", icon: FileText, permission: "order.create" },
     { label: "Shift Close", path: "/billing/closeout", icon: Clock, permission: "order.create" },
+    {
+      label: "Inventory & Stock",
+      path: "/inventory",
+      icon: Boxes,
+      permission: "inventory.view",
+    },
     { label: "Menu", path: "/menu", icon: UtensilsCrossed, permission: "menu.view" },
     {
       label: "Today's Availability",
@@ -175,13 +184,11 @@ export function getNavigationGroups(ctx: NavigationContext): NavGroup[] {
       permission: "branch.view",
     },
     {
-      label: "Areas",
-      path: "/venue/areas",
-      icon: Layers,
+      label: "Venue Layout",
+      path: "/venue",
+      icon: LayoutGrid,
       permission: "area.view",
     },
-    setupVenueItem,
-    ...(floorPlanItem ? [floorPlanItem] : []),
     { label: "QR Codes", path: "/qr", icon: QrCode, permission: "qr.view" },
   ];
 
@@ -240,3 +247,20 @@ export function getNavigationGroups(ctx: NavigationContext): NavGroup[] {
     }))
     .filter((grp) => grp.items.length > 0);
 }
+
+export function getRoleHome(role?: string | null, isPlatformAdmin?: boolean): string {
+  if (isPlatformAdmin) return "/admin";
+  switch (role) {
+    case "CASHIER":
+      return "/billing";
+    case "WAITER":
+      return "/pos";
+    case "KITCHEN":
+      return "/kds";
+    case "BRANCH_MANAGER":
+    case "OWNER":
+    default:
+      return "/dashboard";
+  }
+}
+

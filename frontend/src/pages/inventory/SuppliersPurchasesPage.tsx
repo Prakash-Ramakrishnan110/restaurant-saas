@@ -112,13 +112,13 @@ export const SuppliersPurchasesPage: React.FC = () => {
 
   const openNewPOModal = () => {
     setSelectedSupplier(suppliers[0]?.id || "");
-    setOrderNumber(`PO-${new Date().getFullYear()}-${Math.floor(1000 + Math.random() * 9000)}`);
+    setOrderNumber("");
     setInvoiceNumber("");
     setPoItems([
       {
         ingredient: ingredients[0]?.id || "",
         quantity: "10.000",
-        unitPriceRupees: ingredients[0] ? (ingredients[0].cost_paise / 100).toFixed(2) : "100.00",
+        unitPriceRupees: ingredients[0] ? formatRupees(ingredients[0].cost_paise).replace("₹", "").trim() : "100.00",
         batchNumber: "",
       },
     ]);
@@ -132,7 +132,7 @@ export const SuppliersPurchasesPage: React.FC = () => {
       {
         ingredient: first?.id || "",
         quantity: "5.000",
-        unitPriceRupees: first ? (first.cost_paise / 100).toFixed(2) : "100.00",
+        unitPriceRupees: first ? formatRupees(first.cost_paise).replace("₹", "").trim() : "100.00",
         batchNumber: "",
       },
     ]);
@@ -152,7 +152,7 @@ export const SuppliersPurchasesPage: React.FC = () => {
         if (i !== idx) return item;
         if (field === "ingredient") {
           const ing = ingredients.find((ing) => ing.id === val);
-          const defaultPrice = ing ? (ing.cost_paise / 100).toFixed(2) : item.unitPriceRupees;
+          const defaultPrice = ing ? formatRupees(ing.cost_paise).replace("₹", "").trim() : item.unitPriceRupees;
           return { ...item, ingredient: val, unitPriceRupees: defaultPrice };
         }
         return { ...item, [field]: val };
@@ -171,7 +171,7 @@ export const SuppliersPurchasesPage: React.FC = () => {
 
   const handlePOSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!orderNumber || poItems.length === 0) return;
+    if (poItems.length === 0) return;
     setIsSubmittingPO(true);
     try {
       const itemsPayload = poItems.map((item) => ({
@@ -182,7 +182,7 @@ export const SuppliersPurchasesPage: React.FC = () => {
       }));
 
       await apiClient.post("/api/v1/inventory/purchases/", {
-        order_number: orderNumber,
+        ...(orderNumber ? { order_number: orderNumber } : {}),
         supplier: selectedSupplier || null,
         invoice_number: invoiceNumber,
         items: itemsPayload,
@@ -496,7 +496,7 @@ export const SuppliersPurchasesPage: React.FC = () => {
                   <label className="block text-xs font-medium text-gray-700 mb-1">PO Number</label>
                   <input
                     type="text"
-                    required
+                    placeholder="Auto-assigned by server"
                     value={orderNumber}
                     onChange={(e) => setOrderNumber(e.target.value)}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"

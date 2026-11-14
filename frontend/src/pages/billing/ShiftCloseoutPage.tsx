@@ -146,7 +146,7 @@ export const ShiftCloseoutPage: React.FC = () => {
           </div>
 
           <Button
-            className="w-full h-11 bg-[#FF6A00] hover:bg-[#FF6A00]/90 text-white font-bold text-sm gap-2 mt-4"
+            className="w-full h-11 bg-[#FF6A00] hover:bg-[#FF6A00]/90 text-[#0B1F3B] font-bold text-sm gap-2 mt-4"
             disabled={!actualCash || submitting}
             onClick={handlePerformCloseout}
           >

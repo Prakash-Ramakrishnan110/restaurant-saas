@@ -59,7 +59,7 @@ export const TenantsDirectoryPage: React.FC = () => {
       const res = await apiClient.get<ListResponse<TenantItem> | TenantItem[]>("/tenants/");
       setTenants(unwrapList<TenantItem>(res.data));
       if (isManualRefresh) {
-        setToastMsg("Tenants directory refreshed successfully.");
+        setToastMsg("Customers directory refreshed successfully.");
       }
     } catch {
       // Error handled gracefully
@@ -94,7 +94,7 @@ export const TenantsDirectoryPage: React.FC = () => {
       setTenants((prev) =>
         prev.map((t) => (t.id === tenant.id ? { ...t, status: nextStatus } : t))
       );
-      setToastMsg(`Tenant "${tenant.name}" marked as ${nextStatus}`);
+      setToastMsg(`Customer "${tenant.name}" marked as ${nextStatus}`);
     } catch {
       setToastMsg(`Failed to change status for ${tenant.name}`);
     } finally {
@@ -170,7 +170,7 @@ export const TenantsDirectoryPage: React.FC = () => {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-    setToastMsg(`Exported ${filteredTenants.length} tenants to CSV`);
+    setToastMsg(`Exported ${filteredTenants.length} customers to CSV`);
   };
 
   const clearAllFilters = () => {
@@ -224,10 +224,10 @@ export const TenantsDirectoryPage: React.FC = () => {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-4 border-b border-border">
         <div>
           <span className="text-xs font-bold text-[#FF6A00] uppercase tracking-wider">
-            Tenants Management
+            Customers Management
           </span>
           <h1 className="text-2xl sm:text-3xl font-extrabold font-heading text-foreground mt-0.5 flex items-center gap-2">
-            <Users className="h-7 w-7 text-[#FF6A00]" /> Tenants Directory
+            <Users className="h-7 w-7 text-[#FF6A00]" /> Customers Directory
           </h1>
           <p className="text-xs text-muted-foreground mt-1">
             Search, filter, inspect, and manage all registered restaurant chains, cafes, tea shops, and hotels.
@@ -259,7 +259,7 @@ export const TenantsDirectoryPage: React.FC = () => {
           <Button
             size="sm"
             onClick={() => navigate("/admin/tenants/new")}
-            className="text-xs bg-[#FF6A00] hover:bg-[#FF6A00]/90 text-white gap-1.5"
+            className="text-xs bg-[#FF6A00] hover:bg-[#FF6A00]/90 text-[#0B1F3B] font-bold gap-1.5"
           >
             <Plus className="h-4 w-4" /> New Customer
           </Button>
@@ -334,7 +334,7 @@ export const TenantsDirectoryPage: React.FC = () => {
             </select>
 
             <select
-              aria-label="Sort tenants by"
+              aria-label="Sort customers by"
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value as "newest" | "name" | "outlets")}
               className="text-xs font-medium bg-background border border-input rounded-md px-3 h-9 focus:ring-2 focus:ring-[#FF6A00] outline-none"
@@ -367,7 +367,7 @@ export const TenantsDirectoryPage: React.FC = () => {
                   <td colSpan={8} className="py-12 text-center text-muted-foreground">
                     <div className="flex flex-col items-center gap-2">
                       <RefreshCw className="h-6 w-6 animate-spin text-[#FF6A00]" />
-                      <span>Loading tenants directory...</span>
+                      <span>Loading customers directory...</span>
                     </div>
                   </td>
                 </tr>
@@ -375,10 +375,10 @@ export const TenantsDirectoryPage: React.FC = () => {
                 <tr>
                   <td colSpan={8} className="py-12 text-center text-muted-foreground">
                     <Building2 className="h-10 w-10 text-muted-foreground/30 mx-auto mb-2" />
-                    <p className="font-semibold text-sm">No restaurant tenants found.</p>
+                    <p className="font-semibold text-sm">No restaurant customers found.</p>
                     <p className="text-xs text-muted-foreground mt-0.5">
                       {hasActiveFilters
-                        ? "Try clearing filters to see all tenants."
+                        ? "Try clearing filters to see all customers."
                         : "Click 'New Customer' above to onboard your first brand."}
                     </p>
                     {hasActiveFilters && (

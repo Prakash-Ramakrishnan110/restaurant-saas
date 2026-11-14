@@ -183,7 +183,7 @@ describe("Brand & UI Components", () => {
 
     expect(screen.getByText("App Content Inside Shell")).toBeInTheDocument();
     expect(screen.getByText("Dashboard")).toBeInTheDocument();
-    expect(screen.getByText("Tables")).toBeInTheDocument();
+    expect(screen.getByText("Live Orders")).toBeInTheDocument();
   });
 
   it("strictly does not render 'Dev & Design Tools' in production AppShell navigation", () => {

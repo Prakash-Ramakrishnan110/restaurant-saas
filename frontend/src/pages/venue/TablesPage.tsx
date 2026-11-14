@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Utensils, Plus, Copy, Link2, Unlink, QrCode, Search, Power, Armchair } from "lucide-react";
+import { Utensils, Plus, Copy, Link2, Unlink, QrCode, Search, Power, Armchair, Bed } from "lucide-react";
 import { PageHeader } from "../../components/app/PageHeader";
 import { Card, CardContent } from "../../components/ui/card";
 import { Button } from "../../components/ui/button";
@@ -56,6 +56,7 @@ export const TablesPage: React.FC = () => {
   const [areas, setAreas] = useState<any[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [isHotelVenue, setIsHotelVenue] = useState<boolean>(false);
 
   // Entitlements
   const [maxTables, setMaxTables] = useState<number>(50);
@@ -108,19 +109,31 @@ export const TablesPage: React.FC = () => {
       if (selectedStatus) queryParams.status = selectedStatus;
       if (searchQuery.trim()) queryParams.search = searchQuery.trim();
 
-      const [tblRes, secRes, areaRes, entRes] = await Promise.all([
+      const [tblRes, secRes, areaRes, entRes, bizRes] = await Promise.all([
         apiClient.get<any>("/tables/", { params: queryParams }),
         apiClient.get<any>("/sections/"),
         apiClient.get<any>("/service-areas/"),
         apiClient
           .get<any>("/entitlements/")
           .catch(() => ({ data: { entitlements: { max_tables: 50 } } })),
+        apiClient.get<any>("/business/").catch(() => ({ data: {} })),
       ]);
 
       setTables(tblRes.data?.results || tblRes.data || []);
       setSections(secRes.data?.results || secRes.data || []);
       setAreas(areaRes.data?.results || areaRes.data || []);
       setMaxTables(entRes.data?.entitlements?.max_tables ?? 50);
+
+      const biz = bizRes.data;
+      if (
+        biz?.business_type === "HOTEL" ||
+        biz?.venue_profile === "HOTEL_RESTAURANT" ||
+        biz?.allows_room_service
+      ) {
+        setIsHotelVenue(true);
+      } else {
+        setIsHotelVenue(false);
+      }
     } catch (err: any) {
       setErrorMessage(mapBackendErrorCode(err));
     } finally {
@@ -270,9 +283,16 @@ export const TablesPage: React.FC = () => {
   return (
     <div className="space-y-6">
       <PageHeader
-        title={t("tables.title")}
-        description={t("tables.subtitle")}
-        breadcrumbs={[{ label: "Dashboard", href: "/dashboard" }, { label: t("tables.title") }]}
+        title={isHotelVenue ? "Dining Tables (Restaurant & Banquet)" : t("tables.title")}
+        description={
+          isHotelVenue
+            ? "Manage dine-in tables, shapes, and seating for your hotel restaurant and banquet hall."
+            : t("tables.subtitle")
+        }
+        breadcrumbs={[
+          { label: "Dashboard", href: "/dashboard" },
+          { label: isHotelVenue ? "Dining Tables" : t("tables.title") },
+        ]}
         actions={
           <div className="flex items-center gap-2 flex-wrap">
             {canMerge && (
@@ -326,6 +346,31 @@ export const TablesPage: React.FC = () => {
           </div>
         }
       />
+
+      {isHotelVenue && (
+        <div className="p-4 rounded-xl bg-[#FF6A00]/5 border border-[#FF6A00]/20 text-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+          <div className="flex items-center gap-2.5">
+            <Bed className="w-5 h-5 text-[#FF6A00] flex-shrink-0" />
+            <div>
+              <span className="font-bold text-foreground block">
+                Hotel Venue Mode: Dining Tables & Banquets
+              </span>
+              <span className="text-muted-foreground">
+                You are managing physical dine-in tables for your hotel's ground floor dining and banquet hall.
+                To manage hotel guest rooms & suites, visit Hotel Rooms.
+              </span>
+            </div>
+          </div>
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => navigate("/venue/rooms")}
+            className="text-xs shrink-0 font-semibold border-[#FF6A00]/30 hover:bg-[#FF6A00]/10 text-foreground"
+          >
+            Go to Hotel Rooms &rarr;
+          </Button>
+        </div>
+      )}
 
       {/* Plan Usage Meter Card */}
       <div className="p-4 rounded-xl border border-border bg-card flex items-center justify-between flex-wrap gap-4">
@@ -562,7 +607,9 @@ export const TablesPage: React.FC = () => {
         <DialogContent className="max-w-md">
           <form onSubmit={handleBulkSubmit}>
             <DialogHeader>
-              <DialogTitle>{t("tables.bulkCreate")}</DialogTitle>
+              <DialogTitle>
+                {isHotelVenue ? "Bulk Create Dining Tables" : t("tables.bulkCreate")}
+              </DialogTitle>
             </DialogHeader>
             <div className="space-y-4 py-4 text-xs">
               <div>
@@ -747,7 +794,9 @@ export const TablesPage: React.FC = () => {
         <DialogContent className="max-w-md">
           <form onSubmit={handleSingleSubmit}>
             <DialogHeader>
-              <DialogTitle>{t("tables.addTable")}</DialogTitle>
+              <DialogTitle>
+                {isHotelVenue ? "Add Dining Table" : t("tables.addTable")}
+              </DialogTitle>
             </DialogHeader>
             <div className="space-y-4 py-4 text-xs">
               <div>

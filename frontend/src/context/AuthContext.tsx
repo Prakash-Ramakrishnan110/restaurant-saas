@@ -17,6 +17,10 @@ export interface TenantMembership {
   is_active: boolean;
   branch_ids?: string[];
   permissions?: string[];
+  business_type?: string;
+  venue_profile?: string;
+  uses_tables?: boolean;
+  allows_room_service?: boolean;
 }
 
 export interface AuthContextType {

@@ -114,13 +114,16 @@ export const FloorPOSPage: React.FC = () => {
   const handleSelectTable = (tbl: DiningTableItem, sessionList?: any[]) => {
     setSelectedTable(tbl);
     const sessions = sessionList || activeSessions;
-    // Look up active open session
-    const openSess = sessions.find((s: any) => s.table?.id === tbl.id && s.status === "OPEN");
+    // Look up active open session (s.table can be string UUID or {id: string})
+    const openSess = sessions.find((s: any) => {
+      const sessTableId = typeof s.table === "object" ? s.table?.id : s.table;
+      return sessTableId === tbl.id && s.status === "OPEN";
+    });
     if (openSess) {
       setSelectedSessionId(openSess.id);
     } else {
       setSelectedSessionId(null);
-      if (tbl.status === "AVAILABLE") {
+      if (tbl.status === "AVAILABLE" || (!tbl.status && !openSess)) {
         setGuestCount(tbl.capacity || 2);
         setSeatModalOpen(true);
       }
@@ -194,8 +197,12 @@ export const FloorPOSPage: React.FC = () => {
       setSeatModalOpen(false);
       setSuccessToast(`Table ${selectedTable.label} seated with ${guestCount} guests.`);
       await fetchData();
-    } catch {
-      setErrorToast("Could not seat guests at this table.");
+    } catch (err: any) {
+      const msg =
+        err.response?.data?.error?.message ||
+        err.response?.data?.detail ||
+        "Could not seat guests at this table.";
+      setErrorToast(msg);
     } finally {
       setSubmitting(false);
     }
@@ -410,7 +417,14 @@ export const FloorPOSPage: React.FC = () => {
             <div className="flex-1 overflow-y-auto pt-3 grid grid-cols-2 gap-2.5 pr-1">
               {tables.map((tbl) => {
                 const isSelected = selectedTable?.id === tbl.id;
-                const isOccupied = tbl.status === "OCCUPIED";
+                const hasOpenSession = Boolean(
+                  activeSessions.find((s: any) => {
+                    const sessTableId = typeof s.table === "object" ? s.table?.id : s.table;
+                    return sessTableId === tbl.id && s.status === "OPEN";
+                  })
+                );
+                const isOccupied = tbl.status === "OCCUPIED" || hasOpenSession;
+                const isCleaning = (tbl.status as string) === "CLEANING" || tbl.status === "DIRTY";
                 return (
                   <button
                     key={tbl.id}
@@ -420,7 +434,9 @@ export const FloorPOSPage: React.FC = () => {
                         ? "border-[#FF6A00] ring-2 ring-[#FF6A00]/20 bg-orange-50/50 dark:bg-orange-950/20"
                         : isOccupied
                           ? "border-red-300 bg-red-50/40 dark:bg-red-950/20 hover:border-red-400"
-                          : "border-border bg-card hover:border-[#FF6A00]/40"
+                          : isCleaning
+                            ? "border-blue-300 bg-blue-50/40 dark:bg-blue-950/20 hover:border-blue-400"
+                            : "border-border bg-card hover:border-[#FF6A00]/40"
                     }`}
                   >
                     <div className="flex items-center justify-between w-full">
@@ -428,10 +444,10 @@ export const FloorPOSPage: React.FC = () => {
                         {tbl.label}
                       </span>
                       <Badge
-                        variant={isOccupied ? "destructive" : "secondary"}
+                        variant={isOccupied ? "destructive" : isCleaning ? "outline" : "secondary"}
                         className="text-[10px] px-1.5 py-0"
                       >
-                        {isOccupied ? "Occupied" : "Free"}
+                        {isOccupied ? "Occupied" : isCleaning ? "Cleaning" : "Free"}
                       </Badge>
                     </div>
                     <span className="text-[11px] text-muted-foreground mt-1 flex items-center gap-1">
@@ -707,7 +723,7 @@ export const FloorPOSPage: React.FC = () => {
             </div>
 
             <Button
-              className="w-full min-h-[48px] text-sm font-bold bg-[#FF6A00] hover:bg-[#FF6A00]/90 text-white gap-2 shadow-sm"
+              className="w-full min-h-[48px] text-sm font-bold bg-[#FF6A00] hover:bg-[#FF6A00]/90 text-[#0B1F3B] gap-2 shadow-sm"
               disabled={cart.length === 0 || submitting}
               onClick={handleFireOrder}
             >
@@ -752,7 +768,7 @@ export const FloorPOSPage: React.FC = () => {
             <Button
               onClick={handleSeatGuests}
               disabled={submitting}
-              className="bg-[#FF6A00] text-white"
+              className="bg-[#FF6A00] text-[#0B1F3B]"
             >
               Open Dining Session
             </Button>
@@ -792,7 +808,7 @@ export const FloorPOSPage: React.FC = () => {
             <Button
               onClick={handleTransferTable}
               disabled={!targetTableId || submitting}
-              className="bg-[#FF6A00] text-white"
+              className="bg-[#FF6A00] text-[#0B1F3B]"
             >
               Confirm Transfer
             </Button>

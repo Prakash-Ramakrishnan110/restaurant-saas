@@ -244,7 +244,7 @@ export const PlatformHealthPage: React.FC = () => {
               href="http://localhost:8000/admin/"
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center justify-center gap-2 w-full py-2 rounded-lg font-bold text-xs bg-[#FF6A00] text-white hover:bg-[#FF6A00]/90 transition-all shadow-xs"
+              className="inline-flex items-center justify-center gap-2 w-full py-2 rounded-lg font-bold text-xs bg-[#FF6A00] text-[#0B1F3B] hover:bg-[#FF6A00]/90 transition-all shadow-xs"
             >
               <span>Launch Django Admin Console</span>
               <ExternalLink className="w-3.5 h-3.5" />

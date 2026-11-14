@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo } from "react";
-import { Bed, Plus, RefreshCw, Search, Sparkles, UtensilsCrossed } from "lucide-react";
+import { Bed, Plus, RefreshCw, Search, Sparkles, UtensilsCrossed, Utensils } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { apiClient } from "../../api/client";
 import { unwrapList, ListResponse } from "../../api/pagination";
@@ -164,6 +164,23 @@ export const RoomsPage: React.FC = () => {
             Add Room
           </Button>
         </div>
+      </div>
+
+      <div className="p-3.5 rounded-xl bg-muted/40 border border-border text-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+        <div className="flex items-center gap-2.5">
+          <Utensils className="w-4 h-4 text-[#FF6A00] flex-shrink-0" />
+          <span className="text-foreground">
+            <strong>In-Room Dining & Suites:</strong> You are managing hotel guest rooms. To manage dining tables in your hotel restaurant or banquet, visit Dining Tables.
+          </span>
+        </div>
+        <Button
+          size="sm"
+          variant="outline"
+          onClick={() => navigate("/venue/tables")}
+          className="text-xs shrink-0"
+        >
+          Go to Dining Tables &rarr;
+        </Button>
       </div>
 
       {error && (

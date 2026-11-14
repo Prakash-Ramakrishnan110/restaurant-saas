@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import {
@@ -18,9 +18,21 @@ import {
   LifeBuoy,
   Megaphone,
   CheckCircle2,
+  Clock,
+  RefreshCw,
+  Volume2,
+  VolumeX,
+  Users,
+  ShieldCheck,
+  FileText,
+  BarChart2,
+  UtensilsCrossed,
+  Activity,
 } from "lucide-react";
+import { isSoundEnabled, setSoundEnabled, testSoundAlert } from "../../utils/soundAlerts";
 import { BrandLogo } from "../brand/BrandLogo";
 import { Button } from "../ui/button";
+import { Badge } from "../ui/badge";
 import { OfflineBanner } from "../app/OfflineBanner";
 import { useAuth } from "../../context/AuthContext";
 import { useTheme } from "../../context/ThemeContext";
@@ -34,7 +46,7 @@ declare const __APP_VERSION__: string;
 declare const __GIT_HASH__: string;
 
 export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { user, memberships, activeTenant, selectTenant, logout, can } = useAuth();
+  const { user, memberships, activeTenant, activeRole, selectTenant, logout, can } = useAuth();
   const { theme, setTheme } = useTheme();
   const { i18n } = useTranslation();
   const location = useLocation();
@@ -48,6 +60,17 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
   const [isOnline, setIsOnline] = useState(
     typeof navigator !== "undefined" ? navigator.onLine : true
   );
+
+  const [soundOn, setSoundOn] = useState<boolean>(() => isSoundEnabled());
+
+  const handleToggleSound = () => {
+    const next = !soundOn;
+    setSoundOn(next);
+    setSoundEnabled(next);
+    if (next) {
+      testSoundAlert();
+    }
+  };
 
   const [activeOrdersCount, setActiveOrdersCount] = useState<number>(0);
   const [readyOrdersCount, setReadyOrdersCount] = useState<number>(0);
@@ -65,14 +88,19 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
     };
   }, []);
 
-  const [venueProfile, setVenueProfile] = useState<string>("");
-  const [businessType, setBusinessType] = useState<string>("");
+  const [venueProfile, setVenueProfile] = useState<string>(() => (activeTenant as any)?.venue_profile || "");
+  const [businessType, setBusinessType] = useState<string>(() => (activeTenant as any)?.business_type || "");
+  const [allowsRoomService, setAllowsRoomService] = useState<boolean>(false);
   const [usesTables, setUsesTables] = useState<boolean>(() => {
     const tenant: any = activeTenant;
     if (!tenant) return true;
     if (
       tenant.uses_tables === false ||
       tenant.business_type === "TEA_SHOP" ||
+      tenant.business_type === "BAKERY" ||
+      tenant.business_type === "FOOD_COURT" ||
+      tenant.business_type === "FOOD_TRUCK_COURT" ||
+      tenant.business_type === "QUICK_SERVICE" ||
       tenant.venue_profile === "QUICK_SERVICE"
     ) {
       return false;
@@ -83,9 +111,27 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
   useEffect(() => {
     const tenant: any = activeTenant;
     if (!tenant) return;
+    if (tenant.business_type) {
+      setBusinessType(tenant.business_type);
+      if (
+        tenant.business_type === "TEA_SHOP" ||
+        tenant.business_type === "BAKERY" ||
+        tenant.business_type === "FOOD_COURT" ||
+        tenant.business_type === "FOOD_TRUCK_COURT" ||
+        tenant.business_type === "QUICK_SERVICE" ||
+        tenant.venue_profile === "QUICK_SERVICE" ||
+        tenant.uses_tables === false
+      ) {
+        setUsesTables(false);
+      }
+    }
+    if (tenant.venue_profile) {
+      setVenueProfile(tenant.venue_profile);
+    }
     if (
       tenant.uses_tables === false ||
       tenant.business_type === "TEA_SHOP" ||
+      tenant.business_type === "QUICK_SERVICE" ||
       tenant.venue_profile === "QUICK_SERVICE"
     ) {
       setUsesTables(false);
@@ -95,9 +141,21 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
       .then((res) => {
         const bType = res.data?.business_type;
         const vProf = res.data?.venue_profile;
+        const roomSvc =
+          res.data?.allows_room_service ??
+          res.data?.business_settings?.allows_room_service ??
+          (bType === "HOTEL" || vProf === "HOTEL_RESTAURANT");
         setBusinessType(bType || "");
         setVenueProfile(vProf || "");
-        if (bType === "TEA_SHOP" || vProf === "QUICK_SERVICE") {
+        setAllowsRoomService(!!roomSvc);
+        if (
+          bType === "TEA_SHOP" ||
+          bType === "BAKERY" ||
+          bType === "FOOD_COURT" ||
+          bType === "FOOD_TRUCK_COURT" ||
+          bType === "QUICK_SERVICE" ||
+          vProf === "QUICK_SERVICE"
+        ) {
           setUsesTables(false);
         } else {
           setUsesTables(true);
@@ -134,12 +192,41 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
 
   // Support Desk Ticket Dialog for Tenants
   const [supportOpen, setSupportOpen] = useState(false);
+  const [supportTab, setSupportTab] = useState<"history" | "new">("history");
+  const [tenantTickets, setTenantTickets] = useState<any[]>([]);
+  const [loadingTickets, setLoadingTickets] = useState(false);
   const [supportSubject, setSupportSubject] = useState("");
   const [supportDescription, setSupportDescription] = useState("");
   const [supportPriority, setSupportPriority] = useState("MEDIUM");
   const [supportPhone, setSupportPhone] = useState("");
   const [supportSubmitting, setSupportSubmitting] = useState(false);
   const [supportSuccess, setSupportSuccess] = useState<string | null>(null);
+
+  const fetchTenantTickets = useCallback(async () => {
+    if (user?.is_platform_admin) return;
+    setLoadingTickets(true);
+    try {
+      const res = await apiClient.get<ListResponse<any>>("/support-tickets/");
+      const list = unwrapList(res.data);
+      setTenantTickets(list);
+    } catch {
+      // Handled
+    } finally {
+      setLoadingTickets(false);
+    }
+  }, [user]);
+
+  useEffect(() => {
+    if (!user?.is_platform_admin) {
+      fetchTenantTickets();
+    }
+  }, [user, fetchTenantTickets]);
+
+  useEffect(() => {
+    if (supportOpen && !user?.is_platform_admin) {
+      fetchTenantTickets();
+    }
+  }, [supportOpen, user, fetchTenantTickets]);
 
   useEffect(() => {
     if (user?.is_platform_admin) return;
@@ -178,10 +265,11 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
       setSupportSuccess("Ticket submitted successfully! Platform support will respond shortly.");
       setSupportSubject("");
       setSupportDescription("");
+      fetchTenantTickets();
       setTimeout(() => {
-        setSupportOpen(false);
         setSupportSuccess(null);
-      }, 2000);
+        setSupportTab("history");
+      }, 1500);
     } catch {
       // Handled
     } finally {
@@ -210,9 +298,10 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
       businessType,
       venueProfile,
       usesTables,
+      allowsRoomService,
       can,
     });
-  }, [activeTenant, user, businessType, venueProfile, usesTables, can]);
+  }, [activeTenant, user, businessType, venueProfile, usesTables, allowsRoomService, can]);
 
   // Flattened items for command palette search
   const flatNavItems = useMemo(() => {
@@ -224,6 +313,45 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
     });
     return items;
   }, [navGroups]);
+
+  // Mobile role-adaptive bottom bar items matching docs/product/sidebar-map.md
+  const bottomBarItems = useMemo(() => {
+    if (user?.is_platform_admin) {
+      return [
+        { label: "Home", path: "/admin", icon: ShieldCheck },
+        { label: "Customers", path: "/admin/tenants", icon: Users },
+      ];
+    }
+    const role = activeTenant?.role || activeRole;
+    if (role === "KITCHEN") {
+      return [
+        { label: "Kitchen", path: "/kds", icon: ChefHat },
+        { label: "Availability", path: "/menu/availability", icon: Clock },
+      ];
+    }
+    if (role === "WAITER") {
+      return [
+        { label: usesTables ? "Tables" : "Counters", path: "/pos", icon: Utensils },
+        { label: "Ready", path: "/serve", icon: CheckCircle2 },
+        { label: "Orders", path: "/orders", icon: Activity },
+      ];
+    }
+    if (role === "CASHIER") {
+      return [
+        { label: "Billing", path: "/billing", icon: Receipt },
+        { label: "Orders", path: "/orders", icon: Activity },
+        { label: "Availability", path: "/menu/availability", icon: Clock },
+        { label: "Bills", path: "/billing/bills", icon: FileText },
+      ];
+    }
+    // Owner, Manager, or Default
+    return [
+      { label: "Home", path: "/dashboard", icon: LayoutDashboard },
+      { label: "Orders", path: "/orders", icon: Activity },
+      { label: "Menu", path: "/menu", icon: UtensilsCrossed },
+      { label: "Reports", path: "/reports/today", icon: BarChart2 },
+    ];
+  }, [user?.is_platform_admin, activeTenant?.role, activeRole, usesTables]);
 
   const filteredPaletteItems = useMemo(() => {
     if (!searchQuery.trim()) return flatNavItems;
@@ -346,6 +474,18 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
             {i18n.language.startsWith("ta") ? "தமிழ்" : "EN"}
           </Button>
 
+          {/* Sound Alerts Switcher */}
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleToggleSound}
+            className={`min-h-[36px] min-w-[36px] p-2 ${soundOn ? "text-[#FF6A00]" : "text-muted-foreground"}`}
+            aria-label={soundOn ? "Mute order sound alerts" : "Enable order sound alerts"}
+            title={soundOn ? "Order sound alerts active (click to mute)" : "Order sound alerts muted (click to enable)"}
+          >
+            {soundOn ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
+          </Button>
+
           {/* Theme Switcher */}
           <Button
             variant="ghost"
@@ -362,12 +502,20 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
             <Button
               variant="outline"
               size="sm"
-              onClick={() => setSupportOpen(true)}
-              className="text-xs font-semibold min-h-[36px] gap-1.5 border-border hover:border-[#FF6A00]"
+              onClick={() => {
+                setSupportOpen(true);
+                setSupportTab(tenantTickets.length > 0 ? "history" : "new");
+              }}
+              className="text-xs font-semibold min-h-[36px] gap-1.5 border-border hover:border-[#FF6A00] relative"
               aria-label="Open support desk"
             >
               <LifeBuoy className="h-3.5 w-3.5 text-[#FF6A00]" />
               <span className="hidden md:inline">Support</span>
+              {tenantTickets.filter((t) => t.status === "OPEN" || t.status === "IN_PROGRESS").length > 0 && (
+                <span className="inline-flex items-center justify-center px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-[#FF6A00] text-[#0B1F3B]">
+                  {tenantTickets.filter((t) => t.status === "OPEN" || t.status === "IN_PROGRESS").length}
+                </span>
+              )}
             </Button>
           )}
 
@@ -478,28 +626,63 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
           {/* Active Platform Announcements Banner for Tenant Dashboards */}
           {activeAnnouncements.length > 0 && (
             <div className="mb-4 space-y-2">
-              {activeAnnouncements.map((a) => (
-                <div
-                  key={a.id}
-                  className="p-3.5 rounded-xl border border-amber-300 dark:border-amber-800 bg-amber-50/70 dark:bg-amber-950/40 text-xs flex items-start justify-between gap-3 shadow-xs animate-in slide-in-from-top-1"
-                >
-                  <div className="flex items-start gap-2.5">
-                    <Megaphone className="h-4 w-4 text-amber-800 dark:text-amber-300 mt-0.5 shrink-0" />
-                    <div>
-                      <span className="font-extrabold text-foreground block">{a.title}</span>
-                      <p className="text-muted-foreground mt-0.5 leading-relaxed">{a.message}</p>
-                    </div>
-                  </div>
-                  <button
-                    onClick={() => setDismissedAnnouncements((prev) => [...prev, a.id])}
-                    className="p-1 text-muted-foreground hover:text-foreground rounded-md shrink-0"
-                    title="Dismiss"
-                    aria-label="Dismiss announcement"
+              {activeAnnouncements.map((a) => {
+                const isCritical = a.announcement_type === "CRITICAL";
+                const isWarning = a.announcement_type === "WARNING";
+                const isMaint = a.announcement_type === "MAINTENANCE";
+
+                const bannerBorderBg = isCritical
+                  ? "border-red-300 dark:border-red-900/60 bg-red-50/80 dark:bg-red-950/40"
+                  : isWarning
+                  ? "border-amber-300 dark:border-amber-800 bg-amber-50/70 dark:bg-amber-950/40"
+                  : isMaint
+                  ? "border-purple-300 dark:border-purple-800 bg-purple-50/70 dark:bg-purple-950/40"
+                  : "border-blue-300 dark:border-blue-800 bg-blue-50/70 dark:bg-blue-950/40";
+
+                const iconColor = isCritical
+                  ? "text-red-600 dark:text-red-400"
+                  : isWarning
+                  ? "text-amber-600 dark:text-amber-400"
+                  : isMaint
+                  ? "text-purple-600 dark:text-purple-400"
+                  : "text-blue-600 dark:text-blue-400";
+
+                const typeBadgeColor = isCritical
+                  ? "bg-red-100 text-red-800 dark:bg-red-950 dark:text-red-300 border-red-300"
+                  : isWarning
+                  ? "bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300 border-amber-300"
+                  : isMaint
+                  ? "bg-purple-100 text-purple-800 dark:bg-purple-950 dark:text-purple-300 border-purple-300"
+                  : "bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-300 border-blue-300";
+
+                return (
+                  <div
+                    key={a.id}
+                    className={`p-3.5 rounded-xl border ${bannerBorderBg} text-xs flex items-start justify-between gap-3 shadow-xs animate-in slide-in-from-top-1`}
                   >
-                    <X className="h-3.5 w-3.5" />
-                  </button>
-                </div>
-              ))}
+                    <div className="flex items-start gap-2.5">
+                      <Megaphone className={`h-4 w-4 ${iconColor} mt-0.5 shrink-0`} />
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <span className="font-extrabold text-foreground">{a.title}</span>
+                          <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded border uppercase ${typeBadgeColor}`}>
+                            {a.announcement_type || "ANNOUNCEMENT"}
+                          </span>
+                        </div>
+                        <p className="text-muted-foreground mt-1 leading-relaxed">{a.message}</p>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => setDismissedAnnouncements((prev) => [...prev, a.id])}
+                      className="p-1 text-muted-foreground hover:text-foreground rounded-md shrink-0 transition-colors"
+                      title="Dismiss announcement"
+                      aria-label="Dismiss announcement"
+                    >
+                      <X className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
+                );
+              })}
             </div>
           )}
           {children}
@@ -567,8 +750,8 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
 
       {/* Tenant Helpdesk Support Ticket Dialog */}
       <Dialog open={supportOpen} onOpenChange={setSupportOpen}>
-        <DialogContent className="sm:max-w-md font-sans">
-          <DialogHeader>
+        <DialogContent className="sm:max-w-xl font-sans max-h-[85vh] overflow-y-auto">
+          <DialogHeader className="pr-8">
             <div className="flex items-center gap-2">
               <LifeBuoy className="h-5 w-5 text-[#FF6A00]" />
               <DialogTitle className="text-base font-bold text-foreground">
@@ -577,8 +760,140 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
             </div>
           </DialogHeader>
 
-          {supportSuccess ? (
-            <div className="p-4 rounded-lg bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-300 dark:border-emerald-800 text-xs text-emerald-800 dark:text-emerald-300 flex items-center gap-2">
+          {/* Tab Bar with Refresh Action */}
+          <div className="flex items-center justify-between border-b border-border mt-1">
+            <div className="flex items-center">
+              <button
+                type="button"
+                onClick={() => setSupportTab("history")}
+                className={`pb-2.5 px-3 text-xs font-bold border-b-2 transition-colors flex items-center gap-1.5 ${
+                  supportTab === "history"
+                    ? "border-[#FF6A00] text-[#FF6A00]"
+                    : "border-transparent text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                <span>My Tickets</span>
+                {tenantTickets.length > 0 && (
+                  <span className="px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-muted text-muted-foreground">
+                    {tenantTickets.length}
+                  </span>
+                )}
+              </button>
+              <button
+                type="button"
+                onClick={() => setSupportTab("new")}
+                className={`pb-2.5 px-3 text-xs font-bold border-b-2 transition-colors ${
+                  supportTab === "new"
+                    ? "border-[#FF6A00] text-[#FF6A00]"
+                    : "border-transparent text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                + Raise New Ticket
+              </button>
+            </div>
+
+            {supportTab === "history" && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={fetchTenantTickets}
+                className="h-7 px-2 text-xs text-muted-foreground hover:text-foreground gap-1.5 pb-2"
+                title="Refresh tickets"
+              >
+                <RefreshCw className={`h-3 w-3 ${loadingTickets ? "animate-spin" : ""}`} />
+                <span className="text-[11px] hidden sm:inline">Refresh</span>
+              </Button>
+            )}
+          </div>
+
+          {supportTab === "history" ? (
+            <div className="space-y-3 pt-2">
+              {loadingTickets && tenantTickets.length === 0 ? (
+                <div className="py-8 text-center text-xs text-muted-foreground">
+                  <RefreshCw className="h-5 w-5 animate-spin mx-auto mb-2 text-[#FF6A00]" />
+                  Loading your support tickets...
+                </div>
+              ) : tenantTickets.length === 0 ? (
+                <div className="py-8 text-center space-y-3">
+                  <LifeBuoy className="h-8 w-8 mx-auto text-muted-foreground/40" />
+                  <p className="text-xs text-muted-foreground">
+                    You have not raised any support requests yet.
+                  </p>
+                  <Button
+                    size="sm"
+                    onClick={() => setSupportTab("new")}
+                    className="text-xs bg-[#FF6A00] hover:bg-[#FF6A00]/90 text-[#0B1F3B]"
+                  >
+                    Raise Your First Ticket
+                  </Button>
+                </div>
+              ) : (
+                <div className="space-y-3 max-h-[55vh] overflow-y-auto pr-1">
+                  {tenantTickets.map((t) => {
+                    const statusColor =
+                      t.status === "RESOLVED"
+                        ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300 border-emerald-300 dark:border-emerald-800"
+                        : t.status === "IN_PROGRESS"
+                        ? "bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300 border-amber-300 dark:border-amber-800"
+                        : t.status === "CLOSED"
+                        ? "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300 border-gray-300"
+                        : "bg-blue-100 text-blue-800 dark:bg-blue-950/60 dark:text-blue-300 border-blue-300 dark:border-blue-800";
+
+                    const priorityColor =
+                      t.priority === "URGENT"
+                        ? "text-red-600 dark:text-red-400 font-bold"
+                        : t.priority === "HIGH"
+                        ? "text-orange-600 dark:text-orange-400 font-semibold"
+                        : "text-muted-foreground";
+
+                    return (
+                      <div
+                        key={t.id}
+                        className="p-3.5 rounded-lg border border-border bg-card shadow-xs space-y-2 text-xs"
+                      >
+                        <div className="flex items-start justify-between gap-2">
+                          <div>
+                            <h4 className="font-extrabold text-sm text-foreground">{t.subject}</h4>
+                            <div className="flex items-center gap-2 mt-0.5 text-[11px] text-muted-foreground">
+                              <span>Priority: <strong className={priorityColor}>{t.priority}</strong></span>
+                              <span>•</span>
+                              <span>{new Date(t.created_at).toLocaleDateString()}</span>
+                            </div>
+                          </div>
+                          <Badge variant="outline" className={`text-[10px] font-bold uppercase ${statusColor}`}>
+                            {t.status.replace("_", " ")}
+                          </Badge>
+                        </div>
+
+                        <p className="text-muted-foreground text-xs leading-relaxed bg-muted/30 p-2 rounded">
+                          {t.description}
+                        </p>
+
+                        {/* Admin Resolution Notes */}
+                        {t.admin_notes && (
+                          <div className="p-2.5 rounded-md bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-900/60 space-y-1">
+                            <span className="font-bold text-[11px] text-emerald-800 dark:text-emerald-300 flex items-center gap-1">
+                              <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600" /> Platform Support Response:
+                            </span>
+                            <p className="text-xs text-foreground font-medium pl-4">
+                              {t.admin_notes}
+                            </p>
+                          </div>
+                        )}
+
+                        {t.resolved_at && (
+                          <div className="text-[11px] text-emerald-600 dark:text-emerald-400 font-medium flex items-center gap-1">
+                            <Clock className="h-3 w-3" /> Resolved on {new Date(t.resolved_at).toLocaleDateString()}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          ) : supportSuccess ? (
+            <div className="p-4 rounded-lg bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-300 dark:border-emerald-800 text-xs text-emerald-800 dark:text-emerald-300 flex items-center gap-2 my-2">
               <CheckCircle2 className="h-4 w-4 shrink-0" />
               <span>{supportSuccess}</span>
             </div>
@@ -655,7 +970,7 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
                   type="submit"
                   size="sm"
                   disabled={supportSubmitting}
-                  className="bg-[#FF6A00] hover:bg-[#FF6A00]/90 text-white font-bold text-xs"
+                  className="bg-[#FF6A00] hover:bg-[#FF6A00]/90 text-[#0B1F3B] font-bold text-xs"
                 >
                   {supportSubmitting ? "Submitting..." : "Submit Support Ticket"}
                 </Button>
@@ -665,53 +980,30 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
         </DialogContent>
       </Dialog>
 
-      {/* Mobile Bottom Tab Bar */}
+      {/* Mobile Bottom Tab Bar (Role-Adaptive per docs/product/sidebar-map.md) */}
       <nav
         aria-label="Mobile Navigation"
         className="md:hidden fixed bottom-0 inset-x-0 z-30 bg-card border-t border-border flex items-center justify-around py-1.5 px-2 backdrop-blur shadow-lg"
       >
-        <Link
-          to="/dashboard"
-          className={`flex flex-col items-center gap-1 p-1 rounded-md text-[11px] font-semibold min-h-[48px] min-w-[56px] justify-center ${
-            location.pathname === "/dashboard" ? "text-[#FF6A00]" : "text-muted-foreground"
-          }`}
-        >
-          <LayoutDashboard className="h-5 w-5" />
-          <span>Home</span>
-        </Link>
-
-        {/* Orders link */}
-        <Link
-          to="/pos"
-          className={`flex flex-col items-center gap-1 p-1 rounded-md text-[11px] font-semibold min-h-[48px] min-w-[56px] justify-center ${
-            location.pathname.startsWith("/pos") ? "text-[#FF6A00]" : "text-muted-foreground"
-          }`}
-        >
-          <Utensils className="h-5 w-5" />
-          <span>{usesTables ? "Tables" : "Counters"}</span>
-        </Link>
-
-        {/* Kitchen KDS link */}
-        <Link
-          to="/kds"
-          className={`flex flex-col items-center gap-1 p-1 rounded-md text-[11px] font-semibold min-h-[48px] min-w-[56px] justify-center ${
-            location.pathname.startsWith("/kds") ? "text-[#FF6A00]" : "text-muted-foreground"
-          }`}
-        >
-          <ChefHat className="h-5 w-5" />
-          <span>KDS</span>
-        </Link>
-
-        {/* Billing link */}
-        <Link
-          to="/billing"
-          className={`flex flex-col items-center gap-1 p-1 rounded-md text-[11px] font-semibold min-h-[48px] min-w-[56px] justify-center ${
-            location.pathname.startsWith("/billing") ? "text-[#FF6A00]" : "text-muted-foreground"
-          }`}
-        >
-          <Receipt className="h-5 w-5" />
-          <span>Billing</span>
-        </Link>
+        {bottomBarItems.map((item) => {
+          const Icon = item.icon;
+          const isActive =
+            item.path === "/dashboard" || item.path === "/admin"
+              ? location.pathname === item.path
+              : location.pathname.startsWith(item.path);
+          return (
+            <Link
+              key={item.path}
+              to={item.path}
+              className={`flex flex-col items-center gap-1 p-1 rounded-md text-[11px] font-semibold min-h-[48px] min-w-[56px] justify-center ${
+                isActive ? "text-[#FF6A00]" : "text-muted-foreground"
+              }`}
+            >
+              <Icon className="h-5 w-5" />
+              <span>{item.label}</span>
+            </Link>
+          );
+        })}
 
         <button
           type="button"

@@ -114,9 +114,8 @@ describe("Sidebar Map & Navigation Synchronization", () => {
     expect(allPaths).toContain("/menu");
     expect(allPaths).toContain("/onboarding");
     expect(allPaths).toContain("/branches");
-    expect(allPaths).toContain("/venue/areas");
-    expect(allPaths).toContain("/venue/tables");
-    expect(allPaths).toContain("/venue/floor");
+    expect(allPaths).toContain("/venue");
+    expect(allPaths).toContain("/inventory");
     expect(allPaths).toContain("/qr");
     expect(allPaths).toContain("/staff");
     expect(allPaths).toContain("/settings/branding");
@@ -127,7 +126,7 @@ describe("Sidebar Map & Navigation Synchronization", () => {
     expect(allPaths).not.toContain("/admin");
   });
 
-  it("enforces venue rules: counter venue shows counters and excludes tables/floor plan", () => {
+  it("enforces venue rules: counter venue shows counter orders and pickup in daily work", () => {
     const counterCtx: NavigationContext = {
       role: "OWNER",
       businessType: "TEA_SHOP",
@@ -138,11 +137,7 @@ describe("Sidebar Map & Navigation Synchronization", () => {
     const groups = getNavigationGroups(counterCtx);
     const allPaths = groups.flatMap((g) => g.items.map((i) => i.path));
 
-    // Rule N satisfied
-    expect(allPaths).toContain("/venue/counters");
-    // Rule T excluded
-    expect(allPaths).not.toContain("/venue/tables");
-    expect(allPaths).not.toContain("/venue/floor");
+    expect(allPaths).toContain("/venue");
 
     // Dynamic labels for counter venue
     const dailyGroup = groups.find((g) => g.label === "Daily work");
@@ -151,6 +146,21 @@ describe("Sidebar Map & Navigation Synchronization", () => {
 
     const serveItem = dailyGroup?.items.find((i) => i.path === "/serve");
     expect(serveItem?.label).toBe("Ready for Pickup");
+  });
+
+  it("hotel venue shows unified venue layout and inventory in navigation", () => {
+    const hotelCtx: NavigationContext = {
+      role: "OWNER",
+      businessType: "HOTEL",
+      venueProfile: "HOTEL_RESTAURANT",
+      usesTables: true,
+      can: () => true,
+    };
+
+    const groups = getNavigationGroups(hotelCtx);
+    const allPaths = groups.flatMap((g) => g.items.map((i) => i.path));
+    expect(allPaths).toContain("/venue");
+    expect(allPaths).toContain("/inventory");
   });
 
   it("waiter role sees only floor operations and menu", () => {
@@ -233,7 +243,6 @@ describe("Sidebar Map & Navigation Synchronization", () => {
       "/reports/orders",
       "/reports/exceptions",
       "/reports/taxes",
-      "/inventory",
       "/venue/rooms",
       "/settings/customer-ordering",
       "/documents",

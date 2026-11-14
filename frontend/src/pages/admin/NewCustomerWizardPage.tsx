@@ -15,6 +15,7 @@ import {
   Building,
   Crown,
   Eye,
+  Tent,
 } from "lucide-react";
 import { apiClient } from "../../api/client";
 import { useAuth } from "../../context/AuthContext";
@@ -31,7 +32,7 @@ interface CustomerForm {
   owner_phone: string;
   owner_email: string;
   initial_password?: string;
-  plan_slug: "starter" | "professional" | "business" | "enterprise";
+  plan_slug: string;
   trial_days: number;
   outlets_count: number;
   outlet_names: string[];
@@ -73,6 +74,8 @@ export const NewCustomerWizardPage: React.FC = () => {
 
   const getBusinessTypeColor = (type?: string) => {
     switch (type) {
+      case "DHABA":
+        return "bg-amber-100 text-amber-900 border-amber-300 dark:bg-amber-950/50 dark:text-amber-200 dark:border-amber-800";
       case "RESTAURANT":
         return "bg-orange-100 text-orange-900 border-orange-300 dark:bg-orange-950/50 dark:text-orange-200 dark:border-orange-800";
       case "CAFE":
@@ -93,6 +96,13 @@ export const NewCustomerWizardPage: React.FC = () => {
   };
 
   const BUSINESS_TYPES = [
+    {
+      id: "DHABA",
+      label: "Dhaba",
+      pill: "Huts & Cabanas",
+      desc: "Private garden huts, gazebos, QR waiter call bell, and highway dining",
+      icon: Tent,
+    },
     {
       id: "RESTAURANT",
       label: "Restaurant",
@@ -146,26 +156,38 @@ export const NewCustomerWizardPage: React.FC = () => {
 
   const PLANS = [
     {
-      id: "starter" as const,
+      id: "dhaba-huts",
+      name: "Dhaba & Huts Edition",
+      price: "₹2,999 / mo",
+      details: "Up to 3 outlets • 35 units • Huts, cabanas & QR waiter call bell",
+      popular: true,
+    },
+    {
+      id: "hotel-resort",
+      name: "Hotel & Resort Edition",
+      price: "₹4,999 / mo",
+      details: "Up to 5 outlets • 100 rooms/tables • In-room dining & room folio",
+    },
+    {
+      id: "starter",
       name: "Starter",
       price: "₹1,499 / mo",
       details: "1 outlet • Up to 10 tables • Basic daily reporting",
     },
     {
-      id: "professional" as const,
+      id: "professional",
       name: "Professional",
       price: "₹4,999 / mo",
       details: "Up to 5 outlets • 50 tables • Kitchen KDS & visual floor plan",
-      popular: true,
     },
     {
-      id: "business" as const,
+      id: "business",
       name: "Business",
       price: "₹9,999 / mo",
       details: "Up to 15 outlets • 150 tables • Multi-store controls",
     },
     {
-      id: "enterprise" as const,
+      id: "enterprise",
       name: "Enterprise",
       price: "₹24,999 / mo",
       details: "Unlimited outlets & tables • Custom integrations & SLA",
@@ -275,11 +297,11 @@ export const NewCustomerWizardPage: React.FC = () => {
             className="text-xs gap-1.5"
           >
             <ArrowLeft className="h-3.5 w-3.5" />
-            <span>Back to Tenants Directory</span>
+            <span>Back to Customers Directory</span>
           </Button>
 
           <Badge variant="outline" className="text-xs px-3 py-1 font-bold bg-muted/40">
-            {user?.email || "admin@fusionengine.in"}
+            {user?.email || "Platform Admin"}
           </Badge>
         </div>
       </div>
@@ -339,7 +361,7 @@ export const NewCustomerWizardPage: React.FC = () => {
                     disabled={!isCompleted && !isCurrent}
                     className={`px-3 py-1.5 rounded-md text-xs font-bold transition-all flex items-center gap-1.5 ${
                       isCurrent
-                        ? "bg-[#FF6A00] text-white shadow-xs"
+                        ? "bg-[#FF6A00] text-[#0B1F3B] shadow-xs"
                         : isCompleted
                           ? "text-emerald-700 dark:text-emerald-300 hover:bg-muted cursor-pointer"
                           : "text-muted-foreground/60 cursor-not-allowed"
@@ -348,7 +370,7 @@ export const NewCustomerWizardPage: React.FC = () => {
                     <span
                       className={`w-4 h-4 rounded-full text-[10px] flex items-center justify-center font-black ${
                         isCurrent
-                          ? "bg-white text-[#FF6A00]"
+                          ? "bg-[#0B1F3B] text-[#FF6A00]"
                           : isCompleted
                             ? "bg-emerald-600 text-white"
                             : "bg-muted text-muted-foreground"
@@ -412,7 +434,15 @@ export const NewCustomerWizardPage: React.FC = () => {
                   return (
                     <div
                       key={bt.id}
-                      onClick={() => setForm({ ...form, business_type: bt.id })}
+                      onClick={() => {
+                        const defaultPlan =
+                          bt.id === "DHABA"
+                            ? "dhaba-huts"
+                            : bt.id === "HOTEL"
+                              ? "hotel-resort"
+                              : form.plan_slug;
+                        setForm({ ...form, business_type: bt.id, plan_slug: defaultPlan });
+                      }}
                       className={`p-3.5 rounded-xl border text-left cursor-pointer transition-all flex flex-col justify-between ${
                         isSelected
                           ? "border-[#FF6A00] bg-[#FF6A00]/5 ring-2 ring-[#FF6A00]/40 shadow-xs"
@@ -494,7 +524,7 @@ export const NewCustomerWizardPage: React.FC = () => {
 
             {/* Step 1 Actions */}
             <div className="pt-4 border-t border-border flex justify-end">
-              <Button onClick={handleNext} className="gap-2 bg-[#FF6A00] hover:bg-[#FF6A00]/90 text-white font-bold text-xs">
+              <Button onClick={handleNext} className="gap-2 bg-[#FF6A00] hover:bg-[#FF6A00]/90 text-[#0B1F3B] font-bold text-xs">
                 <span>Continue to Owner Account</span>
                 <ArrowRight className="h-4 w-4" />
               </Button>
@@ -566,7 +596,7 @@ export const NewCustomerWizardPage: React.FC = () => {
               <Button variant="outline" onClick={handleBack} className="gap-2 text-xs">
                 <ArrowLeft className="h-4 w-4" /> Back
               </Button>
-              <Button onClick={handleNext} className="gap-2 bg-[#FF6A00] hover:bg-[#FF6A00]/90 text-white font-bold text-xs">
+              <Button onClick={handleNext} className="gap-2 bg-[#FF6A00] hover:bg-[#FF6A00]/90 text-[#0B1F3B] font-bold text-xs">
                 <span>Continue to Subscription Plan</span>
                 <ArrowRight className="h-4 w-4" />
               </Button>
@@ -606,7 +636,7 @@ export const NewCustomerWizardPage: React.FC = () => {
                             {p.name}
                           </span>
                           {p.popular && (
-                            <Badge className="bg-[#FF6A00] text-white text-[9px] px-1.5 py-0 font-bold uppercase">
+                            <Badge className="bg-[#FF6A00] text-[#0B1F3B] text-[9px] px-1.5 py-0 font-bold uppercase">
                               Popular
                             </Badge>
                           )}
@@ -659,7 +689,7 @@ export const NewCustomerWizardPage: React.FC = () => {
                       size="sm"
                       variant={form.trial_days === days ? "default" : "outline"}
                       onClick={() => setForm({ ...form, trial_days: days })}
-                      className={`text-xs h-9 ${form.trial_days === days ? "bg-[#FF6A00] hover:bg-[#FF6A00]/90 text-white font-bold" : ""}`}
+                      className={`text-xs h-9 ${form.trial_days === days ? "bg-[#FF6A00] hover:bg-[#FF6A00]/90 text-[#0B1F3B] font-bold" : ""}`}
                     >
                       {days} Days
                     </Button>
@@ -676,7 +706,7 @@ export const NewCustomerWizardPage: React.FC = () => {
               <Button variant="outline" onClick={handleBack} className="gap-2 text-xs">
                 <ArrowLeft className="h-4 w-4" /> Back
               </Button>
-              <Button onClick={handleNext} className="gap-2 bg-[#FF6A00] hover:bg-[#FF6A00]/90 text-white font-bold text-xs">
+              <Button onClick={handleNext} className="gap-2 bg-[#FF6A00] hover:bg-[#FF6A00]/90 text-[#0B1F3B] font-bold text-xs">
                 <span>Continue to Outlets</span>
                 <ArrowRight className="h-4 w-4" />
               </Button>
@@ -718,7 +748,7 @@ export const NewCustomerWizardPage: React.FC = () => {
                           while (names.length < num) names.push("");
                           setForm({ ...form, outlets_count: num, outlet_names: names.slice(0, num) });
                         }}
-                        className={`text-xs h-9 ${form.outlets_count === num ? "bg-[#FF6A00] hover:bg-[#FF6A00]/90 text-white font-bold" : ""}`}
+                        className={`text-xs h-9 ${form.outlets_count === num ? "bg-[#FF6A00] hover:bg-[#FF6A00]/90 text-[#0B1F3B] font-bold" : ""}`}
                       >
                         {num}
                       </Button>
@@ -761,7 +791,7 @@ export const NewCustomerWizardPage: React.FC = () => {
               <Button variant="outline" onClick={handleBack} className="gap-2 text-xs">
                 <ArrowLeft className="h-4 w-4" /> Back
               </Button>
-              <Button onClick={handleNext} className="gap-2 bg-[#FF6A00] hover:bg-[#FF6A00]/90 text-white font-bold text-xs">
+              <Button onClick={handleNext} className="gap-2 bg-[#FF6A00] hover:bg-[#FF6A00]/90 text-[#0B1F3B] font-bold text-xs">
                 <span>Review Configuration</span>
                 <ArrowRight className="h-4 w-4" />
               </Button>
@@ -942,15 +972,15 @@ export const NewCustomerWizardPage: React.FC = () => {
                 className="text-xs gap-1.5"
               >
                 <ArrowLeft className="h-3.5 w-3.5" />
-                <span>Back to Tenants Directory</span>
+                <span>Back to Customers Directory</span>
               </Button>
               <Button
                 size="sm"
                 onClick={() => navigate(`/admin/tenants/${result.tenant_id}`)}
-                className="gap-1.5 bg-[#FF6A00] hover:bg-[#FF6A00]/90 text-white font-bold text-xs"
+                className="gap-1.5 bg-[#FF6A00] hover:bg-[#FF6A00]/90 text-[#0B1F3B] font-bold text-xs"
               >
                 <Eye className="h-3.5 w-3.5" />
-                <span>Inspect New Tenant</span>
+                <span>Inspect New Customer</span>
               </Button>
             </div>
           </div>

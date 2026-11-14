@@ -27,6 +27,7 @@ import {
 import { useAuth } from "../../context/AuthContext";
 import { useTheme } from "../../context/ThemeContext";
 import { RateLimitCountdown } from "../../components/app/RateLimitCountdown";
+import { getRoleHome } from "../../app/navigation";
 
 export interface DemoAccount {
   id: string;
@@ -202,18 +203,26 @@ export const LoginPage: React.FC = () => {
       if (res?.mustChangePassword) {
         navigate("/change-password");
       } else {
+        const defaultHome = getRoleHome(res?.role, res?.isPlatformAdmin);
         const locationState = location.state as { from?: { pathname?: string } } | null;
         const requestedPath = locationState?.from?.pathname;
-        if (res?.isPlatformAdmin) {
-          const target = requestedPath && requestedPath.startsWith("/admin") ? requestedPath : "/admin";
-          navigate(target, { replace: true });
-        } else if (res?.role === "KITCHEN") {
-          const target = requestedPath && requestedPath.startsWith("/kds") ? requestedPath : "/kds";
-          navigate(target, { replace: true });
-        } else {
-          const target = requestedPath && !requestedPath.startsWith("/admin") && requestedPath !== "/login" ? requestedPath : "/dashboard";
-          navigate(target, { replace: true });
-        }
+
+        const isDisallowedForRole = (path: string) => {
+          if (res?.isPlatformAdmin) {
+            return !path.startsWith("/admin");
+          }
+          if (res?.role === "WAITER" || res?.role === "CASHIER" || res?.role === "KITCHEN") {
+            if (path.startsWith("/dashboard") || path.startsWith("/admin")) return true;
+          }
+          return false;
+        };
+
+        const target =
+          requestedPath && requestedPath !== "/login" && !isDisallowedForRole(requestedPath)
+            ? requestedPath
+            : defaultHome;
+
+        navigate(target, { replace: true });
       }
     } catch (err: unknown) {
       const authErr = err as {
@@ -470,7 +479,7 @@ export const LoginPage: React.FC = () => {
                         onClick={() => setSelectedCategory(cat.id)}
                         className={`px-2 py-0.5 rounded text-[10px] font-medium transition-colors whitespace-nowrap cursor-pointer ${
                           selectedCategory === cat.id
-                            ? "bg-[#FF6A00] text-white font-bold"
+                            ? "bg-[#FF6A00] text-[#0B1F3B] font-bold"
                             : "bg-muted text-muted-foreground hover:text-foreground"
                         }`}
                       >

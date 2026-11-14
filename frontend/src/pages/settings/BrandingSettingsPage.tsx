@@ -55,7 +55,21 @@ export const BrandingSettingsPage: React.FC = () => {
   const [registeredAddress, setRegisteredAddress] = useState("");
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
   const [logo128Url, setLogo128Url] = useState<string | null>(null);
+  const [logoLoadError, setLogoLoadError] = useState(false);
   const [tenantName, setTenantName] = useState("ServeMyFood Venue");
+
+  const resolveLogoUrl = (url: string | null | undefined): string | null => {
+    if (!url) return null;
+    if (
+      url.startsWith("http://") ||
+      url.startsWith("https://") ||
+      url.startsWith("blob:") ||
+      url.startsWith("data:")
+    ) {
+      return url;
+    }
+    return url.startsWith("/") ? url : `/${url}`;
+  };
 
   // Logo upload state
   const [uploadingLogo, setUploadingLogo] = useState(false);
@@ -115,6 +129,10 @@ export const BrandingSettingsPage: React.FC = () => {
     }
 
     setLogoError(null);
+    setLogoLoadError(false);
+    const localBlob = URL.createObjectURL(file);
+    setLogoUrl(localBlob);
+    setLogo128Url(localBlob);
     setUploadingLogo(true);
     const formData = new FormData();
     formData.append("file", file);
@@ -140,6 +158,7 @@ export const BrandingSettingsPage: React.FC = () => {
   const handleLogoDelete = async () => {
     setUploadingLogo(true);
     setLogoError(null);
+    setLogoLoadError(false);
     try {
       await apiClient.delete("/business/logo/");
       setLogoUrl(null);
@@ -244,11 +263,12 @@ export const BrandingSettingsPage: React.FC = () => {
               <div className="flex flex-col sm:flex-row items-center gap-6">
                 {/* 128px Preview */}
                 <div className="w-24 h-24 rounded-2xl border-2 border-dashed border-border bg-muted/40 flex items-center justify-center overflow-hidden p-2 relative shadow-sm">
-                  {logoUrl ? (
+                  {logoUrl && !logoLoadError ? (
                     <img
-                      src={logo128Url || logoUrl}
+                      src={resolveLogoUrl(logo128Url || logoUrl) || ""}
                       alt="Restaurant Logo"
                       className="max-w-full max-h-full object-contain"
+                      onError={() => setLogoLoadError(true)}
                     />
                   ) : (
                     <span className="text-xs font-semibold text-muted-foreground text-center">
@@ -504,12 +524,13 @@ export const BrandingSettingsPage: React.FC = () => {
                   }}
                 >
                   <div className="p-4 border-b border-slate-100 flex flex-col items-center">
-                    {logoUrl ? (
+                    {logoUrl && !logoLoadError ? (
                       <div className="w-12 h-12 rounded-lg bg-white p-1 border border-slate-100 shadow-sm flex items-center justify-center mb-2">
                         <img
-                          src={logo128Url || logoUrl}
+                          src={resolveLogoUrl(logo128Url || logoUrl) || ""}
                           alt="Logo Preview"
                           className="max-w-full max-h-full object-contain"
+                          onError={() => setLogoLoadError(true)}
                         />
                       </div>
                     ) : (

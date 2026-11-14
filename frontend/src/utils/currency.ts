@@ -1,11 +1,15 @@
 /**
- * Currency utility using pure integer arithmetic and Indian numbering system formatting.
- * NO floating-point calculations or float rounding are allowed on monetary values.
+ * ServeMyFood Monetary Utilities (Paise Only - Zero Floating-Point Math)
+ * All monetary amounts are stored and processed as whole integer paise (1 INR = 100 paise).
+ * Single canonical formatter (formatRupees) and parser (parseRupees).
  */
 
-export function formatRupees(paise: number): string {
-  if (isNaN(paise) || !isFinite(paise)) {
-    return "₹0.00";
+export function formatRupees(
+  paise: number,
+  options?: { forceDecimals?: boolean }
+): string {
+  if (isNaN(paise) || !isFinite(paise) || paise === null || paise === undefined) {
+    return options?.forceDecimals === false ? "₹0" : "₹0.00";
   }
 
   const isNegative = paise < 0;
@@ -27,31 +31,73 @@ export function formatRupees(paise: number): string {
     formattedRupees = `${formattedOthers},${lastThree}`;
   }
 
+  if (options?.forceDecimals === false && remainderPaise === 0) {
+    return `${isNegative ? "-" : ""}₹${formattedRupees}`;
+  }
+
   return `${isNegative ? "-" : ""}₹${formattedRupees}.${paiseStr}`;
 }
 
-export function parseRupees(text: string): number {
-  if (!text) return 0;
+export function parseRupees(
+  input: string | number,
+  options?: { allowNegative?: boolean; strict?: boolean }
+): number {
+  const allowNegative = options?.allowNegative ?? true;
+  if (typeof input === "number") {
+    if (isNaN(input) || !isFinite(input)) return options?.strict ? NaN : 0;
+    if (input < 0 && !allowNegative) return options?.strict ? NaN : 0;
+    const isNeg = input < 0;
+    const absVal = Math.abs(input);
+    const intPart = Math.trunc(absVal);
+    const decPart = Math.round((absVal - intPart) * 100);
+    const total = intPart * 100 + decPart;
+    return isNeg ? -total : total;
+  }
 
-  let cleaned = text.trim();
+  if (!input || typeof input !== "string") return options?.strict ? NaN : 0;
+
+  let cleaned = input.trim();
   const isNegative = cleaned.startsWith("-");
   if (isNegative) {
+    if (!allowNegative) {
+      return options?.strict ? NaN : 0;
+    }
     cleaned = cleaned.slice(1).trim();
   }
 
-  // Remove currency symbol, spaces, and commas
-  cleaned = cleaned.replace(/[₹\s,]/g, "");
+  // Remove currency symbol, whitespace, and commas
+  cleaned = cleaned.replace(/[₹,\s]/g, "");
   if (!cleaned) return 0;
 
+  // Strict check: non-negative integer or decimal with at most 2 decimal places
+  if (options?.strict) {
+    if (!/^\d+(\.\d{1,2})?$/.test(cleaned)) {
+      return NaN;
+    }
+  } else {
+    if (!/^\d+(\.\d+)?$/.test(cleaned)) {
+      return NaN;
+    }
+  }
+
   const parts = cleaned.split(".");
-  const rupeePart = parts[0] || "0";
-  const paisePart = parts.length > 1 ? parts[1] : "00";
+  const rupeePart = parseInt(parts[0] || "0", 10);
+  let paisePart = 0;
+  if (parts.length > 1 && parts[1]) {
+    if (parts[1].length > 2 && options?.strict) {
+      return NaN;
+    }
+    const dec = (parts[1] + "00").slice(0, 2);
+    paisePart = parseInt(dec, 10);
+  }
 
-  const rupees = parseInt(rupeePart, 10) || 0;
-  // Pad or truncate paise part to exactly 2 digits
-  const paddedPaise = (paisePart + "00").slice(0, 2);
-  const paise = parseInt(paddedPaise, 10) || 0;
-
-  const totalPaise = rupees * 100 + paise;
+  const totalPaise = rupeePart * 100 + paisePart;
   return isNegative ? -totalPaise : totalPaise;
 }
+
+// Canonical Aliases for complete backward compatibility across previous imports
+export const formatPaise = (paise: number, options?: { forceDecimals?: boolean }) =>
+  formatRupees(paise, { forceDecimals: options?.forceDecimals ?? false });
+
+export const parseRupeesToPaise = (input: string | number) =>
+  parseRupees(input, { allowNegative: false, strict: true });

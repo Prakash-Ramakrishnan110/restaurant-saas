@@ -371,7 +371,7 @@ export const BillingPage: React.FC = () => {
 
                 {/* Settle Action Button */}
                 <Button
-                  className="w-full min-h-[50px] text-base font-extrabold bg-[#FF6A00] hover:bg-[#FF6A00]/90 text-white gap-2 shadow-sm"
+                  className="w-full min-h-[50px] text-base font-extrabold bg-[#FF6A00] hover:bg-[#FF6A00]/90 text-[#0B1F3B] gap-2 shadow-sm"
                   disabled={settling}
                   onClick={handleSettle}
                 >

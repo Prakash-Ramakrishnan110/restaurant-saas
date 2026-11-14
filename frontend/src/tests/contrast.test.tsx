@@ -417,4 +417,42 @@ describe("Exhaustive UI Token Contrast Matrix across Light and Dark Themes (Requ
       `Found forbidden #D97706 text color usage:\n${violations.join("\n")}`
     ).toEqual([]);
   });
+
+  it("STATIC SCAN: White text (text-white / #FFFFFF) is NEVER used over primary orange (bg-[#FF6A00]) in frontend/src", () => {
+    const srcDir = path.resolve(__dirname, "..");
+    const forbiddenPatterns = [
+      /bg-\[#FF6A00\](?![^"']*\/(?:10|20|30))[^"']*text-white/i,
+      /text-white[^"']*bg-\[#FF6A00\](?![^"']*\/(?:10|20|30))/i,
+    ];
+
+    function scanDirectory(dir: string): string[] {
+      const violations: string[] = [];
+      const entries = fs.readdirSync(dir, { withFileTypes: true });
+
+      for (const entry of entries) {
+        const fullPath = path.join(dir, entry.name);
+        if (entry.isDirectory()) {
+          if (entry.name !== "node_modules" && entry.name !== "dist" && entry.name !== ".git") {
+            violations.push(...scanDirectory(fullPath));
+          }
+        } else if (/\.(tsx|ts|css|html)$/.test(entry.name)) {
+          if (entry.name === "contrast.test.tsx") continue;
+
+          const content = fs.readFileSync(fullPath, "utf-8");
+          for (const pattern of forbiddenPatterns) {
+            if (pattern.test(content)) {
+              violations.push(`${fullPath} matches forbidden white text on orange: ${pattern}`);
+            }
+          }
+        }
+      }
+      return violations;
+    }
+
+    const violations = scanDirectory(srcDir);
+    expect(
+      violations,
+      `Found forbidden white text on primary orange usage:\n${violations.join("\n")}`
+    ).toEqual([]);
+  });
 });

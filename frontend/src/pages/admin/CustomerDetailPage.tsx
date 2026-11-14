@@ -127,7 +127,7 @@ export const CustomerDetailPage: React.FC = () => {
       const res = await apiClient.get<TenantDetail>(`/tenants/${id}/`);
       setTenant(res.data);
     } catch {
-      setToastMsg("Failed to load tenant details.");
+      setToastMsg("Failed to load customer details.");
     } finally {
       setLoading(false);
     }
@@ -223,7 +223,7 @@ export const CustomerDetailPage: React.FC = () => {
             </Badge>
           </div>
           <p className="text-xs text-muted-foreground ml-10">
-            Tenant ID: <span className="font-mono text-foreground">{tenant.id}</span> · Slug:{" "}
+            Customer ID: <span className="font-mono text-foreground">{tenant.id}</span> · Slug:{" "}
             <span className="font-mono text-foreground">{tenant.slug}</span>
           </p>
         </div>
@@ -280,7 +280,7 @@ export const CustomerDetailPage: React.FC = () => {
           <Button
             size="sm"
             onClick={() => setAddNoteModalOpen(true)}
-            className="text-xs bg-[#FF6A00] hover:bg-[#FF6A00]/90 text-white"
+            className="text-xs bg-[#FF6A00] hover:bg-[#FF6A00]/90 text-[#0B1F3B] font-bold"
           >
             <Plus className="h-3.5 w-3.5 mr-1" /> Add Note
           </Button>
@@ -526,7 +526,7 @@ export const CustomerDetailPage: React.FC = () => {
             <Button
               size="sm"
               onClick={() => setAddNoteModalOpen(true)}
-              className="text-xs bg-[#FF6A00] text-white"
+              className="text-xs bg-[#FF6A00] hover:bg-[#FF6A00]/90 text-[#0B1F3B] font-bold"
             >
               <Plus className="h-3 w-3 mr-1" /> Add Note
             </Button>

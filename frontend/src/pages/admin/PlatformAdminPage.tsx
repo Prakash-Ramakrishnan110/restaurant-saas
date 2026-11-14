@@ -46,6 +46,7 @@ interface PlatformSummary {
   new_this_week: number;
   plan_distribution: Record<string, number>;
   mrr_paise: number;
+  has_set_plan_prices?: boolean;
   api_health: string;
 }
 
@@ -86,6 +87,7 @@ export const PlatformAdminPage: React.FC = () => {
   const [summary, setSummary] = useState<PlatformSummary | null>(null);
   const [healthInfo, setHealthInfo] = useState<HealthInfo | null>(null);
   const [recentAudits, setRecentAudits] = useState<AuditRecord[]>([]);
+  const [openTicketsCount, setOpenTicketsCount] = useState<number>(0);
   const [refreshing, setRefreshing] = useState<boolean>(false);
   const [toastMsg, setToastMsg] = useState<string | null>(null);
 
@@ -93,11 +95,12 @@ export const PlatformAdminPage: React.FC = () => {
     if (isManualRefresh) setRefreshing(true);
 
     try {
-      const [tenantsRes, summaryRes, healthRes, auditRes] = await Promise.allSettled([
+      const [tenantsRes, summaryRes, healthRes, auditRes, ticketsRes] = await Promise.allSettled([
         apiClient.get<ListResponse<TenantItem> | TenantItem[]>("/tenants/"),
         apiClient.get<PlatformSummary>("/platform/summary/"),
         apiClient.get<HealthInfo>("/health/"),
         apiClient.get<ListResponse<AuditRecord>>("/audit-logs/"),
+        apiClient.get<ListResponse<any>>("/support-tickets/"),
       ]);
 
       if (tenantsRes.status === "fulfilled") {
@@ -111,6 +114,11 @@ export const PlatformAdminPage: React.FC = () => {
       }
       if (auditRes.status === "fulfilled") {
         setRecentAudits(unwrapList<AuditRecord>(auditRes.value.data).slice(0, 5));
+      }
+      if (ticketsRes.status === "fulfilled") {
+        const tList = unwrapList(ticketsRes.value.data);
+        const openCount = tList.filter((t: any) => t.status === "OPEN" || t.status === "IN_PROGRESS").length;
+        setOpenTicketsCount(openCount);
       }
 
       if (isManualRefresh) {
@@ -183,9 +191,11 @@ export const PlatformAdminPage: React.FC = () => {
       description: "Triage customer incident tickets, track priorities, and resolution SLAs.",
       path: "/admin/support",
       icon: LifeBuoy,
-      badge: "Helpdesk",
-      color: "border-teal-200 dark:border-teal-900/40 bg-teal-50/40 dark:bg-teal-950/20",
-      iconColor: "text-teal-600 dark:text-teal-400",
+      badge: openTicketsCount > 0 ? `${openTicketsCount} Active Ticket${openTicketsCount > 1 ? "s" : ""}` : "Helpdesk",
+      color: openTicketsCount > 0
+        ? "border-amber-300 dark:border-amber-800 bg-amber-50/50 dark:bg-amber-950/20"
+        : "border-teal-200 dark:border-teal-900/40 bg-teal-50/40 dark:bg-teal-950/20",
+      iconColor: openTicketsCount > 0 ? "text-amber-600 dark:text-amber-400" : "text-teal-600 dark:text-teal-400",
       cta: "Open Helpdesk",
     },
   ];
@@ -236,7 +246,7 @@ export const PlatformAdminPage: React.FC = () => {
           <Button
             size="sm"
             onClick={() => navigate("/admin/tenants/new")}
-            className="text-xs bg-[#FF6A00] hover:bg-[#FF6A00]/90 text-white gap-1.5"
+            className="text-xs bg-[#FF6A00] hover:bg-[#FF6A00]/90 text-[#0B1F3B] font-bold gap-1.5"
           >
             <Plus className="h-4 w-4" /> New Customer
           </Button>
@@ -260,7 +270,9 @@ export const PlatformAdminPage: React.FC = () => {
               {summary ? summary.active_tenants : tenants.length}
             </div>
             <span className="text-[11px] text-emerald-600 font-semibold flex items-center gap-1">
-              +{summary?.new_this_week || 0} onboarded this week
+              {summary?.new_this_week
+                ? `+${summary.new_this_week} onboarded this week`
+                : "No new onboardings this week"}
             </span>
           </div>
         </div>
@@ -277,7 +289,7 @@ export const PlatformAdminPage: React.FC = () => {
             <div className="text-2xl font-extrabold text-foreground">
               {tenants.reduce((sum, t) => sum + (t.branches_count || 1), 0)}
             </div>
-            <span className="text-[11px] text-muted-foreground">across all tenant brands</span>
+            <span className="text-[11px] text-muted-foreground">across all customer brands</span>
           </div>
         </div>
 
@@ -288,9 +300,15 @@ export const PlatformAdminPage: React.FC = () => {
           <IndianRupee className="h-8 w-8 text-emerald-600 shrink-0" />
           <div className="min-w-0">
             <span className="text-xs text-muted-foreground font-semibold">Monthly MRR (Live)</span>
-            <div className="text-2xl font-extrabold text-foreground">
-              {summary ? formatRupees(summary.mrr_paise) : "₹0.00"}
-            </div>
+            {summary?.has_set_plan_prices && summary.mrr_paise > 0 ? (
+              <div className="text-2xl font-extrabold text-foreground">
+                {formatRupees(summary.mrr_paise)}
+              </div>
+            ) : (
+              <div className="text-sm font-bold text-muted-foreground py-1">
+                Plan prices not set
+              </div>
+            )}
             <span className="text-[11px] text-emerald-600 font-semibold">
               {Object.keys(summary?.plan_distribution || {}).length || 4} Active Plans
             </span>
@@ -348,7 +366,7 @@ export const PlatformAdminPage: React.FC = () => {
               href="http://localhost:8000/admin/"
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-[#FF6A00] text-white hover:bg-[#FF6A00]/90 transition-all shadow-sm"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-[#FF6A00] text-[#0B1F3B] hover:bg-[#FF6A00]/90 transition-all shadow-sm"
             >
               <span>Django Admin Console</span>
               <ExternalLink className="h-3.5 w-3.5" />

@@ -375,7 +375,9 @@ export const OnboardingWizardPage: React.FC = () => {
       setErrorMessage(
         err.error?.message ||
           (err.error?.code === "ENTITLEMENT_LIMIT_REACHED"
-            ? "Template exceeds your subscription plan table capacity. Please choose a smaller layout or upgrade."
+            ? isCounterMode
+              ? "Template exceeds your subscription plan capacity. Please choose a smaller layout or upgrade."
+              : "Template exceeds your subscription plan seating capacity. Please choose a smaller layout or upgrade."
             : "Failed to apply layout template.")
       );
     } finally {
@@ -939,7 +941,9 @@ export const OnboardingWizardPage: React.FC = () => {
                   {qrItems.length} QR Standees Ready
                 </h4>
                 <p className="text-xs text-muted-foreground mt-0.5">
-                  Cryptographic tokens generated for tables and counters.
+                  {isCounterMode
+                    ? "Cryptographic tokens generated for express service counters."
+                    : "Cryptographic tokens generated for dining and counters."}
                 </p>
               </div>
               <Button
@@ -1032,7 +1036,11 @@ export const OnboardingWizardPage: React.FC = () => {
                     className="w-full rounded-md border border-input bg-card px-3 py-2 text-sm text-foreground shadow-sm focus:ring-2 focus:ring-[#FF6A00] min-h-[44px]"
                   >
                     <option value="MANAGER">Manager (Full branch operations)</option>
-                    <option value="WAITER">Waiter (Order taking & table service)</option>
+                    <option value="WAITER">
+                      {isCounterMode
+                        ? "Staff (Order taking & service)"
+                        : "Waiter (Order taking & service)"}
+                    </option>
                     <option value="CASHIER">Cashier (Billing & payment settlement)</option>
                     <option value="KITCHEN">Kitchen Display / Chef</option>
                   </select>

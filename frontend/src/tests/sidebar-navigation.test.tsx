@@ -61,7 +61,7 @@ describe("AppShell Sidebar Navigation Structure & Role Filtering", () => {
     });
   };
 
-  it("renders 4 grouped navigation sections with correct labels for Cafe Owner", async () => {
+  it("renders 4 grouped navigation sections with unified Venue Layout and Inventory for Cafe Owner", async () => {
     setupAuthMock("OWNER", ["*"], {
       business_type: "CAFE",
       venue_profile: "CAFE",
@@ -89,24 +89,24 @@ describe("AppShell Sidebar Navigation Structure & Role Filtering", () => {
     expect(screen.getByText("Team")).toBeDefined();
     expect(screen.getAllByText("Settings").length).toBeGreaterThanOrEqual(1);
 
-    // Renamed items
-    expect(screen.getByText("Menu")).toBeDefined();
+    // Daily work items including Inventory
+    expect(screen.getAllByText("Menu").length).toBeGreaterThanOrEqual(1);
     expect(screen.getByText("Today's Availability")).toBeDefined();
-    expect(screen.getByText("Areas")).toBeDefined();
-    expect(screen.getAllByText("Tables").length).toBeGreaterThanOrEqual(1);
-    expect(screen.getByText("Floor Plan")).toBeDefined();
+    expect(screen.getByText("Inventory & Stock")).toBeDefined();
+
+    // Unified Venue Layout hub replaces separate Areas, Tables, Floor Plan
+    expect(screen.getByText("Venue Layout")).toBeDefined();
     expect(screen.getByText("QR Codes")).toBeDefined();
     expect(screen.getAllByText("Staff").length).toBeGreaterThanOrEqual(1);
     expect(screen.getByText("Branding")).toBeDefined();
 
-    // Old names should not exist
+    // Cluttered separate items should not exist in the sidebar
     expect(screen.queryByText("Service Areas")).toBeNull();
     expect(screen.queryByText("Dining Tables")).toBeNull();
-    // Counters should not show for cafe
     expect(screen.queryByText("Counters and Tokens")).toBeNull();
   });
 
-  it("hides Tables and Floor Plan, and shows Counters and Tokens for Tea Shop Owner", async () => {
+  it("renders unified Venue Layout and hides separate tables/counters in sidebar for Tea Shop Owner", async () => {
     setupAuthMock("OWNER", ["*"], {
       business_type: "TEA_SHOP",
       venue_profile: "QUICK_SERVICE",
@@ -129,20 +129,20 @@ describe("AppShell Sidebar Navigation Structure & Role Filtering", () => {
     );
 
     await waitFor(() => {
-      // Must show Counters and Tokens
-      expect(screen.getByText("Counters and Tokens")).toBeDefined();
+      // Setup has unified Venue Layout
+      expect(screen.getByText("Venue Layout")).toBeDefined();
     });
 
-    // Areas is still shown
-    expect(screen.getByText("Areas")).toBeDefined();
+    // Daily work has Inventory & Stock
+    expect(screen.getByText("Inventory & Stock")).toBeDefined();
 
-    // Tables and Floor Plan MUST be hidden
-    expect(screen.queryByText("Tables")).toBeNull();
-    expect(screen.queryByText("Floor Plan")).toBeNull();
+    // Separate clutter should not exist in sidebar
+    expect(screen.queryByText("Counters and Tokens")).toBeNull();
     expect(screen.queryByText("Dining Tables")).toBeNull();
+    expect(screen.queryByText("Hotel Rooms")).toBeNull();
   });
 
-  it("renders full layout and tables for Hotel Owner", async () => {
+  it("renders unified Venue Layout and Inventory for Hotel Owner", async () => {
     setupAuthMock("OWNER", ["*"], {
       business_type: "HOTEL",
       venue_profile: "HOTEL_RESTAURANT",
@@ -164,9 +164,8 @@ describe("AppShell Sidebar Navigation Structure & Role Filtering", () => {
       </ThemeProvider>
     );
 
-    expect(screen.getByText("Areas")).toBeDefined();
-    expect(screen.getAllByText("Tables").length).toBeGreaterThanOrEqual(1);
-    expect(screen.getByText("Floor Plan")).toBeDefined();
+    expect(screen.getByText("Venue Layout")).toBeDefined();
+    expect(screen.getByText("Inventory & Stock")).toBeDefined();
     expect(screen.queryByText("Counters and Tokens")).toBeNull();
   });
 
@@ -201,8 +200,8 @@ describe("AppShell Sidebar Navigation Structure & Role Filtering", () => {
     expect(screen.queryByText("Dashboard")).toBeNull();
     expect(screen.queryByText("Onboarding")).toBeNull();
     expect(screen.queryByText("Branches")).toBeNull();
+    expect(screen.queryByText("Venue Layout")).toBeNull();
     expect(screen.queryByText("Staff")).toBeNull();
     expect(screen.queryByText("Branding")).toBeNull();
-    expect(screen.queryByText("Floor Plan")).toBeNull();
   });
 });
