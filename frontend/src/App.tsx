@@ -20,6 +20,7 @@ import { MenuPage } from "./pages/menu/MenuPage";
 import { MenuAvailabilityPage } from "./pages/menu/MenuAvailabilityPage";
 import { VenueSettingsPage } from "./pages/settings/VenueSettingsPage";
 import { BrandingSettingsPage } from "./pages/settings/BrandingSettingsPage";
+import { PlanBillingPage } from "./pages/settings/PlanBillingPage";
 import { FloorPOSPage } from "./pages/orders/FloorPOSPage";
 import { LiveOrdersPage } from "./pages/orders/LiveOrdersPage";
 import { ReadyToServePage } from "./pages/orders/ReadyToServePage";
@@ -649,6 +650,14 @@ export const App: React.FC = () => {
                 element={
                   <ProtectedRoute>
                     <AccountPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/settings/plan"
+                element={
+                  <ProtectedRoute>
+                    <PlanBillingPage />
                   </ProtectedRoute>
                 }
               />
