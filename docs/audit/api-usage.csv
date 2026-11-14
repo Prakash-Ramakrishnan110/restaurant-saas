@@ -30,6 +30,7 @@ endpoint,method,calling_pages,unused_by_ui
 /api/v1/customers/{id}/,PATCH,frontend/src/pages/customers/CustomersPage.tsx,N
 /api/v1/customers/{id}/,PUT,NONE,Y
 /api/v1/entitlements/,GET,frontend/src/pages/dashboard/DashboardPage.tsx; frontend/src/pages/menu/MenuPage.tsx; frontend/src/pages/settings/VenueSettingsPage.tsx,N
+/api/v1/health/,GET,frontend/src/pages/admin/PlatformAdminPage.tsx; frontend/src/pages/admin/PlatformHealthPage.tsx,N
 /api/v1/inventory/ingredients/,GET,frontend/src/pages/dashboard/DashboardPage.tsx,N
 /api/v1/inventory/ingredients/,POST,frontend/src/pages/inventory/StockOverviewPage.tsx,N
 /api/v1/inventory/ingredients/{id}/,DELETE,NONE,Y
@@ -135,6 +136,8 @@ endpoint,method,calling_pages,unused_by_ui
 /api/v1/orders/{id}/fire-mains/,POST,frontend/src/api/orders.ts,N
 /api/v1/orders/{id}/serve/,POST,frontend/src/api/orders.ts,N
 /api/v1/plans/,GET,frontend/src/pages/admin/PlatformPlansPage.tsx,N
+/api/v1/plans/,POST,frontend/src/pages/admin/PlatformPlansPage.tsx,N
+/api/v1/plans/{id}/,PATCH,frontend/src/pages/admin/PlatformPlansPage.tsx,N
 /api/v1/platform/customers/,POST,frontend/src/pages/admin/NewCustomerWizardPage.tsx,N
 /api/v1/platform/summary/,GET,frontend/src/pages/admin/PlatformAdminPage.tsx; frontend/src/pages/admin/PlatformHealthPage.tsx,N
 /api/v1/public/qr/{token}/,GET,NONE,Y
@@ -162,6 +165,10 @@ endpoint,method,calling_pages,unused_by_ui
 /api/v1/service-areas/{id}/,DELETE,NONE,Y
 /api/v1/service-areas/{id}/,GET,NONE,Y
 /api/v1/service-areas/{id}/,PATCH,frontend/src/pages/venue/AreasPage.tsx; frontend/src/pages/venue/CountersPage.tsx,N
+/api/v1/sessions/,GET,frontend/src/pages/orders/FloorPOSPage.tsx,N
+/api/v1/sessions/open/,POST,NONE,Y
+/api/v1/sessions/{id}/,GET,NONE,Y
+/api/v1/sessions/{id}/close/,POST,NONE,Y
 /api/v1/staff-assignments/,GET,NONE,Y
 /api/v1/staff-assignments/,POST,NONE,Y
 /api/v1/staff-assignments/{id}/,DELETE,NONE,Y
@@ -172,6 +179,10 @@ endpoint,method,calling_pages,unused_by_ui
 /api/v1/staff/{id}/,GET,NONE,Y
 /api/v1/staff/{id}/,PATCH,frontend/src/pages/staff/StaffPage.tsx,N
 /api/v1/staff/{id}/reset-password/,POST,frontend/src/pages/staff/StaffPage.tsx,N
+/api/v1/subscriptions/entitlements/,GET,NONE,Y
+/api/v1/subscriptions/plans/,GET,NONE,Y
+/api/v1/subscriptions/plans/,POST,NONE,Y
+/api/v1/subscriptions/plans/{id}/,PATCH,NONE,Y
 /api/v1/support-tickets/,GET,NONE,Y
 /api/v1/support-tickets/,POST,frontend/src/components/layout/AppShell.tsx,N
 /api/v1/support-tickets/{id}/,DELETE,NONE,Y

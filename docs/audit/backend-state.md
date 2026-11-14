@@ -28,10 +28,10 @@ Detailed inventory of backend apps, models, permissions, transitions, endpoints,
 | `apps.menu` | 1 |
 | `apps.orders` | 4 |
 | `apps.subscriptions` | 2 |
-| `apps.tenants` | 6 |
-| `apps.venues` | 8 |
+| `apps.tenants` | 7 |
+| `apps.venues` | 9 |
 
-**Total Migrations**: 25
+**Total Migrations**: 27
 
 ## 3. RBAC Permission Matrix & Codes
 

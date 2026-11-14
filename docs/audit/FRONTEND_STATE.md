@@ -12,29 +12,32 @@
 | **Platform Admin** | **YES** | Multi-tenant customer wizard, directory, subscription plans, health, activity, and support desk are fully functional. |
 
 ## 2. Route Inventory Breakdown
-**Total Registered Routes**: 72
-- **WORKING**: 18 (real API, verified)
-- **PARTIAL**: 13 (functional with minor layout/error handling gaps)
-- **STUB**: 4 (placeholder screens)
+**Total Registered Routes**: 71
+- **WORKING**: 20 (real API, verified)
+- **PARTIAL**: 12 (functional with minor layout/error handling gaps)
+- **STUB**: 3 (placeholder screens)
 - **MOCK**: 0 (uses static/mock fixture data)
-- **DEAD**: 1 (page file exists but not routed in App.tsx)
+- **DEAD**: 0 (page file exists but not routed in App.tsx)
 - **HIDDEN**: 36 (routed but not in sidebar)
 
 ## 3. Quality Gates Status
-| Gate | Tool / Check | Exit Code | Result Summary |
-|---|---|---|---|
-| Backend Pytest | pytest --cov=apps | 1 | 533 passed, 3 failed, 91.68% coverage |
-| Backend Linter | ruff check . | 1 | 2 errors (undefined 'models' in tenants/views.py) |
-| Backend Typecheck | mypy . | 1 | 4 errors across 2 files |
-| Backend Migrations | makemigrations --check | 0 | No pending migrations detected |
-| Backend Security | pip-audit | 0 | 0 vulnerabilities found |
-| Frontend Linter | eslint src | 0 | 0 errors, 0 warnings |
-| Frontend Typecheck | tsc --noEmit | 0 | 0 TypeScript errors |
-| Frontend Unit/Integration | vitest run --coverage | 1 | Passed with concurrency timeouts in vitest-axe |
-| Frontend Build | npm run build | 0 | Production bundle built cleanly |
-| Frontend API Drift | openapi-typescript | 0 | In sync (0 drift against openapi.json) |
-| Frontend Dependencies | npm audit | 0 | 0 high or critical vulnerabilities |
-| Frontend E2E Suite | playwright test | 1 | 144 tests listed; core flows passing with minor fixture timeouts |
+**Overall Quality Gates Verdict**: **FAIL**
+
+| Gate | Tool / Check | Status | Exit Code | Result Summary | Evidence |
+|---|---|---|---|---|---|
+| Backend Pytest with Coverage | $(@{Id=1; Name=Backend Pytest with Coverage; Command=pytest --cov=apps; RawFile=backend-pytest.txt; ExitCode=1; Duration=363.06s; Summary=}.Command) | FAIL | 1 |  | docs/audit/raw/backend-pytest.txt |
+| Backend Ruff Linter | $(@{Id=2; Name=Backend Ruff Linter; Command=ruff check .; RawFile=backend-ruff.txt; ExitCode=0; Duration=0.63s; Summary=}.Command) | PASS | 0 | 0 errors, all checks passed | docs/audit/raw/backend-ruff.txt |
+| Backend Mypy Typecheck | $(@{Id=3; Name=Backend Mypy Typecheck; Command=mypy .; RawFile=backend-mypy.txt; ExitCode=1; Duration=84.44s; Summary=}.Command) | FAIL | 1 | 2 mypy errors | docs/audit/raw/backend-mypy.txt |
+| Backend Makemigrations Check | $(@{Id=4; Name=Backend Makemigrations Check; Command=python manage.py makemigrations --check --dry-run; RawFile=backend-makemigrations.txt; ExitCode=1; Duration=8.86s; Summary=}.Command) | FAIL | 1 | Migrations detected or error | docs/audit/raw/backend-makemigrations.txt |
+| Backend Pip Audit | $(@{Id=5; Name=Backend Pip Audit; Command=pip-audit; RawFile=backend-pip-audit.txt; ExitCode=0; Duration=36.35s; Summary=}.Command) | PASS | 0 | 0 vulnerabilities found | docs/audit/raw/backend-pip-audit.txt |
+| Frontend ESLint | $(@{Id=6; Name=Frontend ESLint; Command=npm run lint; RawFile=frontend-lint.txt; ExitCode=0; Duration=85.06s; Summary=}.Command) | PASS | 0 | 0 errors, 0 warnings | docs/audit/raw/frontend-lint.txt |
+| Frontend Typecheck (tsc) | $(@{Id=7; Name=Frontend Typecheck (tsc); Command=npx tsc --noEmit; RawFile=frontend-typecheck.txt; ExitCode=0; Duration=22.42s; Summary=}.Command) | PASS | 0 | 0 TypeScript errors | docs/audit/raw/frontend-typecheck.txt |
+| Frontend Vitest with Coverage | $(@{Id=8; Name=Frontend Vitest with Coverage; Command=npx vitest run --coverage; RawFile=frontend-vitest.txt; ExitCode=1; Duration=116.1s; Summary=}.Command) | FAIL | 1 | Tests 5 | docs/audit/raw/frontend-vitest.txt |
+| Frontend Production Build | $(@{Id=9; Name=Frontend Production Build; Command=npm run build; RawFile=frontend-build.txt; ExitCode=0; Duration=127.18s; Summary=}.Command) | PASS | 0 | Build succeeded in 47.54s | docs/audit/raw/frontend-build.txt |
+| Frontend API Types Drift | $(@{Id=10; Name=Frontend API Types Drift; Command=openapi-typescript diff; RawFile=frontend-api-types.txt; ExitCode=0; Duration=7.86s; Summary=}.Command) | PASS | 0 | In sync (0 drift against openapi.json) | docs/audit/raw/frontend-api-types.txt |
+| Frontend NPM Audit (High/Critical) | $(@{Id=11; Name=Frontend NPM Audit (High/Critical); Command=npm audit --audit-level=high; RawFile=frontend-npm-audit.txt; ExitCode=1; Duration=68.89s; Summary=}.Command) | FAIL | 1 | 16 vulnerabilities | docs/audit/raw/frontend-npm-audit.txt |
+| Playwright E2E Test List | $(@{Id=12; Name=Playwright E2E Test List; Command=npx playwright test --list; RawFile=playwright-list.txt; ExitCode=0; Duration=6.37s; Summary=}.Command) | PASS | 0 | 144 E2E tests listed | docs/audit/raw/playwright-list.txt |
+| Playwright E2E Test Run | $(@{Id=13; Name=Playwright E2E Test Run; Command=npx playwright test; RawFile=playwright-run.txt; ExitCode=1; Duration=1482.25s; Summary=}.Command) | FAIL | 1 | 122 passed | docs/audit/raw/playwright-run.txt |
 
 ## 4. Top 15 Defects & Regressions
 1. `BUG-001` [CRASH]: Guest seating fails on free tables on `/pos` with 'Could not seat guests at this table'.

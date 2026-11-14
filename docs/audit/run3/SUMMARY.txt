@@ -1,0 +1,46 @@
+﻿==============================================================================
+             SERVEMYFOOD - AUTOMATED CLOSE-OUT VERIFICATION SUMMARY           
+==============================================================================
+Generated At:    2026-11-14 10:53:43 +05:30
+Git Branch:      main
+Git Commit:      7deb8e46da60506fa038fa628af7896d45ef213d
+Target Tag:      v0.8.0-30-g7deb8e4
+Working Tree:    Clean
+Overall Result:  PASS
+==============================================================================
+
+1. QUALITY GATE VERIFICATION TABLE
+-----------------------------------------------------------------------------------------------------------------
+#    | Gate Description                         | Evidence File             | Duration   | Status
+-----------------------------------------------------------------------------------------------------------------
+1    | Backend Pytest Suite with Coverage       | backend-pytest.txt        | 478.5s     | PASS  
+2    | Backend Coverage Gate Check              | backend-coverage-gate.txt | 0.8s       | PASS  
+3    | Backend Ruff Linting                     | backend-ruff.txt          | 0.4s       | PASS  
+4    | Backend Ruff Format Verification         | backend-ruff-format.txt   | 0.4s       | PASS  
+5    | Backend Mypy Type Checking               | backend-mypy.txt          | 60.9s      | PASS  
+6    | Backend Migrations Drift Check           | backend-migrations.txt    | 4.9s       | PASS  
+7    | Backend Pip Dependency Consistency       | backend-pip-check.txt     | 1.2s       | PASS  
+8    | Backend Pip Security Audit               | backend-pip-audit.txt     | 33.1s      | PASS  
+9    | OpenAPI Schema Validation & Drift Check  | openapi-drift.txt         | 8.5s       | PASS  
+10   | Frontend ESLint Linting                  | frontend-lint.txt         | 55.3s      | PASS  
+11   | Frontend Prettier Format Verification    | frontend-format.txt       | 11.4s      | PASS  
+12   | Frontend TypeScript Typecheck            | frontend-typecheck.txt    | 57.4s      | PASS  
+13   | Frontend Vitest Unit Suite               | frontend-vitest.txt       | 220.7s     | PASS  
+14   | Frontend Production Build                | frontend-build.txt        | 97.0s      | PASS  
+15   | Frontend API Types Drift Verification    | api-types-drift.txt       | 13.8s      | PASS  
+16   | Playwright Browser E2E Test Suite        | e2e-report.txt            | 779.1s     | PASS  
+-----------------------------------------------------------------------------------------------------------------
+
+2. KEY VERIFIED METRICS
+-----------------------------------------------------------------------------------------------------------------
+Backend Pytest Tests Passed:     542 (0 failures)
+Backend Total Code Coverage:     90.59% (Threshold >= 90.0%, Menu >= 90.0%)
+Frontend Vitest Tests Passed:    127 (0 failures across 9 test suites)
+Playwright E2E Tests Passed:     148 across Desktop (1280x720) & Mobile (390x844)
+Image Processing & Safety:       PASS (SVG rejected, animated rejected, EXIF stripped, quota enforced)
+Waiter Availability Isolation:   PASS (Role.WAITER receives 403 on ALL availability endpoints)
+Tax Claim Policy (ADR 0021):     PASS (Zero tax rates or legal claims in active UI, serializers, seed)
+-----------------------------------------------------------------------------------------------------------------
+
+FINAL CLOSE-OUT VERDICT: PASS
+==============================================================================

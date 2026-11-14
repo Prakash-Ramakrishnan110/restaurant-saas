@@ -158,3 +158,35 @@
 | **Bugs Open** | 12 | `BUG-001`, `BUG-002`, `BUG-003`, `BUG-004`, `BUG-005`, `BUG-007`, `BUG-008`, `BUG-009`, `BUG-010`, `BUG-011`, `BUG-013`, `BUG-014`, `BUG-015` |
 | **New Bugs / Regressions** | 4 | `BUG-016` (Pending Migrations), `BUG-017` (Amber text violation), `BUG-018` (Onboarding Stub), `BUG-019` (NPM Audit) |
 
+---
+
+# ServeMyFood Audit Delta: Run 2 vs Run 3
+
+**Generated**: November 14, 2026  
+**Baseline (Run 2)**: `docs/audit/run2/`  
+**Current State (Run 3)**: `docs/audit/run3/` (Authoritative 16/16 PASS in `docs/evidence/SUMMARY.txt`)
+
+## 1. Executive Summary (Run 2 -> Run 3)
+
+| Category | Run 2 Metric | Run 3 Metric | Net Delta |
+|---|---|---|---|
+| **Backend Pytest** | 534 passed, 2 failed (91.04%) | 542 passed, 0 failed (90.59%) | +8 passed, 0 failures (**PASS**) |
+| **Backend Ruff Lint & Format** | 0 lint errors | 0 lint errors, 0 format diffs | **PASS** |
+| **Backend Mypy** | 2 errors in 1 file | 0 errors across 182 files | **FIXED** (`BUG-007`) |
+| **Backend Makemigrations** | Pending migrations | 0 pending (`No changes detected`) | **FIXED** (`BUG-016`) |
+| **Pip Audit & Check** | 0 vulnerabilities | 0 vulnerabilities | **PASS** |
+| **Frontend ESLint & Prettier** | 0 errors | 0 lint errors, 0 format diffs | **PASS** |
+| **Frontend Typecheck & Build** | 0 errors | 0 errors, production build PASS | **PASS** |
+| **Frontend Vitest** | Failing (axe concurrency, amber text, timeouts) | 20 files, 127 tests passed (0 failures) | **FIXED** (`BUG-009`, `BUG-011`, `BUG-017`) |
+| **Frontend NPM Audit** | 2 critical (`tinypool`), 14 moderate | 0 high/critical (`tinypool` overridden to `^2.1.2`) | **FIXED** (`BUG-019`) |
+| **Playwright E2E Run** | 122 passed, 22 failed | 148 passed, 0 failed (Desktop + Mobile) | +26 passed, 0 failures (**PASS**) |
+
+## 2. Bugs Fixed (Run 2 -> Run 3)
+- **FIXED**: `BUG-001`, `BUG-002`, `BUG-003`, `BUG-004`, `BUG-005`, `BUG-007`, `BUG-008`, `BUG-009`, `BUG-010`, `BUG-011`, `BUG-016`, `BUG-017`, `BUG-018`, `BUG-019` (along with white-text-on-orange contrast violations in `AppShell.tsx`, `LoginPage.tsx`, `DashboardPage.tsx`, `FloorPOSPage.tsx`, and missing `<label>` on `DashboardPage.tsx` export date inputs).
+
+## 3. Remaining Open Items / Scope Notes
+- **`BUG-013`**: `/dev/` routes (`DevBrandPage`, `DevDesignSystemPage`) remain routed for internal design-system verification; documented in `docs/audit/hidden-modules.md`.
+- **`BUG-014`**: Remaining non-blocking i18n string literals catalogued in `docs/audit/i18n-gaps.txt`.
+- **`BUG-015`**: `TenantsDirectoryPage.tsx` custom status toggle endpoint alignment tracked in `docs/audit/api-usage.csv`.
+- **Hidden Modules**: 21 routed P1/P2/P3 modules and 15 unrouted future modules documented in `docs/audit/hidden-modules.md`.
+
