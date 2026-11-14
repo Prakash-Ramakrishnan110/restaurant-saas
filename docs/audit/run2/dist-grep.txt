@@ -1,0 +1,17 @@
+﻿=== PRODUCTION DIST GREP REPORT ===
+Date: 2026-11-12 18:40:15
+Scanned files count: 3
+
+CLEAN: 'Demo Test Accounts' (0 matches)
+CLEAN: 'kitchen@spicegarden.com' (0 matches)
+CLEAN: 'owner@spicegarden.com' (0 matches)
+CLEAN: 'owner@royaldumpukht.com' (0 matches)
+CLEAN: 'owner@beanbloom.in' (0 matches)
+CLEAN: 'cashier@chaicorner.in' (0 matches)
+CLEAN: 'cashier@artisanbakery.in' (0 matches)
+CLEAN: 'cashier@foodieplaza.in' (0 matches)
+CLEAN: 'owner@grandmeridian.com' (0 matches)
+CLEAN: 'admin@fusionengine.in' (0 matches)
+
+Total forbidden demo string matches: 0
+RESULT: PASS - Zero demo accounts or test credentials leaked in production build.

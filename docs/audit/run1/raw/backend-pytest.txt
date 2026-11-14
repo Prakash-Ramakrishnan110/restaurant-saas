@@ -1,0 +1,362 @@
+........................................................................ [ 13%]
+........................................................................ [ 26%]
+........................................................................ [ 40%]
+..........................................F............................. [ 53%]
+........................................................................ [ 67%]
+........................................................................ [ 80%]
+..............................................................F......... [ 94%]
+.......F........................                                         [100%]
+================================== FAILURES ===================================
+______________________ test_p2_customer_crm_and_reports _______________________
+
+    @pytest.mark.django_db
+    def test_p2_customer_crm_and_reports():
+        call_command("seed_demo")
+    
+        kaveri_tenant = Tenant.objects.get(slug="kaveri-cafe")
+        set_current_tenant(kaveri_tenant)
+    
+        owner = User.objects.get(email="owner@kavericafe.com")
+        token = str(RefreshToken.for_user(owner).access_token)
+        client = APIClient()
+        client.credentials(HTTP_AUTHORIZATION=f"Bearer {token}")
+        client.defaults["HTTP_X_TENANT_ID"] = str(kaveri_tenant.id)
+    
+        # 1. Create a customer (H-24)
+        create_res = client.post(
+            "/api/v1/customers/",
+            {
+                "name": "Ravi Kumar",
+                "phone": "+919876543210",
+                "email": "ravi@example.com",
+                "consent_given": True,
+                "dietary_preference": "VEG",
+                "allergies": "Peanuts",
+                "notes": "Prefers corner table, filter coffee with less sugar",
+            },
+            format="json",
+        )
+        assert create_res.status_code == status.HTTP_201_CREATED, create_res.data
+        assert create_res.data["id"]
+    
+        # 2. Query customer by phone
+        query_res = client.get("/api/v1/customers/", {"phone": "+919876543210"})
+        assert query_res.status_code == status.HTTP_200_OK
+        assert len(query_res.data["results"]) == 1
+        assert query_res.data["results"][0]["name"] == "Ravi Kumar"
+    
+        # 3. P2 Reports Suite
+        # Exceptions Report (H-01)
+        exc_res = client.get("/api/v1/reports/exceptions/")
+        assert exc_res.status_code == status.HTTP_200_OK
+        assert "discounted_invoices_count" in exc_res.data
+        assert "cancelled_orders_count" in exc_res.data
+        assert "reprints_count" in exc_res.data
+    
+        # Staff Report (H-22)
+        staff_res = client.get("/api/v1/reports/staff/")
+        assert staff_res.status_code == status.HTTP_200_OK
+        assert "staff" in staff_res.data
+    
+        # Outlets Comparison Report (H-21)
+        outlets_res = client.get("/api/v1/reports/outlets/")
+        assert outlets_res.status_code == status.HTTP_200_OK
+        assert "outlets" in outlets_res.data
+        assert len(outlets_res.data["outlets"]) >= 1
+    
+        # Order Prep Delay Report (H-06)
+        delay_res = client.get("/api/v1/reports/orders-delay/")
+        assert delay_res.status_code == status.HTTP_200_OK
+        assert "average_prep_minutes" in delay_res.data
+        assert "delayed_orders" in delay_res.data
+    
+        # 4. Support Tickets (A-04, R-11)
+        ticket_res = client.post(
+            "/api/v1/support-tickets/",
+            {
+                "subject": "Printer paper jam in Kitchen 1",
+                "description": "ESC/POS printer stopped printing KOT tickets at 1:30 PM",
+                "priority": "HIGH",
+                "contact_phone": "+919876543210",
+            },
+            format="json",
+        )
+        assert ticket_res.status_code == status.HTTP_201_CREATED, ticket_res.data
+    
+        tickets_list = client.get("/api/v1/support-tickets/")
+        assert tickets_list.status_code == status.HTTP_200_OK
+        assert len(tickets_list.data["results"]) >= 1
+    
+        # 5. Announcements (A-05)
+        platform_admin = User.objects.filter(is_platform_admin=True).first()
+        if not platform_admin:
+            platform_admin = User.objects.create_user(
+                email="platform.admin@servemyfood.internal",
+                password="adminpassword123",
+                full_name="Platform Administrator",
+                is_platform_admin=True,
+            )
+        admin_token = str(RefreshToken.for_user(platform_admin).access_token)
+        admin_client = APIClient()
+        admin_client.credentials(HTTP_AUTHORIZATION=f"Bearer {admin_token}")
+    
+        ann_res = admin_client.post(
+            "/api/v1/announcements/",
+            {
+                "title": "Scheduled Maintenance Notice",
+                "message": "Routine cloud database maintenance on Sunday at 2:00 AM IST",
+                "announcement_type": "MAINTENANCE",
+                "is_active": True,
+            },
+            format="json",
+        )
+        assert ann_res.status_code == status.HTTP_201_CREATED, ann_res.data
+    
+        # Tenant can read the active announcement
+>       tenant_ann_res = client.get("/api/v1/announcements/")
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+apps\orders\tests\test_p2_features.py:116: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+.venv\Lib\site-packages\rest_framework\test.py:295: in get
+    response = super().get(path, data=data, **extra)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\rest_framework\test.py:212: in get
+    return self.generic('GET', path, **r)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\rest_framework\test.py:240: in generic
+    return super().generic(
+.venv\Lib\site-packages\django\test\client.py:671: in generic
+    return self.request(**r)
+           ^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\rest_framework\test.py:292: in request
+    return super().request(**kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\rest_framework\test.py:244: in request
+    request = super().request(**kwargs)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\django\test\client.py:1090: in request
+    self.check_exception(response)
+.venv\Lib\site-packages\django\test\client.py:805: in check_exception
+    raise exc_value
+.venv\Lib\site-packages\django\core\handlers\exception.py:55: in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\django\core\handlers\base.py:197: in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\django\views\decorators\csrf.py:65: in _view_wrapper
+    return view_func(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\rest_framework\viewsets.py:124: in view
+    return self.dispatch(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\rest_framework\views.py:526: in dispatch
+    response = self.handle_exception(exc)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\rest_framework\views.py:474: in handle_exception
+    self.raise_uncaught_exception(exc)
+.venv\Lib\site-packages\rest_framework\views.py:485: in raise_uncaught_exception
+    raise exc
+.venv\Lib\site-packages\rest_framework\views.py:523: in dispatch
+    response = handler(request, *args, **kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv\Lib\site-packages\rest_framework\mixins.py:38: in list
+    queryset = self.filter_queryset(self.get_queryset())
+                                    ^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <apps.tenants.views.PlatformAnnouncementViewSet object at 0x0000027FBE60AC90>
+
+    def get_queryset(self):
+        user = self.request.user
+        if getattr(user, "is_platform_admin", False):
+            return PlatformAnnouncement.objects.all()
+        qs = PlatformAnnouncement.objects.filter(is_active=True)
+        tenant = getattr(self.request, "tenant", None) or getattr(user, "tenant", None)
+        if tenant and getattr(tenant, "business_type", None):
+            qs = qs.filter(
+>               models.Q(target_business_type="ALL")
+                ^^^^^^
+                | models.Q(target_business_type=tenant.business_type)
+            )
+E           NameError: name 'models' is not defined
+
+apps\tenants\views.py:1020: NameError
+---------------------------- Captured stdout call -----------------------------
+Seeding ServeMyFood demonstration data...
+Configuring 'The Grand Kaveri Cafe'...
+Configuring 'Madras Chai Point'...
+Demo seeding completed successfully!
+------------------------------ Captured log call ------------------------------
+ERROR    django.request:log.py:293 Internal Server Error: /api/v1/announcements/
+Traceback (most recent call last):
+  File "C:\Users\praka\Desktop\Restaurant_saas\backend\.venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\praka\Desktop\Restaurant_saas\backend\.venv\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\praka\Desktop\Restaurant_saas\backend\.venv\Lib\site-packages\django\views\decorators\csrf.py", line 65, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\praka\Desktop\Restaurant_saas\backend\.venv\Lib\site-packages\rest_framework\viewsets.py", line 124, in view
+    return self.dispatch(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\praka\Desktop\Restaurant_saas\backend\.venv\Lib\site-packages\rest_framework\views.py", line 526, in dispatch
+    response = self.handle_exception(exc)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\praka\Desktop\Restaurant_saas\backend\.venv\Lib\site-packages\rest_framework\views.py", line 474, in handle_exception
+    self.raise_uncaught_exception(exc)
+  File "C:\Users\praka\Desktop\Restaurant_saas\backend\.venv\Lib\site-packages\rest_framework\views.py", line 485, in raise_uncaught_exception
+    raise exc
+  File "C:\Users\praka\Desktop\Restaurant_saas\backend\.venv\Lib\site-packages\rest_framework\views.py", line 523, in dispatch
+    response = handler(request, *args, **kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\praka\Desktop\Restaurant_saas\backend\.venv\Lib\site-packages\rest_framework\mixins.py", line 38, in list
+    queryset = self.filter_queryset(self.get_queryset())
+                                    ^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\praka\Desktop\Restaurant_saas\backend\apps\tenants\views.py", line 1020, in get_queryset
+    models.Q(target_business_type="ALL")
+    ^^^^^^
+NameError: name 'models' is not defined
+__ test_removed_write_routes_return_405_or_404[post-/api/v1/table-sessions/] __
+
+surface = ({'plan': <Plan: Pro Test Plan (pro-test)>, 'tenant_a': <Tenant: Alpha Dining (alpha-dining)>, 'branch_a1': <Branch: A...054a1676'), 'q': UUID('64133eea-ba52-4bf9-8090-6614f6fbabbc'), 'a': UUID('17f354a4-4511-4c1d-801d-f61de31cecb2'), ...})
+method = 'post', template = '/api/v1/table-sessions/'
+
+    @pytest.mark.django_db
+    @pytest.mark.parametrize("method,template", REMOVED_ROUTES)
+    def test_removed_write_routes_return_405_or_404(surface, method, template):
+        s, ids = surface
+        client = make_client(s["owner_a"], s["tenant_a"])
+        url = template.format(**ids)
+        res = getattr(client, method)(url, {}, format="json")
+        # 405 for removed methods on existing routes; 404 for routes that no longer exist at all
+>       assert res.status_code in (status.HTTP_405_METHOD_NOT_ALLOWED, status.HTTP_404_NOT_FOUND)
+E       assert 400 in (405, 404)
+E        +  where 400 = <Response status_code=400, "application/json">.status_code
+
+apps\venues\tests\test_write_surface.py:60: AssertionError
+------------------------------ Captured log call ------------------------------
+WARNING  django.request:log.py:293 Bad Request: /api/v1/table-sessions/
+_______________ test_sessions_can_only_be_created_through_open ________________
+
+surface = ({'plan': <Plan: Pro Test Plan (pro-test)>, 'tenant_a': <Tenant: Alpha Dining (alpha-dining)>, 'branch_a1': <Branch: A...71c43eb4'), 'q': UUID('6068d554-4ca0-4bdc-835d-3ea7becd12ae'), 'a': UUID('b7b94dff-0437-4c52-bac9-8a65dcea4080'), ...})
+
+    @pytest.mark.django_db
+    def test_sessions_can_only_be_created_through_open(surface):
+        s, ids = surface
+        client = make_client(s["owner_a"], s["tenant_a"])
+        before = TableSession.objects.count()
+        res = client.post(
+            "/api/v1/table-sessions/",
+            {"branch": str(s["branch_a1"].id), "table": str(s["table_a1_2"].id), "status": "OPEN"},
+            format="json",
+        )
+>       assert res.status_code == status.HTTP_405_METHOD_NOT_ALLOWED
+E       assert 400 == 405
+E        +  where 400 = <Response status_code=400, "application/json">.status_code
+E        +  and   405 = status.HTTP_405_METHOD_NOT_ALLOWED
+
+apps\venues\tests\test_write_surface.py:90: AssertionError
+------------------------------ Captured log call ------------------------------
+WARNING  django.request:log.py:293 Bad Request: /api/v1/table-sessions/
+=============================== tests coverage ================================
+______________ coverage: platform win32, python 3.12.10-final-0 _______________
+
+Name                                         Stmts   Miss  Cover   Missing
+--------------------------------------------------------------------------
+apps\__init__.py                                 0      0   100%
+apps\accounts\__init__.py                        0      0   100%
+apps\accounts\apps.py                            5      0   100%
+apps\accounts\models.py                         55      7    87%   14, 20, 33, 35, 37, 64, 105
+apps\accounts\serializers.py                    76      1    99%   37
+apps\accounts\services.py                       49      0   100%
+apps\accounts\staff_service.py                 131      0   100%
+apps\accounts\throttling.py                     28      2    93%   24, 46
+apps\accounts\urls.py                            3      0   100%
+apps\accounts\views.py                         256     38    85%   114-117, 128-129, 163, 226, 240-241, 278-279, 298-315, 397, 423-424, 428, 433-434, 444, 487, 506, 547, 553-554, 573
+apps\audit\__init__.py                           0      0   100%
+apps\audit\apps.py                               5      0   100%
+apps\audit\models.py                            34      1    97%   75
+apps\audit\serializers.py                       31     15    52%   9-20, 45, 48, 51, 54
+apps\audit\services.py                          19      2    89%   12, 34
+apps\audit\urls.py                               3      0   100%
+apps\audit\views.py                             48     30    38%   19-34, 39-42, 47-61
+apps\core\__init__.py                            0      0   100%
+apps\core\apps.py                                5      0   100%
+apps\core\context.py                             9      0   100%
+apps\core\exceptions.py                         94     14    85%   92-93, 104-105, 115-116, 121-122, 133-138
+apps\core\management\__init__.py                 0      0   100%
+apps\core\management\commands\__init__.py        0      0   100%
+apps\core\management\commands\seed.py          379      2    99%   684-685
+apps\core\management\commands\seed_demo.py      99      0   100%
+apps\core\managers.py                           25      0   100%
+apps\core\middleware.py                         73      0   100%
+apps\core\models.py                             22      0   100%
+apps\core\money.py                             109      8    93%   23, 67, 103, 112, 114, 121, 131, 146
+apps\core\pagination.py                          9      0   100%
+apps\core\tasks.py                              14      5    64%   18-23
+apps\core\views.py                              54      9    83%   41-42, 45-47, 64-65, 72-73
+apps\inventory\__init__.py                       1      0   100%
+apps\inventory\apps.py                           5      0   100%
+apps\inventory\constants.py                     32      0   100%
+apps\inventory\models.py                       109      8    93%   37, 83, 120, 155, 193, 219, 253, 281
+apps\inventory\serializers.py                  112     16    86%   121, 136-157, 213
+apps\inventory\services.py                      96      8    92%   62, 91, 205-207, 209-211
+apps\inventory\urls.py                          12      0   100%
+apps\inventory\views.py                        121      4    97%   80, 205, 219, 237
+apps\menu\__init__.py                            0      0   100%
+apps\menu\apps.py                                5      0   100%
+apps\menu\constants.py                          12      0   100%
+apps\menu\models.py                            115      6    95%   34, 86, 116, 140, 162, 226
+apps\menu\serializers.py                        65      5    92%   94-96, 158-159
+apps\menu\services.py                          169     14    92%   34, 124, 131, 147, 166-167, 176, 274-275, 317, 342, 357, 371, 379
+apps\menu\urls.py                                9      0   100%
+apps\menu\views.py                             259     35    86%   110-113, 156-159, 163, 167, 171, 183, 215, 257-260, 267, 278, 308-311, 316, 341-344, 350-355, 464, 475, 508, 543, 581
+apps\orders\__init__.py                          0      0   100%
+apps\orders\apps.py                              5      0   100%
+apps\orders\models.py                          154      9    94%   105-110, 171, 210, 254, 281, 328-329, 376
+apps\orders\serializers.py                      87      4    95%   87, 136-138
+apps\orders\services.py                        288     28    90%   57, 73-74, 106, 114, 121, 132-133, 149, 272, 310, 389, 407, 411, 485-486, 697-698, 785, 874, 882-885, 916, 919, 922, 925
+apps\orders\urls.py                             11      0   100%
+apps\orders\views.py                           324     28    91%   81, 99, 122, 124, 134, 164, 210, 214, 230, 251, 291, 344, 370, 378, 392, 402-403, 415-416, 428-429, 450, 480, 496, 512, 526, 546, 553
+apps\rbac\__init__.py                            0      0   100%
+apps\rbac\apps.py                                5      0   100%
+apps\rbac\constants.py                          43      0   100%
+apps\rbac\matrix.py                              6      0   100%
+apps\rbac\permissions.py                        87      2    98%   31, 163
+apps\subscriptions\__init__.py                   0      0   100%
+apps\subscriptions\apps.py                       5      0   100%
+apps\subscriptions\constants.py                  9      0   100%
+apps\subscriptions\models.py                    22      1    95%   58
+apps\subscriptions\services.py                  81      9    89%   50, 73, 80, 104-106, 120, 180, 184
+apps\subscriptions\urls.py                       3      0   100%
+apps\subscriptions\views.py                     27      1    96%   54
+apps\tenants\__init__.py                         0      0   100%
+apps\tenants\apps.py                             5      0   100%
+apps\tenants\color_utils.py                     49      8    84%   9, 12, 14, 44-45, 53, 78, 81
+apps\tenants\models.py                         116      3    97%   138, 178, 211
+apps\tenants\serializers.py                    151      5    97%   123, 128, 180, 236, 250
+apps\tenants\services.py                       263     24    91%   358, 376, 382, 384, 510, 514, 595, 601-603, 606, 637-644, 654-661, 669, 757-758, 765-766
+apps\tenants\urls.py                             3      0   100%
+apps\tenants\views.py                          423     40    91%   114, 125, 151, 174, 197, 211-212, 218, 240, 286, 308, 351, 367, 381, 410, 429, 457, 488, 520, 545, 580, 592, 620, 677-678, 748-751, 887, 953, 971, 995, 1015, 1029, 1033-1035, 1038-1040
+apps\venues\__init__.py                          0      0   100%
+apps\venues\apps.py                              5      0   100%
+apps\venues\constants.py                        65      0   100%
+apps\venues\layout_templates.py                 62     24    61%   164-214, 218-307, 313, 321, 328, 352
+apps\venues\models.py                          141     12    91%   68, 102, 135, 148, 217-218, 222, 245, 306-311, 353, 380
+apps\venues\presets.py                           9      0   100%
+apps\venues\serializers.py                     170      0   100%
+apps\venues\services.py                        421     61    86%   186, 269, 273, 278, 325, 331, 337, 376, 411-438, 456, 466, 471, 483, 496, 552, 555, 581, 654, 686, 745, 747, 771, 857-858, 877-879, 1011, 1016, 1021-1022, 1042, 1076-1082, 1086-1101, 1132, 1149-1151
+apps\venues\urls.py                             13      0   100%
+apps\venues\views.py                           514     37    93%   108-109, 160-161, 207, 213-214, 267, 277-278, 469, 471, 497-508, 590, 617, 619, 655-662, 702-703, 730, 779, 796, 870-871, 920, 924
+--------------------------------------------------------------------------
+TOTAL                                         6324    526    92%
+Required test coverage of 90% reached. Total coverage: 91.68%
+=========================== short test summary info ===========================
+FAILED apps/orders/tests/test_p2_features.py::test_p2_customer_crm_and_reports
+FAILED apps/venues/tests/test_write_surface.py::test_removed_write_routes_return_405_or_404[post-/api/v1/table-sessions/]
+FAILED apps/venues/tests/test_write_surface.py::test_sessions_can_only_be_created_through_open
+3 failed, 533 passed in 112.70s (0:01:52)

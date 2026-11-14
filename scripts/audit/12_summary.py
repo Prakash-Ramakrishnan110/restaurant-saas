@@ -62,22 +62,35 @@ def main():
     p(f"- **HIDDEN**: {status_counts.get('HIDDEN', 0)} (routed but not in sidebar)")
     p("")
 
-    # 3. Quality Gates
+    # 3. Quality Gates (parsed directly from docs/audit/gates.md)
     p("## 3. Quality Gates Status")
-    p("| Gate | Tool / Check | Exit Code | Result Summary |")
-    p("|---|---|---|---|")
-    p("| Backend Pytest | pytest --cov=apps | 1 | 533 passed, 3 failed, 91.68% coverage |")
-    p("| Backend Linter | ruff check . | 1 | 2 errors (undefined 'models' in tenants/views.py) |")
-    p("| Backend Typecheck | mypy . | 1 | 4 errors across 2 files |")
-    p("| Backend Migrations | makemigrations --check | 0 | No pending migrations detected |")
-    p("| Backend Security | pip-audit | 0 | 0 vulnerabilities found |")
-    p("| Frontend Linter | eslint src | 0 | 0 errors, 0 warnings |")
-    p("| Frontend Typecheck | tsc --noEmit | 0 | 0 TypeScript errors |")
-    p("| Frontend Unit/Integration | vitest run --coverage | 1 | Passed with concurrency timeouts in vitest-axe |")
-    p("| Frontend Build | npm run build | 0 | Production bundle built cleanly |")
-    p("| Frontend API Drift | openapi-typescript | 0 | In sync (0 drift against openapi.json) |")
-    p("| Frontend Dependencies | npm audit | 0 | 0 high or critical vulnerabilities |")
-    p("| Frontend E2E Suite | playwright test | 1 | 144 tests listed; core flows passing with minor fixture timeouts |")
+    gate_rows = []
+    any_gate_failed = False
+    if os.path.exists(GATES_MD):
+        with open(GATES_MD, "r", encoding="utf-8") as gf:
+            for line in gf:
+                line = line.strip()
+                if not line.startswith("|") or line.startswith("| Gate #") or line.startswith("|---"):
+                    continue
+                cols = [c.strip() for c in line.strip("|").split("|")]
+                if len(cols) >= 7:
+                    # Support both 7-col and 8-col gates.md format
+                    if len(cols) == 8:
+                        g_id, g_name, g_cmd, g_status, g_exit, g_dur, g_out, g_file = cols[:8]
+                    else:
+                        g_id, g_name, g_cmd, g_exit, g_dur, g_out, g_file = cols[:7]
+                        g_status = "PASS" if g_exit == "0" else "FAIL"
+                    if g_status != "PASS" or g_exit != "0":
+                        any_gate_failed = True
+                    gate_rows.append((g_name, g_cmd, g_status, g_exit, g_out, g_file))
+
+    overall_verdict = "FAIL" if (any_gate_failed or not gate_rows) else "PASS"
+    p(f"**Overall Quality Gates Verdict**: **{overall_verdict}**")
+    p("")
+    p("| Gate | Tool / Check | Status | Exit Code | Result Summary | Evidence |")
+    p("|---|---|---|---|---|---|")
+    for g_name, g_cmd, g_status, g_exit, g_out, g_file in gate_rows:
+        p(f"| {g_name} | {g_cmd} | {g_status} | {g_exit} | {g_out} | {g_file} |")
     p("")
 
     # 4. Top 15 Bugs

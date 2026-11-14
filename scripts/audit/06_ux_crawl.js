@@ -151,9 +151,7 @@ function sanitizeFilename(str) {
 
 async function runCrawl() {
   console.log("=== Starting Playwright UX Crawl on Real Stack ===");
-  const browser = await chromium.launch({ headless: true });
   const crawlResults = [];
-
   const axeScript = fs.readFileSync(AXE_PATH, "utf8");
 
   for (const roleDef of ROLES_TO_CRAWL) {
@@ -161,58 +159,60 @@ async function runCrawl() {
     console.log(`Crawling Role: ${roleDef.roleLabel} (${roleDef.email})`);
     console.log(`--------------------------------------------------`);
 
-    const context = await browser.newContext({
-      viewport: { width: 1440, height: 900 },
-    });
+    const browser = await chromium.launch({ headless: true });
+    try {
+      const context = await browser.newContext({
+        viewport: { width: 1440, height: 900 },
+      });
 
-    const page = await context.newPage();
+      const page = await context.newPage();
 
-    // 1. Log in
-    console.log(`Navigating to ${BASE_URL}/login...`);
-    await page.goto(`${BASE_URL}/login`, { waitUntil: "networkidle" });
+      // 1. Log in
+      console.log(`Navigating to ${BASE_URL}/login...`);
+      await page.goto(`${BASE_URL}/login`, { waitUntil: "domcontentloaded", timeout: 8000 });
 
-    await page.fill('input[type="email"]', roleDef.email);
-    await page.fill('input[type="password"]', roleDef.password);
-    await page.click('button[type="submit"]');
+      await page.fill('input[type="email"]', roleDef.email);
+      await page.fill('input[type="password"]', roleDef.password);
+      await page.click('button[type="submit"]');
 
-    // Wait for post-login navigation
-    await Promise.race([
-      page.waitForURL((url) => !url.pathname.endsWith("/login"), { timeout: 8000 }),
-      page.waitForTimeout(4000),
-    ]).catch(() => {});
-    await page.waitForTimeout(1000);
+      // Wait for post-login navigation
+      await Promise.race([
+        page.waitForURL((url) => !url.pathname.endsWith("/login"), { timeout: 8000 }),
+        page.waitForTimeout(4000),
+      ]).catch(() => {});
+      await page.waitForTimeout(400);
 
-    const actualHomeUrl = page.url().replace(BASE_URL, "") || "/";
-    console.log(`Landed at post-login home: ${actualHomeUrl} (Expected: ${roleDef.expectedHome})`);
+      const actualHomeUrl = page.url().replace(BASE_URL, "") || "/";
+      console.log(`Landed at post-login home: ${actualHomeUrl} (Expected: ${roleDef.expectedHome})`);
 
-    // Capture Home Screenshots: Light, Dark, Mobile Touch
-    // A. Desktop Light
-    const homeLightPath = path.join(SCREENS_DIR, `${roleDef.roleId}_home_desktop_light.png`);
-    await page.screenshot({ path: homeLightPath, fullPage: false });
+      // Capture Home Screenshots: Light, Dark, Mobile Touch
+      // A. Desktop Light
+      const homeLightPath = path.join(SCREENS_DIR, `${roleDef.roleId}_home_desktop_light.png`);
+      await page.screenshot({ path: homeLightPath, fullPage: false });
 
-    // B. Desktop Dark
-    await page.evaluate(() => {
-      document.documentElement.classList.add("dark");
-    });
-    await page.waitForTimeout(400);
-    const homeDarkPath = path.join(SCREENS_DIR, `${roleDef.roleId}_home_desktop_dark.png`);
-    await page.screenshot({ path: homeDarkPath, fullPage: false });
-    await page.evaluate(() => {
-      document.documentElement.classList.remove("dark");
-    });
+      // B. Desktop Dark
+      await page.evaluate(() => {
+        document.documentElement.classList.add("dark");
+      });
+      await page.waitForTimeout(400);
+      const homeDarkPath = path.join(SCREENS_DIR, `${roleDef.roleId}_home_desktop_dark.png`);
+      await page.screenshot({ path: homeDarkPath, fullPage: false });
+      await page.evaluate(() => {
+        document.documentElement.classList.remove("dark");
+      });
 
-    // C. Mobile Touch
-    const storageState = await context.storageState();
-    const mobileContext = await browser.newContext({
-      ...devices["Pixel 7"],
-      storageState,
-    });
-    const mobilePage = await mobileContext.newPage();
-    await mobilePage.goto(`${BASE_URL}${actualHomeUrl}`, { waitUntil: "networkidle" }).catch(() => {});
-    await mobilePage.waitForTimeout(1500);
-    const homeMobilePath = path.join(SCREENS_DIR, `${roleDef.roleId}_home_mobile_touch.png`);
-    await mobilePage.screenshot({ path: homeMobilePath, fullPage: false });
-    await mobileContext.close();
+      // C. Mobile Touch
+      const storageState = await context.storageState();
+      const mobileContext = await browser.newContext({
+        ...devices["Pixel 7"],
+        storageState,
+      });
+      const mobilePage = await mobileContext.newPage();
+      await mobilePage.goto(`${BASE_URL}${actualHomeUrl}`, { waitUntil: "domcontentloaded", timeout: 8000 }).catch(() => {});
+      await mobilePage.waitForTimeout(500);
+      const homeMobilePath = path.join(SCREENS_DIR, `${roleDef.roleId}_home_mobile_touch.png`);
+      await mobilePage.screenshot({ path: homeMobilePath, fullPage: false });
+      await mobileContext.close();
 
     // 2. Discover Visible Sidebar Links
     const sidebarLinks = await page.evaluate(() => {
@@ -259,7 +259,7 @@ async function runCrawl() {
       let navigationSucceeded = true;
       try {
         await page.goto(`${BASE_URL}${targetPath}`, { waitUntil: "domcontentloaded", timeout: 8000 });
-        await page.waitForTimeout(1000);
+        await page.waitForTimeout(300);
       } catch (err) {
         navigationSucceeded = false;
         uncaughtExceptions.push(`Navigation failed: ${err.message}`);
@@ -323,18 +323,22 @@ async function runCrawl() {
       let axeSerious = 0;
       let axeCritical = 0;
       try {
-        await page.evaluate(axeScript);
-        const axeResults = await page.evaluate(async () => {
-          const res = await window.axe.run(document, {
-            runOnly: {
-              type: "tag",
-              values: ["wcag2a", "wcag2aa"],
-            },
+        const runAxe = async () => {
+          await page.evaluate(axeScript);
+          return await page.evaluate(async () => {
+            const res = await window.axe.run(document, {
+              runOnly: {
+                type: "tag",
+                values: ["wcag2a", "wcag2aa"],
+              },
+            });
+            const serious = res.violations.filter((v) => v.impact === "serious").length;
+            const critical = res.violations.filter((v) => v.impact === "critical").length;
+            return { serious, critical };
           });
-          const serious = res.violations.filter((v) => v.impact === "serious").length;
-          const critical = res.violations.filter((v) => v.impact === "critical").length;
-          return { serious, critical };
-        });
+        };
+        const timeout = new Promise((_, reject) => setTimeout(() => reject(new Error("Axe timeout")), 5000));
+        const axeResults = await Promise.race([runAxe(), timeout]);
         axeSerious = axeResults.serious;
         axeCritical = axeResults.critical;
       } catch (err) {
@@ -346,7 +350,10 @@ async function runCrawl() {
       const screenFile = `${roleDef.roleId}_${safePath}.png`;
       const screenFullPath = path.join(SCREENS_DIR, screenFile);
       if (isSidebar || targetPath.startsWith("/admin") || targetPath.startsWith("/pos") || targetPath.startsWith("/billing")) {
-        await page.screenshot({ path: screenFullPath, fullPage: false }).catch(() => {});
+        await Promise.race([
+          page.screenshot({ path: screenFullPath, fullPage: false }),
+          new Promise((_, reject) => setTimeout(() => reject(new Error("Screenshot timeout")), 5000)),
+        ]).catch(() => {});
       }
 
       const record = {
@@ -371,11 +378,15 @@ async function runCrawl() {
       crawlResults.push(record);
       process.stdout.write(`  [${record.inSidebar === "Y" ? "SIDEBAR" : "DIRECT"}] ${targetPath} -> ${finalUrl} (Axe: ${record.axeSerious}, HTTP err: ${httpErrors.length})\n`);
     }
-
-    await context.close();
+      await page.close().catch(() => {});
+      await context.close().catch(() => {});
+    } finally {
+      await Promise.race([
+        browser.close(),
+        new Promise((resolve) => setTimeout(resolve, 2000)),
+      ]).catch(() => {});
+    }
   }
-
-  await browser.close();
 
   // Save crawl results
   fs.writeFileSync(path.join(RAW_DIR, "crawl_raw.json"), JSON.stringify(crawlResults, null, 2), "utf8");

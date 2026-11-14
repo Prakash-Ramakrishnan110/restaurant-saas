@@ -19,7 +19,7 @@ endpoint,method,calling_pages,unused_by_ui
 /api/v1/branches/{id}/,DELETE,NONE,Y
 /api/v1/branches/{id}/,GET,NONE,Y
 /api/v1/branches/{id}/,PATCH,frontend/src/pages/onboarding/OnboardingWizardPage.tsx; frontend/src/pages/venue/BranchesPage.tsx,N
-/api/v1/business/,GET,frontend/src/pages/onboarding/OnboardingWizardPage.tsx; frontend/src/pages/venue/QRCodesPage.tsx,N
+/api/v1/business/,GET,frontend/src/pages/onboarding/OnboardingWizardPage.tsx; frontend/src/pages/venue/QRCodesPage.tsx; frontend/src/pages/venue/TablesPage.tsx,N
 /api/v1/business/,PATCH,frontend/src/pages/onboarding/OnboardingWizardPage.tsx; frontend/src/pages/settings/BrandingSettingsPage.tsx,N
 /api/v1/business/logo/,DELETE,frontend/src/pages/settings/BrandingSettingsPage.tsx,N
 /api/v1/business/logo/,POST,NONE,Y
@@ -30,7 +30,7 @@ endpoint,method,calling_pages,unused_by_ui
 /api/v1/customers/{id}/,PATCH,frontend/src/pages/customers/CustomersPage.tsx,N
 /api/v1/customers/{id}/,PUT,NONE,Y
 /api/v1/entitlements/,GET,frontend/src/pages/dashboard/DashboardPage.tsx; frontend/src/pages/menu/MenuPage.tsx; frontend/src/pages/settings/VenueSettingsPage.tsx,N
-/api/v1/inventory/ingredients/,GET,NONE,Y
+/api/v1/inventory/ingredients/,GET,frontend/src/pages/dashboard/DashboardPage.tsx,N
 /api/v1/inventory/ingredients/,POST,frontend/src/pages/inventory/StockOverviewPage.tsx,N
 /api/v1/inventory/ingredients/{id}/,DELETE,NONE,Y
 /api/v1/inventory/ingredients/{id}/,GET,NONE,Y
@@ -183,7 +183,7 @@ endpoint,method,calling_pages,unused_by_ui
 /api/v1/table-sessions/open/,POST,frontend/src/pages/orders/FloorPOSPage.tsx,N
 /api/v1/table-sessions/{id}/,GET,NONE,Y
 /api/v1/table-sessions/{id}/close/,POST,NONE,Y
-/api/v1/tables/,GET,frontend/src/pages/orders/FloorPOSPage.tsx; frontend/src/pages/venue/FloorPlanPage.tsx; frontend/src/pages/venue/TablesPage.tsx; frontend/src/tests/auth.test.tsx,N
+/api/v1/tables/,GET,frontend/src/pages/dashboard/DashboardPage.tsx; frontend/src/pages/orders/FloorPOSPage.tsx; frontend/src/pages/venue/FloorPlanPage.tsx; frontend/src/pages/venue/TablesPage.tsx; frontend/src/tests/auth.test.tsx,N
 /api/v1/tables/,POST,frontend/src/pages/venue/RoomsPage.tsx; frontend/src/pages/venue/TablesPage.tsx,N
 /api/v1/tables/bulk-create/,POST,frontend/src/pages/venue/TablesPage.tsx,N
 /api/v1/tables/join/,POST,frontend/src/pages/venue/TablesPage.tsx,N

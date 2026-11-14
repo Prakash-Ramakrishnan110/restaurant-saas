@@ -4,7 +4,7 @@ Tamil (ta) translation keys count:   272
 Missing Tamil keys:                   0
 Empty Tamil translations:             0
 Extra Tamil keys (not in en):         0
-Hardcoded UI strings detected:        800
+Hardcoded UI strings detected:        840
 
 --- 1. MISSING TAMIL KEYS (0) ---
   None. All English keys have matching Tamil keys.
@@ -12,39 +12,43 @@ Hardcoded UI strings detected:        800
 --- 2. EMPTY TAMIL TRANSLATIONS (0) ---
   None.
 
---- 3. HARDCODED UI STRINGS IN COMPONENTS (Sample 50 of 800) ---
+--- 3. HARDCODED UI STRINGS IN COMPONENTS (Sample 50 of 840) ---
   frontend/src/components/app/PageHeader.tsx:36 -> aria-label="Breadcrumb"
   frontend/src/components/app/PageHeader.tsx:41 -> 0 &&
   frontend/src/components/app/UpgradeModal.tsx:35 -> Plan Limit Reached
   frontend/src/components/brand/BrandLogo.tsx:64 -> aria-label="ServeMyFood"
   frontend/src/components/brand/BrandLogo.tsx:77 -> aria-label="ServeMyFood"
-  frontend/src/components/layout/AppShell.tsx:243 -> (prev
-  frontend/src/components/layout/AppShell.tsx:276 -> aria-label="Toggle navigation menu"
-  frontend/src/components/layout/AppShell.tsx:295 -> Search or jump to...
-  frontend/src/components/layout/AppShell.tsx:308 -> aria-label="Select active restaurant"
-  frontend/src/components/layout/AppShell.tsx:343 -> aria-label="Switch language"
-  frontend/src/components/layout/AppShell.tsx:355 -> aria-label="Toggle theme"
-  frontend/src/components/layout/AppShell.tsx:367 -> aria-label="Open support desk"
-  frontend/src/components/layout/AppShell.tsx:370 -> Support
-  frontend/src/components/layout/AppShell.tsx:384 -> aria-label="Sign out"
-  frontend/src/components/layout/AppShell.tsx:387 -> Sign Out
-  frontend/src/components/layout/AppShell.tsx:402 -> aria-label="Main Navigation"
-  frontend/src/components/layout/AppShell.tsx:465 -> Active
-  frontend/src/components/layout/AppShell.tsx:496 -> title="Dismiss"
-  frontend/src/components/layout/AppShell.tsx:497 -> aria-label="Dismiss announcement"
-  frontend/src/components/layout/AppShell.tsx:513 -> Quick Navigation
-  frontend/src/components/layout/AppShell.tsx:520 -> placeholder="Jump to page... (or use arrow keys)"
-  frontend/src/components/layout/AppShell.tsx:598 -> placeholder="e.g. Printer not printing KOT receipts"
-  frontend/src/components/layout/AppShell.tsx:615 -> Low - General Question
-  frontend/src/components/layout/AppShell.tsx:616 -> Medium - Normal Issue
-  frontend/src/components/layout/AppShell.tsx:617 -> High - Service Affected
-  frontend/src/components/layout/AppShell.tsx:618 -> Urgent - Billing / Outage
-  frontend/src/components/layout/AppShell.tsx:628 -> placeholder="+91 98765 43210"
-  frontend/src/components/layout/AppShell.tsx:643 -> placeholder="Describe what occurred, table/order numbers, or device details..."
-  frontend/src/components/layout/AppShell.tsx:670 -> aria-label="Mobile Navigation"
-  frontend/src/components/layout/AppShell.tsx:680 -> Home
-  frontend/src/components/layout/AppShell.tsx:713 -> Billing
-  frontend/src/components/layout/AppShell.tsx:722 -> More
+  frontend/src/components/layout/AppShell.tsx:299 -> (prev
+  frontend/src/components/layout/AppShell.tsx:332 -> aria-label="Toggle navigation menu"
+  frontend/src/components/layout/AppShell.tsx:351 -> Search or jump to...
+  frontend/src/components/layout/AppShell.tsx:364 -> aria-label="Select active restaurant"
+  frontend/src/components/layout/AppShell.tsx:399 -> aria-label="Switch language"
+  frontend/src/components/layout/AppShell.tsx:423 -> aria-label="Toggle theme"
+  frontend/src/components/layout/AppShell.tsx:438 -> aria-label="Open support desk"
+  frontend/src/components/layout/AppShell.tsx:441 -> Support
+  frontend/src/components/layout/AppShell.tsx:460 -> aria-label="Sign out"
+  frontend/src/components/layout/AppShell.tsx:463 -> Sign Out
+  frontend/src/components/layout/AppShell.tsx:478 -> aria-label="Main Navigation"
+  frontend/src/components/layout/AppShell.tsx:541 -> Active
+  frontend/src/components/layout/AppShell.tsx:606 -> title="Dismiss announcement"
+  frontend/src/components/layout/AppShell.tsx:607 -> aria-label="Dismiss announcement"
+  frontend/src/components/layout/AppShell.tsx:624 -> Quick Navigation
+  frontend/src/components/layout/AppShell.tsx:631 -> placeholder="Jump to page... (or use arrow keys)"
+  frontend/src/components/layout/AppShell.tsx:703 -> My Tickets
+  frontend/src/components/layout/AppShell.tsx:729 -> title="Refresh tickets"
+  frontend/src/components/layout/AppShell.tsx:732 -> Refresh
+  frontend/src/components/layout/AppShell.tsx:786 -> Priority:
+  frontend/src/components/layout/AppShell.tsx:841 -> placeholder="e.g. Printer not printing KOT receipts"
+  frontend/src/components/layout/AppShell.tsx:858 -> Low - General Question
+  frontend/src/components/layout/AppShell.tsx:859 -> Medium - Normal Issue
+  frontend/src/components/layout/AppShell.tsx:860 -> High - Service Affected
+  frontend/src/components/layout/AppShell.tsx:861 -> Urgent - Billing / Outage
+  frontend/src/components/layout/AppShell.tsx:871 -> placeholder="+91 98765 43210"
+  frontend/src/components/layout/AppShell.tsx:886 -> placeholder="Describe what occurred, table/order numbers, or device details..."
+  frontend/src/components/layout/AppShell.tsx:913 -> aria-label="Mobile Navigation"
+  frontend/src/components/layout/AppShell.tsx:923 -> Home
+  frontend/src/components/layout/AppShell.tsx:956 -> Billing
+  frontend/src/components/layout/AppShell.tsx:965 -> More
   frontend/src/components/menu/FoodTypeBadge.tsx:43 -> Non-Veg
   frontend/src/components/menu/ItemEditorSheet.tsx:29 -> Promise
   frontend/src/components/menu/ItemEditorSheet.tsx:219 -> label="Menu Category"
@@ -59,11 +63,7 @@ Hardcoded UI strings detected:        800
   frontend/src/components/menu/ItemEditorSheet.tsx:278 -> label="Base Price (₹)"
   frontend/src/components/menu/ItemEditorSheet.tsx:297 -> label="Food Type"
   frontend/src/components/menu/ItemEditorSheet.tsx:317 -> label="Prep Time (mins)"
-  frontend/src/components/menu/ItemEditorSheet.tsx:331 -> Item Photo (JPEG, PNG, WebP)
-  frontend/src/components/menu/ItemEditorSheet.tsx:368 -> Click to upload photo
-  frontend/src/components/menu/ItemEditorSheet.tsx:386 -> Portions & Variants
-  frontend/src/components/menu/ItemEditorSheet.tsx:408 -> title="Mark as default"
-  ... and 750 more hardcoded occurrences in components.
+  ... and 790 more hardcoded occurrences in components.
 
 
 --- ALL HARDCODED STRINGS ---
@@ -72,33 +72,37 @@ frontend/src/components/app/PageHeader.tsx:41 [jsx_text] -> 0 &&
 frontend/src/components/app/UpgradeModal.tsx:35 [jsx_text] -> Plan Limit Reached
 frontend/src/components/brand/BrandLogo.tsx:64 [prop_text] -> aria-label="ServeMyFood"
 frontend/src/components/brand/BrandLogo.tsx:77 [prop_text] -> aria-label="ServeMyFood"
-frontend/src/components/layout/AppShell.tsx:243 [jsx_text] -> (prev
-frontend/src/components/layout/AppShell.tsx:276 [prop_text] -> aria-label="Toggle navigation menu"
-frontend/src/components/layout/AppShell.tsx:295 [jsx_text] -> Search or jump to...
-frontend/src/components/layout/AppShell.tsx:308 [prop_text] -> aria-label="Select active restaurant"
-frontend/src/components/layout/AppShell.tsx:343 [prop_text] -> aria-label="Switch language"
-frontend/src/components/layout/AppShell.tsx:355 [prop_text] -> aria-label="Toggle theme"
-frontend/src/components/layout/AppShell.tsx:367 [prop_text] -> aria-label="Open support desk"
-frontend/src/components/layout/AppShell.tsx:370 [jsx_text] -> Support
-frontend/src/components/layout/AppShell.tsx:384 [prop_text] -> aria-label="Sign out"
-frontend/src/components/layout/AppShell.tsx:387 [jsx_text] -> Sign Out
-frontend/src/components/layout/AppShell.tsx:402 [prop_text] -> aria-label="Main Navigation"
-frontend/src/components/layout/AppShell.tsx:465 [jsx_text] -> Active
-frontend/src/components/layout/AppShell.tsx:496 [prop_text] -> title="Dismiss"
-frontend/src/components/layout/AppShell.tsx:497 [prop_text] -> aria-label="Dismiss announcement"
-frontend/src/components/layout/AppShell.tsx:513 [jsx_text] -> Quick Navigation
-frontend/src/components/layout/AppShell.tsx:520 [prop_text] -> placeholder="Jump to page... (or use arrow keys)"
-frontend/src/components/layout/AppShell.tsx:598 [prop_text] -> placeholder="e.g. Printer not printing KOT receipts"
-frontend/src/components/layout/AppShell.tsx:615 [jsx_text] -> Low - General Question
-frontend/src/components/layout/AppShell.tsx:616 [jsx_text] -> Medium - Normal Issue
-frontend/src/components/layout/AppShell.tsx:617 [jsx_text] -> High - Service Affected
-frontend/src/components/layout/AppShell.tsx:618 [jsx_text] -> Urgent - Billing / Outage
-frontend/src/components/layout/AppShell.tsx:628 [prop_text] -> placeholder="+91 98765 43210"
-frontend/src/components/layout/AppShell.tsx:643 [prop_text] -> placeholder="Describe what occurred, table/order numbers, or device details..."
-frontend/src/components/layout/AppShell.tsx:670 [prop_text] -> aria-label="Mobile Navigation"
-frontend/src/components/layout/AppShell.tsx:680 [jsx_text] -> Home
-frontend/src/components/layout/AppShell.tsx:713 [jsx_text] -> Billing
-frontend/src/components/layout/AppShell.tsx:722 [jsx_text] -> More
+frontend/src/components/layout/AppShell.tsx:299 [jsx_text] -> (prev
+frontend/src/components/layout/AppShell.tsx:332 [prop_text] -> aria-label="Toggle navigation menu"
+frontend/src/components/layout/AppShell.tsx:351 [jsx_text] -> Search or jump to...
+frontend/src/components/layout/AppShell.tsx:364 [prop_text] -> aria-label="Select active restaurant"
+frontend/src/components/layout/AppShell.tsx:399 [prop_text] -> aria-label="Switch language"
+frontend/src/components/layout/AppShell.tsx:423 [prop_text] -> aria-label="Toggle theme"
+frontend/src/components/layout/AppShell.tsx:438 [prop_text] -> aria-label="Open support desk"
+frontend/src/components/layout/AppShell.tsx:441 [jsx_text] -> Support
+frontend/src/components/layout/AppShell.tsx:460 [prop_text] -> aria-label="Sign out"
+frontend/src/components/layout/AppShell.tsx:463 [jsx_text] -> Sign Out
+frontend/src/components/layout/AppShell.tsx:478 [prop_text] -> aria-label="Main Navigation"
+frontend/src/components/layout/AppShell.tsx:541 [jsx_text] -> Active
+frontend/src/components/layout/AppShell.tsx:606 [prop_text] -> title="Dismiss announcement"
+frontend/src/components/layout/AppShell.tsx:607 [prop_text] -> aria-label="Dismiss announcement"
+frontend/src/components/layout/AppShell.tsx:624 [jsx_text] -> Quick Navigation
+frontend/src/components/layout/AppShell.tsx:631 [prop_text] -> placeholder="Jump to page... (or use arrow keys)"
+frontend/src/components/layout/AppShell.tsx:703 [jsx_text] -> My Tickets
+frontend/src/components/layout/AppShell.tsx:729 [prop_text] -> title="Refresh tickets"
+frontend/src/components/layout/AppShell.tsx:732 [jsx_text] -> Refresh
+frontend/src/components/layout/AppShell.tsx:786 [jsx_text] -> Priority:
+frontend/src/components/layout/AppShell.tsx:841 [prop_text] -> placeholder="e.g. Printer not printing KOT receipts"
+frontend/src/components/layout/AppShell.tsx:858 [jsx_text] -> Low - General Question
+frontend/src/components/layout/AppShell.tsx:859 [jsx_text] -> Medium - Normal Issue
+frontend/src/components/layout/AppShell.tsx:860 [jsx_text] -> High - Service Affected
+frontend/src/components/layout/AppShell.tsx:861 [jsx_text] -> Urgent - Billing / Outage
+frontend/src/components/layout/AppShell.tsx:871 [prop_text] -> placeholder="+91 98765 43210"
+frontend/src/components/layout/AppShell.tsx:886 [prop_text] -> placeholder="Describe what occurred, table/order numbers, or device details..."
+frontend/src/components/layout/AppShell.tsx:913 [prop_text] -> aria-label="Mobile Navigation"
+frontend/src/components/layout/AppShell.tsx:923 [jsx_text] -> Home
+frontend/src/components/layout/AppShell.tsx:956 [jsx_text] -> Billing
+frontend/src/components/layout/AppShell.tsx:965 [jsx_text] -> More
 frontend/src/components/menu/FoodTypeBadge.tsx:43 [jsx_text] -> Non-Veg
 frontend/src/components/menu/ItemEditorSheet.tsx:29 [jsx_text] -> Promise
 frontend/src/components/menu/ItemEditorSheet.tsx:219 [prop_text] -> label="Menu Category"
@@ -136,9 +140,9 @@ frontend/src/components/ui/dialog.tsx:43 [jsx_text] -> Close
 frontend/src/components/ui/sheet.tsx:65 [jsx_text] -> Close
 frontend/src/components/ui/stepper.tsx:25 [prop_text] -> aria-label="Progress"
 frontend/src/components/ui/toast.tsx:72 [prop_text] -> aria-label="Dismiss toast"
-frontend/src/context/AuthContext.tsx:33 [jsx_text] -> Promise
-frontend/src/context/AuthContext.tsx:34 [jsx_text] -> Promise
-frontend/src/context/AuthContext.tsx:35 [jsx_text] -> Promise
+frontend/src/context/AuthContext.tsx:37 [jsx_text] -> Promise
+frontend/src/context/AuthContext.tsx:38 [jsx_text] -> Promise
+frontend/src/context/AuthContext.tsx:39 [jsx_text] -> Promise
 frontend/src/pages/activity/ActivityLogPage.tsx:86 [jsx_text] -> செயல்பாட்டு பதிவு
 frontend/src/pages/activity/ActivityLogPage.tsx:112 [prop_text] -> placeholder="Search actor or action..."
 frontend/src/pages/activity/ActivityLogPage.tsx:198 [jsx_text] -> Timestamp
@@ -193,30 +197,30 @@ frontend/src/pages/admin/CustomerDetailPage.tsx:861 [jsx_text] -> Note Content *
 frontend/src/pages/admin/CustomerDetailPage.tsx:864 [prop_text] -> placeholder="Enter internal operator context, meeting notes, or follow-ups..."
 frontend/src/pages/admin/CustomerDetailPage.tsx:871 [jsx_text] -> Context / Reason
 frontend/src/pages/admin/CustomerDetailPage.tsx:873 [prop_text] -> placeholder="e.g. Onboarding call, check-in, billing review"
-frontend/src/pages/admin/NewCustomerWizardPage.tsx:278 [jsx_text] -> Back to Tenants Directory
-frontend/src/pages/admin/NewCustomerWizardPage.tsx:294 [prop_text] -> aria-label="Dismiss error"
-frontend/src/pages/admin/NewCustomerWizardPage.tsx:376 [prop_text] -> placeholder="e.g. Sangeetha Veg Restaurant, Madurai Cafe"
-frontend/src/pages/admin/NewCustomerWizardPage.tsx:389 [prop_text] -> placeholder="e.g. Chennai, Bengaluru, Coimbatore"
-frontend/src/pages/admin/NewCustomerWizardPage.tsx:475 [jsx_text] -> English (Default Standard)
-frontend/src/pages/admin/NewCustomerWizardPage.tsx:490 [jsx_text] -> English &amp; Tamil Bilingual (இருமொழி)
-frontend/src/pages/admin/NewCustomerWizardPage.tsx:498 [jsx_text] -> Continue to Owner Account
-frontend/src/pages/admin/NewCustomerWizardPage.tsx:514 [prop_text] -> placeholder="e.g. Ramesh Kumar"
-frontend/src/pages/admin/NewCustomerWizardPage.tsx:528 [prop_text] -> placeholder="owner@restaurant.com"
-frontend/src/pages/admin/NewCustomerWizardPage.tsx:540 [prop_text] -> placeholder="+91 98765 43210"
-frontend/src/pages/admin/NewCustomerWizardPage.tsx:553 [prop_text] -> placeholder="Leave empty to auto-generate secure 12-char password"
-frontend/src/pages/admin/NewCustomerWizardPage.tsx:570 [jsx_text] -> Continue to Subscription Plan
-frontend/src/pages/admin/NewCustomerWizardPage.tsx:680 [jsx_text] -> Continue to Outlets
-frontend/src/pages/admin/NewCustomerWizardPage.tsx:765 [jsx_text] -> Review Configuration
-frontend/src/pages/admin/NewCustomerWizardPage.tsx:779 [jsx_text] -> Configuration Parameter
-frontend/src/pages/admin/NewCustomerWizardPage.tsx:780 [jsx_text] -> Selected Value
-frontend/src/pages/admin/NewCustomerWizardPage.tsx:781 [jsx_text] -> Platform Badge / Notes
-frontend/src/pages/admin/NewCustomerWizardPage.tsx:786 [jsx_text] -> Brand / Entity Name
-frontend/src/pages/admin/NewCustomerWizardPage.tsx:795 [jsx_text] -> Headquarters &amp; Language
-frontend/src/pages/admin/NewCustomerWizardPage.tsx:804 [jsx_text] -> Owner Account
-frontend/src/pages/admin/NewCustomerWizardPage.tsx:811 [jsx_text] -> Subscription Tier
-frontend/src/pages/admin/NewCustomerWizardPage.tsx:820 [jsx_text] -> Outlets to Provision
-frontend/src/pages/admin/NewCustomerWizardPage.tsx:945 [jsx_text] -> Back to Tenants Directory
-frontend/src/pages/admin/NewCustomerWizardPage.tsx:953 [jsx_text] -> Inspect New Tenant
+frontend/src/pages/admin/NewCustomerWizardPage.tsx:300 [jsx_text] -> Back to Tenants Directory
+frontend/src/pages/admin/NewCustomerWizardPage.tsx:316 [prop_text] -> aria-label="Dismiss error"
+frontend/src/pages/admin/NewCustomerWizardPage.tsx:398 [prop_text] -> placeholder="e.g. Sangeetha Veg Restaurant, Madurai Cafe"
+frontend/src/pages/admin/NewCustomerWizardPage.tsx:411 [prop_text] -> placeholder="e.g. Chennai, Bengaluru, Coimbatore"
+frontend/src/pages/admin/NewCustomerWizardPage.tsx:505 [jsx_text] -> English (Default Standard)
+frontend/src/pages/admin/NewCustomerWizardPage.tsx:520 [jsx_text] -> English &amp; Tamil Bilingual (இருமொழி)
+frontend/src/pages/admin/NewCustomerWizardPage.tsx:528 [jsx_text] -> Continue to Owner Account
+frontend/src/pages/admin/NewCustomerWizardPage.tsx:544 [prop_text] -> placeholder="e.g. Ramesh Kumar"
+frontend/src/pages/admin/NewCustomerWizardPage.tsx:558 [prop_text] -> placeholder="owner@restaurant.com"
+frontend/src/pages/admin/NewCustomerWizardPage.tsx:570 [prop_text] -> placeholder="+91 98765 43210"
+frontend/src/pages/admin/NewCustomerWizardPage.tsx:583 [prop_text] -> placeholder="Leave empty to auto-generate secure 12-char password"
+frontend/src/pages/admin/NewCustomerWizardPage.tsx:600 [jsx_text] -> Continue to Subscription Plan
+frontend/src/pages/admin/NewCustomerWizardPage.tsx:710 [jsx_text] -> Continue to Outlets
+frontend/src/pages/admin/NewCustomerWizardPage.tsx:795 [jsx_text] -> Review Configuration
+frontend/src/pages/admin/NewCustomerWizardPage.tsx:809 [jsx_text] -> Configuration Parameter
+frontend/src/pages/admin/NewCustomerWizardPage.tsx:810 [jsx_text] -> Selected Value
+frontend/src/pages/admin/NewCustomerWizardPage.tsx:811 [jsx_text] -> Platform Badge / Notes
+frontend/src/pages/admin/NewCustomerWizardPage.tsx:816 [jsx_text] -> Brand / Entity Name
+frontend/src/pages/admin/NewCustomerWizardPage.tsx:825 [jsx_text] -> Headquarters &amp; Language
+frontend/src/pages/admin/NewCustomerWizardPage.tsx:834 [jsx_text] -> Owner Account
+frontend/src/pages/admin/NewCustomerWizardPage.tsx:841 [jsx_text] -> Subscription Tier
+frontend/src/pages/admin/NewCustomerWizardPage.tsx:850 [jsx_text] -> Outlets to Provision
+frontend/src/pages/admin/NewCustomerWizardPage.tsx:975 [jsx_text] -> Back to Tenants Directory
+frontend/src/pages/admin/NewCustomerWizardPage.tsx:983 [jsx_text] -> Inspect New Tenant
 frontend/src/pages/admin/PlatformActivityPage.tsx:66 [jsx_text] -> நிர்வாக பதிவு
 frontend/src/pages/admin/PlatformActivityPage.tsx:98 [prop_text] -> placeholder="Search tenant ID, administrator, or action..."
 frontend/src/pages/admin/PlatformActivityPage.tsx:113 [jsx_text] -> Timestamp
@@ -224,19 +228,19 @@ frontend/src/pages/admin/PlatformActivityPage.tsx:114 [jsx_text] -> Action
 frontend/src/pages/admin/PlatformActivityPage.tsx:115 [jsx_text] -> Entity Type & ID
 frontend/src/pages/admin/PlatformActivityPage.tsx:116 [jsx_text] -> Admin / Actor
 frontend/src/pages/admin/PlatformActivityPage.tsx:117 [jsx_text] -> Details
-frontend/src/pages/admin/PlatformAdminPage.tsx:203 [prop_text] -> aria-label="Close toast"
-frontend/src/pages/admin/PlatformAdminPage.tsx:233 [jsx_text] -> Refresh
-frontend/src/pages/admin/PlatformAdminPage.tsx:258 [jsx_text] -> Active Restaurants
-frontend/src/pages/admin/PlatformAdminPage.tsx:280 [jsx_text] -> across all tenant brands
-frontend/src/pages/admin/PlatformAdminPage.tsx:290 [jsx_text] -> Monthly MRR (Live)
-frontend/src/pages/admin/PlatformAdminPage.tsx:306 [jsx_text] -> Platform Status
-frontend/src/pages/admin/PlatformAdminPage.tsx:339 [jsx_text] -> fusion_saas
-frontend/src/pages/admin/PlatformAdminPage.tsx:341 [jsx_text] -> Connected
-frontend/src/pages/admin/PlatformAdminPage.tsx:353 [jsx_text] -> Django Admin Console
-frontend/src/pages/admin/PlatformAdminPage.tsx:374 [jsx_text] -> 6 Dedicated Panels
-frontend/src/pages/admin/PlatformAdminPage.tsx:431 [jsx_text] -> Manage Plans
-frontend/src/pages/admin/PlatformAdminPage.tsx:471 [jsx_text] -> Latest audit logs across all tenants
-frontend/src/pages/admin/PlatformAdminPage.tsx:524 [jsx_text] -> Newest restaurant tenants onboarded
+frontend/src/pages/admin/PlatformAdminPage.tsx:212 [prop_text] -> aria-label="Close toast"
+frontend/src/pages/admin/PlatformAdminPage.tsx:242 [jsx_text] -> Refresh
+frontend/src/pages/admin/PlatformAdminPage.tsx:267 [jsx_text] -> Active Restaurants
+frontend/src/pages/admin/PlatformAdminPage.tsx:289 [jsx_text] -> across all tenant brands
+frontend/src/pages/admin/PlatformAdminPage.tsx:299 [jsx_text] -> Monthly MRR (Live)
+frontend/src/pages/admin/PlatformAdminPage.tsx:315 [jsx_text] -> Platform Status
+frontend/src/pages/admin/PlatformAdminPage.tsx:348 [jsx_text] -> fusion_saas
+frontend/src/pages/admin/PlatformAdminPage.tsx:350 [jsx_text] -> Connected
+frontend/src/pages/admin/PlatformAdminPage.tsx:362 [jsx_text] -> Django Admin Console
+frontend/src/pages/admin/PlatformAdminPage.tsx:383 [jsx_text] -> 6 Dedicated Panels
+frontend/src/pages/admin/PlatformAdminPage.tsx:440 [jsx_text] -> Manage Plans
+frontend/src/pages/admin/PlatformAdminPage.tsx:480 [jsx_text] -> Latest audit logs across all tenants
+frontend/src/pages/admin/PlatformAdminPage.tsx:533 [jsx_text] -> Newest restaurant tenants onboarded
 frontend/src/pages/admin/PlatformAnnouncementsPage.tsx:154 [jsx_text] -> No broadcasts published
 frontend/src/pages/admin/PlatformAnnouncementsPage.tsx:243 [jsx_text] -> New Platform Announcement
 frontend/src/pages/admin/PlatformAnnouncementsPage.tsx:253 [prop_text] -> placeholder="e.g. Scheduled Database Maintenance Notice"
@@ -268,14 +272,37 @@ frontend/src/pages/admin/PlatformHealthPage.tsx:359 [jsx_text] -> REST API Gatew
 frontend/src/pages/admin/PlatformHealthPage.tsx:372 [jsx_text] -> Audit Logging Subsystem
 frontend/src/pages/admin/PlatformHealthPage.tsx:385 [jsx_text] -> Vite Frontend Dev Proxy
 frontend/src/pages/admin/PlatformHealthPage.tsx:398 [jsx_text] -> Billing &amp; Entitlements Engine
-frontend/src/pages/admin/PlatformPlansPage.tsx:149 [jsx_text] -> Refresh
-frontend/src/pages/admin/PlatformPlansPage.tsx:214 [jsx_text] -> / month
-frontend/src/pages/admin/PlatformPlansPage.tsx:269 [jsx_text] -> per month (billed monthly)
-frontend/src/pages/admin/PlatformPlansPage.tsx:282 [jsx_text] -> Max Outlets
-frontend/src/pages/admin/PlatformPlansPage.tsx:288 [jsx_text] -> Dining Tables
-frontend/src/pages/admin/PlatformPlansPage.tsx:294 [jsx_text] -> Service Areas
-frontend/src/pages/admin/PlatformPlansPage.tsx:300 [jsx_text] -> Menu Dishes
-frontend/src/pages/admin/PlatformPlansPage.tsx:378 [jsx_text] -> Active venue chains
+frontend/src/pages/admin/PlatformPlansPage.tsx:378 [jsx_text] -> Refresh
+frontend/src/pages/admin/PlatformPlansPage.tsx:450 [jsx_text] -> / month
+frontend/src/pages/admin/PlatformPlansPage.tsx:497 [prop_text] -> title="Edit Plan Settings"
+frontend/src/pages/admin/PlatformPlansPage.tsx:534 [jsx_text] -> per month (billed monthly)
+frontend/src/pages/admin/PlatformPlansPage.tsx:547 [jsx_text] -> Max Outlets
+frontend/src/pages/admin/PlatformPlansPage.tsx:553 [jsx_text] -> Dining Tables
+frontend/src/pages/admin/PlatformPlansPage.tsx:559 [jsx_text] -> Service Areas
+frontend/src/pages/admin/PlatformPlansPage.tsx:565 [jsx_text] -> Menu Dishes
+frontend/src/pages/admin/PlatformPlansPage.tsx:673 [jsx_text] -> Active venue chains
+frontend/src/pages/admin/PlatformPlansPage.tsx:831 [prop_text] -> placeholder="e.g. Dhaba & Outdoor Huts Edition"
+frontend/src/pages/admin/PlatformPlansPage.tsx:844 [prop_text] -> placeholder="e.g. dhaba-huts"
+frontend/src/pages/admin/PlatformPlansPage.tsx:875 [jsx_text] -> Max Outlets
+frontend/src/pages/admin/PlatformPlansPage.tsx:884 [jsx_text] -> Max Tables / Rooms
+frontend/src/pages/admin/PlatformPlansPage.tsx:893 [jsx_text] -> Max Service Areas
+frontend/src/pages/admin/PlatformPlansPage.tsx:902 [jsx_text] -> Max Menu Items
+frontend/src/pages/admin/PlatformPlansPage.tsx:928 [jsx_text] -> Dhaba Huts &amp; Cabanas
+frontend/src/pages/admin/PlatformPlansPage.tsx:928 [jsx_text] -> (HUT/CABANA units)
+frontend/src/pages/admin/PlatformPlansPage.tsx:937 [jsx_text] -> Waiter Call Bell
+frontend/src/pages/admin/PlatformPlansPage.tsx:937 [jsx_text] -> (QR digital buzzer)
+frontend/src/pages/admin/PlatformPlansPage.tsx:946 [jsx_text] -> Minimum Order Spend
+frontend/src/pages/admin/PlatformPlansPage.tsx:946 [jsx_text] -> (VIP hut rule)
+frontend/src/pages/admin/PlatformPlansPage.tsx:955 [jsx_text] -> Outdoor Lawns &amp; Zones
+frontend/src/pages/admin/PlatformPlansPage.tsx:973 [jsx_text] -> In-Room Dining
+frontend/src/pages/admin/PlatformPlansPage.tsx:973 [jsx_text] -> (Room food delivery)
+frontend/src/pages/admin/PlatformPlansPage.tsx:982 [jsx_text] -> Room Folio Billing
+frontend/src/pages/admin/PlatformPlansPage.tsx:982 [jsx_text] -> (Post to room tab)
+frontend/src/pages/admin/PlatformPlansPage.tsx:991 [jsx_text] -> Housekeeping Turnover
+frontend/src/pages/admin/PlatformPlansPage.tsx:991 [jsx_text] -> (Clean/Dirty)
+frontend/src/pages/admin/PlatformPlansPage.tsx:1009 [jsx_text] -> Visual Floor Plan
+frontend/src/pages/admin/PlatformPlansPage.tsx:1018 [jsx_text] -> Table Merging
+frontend/src/pages/admin/PlatformPlansPage.tsx:1027 [jsx_text] -> Course Pacing (KOT)
 frontend/src/pages/admin/PlatformSupportPage.tsx:130 [prop_text] -> placeholder="Search tickets by subject or restaurant..."
 frontend/src/pages/admin/PlatformSupportPage.tsx:160 [jsx_text] -> Subject / Issue
 frontend/src/pages/admin/PlatformSupportPage.tsx:161 [jsx_text] -> Restaurant
@@ -393,19 +420,22 @@ frontend/src/pages/customers/CustomersPage.tsx:352 [jsx_text] -> Jain
 frontend/src/pages/customers/CustomersPage.tsx:353 [jsx_text] -> Vegan
 frontend/src/pages/customers/CustomersPage.tsx:363 [prop_text] -> placeholder="e.g. Peanuts, Gluten"
 frontend/src/pages/customers/CustomersPage.tsx:377 [prop_text] -> placeholder="e.g. Prefers quiet booth, extra spicy sambar"
-frontend/src/pages/dashboard/DashboardPage.tsx:225 [jsx_text] -> Entitlement Limit Exceeded
-frontend/src/pages/dashboard/DashboardPage.tsx:324 [jsx_text] -> Per settled order
-frontend/src/pages/dashboard/DashboardPage.tsx:343 [jsx_text] -> Active tickets pending
-frontend/src/pages/dashboard/DashboardPage.tsx:353 [jsx_text] -> Sales by Payment Method
-frontend/src/pages/dashboard/DashboardPage.tsx:354 [jsx_text] -> Tender distribution collected today
-frontend/src/pages/dashboard/DashboardPage.tsx:383 [jsx_text] -> Top 5 Bestselling Items
-frontend/src/pages/dashboard/DashboardPage.tsx:384 [jsx_text] -> Highest volume dishes ordered today
-frontend/src/pages/dashboard/DashboardPage.tsx:477 [jsx_text] -> Your plan
-frontend/src/pages/dashboard/DashboardPage.tsx:488 [jsx_text] -> How much of your plan you have used.
-frontend/src/pages/dashboard/DashboardPage.tsx:558 [jsx_text] -> Enabled Modules:
-frontend/src/pages/dashboard/DashboardPage.tsx:586 [jsx_text] -> Dining Tables
-frontend/src/pages/dashboard/DashboardPage.tsx:597 [jsx_text] -> Floor Plan Editor
-frontend/src/pages/dashboard/DashboardPage.tsx:608 [jsx_text] -> Staff & Permissions
+frontend/src/pages/dashboard/DashboardPage.tsx:656 [jsx_text] -> Entitlement Limit Exceeded
+frontend/src/pages/dashboard/DashboardPage.tsx:755 [jsx_text] -> Per settled order
+frontend/src/pages/dashboard/DashboardPage.tsx:774 [jsx_text] -> Active tickets pending
+frontend/src/pages/dashboard/DashboardPage.tsx:789 [jsx_text] -> Daily gross sales volume in rupees (last 7 days)
+frontend/src/pages/dashboard/DashboardPage.tsx:848 [jsx_text] -> Sales by Payment Method
+frontend/src/pages/dashboard/DashboardPage.tsx:849 [jsx_text] -> Tender distribution collected today
+frontend/src/pages/dashboard/DashboardPage.tsx:878 [jsx_text] -> Top 5 Bestselling Items
+frontend/src/pages/dashboard/DashboardPage.tsx:879 [jsx_text] -> Highest volume dishes ordered today
+frontend/src/pages/dashboard/DashboardPage.tsx:917 [jsx_text] -> Sales Report Quick Export
+frontend/src/pages/dashboard/DashboardPage.tsx:955 [jsx_text] -> From:
+frontend/src/pages/dashboard/DashboardPage.tsx:1011 [jsx_text] -> Inventory & Stock Health
+frontend/src/pages/dashboard/DashboardPage.tsx:1124 [jsx_text] -> Your plan
+frontend/src/pages/dashboard/DashboardPage.tsx:1135 [jsx_text] -> How much of your plan you have used.
+frontend/src/pages/dashboard/DashboardPage.tsx:1205 [jsx_text] -> Enabled Modules:
+frontend/src/pages/dashboard/DashboardPage.tsx:1252 [jsx_text] -> Inventory & Stock
+frontend/src/pages/dashboard/DashboardPage.tsx:1276 [jsx_text] -> Staff & Permissions
 frontend/src/pages/dev/DevBrandPage.tsx:164 [jsx_text] -> 1. Logo Variants & Clear Space
 frontend/src/pages/dev/DevBrandPage.tsx:205 [jsx_text] -> 2. Automated WCAG Contrast Matrix
 frontend/src/pages/dev/DevBrandPage.tsx:215 [jsx_text] -> Color Combination
@@ -812,58 +842,68 @@ frontend/src/pages/venue/FloorPlanPage.tsx:316 [jsx_text] -> Shape
 frontend/src/pages/venue/FloorPlanPage.tsx:324 [jsx_text] -> Section & Area
 frontend/src/pages/venue/FloorPlanPage.tsx:333 [jsx_text] -> Joined Group
 frontend/src/pages/venue/FloorPlanPage.tsx:383 [jsx_text] -> Seat
-frontend/src/pages/venue/QRCodesPage.tsx:299 [jsx_text] -> Active QR Standees
-frontend/src/pages/venue/QRCodesPage.tsx:324 [jsx_text] -> Location / Target
-frontend/src/pages/venue/QRCodesPage.tsx:325 [jsx_text] -> Area
-frontend/src/pages/venue/QRCodesPage.tsx:326 [jsx_text] -> Status
-frontend/src/pages/venue/QRCodesPage.tsx:327 [jsx_text] -> Actions
-frontend/src/pages/venue/QRCodesPage.tsx:363 [prop_text] -> title="Download SVG"
-frontend/src/pages/venue/QRCodesPage.tsx:374 [prop_text] -> title="Rotate QR Token"
-frontend/src/pages/venue/QRCodesPage.tsx:386 [prop_text] -> title="Deactivate QR Code"
-frontend/src/pages/venue/QRCodesPage.tsx:419 [prop_text] -> title="Deactivate QR Code?"
-frontend/src/pages/venue/QRCodesPage.tsx:433 [jsx_text] -> A4 QR Standee Print Sheet Preview
-frontend/src/pages/venue/QRCodesPage.tsx:442 [prop_text] -> aria-label="Cards per sheet layout"
-frontend/src/pages/venue/QRCodesPage.tsx:447 [jsx_text] -> 6 per page (Large Standee)
-frontend/src/pages/venue/QRCodesPage.tsx:448 [jsx_text] -> 12 per page (Compact Tent)
-frontend/src/pages/venue/QRCodesPage.tsx:455 [prop_text] -> aria-label="Sheet language"
-frontend/src/pages/venue/QRCodesPage.tsx:460 [jsx_text] -> English Only
-frontend/src/pages/venue/QRCodesPage.tsx:461 [jsx_text] -> Bilingual (English + Tamil)
-frontend/src/pages/venue/QRCodesPage.tsx:548 [jsx_text] -> மெனுவை பார்க்க ஸ்கேன் செய்யவும்
-frontend/src/pages/venue/RoomsPage.tsx:178 [jsx_text] -> Total Rooms
-frontend/src/pages/venue/RoomsPage.tsx:214 [prop_text] -> placeholder="Search room number..."
-frontend/src/pages/venue/RoomsPage.tsx:225 [jsx_text] -> All Floors / Wings
-frontend/src/pages/venue/RoomsPage.tsx:259 [jsx_text] -> No hotel rooms found
-frontend/src/pages/venue/RoomsPage.tsx:310 [prop_text] -> title="Mark Occupied"
-frontend/src/pages/venue/RoomsPage.tsx:318 [prop_text] -> title="Mark Available"
-frontend/src/pages/venue/RoomsPage.tsx:331 [prop_text] -> title="Toggle Housekeeping"
-frontend/src/pages/venue/RoomsPage.tsx:357 [jsx_text] -> Add Hotel Room / Suite
-frontend/src/pages/venue/RoomsPage.tsx:367 [prop_text] -> placeholder="e.g. Room 204 or Suite 401"
-frontend/src/pages/venue/TablesPage.tsx:286 [jsx_text] -> t.is_combinable && !t.group).length
-frontend/src/pages/venue/TablesPage.tsx:366 [jsx_text] -> Area
-frontend/src/pages/venue/TablesPage.tsx:382 [jsx_text] -> Section
-frontend/src/pages/venue/TablesPage.tsx:398 [jsx_text] -> Status
-frontend/src/pages/venue/TablesPage.tsx:405 [jsx_text] -> Available
-frontend/src/pages/venue/TablesPage.tsx:406 [jsx_text] -> Occupied
-frontend/src/pages/venue/TablesPage.tsx:407 [jsx_text] -> Reserved
-frontend/src/pages/venue/TablesPage.tsx:408 [jsx_text] -> Billing
-frontend/src/pages/venue/TablesPage.tsx:409 [jsx_text] -> Dirty
-frontend/src/pages/venue/TablesPage.tsx:414 [jsx_text] -> Search
-frontend/src/pages/venue/TablesPage.tsx:437 [jsx_text] -> No tables match your filter
-frontend/src/pages/venue/TablesPage.tsx:448 [jsx_text] -> Label
-frontend/src/pages/venue/TablesPage.tsx:449 [jsx_text] -> Section
-frontend/src/pages/venue/TablesPage.tsx:450 [jsx_text] -> Seats
-frontend/src/pages/venue/TablesPage.tsx:451 [jsx_text] -> Type & Shape
-frontend/src/pages/venue/TablesPage.tsx:452 [jsx_text] -> Status
-frontend/src/pages/venue/TablesPage.tsx:453 [jsx_text] -> Group
-frontend/src/pages/venue/TablesPage.tsx:454 [jsx_text] -> Actions
-frontend/src/pages/venue/TablesPage.tsx:509 [jsx_text] -> Single
-frontend/src/pages/venue/TablesPage.tsx:569 [jsx_text] -> Section *
-frontend/src/pages/venue/TablesPage.tsx:708 [jsx_text] -> Square
-frontend/src/pages/venue/TablesPage.tsx:709 [jsx_text] -> Round
-frontend/src/pages/venue/TablesPage.tsx:710 [jsx_text] -> Rectangle
-frontend/src/pages/venue/TablesPage.tsx:754 [jsx_text] -> Section *
-frontend/src/pages/venue/TablesPage.tsx:777 [prop_text] -> placeholder="e.g. T15 or VIP-1"
-frontend/src/pages/venue/TablesPage.tsx:864 [jsx_text] -> Square
-frontend/src/pages/venue/TablesPage.tsx:865 [jsx_text] -> Round
-frontend/src/pages/venue/TablesPage.tsx:866 [jsx_text] -> Rectangle
-frontend/src/pages/venue/TablesPage.tsx:916 [prop_text] -> placeholder="e.g. Birthday Party Group"
+frontend/src/pages/venue/QRCodesPage.tsx:449 [jsx_text] -> Active QR Standees
+frontend/src/pages/venue/QRCodesPage.tsx:488 [jsx_text] -> Status
+frontend/src/pages/venue/QRCodesPage.tsx:489 [jsx_text] -> Actions
+frontend/src/pages/venue/QRCodesPage.tsx:551 [prop_text] -> title="Download Standee with Design"
+frontend/src/pages/venue/QRCodesPage.tsx:554 [jsx_text] -> Download
+frontend/src/pages/venue/QRCodesPage.tsx:604 [jsx_text] -> Preview &amp; Customize Standee
+frontend/src/pages/venue/QRCodesPage.tsx:612 [jsx_text] -> Plain QR Code (PNG)
+frontend/src/pages/venue/QRCodesPage.tsx:620 [jsx_text] -> Plain QR Code (SVG)
+frontend/src/pages/venue/QRCodesPage.tsx:631 [prop_text] -> title="Rotate QR Token"
+frontend/src/pages/venue/QRCodesPage.tsx:643 [prop_text] -> title="Deactivate QR Code"
+frontend/src/pages/venue/QRCodesPage.tsx:666 [jsx_text] -> Standee Card Preview &amp; Customizer
+frontend/src/pages/venue/QRCodesPage.tsx:736 [jsx_text] -> Scan to see our menu
+frontend/src/pages/venue/QRCodesPage.tsx:749 [jsx_text] -> ServeMyFood
+frontend/src/pages/venue/QRCodesPage.tsx:763 [prop_text] -> placeholder="e.g. Patio Open, Rooftop"
+frontend/src/pages/venue/QRCodesPage.tsx:775 [prop_text] -> placeholder="e.g. 30, T30, Room 101"
+frontend/src/pages/venue/QRCodesPage.tsx:832 [prop_text] -> title="Deactivate QR Code?"
+frontend/src/pages/venue/QRCodesPage.tsx:846 [jsx_text] -> A4 QR Standee Print Sheet Preview
+frontend/src/pages/venue/QRCodesPage.tsx:855 [prop_text] -> aria-label="Cards per sheet layout"
+frontend/src/pages/venue/QRCodesPage.tsx:860 [jsx_text] -> 6 per page (Large Standee)
+frontend/src/pages/venue/QRCodesPage.tsx:861 [jsx_text] -> 12 per page (Compact Tent)
+frontend/src/pages/venue/QRCodesPage.tsx:868 [prop_text] -> aria-label="Sheet language"
+frontend/src/pages/venue/QRCodesPage.tsx:873 [jsx_text] -> English Only
+frontend/src/pages/venue/QRCodesPage.tsx:874 [jsx_text] -> Bilingual (English + Tamil)
+frontend/src/pages/venue/QRCodesPage.tsx:994 [prop_text] -> title="Download this standee card (PNG with Design)"
+frontend/src/pages/venue/QRCodesPage.tsx:997 [jsx_text] -> Download Card
+frontend/src/pages/venue/QRCodesPage.tsx:1006 [prop_text] -> title="Preview & Customize Card"
+frontend/src/pages/venue/RoomsPage.tsx:173 [jsx_text] -> In-Room Dining & Suites:
+frontend/src/pages/venue/RoomsPage.tsx:195 [jsx_text] -> Total Rooms
+frontend/src/pages/venue/RoomsPage.tsx:231 [prop_text] -> placeholder="Search room number..."
+frontend/src/pages/venue/RoomsPage.tsx:242 [jsx_text] -> All Floors / Wings
+frontend/src/pages/venue/RoomsPage.tsx:276 [jsx_text] -> No hotel rooms found
+frontend/src/pages/venue/RoomsPage.tsx:327 [prop_text] -> title="Mark Occupied"
+frontend/src/pages/venue/RoomsPage.tsx:335 [prop_text] -> title="Mark Available"
+frontend/src/pages/venue/RoomsPage.tsx:348 [prop_text] -> title="Toggle Housekeeping"
+frontend/src/pages/venue/RoomsPage.tsx:374 [jsx_text] -> Add Hotel Room / Suite
+frontend/src/pages/venue/RoomsPage.tsx:384 [prop_text] -> placeholder="e.g. Room 204 or Suite 401"
+frontend/src/pages/venue/TablesPage.tsx:306 [jsx_text] -> t.is_combinable && !t.group).length
+frontend/src/pages/venue/TablesPage.tsx:411 [jsx_text] -> Area
+frontend/src/pages/venue/TablesPage.tsx:427 [jsx_text] -> Section
+frontend/src/pages/venue/TablesPage.tsx:443 [jsx_text] -> Status
+frontend/src/pages/venue/TablesPage.tsx:450 [jsx_text] -> Available
+frontend/src/pages/venue/TablesPage.tsx:451 [jsx_text] -> Occupied
+frontend/src/pages/venue/TablesPage.tsx:452 [jsx_text] -> Reserved
+frontend/src/pages/venue/TablesPage.tsx:453 [jsx_text] -> Billing
+frontend/src/pages/venue/TablesPage.tsx:454 [jsx_text] -> Dirty
+frontend/src/pages/venue/TablesPage.tsx:459 [jsx_text] -> Search
+frontend/src/pages/venue/TablesPage.tsx:482 [jsx_text] -> No tables match your filter
+frontend/src/pages/venue/TablesPage.tsx:493 [jsx_text] -> Label
+frontend/src/pages/venue/TablesPage.tsx:494 [jsx_text] -> Section
+frontend/src/pages/venue/TablesPage.tsx:495 [jsx_text] -> Seats
+frontend/src/pages/venue/TablesPage.tsx:496 [jsx_text] -> Type & Shape
+frontend/src/pages/venue/TablesPage.tsx:497 [jsx_text] -> Status
+frontend/src/pages/venue/TablesPage.tsx:498 [jsx_text] -> Group
+frontend/src/pages/venue/TablesPage.tsx:499 [jsx_text] -> Actions
+frontend/src/pages/venue/TablesPage.tsx:554 [jsx_text] -> Single
+frontend/src/pages/venue/TablesPage.tsx:616 [jsx_text] -> Section *
+frontend/src/pages/venue/TablesPage.tsx:755 [jsx_text] -> Square
+frontend/src/pages/venue/TablesPage.tsx:756 [jsx_text] -> Round
+frontend/src/pages/venue/TablesPage.tsx:757 [jsx_text] -> Rectangle
+frontend/src/pages/venue/TablesPage.tsx:803 [jsx_text] -> Section *
+frontend/src/pages/venue/TablesPage.tsx:826 [prop_text] -> placeholder="e.g. T15 or VIP-1"
+frontend/src/pages/venue/TablesPage.tsx:913 [jsx_text] -> Square
+frontend/src/pages/venue/TablesPage.tsx:914 [jsx_text] -> Round
+frontend/src/pages/venue/TablesPage.tsx:915 [jsx_text] -> Rectangle
+frontend/src/pages/venue/TablesPage.tsx:965 [prop_text] -> placeholder="e.g. Birthday Party Group"

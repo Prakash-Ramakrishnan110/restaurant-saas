@@ -16,6 +16,7 @@ function Run-Audit-Gate {
     param (
         [string]$Id,
         [string]$Name,
+        [string]$Command,
         [string]$RawFileName,
         [string]$WorkingDir,
         [scriptblock]$Action
@@ -45,6 +46,7 @@ function Run-Audit-Gate {
     $gateObj = [PSCustomObject]@{
         Id = $Id
         Name = $Name
+        Command = $Command
         RawFile = $RawFileName
         ExitCode = $exitCode
         Duration = "${durationSec}s"
@@ -53,77 +55,73 @@ function Run-Audit-Gate {
     $Gates.Add($gateObj)
 }
 
-# 1. Backend Pytest (Already run and logged to raw/backend-pytest.txt)
-$gate1 = [PSCustomObject]@{
-    Id = "1"
-    Name = "Backend Pytest with Coverage"
-    RawFile = "backend-pytest.txt"
-    ExitCode = 1
-    Duration = "112.70s"
-    Summary = "533 passed, 3 failed, Total coverage: 91.68% (required: 90%)"
+# 1. Backend Pytest
+Run-Audit-Gate -Id "1" -Name "Backend Pytest with Coverage" -Command "pytest --cov=apps" -RawFileName "backend-pytest.txt" -WorkingDir (Join-Path $RepoRoot "backend") -Action {
+    $env:TEST_DB_PORT = "5435"
+    $env:POSTGRES_HOST_PORT = "5435"
+    uv run pytest --cov=apps --cov-report=term-missing
 }
-$Gates.Add($gate1)
 
 # 2. Ruff Linter
-Run-Audit-Gate -Id "2" -Name "Backend Ruff Linter" -RawFileName "backend-ruff.txt" -WorkingDir (Join-Path $RepoRoot "backend") -Action {
+Run-Audit-Gate -Id "2" -Name "Backend Ruff Linter" -Command "ruff check ." -RawFileName "backend-ruff.txt" -WorkingDir (Join-Path $RepoRoot "backend") -Action {
     uv run ruff check .
 }
 
 # 3. Mypy Typecheck
-Run-Audit-Gate -Id "3" -Name "Backend Mypy Typecheck" -RawFileName "backend-mypy.txt" -WorkingDir (Join-Path $RepoRoot "backend") -Action {
+Run-Audit-Gate -Id "3" -Name "Backend Mypy Typecheck" -Command "mypy ." -RawFileName "backend-mypy.txt" -WorkingDir (Join-Path $RepoRoot "backend") -Action {
     uv run mypy .
 }
 
 # 4. Makemigrations --check
-Run-Audit-Gate -Id "4" -Name "Backend Makemigrations Check" -RawFileName "backend-makemigrations.txt" -WorkingDir (Join-Path $RepoRoot "backend") -Action {
-    $env:TEST_DB_PORT = "5432"
-    $env:POSTGRES_HOST_PORT = "5432"
+Run-Audit-Gate -Id "4" -Name "Backend Makemigrations Check" -Command "python manage.py makemigrations --check --dry-run" -RawFileName "backend-makemigrations.txt" -WorkingDir (Join-Path $RepoRoot "backend") -Action {
+    $env:TEST_DB_PORT = "5435"
+    $env:POSTGRES_HOST_PORT = "5435"
     uv run python manage.py makemigrations --check --dry-run
 }
 
 # 5. Pip Audit
-Run-Audit-Gate -Id "5" -Name "Backend Pip Audit" -RawFileName "backend-pip-audit.txt" -WorkingDir (Join-Path $RepoRoot "backend") -Action {
+Run-Audit-Gate -Id "5" -Name "Backend Pip Audit" -Command "pip-audit" -RawFileName "backend-pip-audit.txt" -WorkingDir (Join-Path $RepoRoot "backend") -Action {
     uv run pip-audit
 }
 
 # 6. Frontend Lint
-Run-Audit-Gate -Id "6" -Name "Frontend ESLint" -RawFileName "frontend-lint.txt" -WorkingDir (Join-Path $RepoRoot "frontend") -Action {
+Run-Audit-Gate -Id "6" -Name "Frontend ESLint" -Command "npm run lint" -RawFileName "frontend-lint.txt" -WorkingDir (Join-Path $RepoRoot "frontend") -Action {
     npm run lint
 }
 
 # 7. Frontend Typecheck
-Run-Audit-Gate -Id "7" -Name "Frontend Typecheck (tsc)" -RawFileName "frontend-typecheck.txt" -WorkingDir (Join-Path $RepoRoot "frontend") -Action {
+Run-Audit-Gate -Id "7" -Name "Frontend Typecheck (tsc)" -Command "npx tsc --noEmit" -RawFileName "frontend-typecheck.txt" -WorkingDir (Join-Path $RepoRoot "frontend") -Action {
     npx tsc --noEmit
 }
 
 # 8. Frontend Vitest with Coverage
-Run-Audit-Gate -Id "8" -Name "Frontend Vitest with Coverage" -RawFileName "frontend-vitest.txt" -WorkingDir (Join-Path $RepoRoot "frontend") -Action {
+Run-Audit-Gate -Id "8" -Name "Frontend Vitest with Coverage" -Command "npx vitest run --coverage" -RawFileName "frontend-vitest.txt" -WorkingDir (Join-Path $RepoRoot "frontend") -Action {
     npx vitest run --coverage
 }
 
 # 9. Frontend Build
-Run-Audit-Gate -Id "9" -Name "Frontend Production Build" -RawFileName "frontend-build.txt" -WorkingDir (Join-Path $RepoRoot "frontend") -Action {
+Run-Audit-Gate -Id "9" -Name "Frontend Production Build" -Command "npm run build" -RawFileName "frontend-build.txt" -WorkingDir (Join-Path $RepoRoot "frontend") -Action {
     npm run build
 }
 
 # 10. API Types Drift Check
-Run-Audit-Gate -Id "10" -Name "Frontend API Types Drift" -RawFileName "frontend-api-types.txt" -WorkingDir (Join-Path $RepoRoot "frontend") -Action {
+Run-Audit-Gate -Id "10" -Name "Frontend API Types Drift" -Command "openapi-typescript diff" -RawFileName "frontend-api-types.txt" -WorkingDir (Join-Path $RepoRoot "frontend") -Action {
     npx openapi-typescript ../docs/openapi.json -o src/types/api.ts
     git diff --exit-code src/types/api.ts
 }
 
 # 11. NPM Audit (High & Critical)
-Run-Audit-Gate -Id "11" -Name "Frontend NPM Audit (High/Critical)" -RawFileName "frontend-npm-audit.txt" -WorkingDir (Join-Path $RepoRoot "frontend") -Action {
+Run-Audit-Gate -Id "11" -Name "Frontend NPM Audit (High/Critical)" -Command "npm audit --audit-level=high" -RawFileName "frontend-npm-audit.txt" -WorkingDir (Join-Path $RepoRoot "frontend") -Action {
     npm audit --audit-level=high
 }
 
 # 12. Playwright --list
-Run-Audit-Gate -Id "12" -Name "Playwright E2E Test List" -RawFileName "playwright-list.txt" -WorkingDir (Join-Path $RepoRoot "frontend") -Action {
+Run-Audit-Gate -Id "12" -Name "Playwright E2E Test List" -Command "npx playwright test --list" -RawFileName "playwright-list.txt" -WorkingDir (Join-Path $RepoRoot "frontend") -Action {
     npx playwright test --list
 }
 
 # 13. Playwright E2E Run
-Run-Audit-Gate -Id "13" -Name "Playwright E2E Test Run" -RawFileName "playwright-run.txt" -WorkingDir (Join-Path $RepoRoot "frontend") -Action {
+Run-Audit-Gate -Id "13" -Name "Playwright E2E Test Run" -Command "npx playwright test" -RawFileName "playwright-run.txt" -WorkingDir (Join-Path $RepoRoot "frontend") -Action {
     npx playwright test
 }
 
@@ -135,17 +133,30 @@ $md.Add("# Quality Gates Audit")
 $md.Add("")
 $md.Add("Execution record of all backend and frontend quality gates.")
 $md.Add("")
-$md.Add("| Gate # | Gate Name | Command / Script | Exit Code | Duration | Outcome / Parsed Metrics | Evidence Raw File |")
-$md.Add("|---|---|---|---|---|---|---|")
+$md.Add("| Gate # | Gate Name | Command / Script | Status | Exit Code | Duration | Outcome / Parsed Metrics | Evidence Raw File |")
+$md.Add("|---|---|---|---|---|---|---|---|")
 
+$allPassed = $true
 foreach ($g in $Gates) {
     $rawPath = Join-Path $RawDir $g.RawFile
     $rawContent = if (Test-Path $rawPath) { Get-Content $rawPath -Raw -ErrorAction SilentlyContinue } else { "" }
     $cleanContent = $rawContent -replace "\x1b\[[0-9;]*[a-zA-Z]", ""
+    $gateStatus = if ($g.ExitCode -eq 0) { "PASS" } else { "FAIL"; $allPassed = $false }
 
     $summary = $g.Summary
     if (!$summary) {
-        if ($g.Id -eq "2") {
+        if ($g.Id -eq "1") {
+            # Backend Pytest
+            $parts = @()
+            if ($cleanContent -match "(\d+\s+failed,\s*\d+\s+passed|\d+\s+passed|\d+\s+failed|\d+\s+error[s]?)") {
+                $parts += $Matches[1].Trim()
+            }
+            if ($cleanContent -match "Total coverage:\s*([\d.]+%)") {
+                $parts += "coverage $($Matches[1])"
+            }
+            if ($parts.Count -gt 0) { $summary = $parts -join ", " }
+            else { $summary = "Exit code $($g.ExitCode)" }
+        } elseif ($g.Id -eq "2") {
             # Ruff
             if ($cleanContent -match "All checks passed") { $summary = "0 errors, all checks passed" }
             elseif ($cleanContent -match "Found (\d+) errors?") { $summary = "$($Matches[1]) lint errors" }
@@ -175,8 +186,8 @@ foreach ($g in $Gates) {
             else { $summary = "TypeScript compile errors found" }
         } elseif ($g.Id -eq "8") {
             # Vitest
-            if ($cleanContent -match "Tests\s+([\d\w\s,]+)") {
-                $summary = $Matches[0]
+            if ($cleanContent -match "Tests\s+([^\r\n]+)") {
+                $summary = "Tests " + $Matches[1].Trim()
             } elseif ($g.ExitCode -eq 0) { $summary = "Vitest passed" }
             else { $summary = "Exit code $($g.ExitCode)" }
         } elseif ($g.Id -eq "9") {
@@ -191,23 +202,47 @@ foreach ($g in $Gates) {
         } elseif ($g.Id -eq "11") {
             # NPM Audit
             if ($cleanContent -match "found 0 vulnerabilities") { $summary = "0 vulnerabilities" }
-            elseif ($cleanContent -match "(\d+) vulnerabilities") { $summary = "$($Matches[1]) vulnerabilities" }
-            else { $summary = "Exit code $($g.ExitCode)" }
+            elseif ($cleanContent -match "(\d+\s+(?:moderate|high|critical|low)\s+severity\s+vulnerabilities|\d+\s+vulnerabilities[^\r\n]*)") {
+                $summary = $Matches[1].Trim()
+            } else { $summary = "Exit code $($g.ExitCode)" }
         } elseif ($g.Id -eq "12") {
             # Playwright List
             if ($cleanContent -match "Total: (\d+) tests?") { $summary = "$($Matches[1]) E2E tests listed" }
             else { $summary = "Exit code $($g.ExitCode)" }
         } elseif ($g.Id -eq "13") {
             # Playwright Run
-            if ($cleanContent -match "(\d+) passed[,\s]*(\d+)?\s*(failed)?[,\s]*(\d+)?\s*(skipped)?") {
-                $summary = $Matches[0]
+            $pwParts = @()
+            if ($cleanContent -match "(?m)^\s*(\d+\s+failed)\s*$") { $pwParts += $Matches[1].Trim() }
+            if ($cleanContent -match "(?m)^\s*(\d+\s+passed[^\r\n]*)") { $pwParts += $Matches[1].Trim() }
+            if ($pwParts.Count -gt 0) {
+                $summary = $pwParts -join ", "
             } else { $summary = "Exit code $($g.ExitCode)" }
         }
     }
 
-    $md.Add("| $($g.Id) | $($g.Name) | `$($g.RawFile)` | $($g.ExitCode) | $($g.Duration) | $summary | `docs/audit/raw/$($g.RawFile)` |")
+    $bt = [char]96
+    $cmdText = "$bt$($g.Command)$bt"
+    $rawText = "${bt}docs/audit/raw/$($g.RawFile)${bt}"
+    $md.Add("| $($g.Id) | $($g.Name) | $cmdText | $gateStatus | $($g.ExitCode) | $($g.Duration) | $summary | $rawText |")
 }
 
+$overallVerdict = if ($allPassed) { "PASS" } else { "FAIL" }
+$md.Insert(4, "**Overall Quality Gates Status:** **$overallVerdict**")
+$md.Insert(5, "")
+
+$md.Add("")
+$md.Add("## Working Tree Status")
+$md.Add("")
+$gitStatusLines = git status --short
+$md.Add('```')
+if (!$gitStatusLines) {
+    $md.Add("CLEAN")
+} else {
+    foreach ($line in $gitStatusLines) {
+        $md.Add($line)
+    }
+}
+$md.Add('```')
 $md.Add("")
 $md.Add("## Stubs in E2E Tests (`page.route`)")
 $md.Add("")

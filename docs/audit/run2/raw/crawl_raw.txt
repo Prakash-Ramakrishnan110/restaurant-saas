@@ -1,0 +1,15 @@
+=== UX CRAWL AUDIT REPORT ===
+Total page checks executed: 486
+Total HTTP errors encountered: 2
+Total Console errors encountered: 2
+Total Uncaught exceptions encountered: 0
+Total Horizontal overflow pages: 0
+Total Pages with serious/critical accessibility violations: 384
+
+--- HTTP ERRORS ENCOUNTERED ---
+  [kitchen_table] /kds: 401 http://127.0.0.1:5173/api/v1/auth/refresh/; 401 http://127.0.0.1:5173/api/v1/auth/refresh/
+  [cashier_counter] /billing: 403 http://127.0.0.1:5173/api/v1/business/
+
+--- CONSOLE ERRORS & CRASHES ---
+  [kitchen_table] /kds: Console: Failed to load resource: the server responded with a status of 401 (Unauthorized); Failed to load resource: the server responded with a status of 401 (Unauthorized) | Uncaught: NONE
+  [cashier_counter] /billing: Console: Failed to load resource: the server responded with a status of 403 (Forbidden) | Uncaught: NONE

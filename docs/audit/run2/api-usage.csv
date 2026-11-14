@@ -1,0 +1,206 @@
+endpoint,method,calling_pages,unused_by_ui
+/api/v1/announcements/,GET,NONE,Y
+/api/v1/announcements/,POST,frontend/src/pages/admin/PlatformAnnouncementsPage.tsx,N
+/api/v1/announcements/{id}/,DELETE,frontend/src/pages/admin/PlatformAnnouncementsPage.tsx,N
+/api/v1/announcements/{id}/,GET,NONE,Y
+/api/v1/announcements/{id}/,PATCH,frontend/src/pages/admin/PlatformAnnouncementsPage.tsx,N
+/api/v1/audit-logs/,GET,NONE,Y
+/api/v1/auth/change-password/,POST,frontend/src/context/AuthContext.tsx,N
+/api/v1/auth/login/,POST,NONE,Y
+/api/v1/auth/logout/,POST,frontend/src/context/AuthContext.tsx,N
+/api/v1/auth/me/,GET,NONE,Y
+/api/v1/auth/me/,PATCH,frontend/src/pages/settings/AccountPage.tsx,N
+/api/v1/auth/refresh/,POST,frontend/src/context/AuthContext.tsx,N
+/api/v1/branches/,GET,frontend/src/pages/menu/MenuAvailabilityPage.tsx; frontend/src/pages/onboarding/OnboardingWizardPage.tsx; frontend/src/pages/settings/VenueSettingsPage.tsx; frontend/src/pages/staff/StaffPage.tsx; frontend/src/pages/venue/AreasPage.tsx; frontend/src/pages/venue/BranchesPage.tsx; frontend/src/pages/venue/CountersPage.tsx,N
+/api/v1/branches/,POST,frontend/src/pages/onboarding/OnboardingWizardPage.tsx; frontend/src/pages/venue/BranchesPage.tsx,N
+/api/v1/branches/{branch_id}/capabilities/,GET,frontend/src/pages/settings/VenueSettingsPage.tsx,N
+/api/v1/branches/{branch_id}/capabilities/,PATCH,frontend/src/pages/settings/VenueSettingsPage.tsx,N
+/api/v1/branches/{branch_id}/layout-templates/{key}/apply/,POST,frontend/src/pages/onboarding/OnboardingWizardPage.tsx,N
+/api/v1/branches/{id}/,DELETE,NONE,Y
+/api/v1/branches/{id}/,GET,NONE,Y
+/api/v1/branches/{id}/,PATCH,frontend/src/pages/onboarding/OnboardingWizardPage.tsx; frontend/src/pages/venue/BranchesPage.tsx,N
+/api/v1/business/,GET,frontend/src/pages/onboarding/OnboardingWizardPage.tsx; frontend/src/pages/venue/QRCodesPage.tsx; frontend/src/pages/venue/TablesPage.tsx,N
+/api/v1/business/,PATCH,frontend/src/pages/onboarding/OnboardingWizardPage.tsx; frontend/src/pages/settings/BrandingSettingsPage.tsx,N
+/api/v1/business/logo/,DELETE,frontend/src/pages/settings/BrandingSettingsPage.tsx,N
+/api/v1/business/logo/,POST,NONE,Y
+/api/v1/customers/,GET,NONE,Y
+/api/v1/customers/,POST,frontend/src/pages/customers/CustomersPage.tsx,N
+/api/v1/customers/{id}/,DELETE,NONE,Y
+/api/v1/customers/{id}/,GET,NONE,Y
+/api/v1/customers/{id}/,PATCH,frontend/src/pages/customers/CustomersPage.tsx,N
+/api/v1/customers/{id}/,PUT,NONE,Y
+/api/v1/entitlements/,GET,frontend/src/pages/dashboard/DashboardPage.tsx; frontend/src/pages/menu/MenuPage.tsx; frontend/src/pages/settings/VenueSettingsPage.tsx,N
+/api/v1/inventory/ingredients/,GET,frontend/src/pages/dashboard/DashboardPage.tsx,N
+/api/v1/inventory/ingredients/,POST,frontend/src/pages/inventory/StockOverviewPage.tsx,N
+/api/v1/inventory/ingredients/{id}/,DELETE,NONE,Y
+/api/v1/inventory/ingredients/{id}/,GET,NONE,Y
+/api/v1/inventory/ingredients/{id}/,PATCH,NONE,Y
+/api/v1/inventory/ingredients/{id}/,PUT,NONE,Y
+/api/v1/inventory/ingredients/{id}/adjust-stock/,POST,frontend/src/pages/inventory/StockOverviewPage.tsx,N
+/api/v1/inventory/purchases/,GET,NONE,Y
+/api/v1/inventory/purchases/,POST,frontend/src/pages/inventory/SuppliersPurchasesPage.tsx,N
+/api/v1/inventory/purchases/{id}/,DELETE,NONE,Y
+/api/v1/inventory/purchases/{id}/,GET,NONE,Y
+/api/v1/inventory/purchases/{id}/,PATCH,NONE,Y
+/api/v1/inventory/purchases/{id}/,PUT,NONE,Y
+/api/v1/inventory/purchases/{id}/receive/,POST,frontend/src/pages/inventory/SuppliersPurchasesPage.tsx,N
+/api/v1/inventory/recipes/,GET,NONE,Y
+/api/v1/inventory/recipes/,POST,frontend/src/pages/inventory/RecipesPage.tsx,N
+/api/v1/inventory/recipes/{id}/,DELETE,NONE,Y
+/api/v1/inventory/recipes/{id}/,GET,NONE,Y
+/api/v1/inventory/recipes/{id}/,PATCH,NONE,Y
+/api/v1/inventory/recipes/{id}/,PUT,frontend/src/pages/inventory/RecipesPage.tsx,N
+/api/v1/inventory/reports/low-stock/,GET,frontend/src/pages/inventory/InventoryReportsPage.tsx,N
+/api/v1/inventory/reports/variance/,GET,frontend/src/pages/inventory/InventoryReportsPage.tsx,N
+/api/v1/inventory/suppliers/,GET,NONE,Y
+/api/v1/inventory/suppliers/,POST,frontend/src/pages/inventory/SuppliersPurchasesPage.tsx,N
+/api/v1/inventory/suppliers/{id}/,DELETE,NONE,Y
+/api/v1/inventory/suppliers/{id}/,GET,NONE,Y
+/api/v1/inventory/suppliers/{id}/,PATCH,NONE,Y
+/api/v1/inventory/suppliers/{id}/,PUT,NONE,Y
+/api/v1/inventory/transactions/,GET,NONE,Y
+/api/v1/inventory/transactions/{id}/,GET,NONE,Y
+/api/v1/inventory/wastage/,GET,NONE,Y
+/api/v1/inventory/wastage/,POST,frontend/src/pages/inventory/WastagePage.tsx,N
+/api/v1/inventory/wastage/{id}/,DELETE,NONE,Y
+/api/v1/inventory/wastage/{id}/,GET,NONE,Y
+/api/v1/inventory/wastage/{id}/,PATCH,NONE,Y
+/api/v1/inventory/wastage/{id}/,PUT,NONE,Y
+/api/v1/invoices/,GET,frontend/src/api/orders.ts,N
+/api/v1/invoices/{id}/,GET,frontend/src/api/orders.ts,N
+/api/v1/layout-templates/,GET,NONE,Y
+/api/v1/menu/availability/,GET,frontend/src/pages/orders/FloorPOSPage.tsx,N
+/api/v1/menu/availability/,POST,NONE,Y
+/api/v1/menu/availability/bulk-toggle/,POST,frontend/src/pages/menu/MenuAvailabilityPage.tsx,N
+/api/v1/menu/availability/toggle/,POST,frontend/src/pages/menu/MenuAvailabilityPage.tsx,N
+/api/v1/menu/availability/{id}/,DELETE,NONE,Y
+/api/v1/menu/availability/{id}/,GET,NONE,Y
+/api/v1/menu/availability/{id}/,PATCH,NONE,Y
+/api/v1/menu/availability/{id}/,PUT,NONE,Y
+/api/v1/menu/categories/,GET,frontend/src/pages/menu/MenuAvailabilityPage.tsx; frontend/src/pages/menu/MenuPage.tsx; frontend/src/pages/orders/FloorPOSPage.tsx,N
+/api/v1/menu/categories/,POST,frontend/src/pages/menu/MenuPage.tsx,N
+/api/v1/menu/categories/reorder/,POST,frontend/src/pages/menu/MenuPage.tsx,N
+/api/v1/menu/categories/{id}/,DELETE,NONE,Y
+/api/v1/menu/categories/{id}/,GET,NONE,Y
+/api/v1/menu/categories/{id}/,PATCH,frontend/src/pages/menu/MenuPage.tsx,N
+/api/v1/menu/categories/{id}/,PUT,NONE,Y
+/api/v1/menu/full/,GET,NONE,Y
+/api/v1/menu/items/,GET,frontend/src/pages/menu/MenuAvailabilityPage.tsx; frontend/src/pages/menu/MenuPage.tsx; frontend/src/pages/orders/FloorPOSPage.tsx,N
+/api/v1/menu/items/,POST,frontend/src/pages/menu/MenuPage.tsx,N
+/api/v1/menu/items/bulk-create/,POST,frontend/src/pages/menu/MenuPage.tsx,N
+/api/v1/menu/items/{id}/,DELETE,frontend/src/pages/menu/MenuPage.tsx,N
+/api/v1/menu/items/{id}/,GET,NONE,Y
+/api/v1/menu/items/{id}/,PATCH,frontend/src/pages/menu/MenuPage.tsx,N
+/api/v1/menu/items/{id}/,PUT,NONE,Y
+/api/v1/menu/items/{id}/image/,DELETE,NONE,Y
+/api/v1/menu/items/{id}/image/,POST,frontend/src/pages/menu/MenuPage.tsx,N
+/api/v1/menu/items/{id}/option-groups/,PUT,frontend/src/pages/menu/MenuPage.tsx,N
+/api/v1/menu/items/{id}/variants/,PUT,frontend/src/pages/menu/MenuPage.tsx,N
+/api/v1/menu/option-groups/,GET,frontend/src/pages/menu/MenuPage.tsx,N
+/api/v1/menu/option-groups/,POST,frontend/src/pages/menu/MenuOptionsPage.tsx,N
+/api/v1/menu/option-groups/{id}/,DELETE,frontend/src/pages/menu/MenuOptionsPage.tsx,N
+/api/v1/menu/option-groups/{id}/,GET,NONE,Y
+/api/v1/menu/option-groups/{id}/,PATCH,NONE,Y
+/api/v1/menu/option-groups/{id}/,PUT,frontend/src/pages/menu/MenuOptionsPage.tsx,N
+/api/v1/onboarding/status/,GET,frontend/src/pages/dashboard/DashboardPage.tsx; frontend/src/pages/onboarding/OnboardingWizardPage.tsx,N
+/api/v1/orders/,GET,frontend/src/api/orders.ts,N
+/api/v1/orders/,POST,frontend/src/api/orders.ts,N
+/api/v1/orders/billing/invoices/,GET,NONE,Y
+/api/v1/orders/billing/order/{order_id}/settle/,POST,frontend/src/api/orders.ts,N
+/api/v1/orders/billing/session/{session_id}/,GET,frontend/src/api/orders.ts,N
+/api/v1/orders/billing/session/{session_id}/settle/,POST,frontend/src/api/orders.ts,N
+/api/v1/orders/customers/,GET,NONE,Y
+/api/v1/orders/customers/,POST,NONE,Y
+/api/v1/orders/customers/{id}/,DELETE,NONE,Y
+/api/v1/orders/customers/{id}/,GET,NONE,Y
+/api/v1/orders/customers/{id}/,PATCH,NONE,Y
+/api/v1/orders/customers/{id}/,PUT,NONE,Y
+/api/v1/orders/invoices/,GET,NONE,Y
+/api/v1/orders/invoices/{id}/,GET,NONE,Y
+/api/v1/orders/kds/,GET,NONE,Y
+/api/v1/orders/kds/{id}/,GET,NONE,Y
+/api/v1/orders/kds/{id}/bump/,POST,frontend/src/api/orders.ts,N
+/api/v1/orders/service-requests/,GET,NONE,Y
+/api/v1/orders/service-requests/,POST,NONE,Y
+/api/v1/orders/service-requests/{id}/,DELETE,NONE,Y
+/api/v1/orders/service-requests/{id}/,GET,NONE,Y
+/api/v1/orders/service-requests/{id}/,PATCH,NONE,Y
+/api/v1/orders/service-requests/{id}/,PUT,NONE,Y
+/api/v1/orders/service-requests/{id}/acknowledge/,POST,frontend/src/api/orders.ts,N
+/api/v1/orders/{id}/,DELETE,NONE,Y
+/api/v1/orders/{id}/,GET,frontend/src/api/orders.ts,N
+/api/v1/orders/{id}/,PATCH,NONE,Y
+/api/v1/orders/{id}/,PUT,NONE,Y
+/api/v1/orders/{id}/cancel/,POST,frontend/src/api/orders.ts,N
+/api/v1/orders/{id}/fire-mains/,POST,frontend/src/api/orders.ts,N
+/api/v1/orders/{id}/serve/,POST,frontend/src/api/orders.ts,N
+/api/v1/plans/,GET,frontend/src/pages/admin/PlatformPlansPage.tsx,N
+/api/v1/platform/customers/,POST,frontend/src/pages/admin/NewCustomerWizardPage.tsx,N
+/api/v1/platform/summary/,GET,frontend/src/pages/admin/PlatformAdminPage.tsx; frontend/src/pages/admin/PlatformHealthPage.tsx,N
+/api/v1/public/qr/{token}/,GET,NONE,Y
+/api/v1/public/qr/{token}/session/,POST,NONE,Y
+/api/v1/qr-codes/,GET,frontend/src/pages/venue/QRCodesPage.tsx,N
+/api/v1/qr-codes/generate/,POST,NONE,Y
+/api/v1/qr-codes/sheet-data/,GET,NONE,Y
+/api/v1/qr-codes/{id}/,DELETE,frontend/src/pages/venue/QRCodesPage.tsx,N
+/api/v1/qr-codes/{id}/,GET,frontend/src/pages/venue/QRCodesPage.tsx,N
+/api/v1/qr-codes/{id}/image/,GET,frontend/src/pages/venue/QRCodesPage.tsx,N
+/api/v1/qr-codes/{id}/rotate/,POST,frontend/src/pages/venue/QRCodesPage.tsx,N
+/api/v1/reports/exceptions/,GET,frontend/src/pages/reports/ExceptionsReportPage.tsx,N
+/api/v1/reports/orders-delay/,GET,NONE,Y
+/api/v1/reports/outlets/,GET,frontend/src/pages/reports/OutletComparisonPage.tsx,N
+/api/v1/reports/range/,GET,frontend/src/api/orders.ts,N
+/api/v1/reports/staff/,GET,frontend/src/pages/reports/StaffReportPage.tsx,N
+/api/v1/reports/today/,GET,frontend/src/api/orders.ts,N
+/api/v1/sections/,GET,frontend/src/pages/venue/AreasPage.tsx; frontend/src/pages/venue/FloorPlanPage.tsx; frontend/src/pages/venue/TablesPage.tsx,N
+/api/v1/sections/,POST,frontend/src/pages/venue/AreasPage.tsx,N
+/api/v1/sections/{id}/,DELETE,NONE,Y
+/api/v1/sections/{id}/,GET,NONE,Y
+/api/v1/sections/{id}/,PATCH,frontend/src/pages/venue/AreasPage.tsx,N
+/api/v1/service-areas/,GET,frontend/src/pages/venue/AreasPage.tsx; frontend/src/pages/venue/CountersPage.tsx; frontend/src/pages/venue/TablesPage.tsx,N
+/api/v1/service-areas/,POST,frontend/src/pages/venue/AreasPage.tsx; frontend/src/pages/venue/CountersPage.tsx,N
+/api/v1/service-areas/{id}/,DELETE,NONE,Y
+/api/v1/service-areas/{id}/,GET,NONE,Y
+/api/v1/service-areas/{id}/,PATCH,frontend/src/pages/venue/AreasPage.tsx; frontend/src/pages/venue/CountersPage.tsx,N
+/api/v1/staff-assignments/,GET,NONE,Y
+/api/v1/staff-assignments/,POST,NONE,Y
+/api/v1/staff-assignments/{id}/,DELETE,NONE,Y
+/api/v1/staff-assignments/{id}/,GET,NONE,Y
+/api/v1/staff/,GET,frontend/src/pages/staff/StaffPage.tsx,N
+/api/v1/staff/,POST,frontend/src/pages/onboarding/OnboardingWizardPage.tsx; frontend/src/pages/staff/StaffPage.tsx,N
+/api/v1/staff/{id}/,DELETE,NONE,Y
+/api/v1/staff/{id}/,GET,NONE,Y
+/api/v1/staff/{id}/,PATCH,frontend/src/pages/staff/StaffPage.tsx,N
+/api/v1/staff/{id}/reset-password/,POST,frontend/src/pages/staff/StaffPage.tsx,N
+/api/v1/support-tickets/,GET,NONE,Y
+/api/v1/support-tickets/,POST,frontend/src/components/layout/AppShell.tsx,N
+/api/v1/support-tickets/{id}/,DELETE,NONE,Y
+/api/v1/support-tickets/{id}/,GET,NONE,Y
+/api/v1/support-tickets/{id}/,PATCH,frontend/src/pages/admin/PlatformSupportPage.tsx,N
+/api/v1/table-groups/,GET,NONE,Y
+/api/v1/table-groups/{id}/,GET,NONE,Y
+/api/v1/table-sessions/,GET,NONE,Y
+/api/v1/table-sessions/open/,POST,frontend/src/pages/orders/FloorPOSPage.tsx,N
+/api/v1/table-sessions/{id}/,GET,NONE,Y
+/api/v1/table-sessions/{id}/close/,POST,NONE,Y
+/api/v1/tables/,GET,frontend/src/pages/dashboard/DashboardPage.tsx; frontend/src/pages/orders/FloorPOSPage.tsx; frontend/src/pages/venue/FloorPlanPage.tsx; frontend/src/pages/venue/TablesPage.tsx; frontend/src/tests/auth.test.tsx,N
+/api/v1/tables/,POST,frontend/src/pages/venue/RoomsPage.tsx; frontend/src/pages/venue/TablesPage.tsx,N
+/api/v1/tables/bulk-create/,POST,frontend/src/pages/venue/TablesPage.tsx,N
+/api/v1/tables/join/,POST,frontend/src/pages/venue/TablesPage.tsx,N
+/api/v1/tables/layout/,POST,NONE,Y
+/api/v1/tables/split/,POST,frontend/src/pages/venue/TablesPage.tsx,N
+/api/v1/tables/{id}/,DELETE,NONE,Y
+/api/v1/tables/{id}/,GET,NONE,Y
+/api/v1/tables/{id}/,PATCH,frontend/src/pages/venue/RoomsPage.tsx; frontend/src/pages/venue/TablesPage.tsx,N
+/api/v1/tables/{id}/status/,POST,frontend/src/pages/venue/FloorPlanPage.tsx; frontend/src/pages/venue/TablesPage.tsx,N
+/api/v1/tenants/,GET,NONE,Y
+/api/v1/tenants/,POST,NONE,Y
+/api/v1/tenants/{id}/,GET,frontend/src/pages/admin/CustomerDetailPage.tsx,N
+/api/v1/tenants/{id}/activate/,POST,NONE,Y
+/api/v1/tenants/{id}/change-plan/,POST,NONE,Y
+/api/v1/tenants/{id}/extend-trial/,POST,NONE,Y
+/api/v1/tenants/{id}/notes/,POST,NONE,Y
+/api/v1/tenants/{id}/reset-owner-password/,POST,NONE,Y
+/api/v1/tenants/{id}/suspend/,POST,NONE,Y
+/api/v1/venues/presets/,GET,frontend/src/pages/settings/VenueSettingsPage.tsx,N
+/health/,GET,NONE,Y

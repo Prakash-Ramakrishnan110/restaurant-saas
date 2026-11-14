@@ -1,4 +1,4 @@
-﻿# ==============================================================================
+# ==============================================================================
 # ServeMyFood: Complete Automated Quality Gate Verification Script
 # Target: Prompt 4A Close-Out Verification (Tag v0.6.1)
 # ==============================================================================
@@ -87,8 +87,8 @@ Run-Gate -Id 1 `
     -OutputFile "backend-pytest.txt" `
     -WorkingDir (Join-Path $RepoRoot "backend") `
     -Action {
-        $env:TEST_DB_PORT = "5432"
-        $env:POSTGRES_HOST_PORT = "5432"
+        $env:TEST_DB_PORT = "5435"
+        $env:POSTGRES_HOST_PORT = "5435"
         uv run pytest
     }
 

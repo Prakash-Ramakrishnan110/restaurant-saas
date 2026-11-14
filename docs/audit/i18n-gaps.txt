@@ -4,7 +4,7 @@ Tamil (ta) translation keys count:   272
 Missing Tamil keys:                   0
 Empty Tamil translations:             0
 Extra Tamil keys (not in en):         0
-Hardcoded UI strings detected:        800
+Hardcoded UI strings detected:        840
 
 --- 1. MISSING TAMIL KEYS (0) ---
   None. All English keys have matching Tamil keys.
@@ -12,39 +12,43 @@ Hardcoded UI strings detected:        800
 --- 2. EMPTY TAMIL TRANSLATIONS (0) ---
   None.
 
---- 3. HARDCODED UI STRINGS IN COMPONENTS (Sample 50 of 800) ---
+--- 3. HARDCODED UI STRINGS IN COMPONENTS (Sample 50 of 840) ---
   frontend/src/components/app/PageHeader.tsx:36 -> aria-label="Breadcrumb"
   frontend/src/components/app/PageHeader.tsx:41 -> 0 &&
   frontend/src/components/app/UpgradeModal.tsx:35 -> Plan Limit Reached
   frontend/src/components/brand/BrandLogo.tsx:64 -> aria-label="ServeMyFood"
   frontend/src/components/brand/BrandLogo.tsx:77 -> aria-label="ServeMyFood"
-  frontend/src/components/layout/AppShell.tsx:243 -> (prev
-  frontend/src/components/layout/AppShell.tsx:276 -> aria-label="Toggle navigation menu"
-  frontend/src/components/layout/AppShell.tsx:295 -> Search or jump to...
-  frontend/src/components/layout/AppShell.tsx:308 -> aria-label="Select active restaurant"
-  frontend/src/components/layout/AppShell.tsx:343 -> aria-label="Switch language"
-  frontend/src/components/layout/AppShell.tsx:355 -> aria-label="Toggle theme"
-  frontend/src/components/layout/AppShell.tsx:367 -> aria-label="Open support desk"
-  frontend/src/components/layout/AppShell.tsx:370 -> Support
-  frontend/src/components/layout/AppShell.tsx:384 -> aria-label="Sign out"
-  frontend/src/components/layout/AppShell.tsx:387 -> Sign Out
-  frontend/src/components/layout/AppShell.tsx:402 -> aria-label="Main Navigation"
-  frontend/src/components/layout/AppShell.tsx:465 -> Active
-  frontend/src/components/layout/AppShell.tsx:496 -> title="Dismiss"
-  frontend/src/components/layout/AppShell.tsx:497 -> aria-label="Dismiss announcement"
-  frontend/src/components/layout/AppShell.tsx:513 -> Quick Navigation
-  frontend/src/components/layout/AppShell.tsx:520 -> placeholder="Jump to page... (or use arrow keys)"
-  frontend/src/components/layout/AppShell.tsx:598 -> placeholder="e.g. Printer not printing KOT receipts"
-  frontend/src/components/layout/AppShell.tsx:615 -> Low - General Question
-  frontend/src/components/layout/AppShell.tsx:616 -> Medium - Normal Issue
-  frontend/src/components/layout/AppShell.tsx:617 -> High - Service Affected
-  frontend/src/components/layout/AppShell.tsx:618 -> Urgent - Billing / Outage
-  frontend/src/components/layout/AppShell.tsx:628 -> placeholder="+91 98765 43210"
-  frontend/src/components/layout/AppShell.tsx:643 -> placeholder="Describe what occurred, table/order numbers, or device details..."
-  frontend/src/components/layout/AppShell.tsx:670 -> aria-label="Mobile Navigation"
-  frontend/src/components/layout/AppShell.tsx:680 -> Home
-  frontend/src/components/layout/AppShell.tsx:713 -> Billing
-  frontend/src/components/layout/AppShell.tsx:722 -> More
+  frontend/src/components/layout/AppShell.tsx:299 -> (prev
+  frontend/src/components/layout/AppShell.tsx:332 -> aria-label="Toggle navigation menu"
+  frontend/src/components/layout/AppShell.tsx:351 -> Search or jump to...
+  frontend/src/components/layout/AppShell.tsx:364 -> aria-label="Select active restaurant"
+  frontend/src/components/layout/AppShell.tsx:399 -> aria-label="Switch language"
+  frontend/src/components/layout/AppShell.tsx:423 -> aria-label="Toggle theme"
+  frontend/src/components/layout/AppShell.tsx:438 -> aria-label="Open support desk"
+  frontend/src/components/layout/AppShell.tsx:441 -> Support
+  frontend/src/components/layout/AppShell.tsx:460 -> aria-label="Sign out"
+  frontend/src/components/layout/AppShell.tsx:463 -> Sign Out
+  frontend/src/components/layout/AppShell.tsx:478 -> aria-label="Main Navigation"
+  frontend/src/components/layout/AppShell.tsx:541 -> Active
+  frontend/src/components/layout/AppShell.tsx:606 -> title="Dismiss announcement"
+  frontend/src/components/layout/AppShell.tsx:607 -> aria-label="Dismiss announcement"
+  frontend/src/components/layout/AppShell.tsx:624 -> Quick Navigation
+  frontend/src/components/layout/AppShell.tsx:631 -> placeholder="Jump to page... (or use arrow keys)"
+  frontend/src/components/layout/AppShell.tsx:703 -> My Tickets
+  frontend/src/components/layout/AppShell.tsx:729 -> title="Refresh tickets"
+  frontend/src/components/layout/AppShell.tsx:732 -> Refresh
+  frontend/src/components/layout/AppShell.tsx:786 -> Priority:
+  frontend/src/components/layout/AppShell.tsx:841 -> placeholder="e.g. Printer not printing KOT receipts"
+  frontend/src/components/layout/AppShell.tsx:858 -> Low - General Question
+  frontend/src/components/layout/AppShell.tsx:859 -> Medium - Normal Issue
+  frontend/src/components/layout/AppShell.tsx:860 -> High - Service Affected
+  frontend/src/components/layout/AppShell.tsx:861 -> Urgent - Billing / Outage
+  frontend/src/components/layout/AppShell.tsx:871 -> placeholder="+91 98765 43210"
+  frontend/src/components/layout/AppShell.tsx:886 -> placeholder="Describe what occurred, table/order numbers, or device details..."
+  frontend/src/components/layout/AppShell.tsx:913 -> aria-label="Mobile Navigation"
+  frontend/src/components/layout/AppShell.tsx:923 -> Home
+  frontend/src/components/layout/AppShell.tsx:956 -> Billing
+  frontend/src/components/layout/AppShell.tsx:965 -> More
   frontend/src/components/menu/FoodTypeBadge.tsx:43 -> Non-Veg
   frontend/src/components/menu/ItemEditorSheet.tsx:29 -> Promise
   frontend/src/components/menu/ItemEditorSheet.tsx:219 -> label="Menu Category"
@@ -59,8 +63,4 @@ Hardcoded UI strings detected:        800
   frontend/src/components/menu/ItemEditorSheet.tsx:278 -> label="Base Price (₹)"
   frontend/src/components/menu/ItemEditorSheet.tsx:297 -> label="Food Type"
   frontend/src/components/menu/ItemEditorSheet.tsx:317 -> label="Prep Time (mins)"
-  frontend/src/components/menu/ItemEditorSheet.tsx:331 -> Item Photo (JPEG, PNG, WebP)
-  frontend/src/components/menu/ItemEditorSheet.tsx:368 -> Click to upload photo
-  frontend/src/components/menu/ItemEditorSheet.tsx:386 -> Portions & Variants
-  frontend/src/components/menu/ItemEditorSheet.tsx:408 -> title="Mark as default"
-  ... and 750 more hardcoded occurrences in components.
+  ... and 790 more hardcoded occurrences in components.

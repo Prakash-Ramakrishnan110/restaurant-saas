@@ -12,13 +12,13 @@
 | **Platform Admin** | **YES** | Multi-tenant customer wizard, directory, subscription plans, health, activity, and support desk are fully functional. |
 
 ## 2. Route Inventory Breakdown
-**Total Registered Routes**: 70
-- **WORKING**: 17 (real API, verified)
-- **PARTIAL**: 16 (functional with minor layout/error handling gaps)
+**Total Registered Routes**: 72
+- **WORKING**: 18 (real API, verified)
+- **PARTIAL**: 13 (functional with minor layout/error handling gaps)
 - **STUB**: 4 (placeholder screens)
 - **MOCK**: 0 (uses static/mock fixture data)
 - **DEAD**: 1 (page file exists but not routed in App.tsx)
-- **HIDDEN**: 32 (routed but not in sidebar)
+- **HIDDEN**: 36 (routed but not in sidebar)
 
 ## 3. Quality Gates Status
 | Gate | Tool / Check | Exit Code | Result Summary |

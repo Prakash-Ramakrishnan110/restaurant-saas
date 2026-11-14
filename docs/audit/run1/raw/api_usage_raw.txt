@@ -1,0 +1,22 @@
+=== API USAGE AUDIT REPORT ===
+Total OpenAPI endpoints defined: 205
+Endpoints used by frontend UI: 97
+Endpoints unused by frontend UI: 108 (52.7%)
+
+=== DIRECT FETCH CALLS IN FRONTEND (0) ===
+None (0 direct fetch calls found)
+
+=== DIRECT AXIOS CALLS OUTSIDE client.ts (0) ===
+None (0 direct axios calls found)
+
+=== UNMATCHED UI CALLS (No matching OpenAPI endpoint) (10) ===
+frontend/src/pages/admin/CustomerDetailPage.tsx:145 -> [POST] '/tenants/${id}/${endpoint}/' (normalized: /api/v1/tenants/placeholder/placeholder/)
+frontend/src/pages/admin/PlatformAdminPage.tsx:99 -> [GET] '/health/' (normalized: /api/v1/health/)
+frontend/src/pages/admin/PlatformHealthPage.tsx:67 -> [GET] '/health/' (normalized: /api/v1/health/)
+frontend/src/pages/admin/TenantsDirectoryPage.tsx:90 -> [POST] '/tenants/${tenant.id}/toggle_status/' (normalized: /api/v1/tenants/placeholder/toggle_status/)
+frontend/src/pages/admin/TenantsDirectoryPage.tsx:111 -> [POST] '/tenants/${tenant.id}/reset_owner_password/' (normalized: /api/v1/tenants/placeholder/reset_owner_password/)
+frontend/src/pages/orders/FloorPOSPage.tsx:138 -> [GET] '/sessions/' (normalized: /api/v1/sessions/)
+frontend/src/pages/orders/FloorPOSPage.tsx:208 -> [POST] '/sessions/${selectedSessionId}/transfer/' (normalized: /api/v1/sessions/placeholder/transfer/)
+frontend/src/pages/orders/RoomServicePage.tsx:78 -> [POST] '/orders/${orderId}/transition/' (normalized: /api/v1/orders/placeholder/transition/)
+frontend/src/pages/orders/TakeawayPage.tsx:99 -> [POST] '/orders/${orderId}/transition/' (normalized: /api/v1/orders/placeholder/transition/)
+frontend/src/tests/auth.test.tsx:52 -> [GET] '/test-endpoint/' (normalized: /api/v1/test-endpoint/)

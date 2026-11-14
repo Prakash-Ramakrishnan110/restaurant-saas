@@ -22,18 +22,26 @@ Keywords: cgst, sgst, igst, gst%, tax_paise, unauthorized tax_mode
   backend/apps/tenants/services.py:352: "tax_mode": settings.tax_mode,
   backend/apps/tenants/services.py:371: "tax_mode",
   backend/apps/tenants/services.py:410: "tax_mode": settings.tax_mode,
-  backend/apps/tenants/views.py:741: tax_mode=BusinessSettings.TaxMode.INCLUSIVE,
+  backend/apps/tenants/views.py:742: tax_mode=BusinessSettings.TaxMode.INCLUSIVE,
 
 b. FSSAI SCAN (Count: 0)
   0 violations found.
 
-c. FLOATING-POINT MONEY SCAN (Count: 15)
+c. FLOATING-POINT MONEY SCAN (Count: 23)
 Patterns: toFixed, parseFloat, / 100, * 0.x, Math.round near money tokens; backend float(..paise)
   frontend/src/components/menu/ItemEditorSheet.tsx:73: setPriceRupees(item.base_price_paise ? String(Math.trunc(item.base_price_paise / 100)) : "");
   frontend/src/components/menu/ItemEditorSheet.tsx:90: price_rupees: String(Math.trunc(v.price_paise / 100)),
   frontend/src/lib/money.ts:10: const rupees = paise / 100;
+  frontend/src/pages/admin/PlatformPlansPage.tsx:123: setFormPriceRupees(Math.round(p.price_paise / 100));
+  frontend/src/pages/admin/PlatformPlansPage.tsx:247: price_paise: Math.round(formPriceRupees * 100),
   frontend/src/pages/billing/BillingPage.tsx:90: const wholeRupees = Math.trunc(res.data.total_paise / 100);
-  frontend/src/pages/dashboard/DashboardPage.tsx:360: const pct = todayReport?.sales_paise ? Math.round((paise / totalPaise) * 100) : 0;
+  frontend/src/pages/dashboard/DashboardPage.tsx:292: const percent = total > 0 ? Math.round((occupied / total) * 100) : 0;
+  frontend/src/pages/dashboard/DashboardPage.tsx:392: const aov = b.invoices_count > 0 ? (b.sales_paise / b.invoices_count / 100).toFixed(2) : "0.00";
+  frontend/src/pages/dashboard/DashboardPage.tsx:396: (b.sales_paise / 100).toFixed(2),
+  frontend/src/pages/dashboard/DashboardPage.tsx:402: ["Total Gross Sales (INR)", (data.sales_paise / 100).toFixed(2)],
+  frontend/src/pages/dashboard/DashboardPage.tsx:403: ["Average Order Value (INR)", (data.average_order_value_paise / 100).toFixed(2)],
+  frontend/src/pages/dashboard/DashboardPage.tsx:801: const heightPct = Math.max(8, Math.round((point.sales_paise / maxTrendPaise) * 100));
+  frontend/src/pages/dashboard/DashboardPage.tsx:855: const pct = todayReport?.sales_paise ? Math.round((paise / totalPaise) * 100) : 0;
   frontend/src/pages/inventory/RecipesPage.tsx:139: total += Math.round(qty * ing.cost_paise);
   frontend/src/pages/inventory/RecipesPage.tsx:246: const marginPct = pricePaise > 0 ? Math.round((profitPaise / pricePaise) * 100) : 0;
   frontend/src/pages/inventory/SuppliersPurchasesPage.tsx:121: unitPriceRupees: ingredients[0] ? (ingredients[0].cost_paise / 100).toFixed(2) : "100.00",
@@ -55,7 +63,7 @@ Patterns: 'as any', '@ts-ignore', '@ts-expect-error', 'eslint-disable'
   frontend/src/pages/orders/FloorPOSPage.tsx:182: // eslint-disable-next-line react-hooks/exhaustive-deps
   frontend/src/pages/staff/StaffPage.tsx:104: // eslint-disable-next-line react-hooks/exhaustive-deps
   frontend/src/pages/venue/FloorPlanPage.tsx:81: // eslint-disable-next-line react-hooks/exhaustive-deps
-  frontend/src/pages/venue/TablesPage.tsx:133: // eslint-disable-next-line react-hooks/exhaustive-deps
+  frontend/src/pages/venue/TablesPage.tsx:146: // eslint-disable-next-line react-hooks/exhaustive-deps
 
 e. STORAGE VIOLATIONS (Count: 0)
 Only UI preferences allowed in localStorage/sessionStorage; tokens/passwords strictly prohibited
@@ -69,16 +77,20 @@ g. PRODUCTION BUILD DEMO CREDENTIALS / PREFILL (Count: 0)
 Scanned in frontend/dist bundle
   0 demo credentials found in production dist.
 
-h. MOCK / FAKER / FAKE LOADING (Count: 2)
+h. MOCK / FAKER / FAKE LOADING (Count: 3)
   frontend/src/components/ui/toast.tsx:26: const id = Math.random().toString(36).substring(2, 9);
   frontend/src/pages/inventory/SuppliersPurchasesPage.tsx:115: setOrderNumber(`PO-${new Date().getFullYear()}-${Math.floor(1000 + Math.random() * 9000)}`);
+  frontend/src/pages/venue/QRCodesPage.tsx:683: {/* Standee Card Frame Mock */}
 
-i. JARGON IN UI STRINGS (Count: 49)
+i. JARGON IN UI STRINGS (Count: 52)
 Keywords: tenant, entitlement, paise, preset, flag, canvas, table session
   frontend/src/api/client.ts:73: config.headers.set("X-Tenant-ID", activeTenantId);
   frontend/src/context/ThemeContext.tsx:73: root.style.setProperty("--tenant-primary", tenantBrand.primary);
   frontend/src/context/ThemeContext.tsx:75: root.style.removeProperty("--tenant-primary");
   frontend/src/i18n/index.ts:94: step3Desc: "Preset operational rules and ordering workflows.",
+  frontend/src/lib/qrStandeeGenerator.ts:143: const canvas = document.createElement("canvas");
+  frontend/src/lib/qrStandeeGenerator.ts:147: if (!ctx) throw new Error("Could not acquire 2D canvas context");
+  frontend/src/lib/qrStandeeGenerator.ts:298: const qrOffscreen = document.createElement("canvas");
   frontend/src/pages/activity/ActivityLogPage.tsx:72: (selectedActionFilter === "TENANT" &&
   frontend/src/pages/activity/ActivityLogPage.tsx:73: (log.action.startsWith("tenant") || log.action.startsWith("business")));
   frontend/src/pages/activity/ActivityLogPage.tsx:153: variant={selectedActionFilter === "TENANT" ? "default" : "outline"}
@@ -91,9 +103,9 @@ Keywords: tenant, entitlement, paise, preset, flag, canvas, table session
   frontend/src/pages/admin/CustomerDetailPage.tsx:339: <span className="font-semibold text-foreground">{tenant.address || "—"}</span>
   frontend/src/pages/admin/CustomerDetailPage.tsx:389: ? `${tenant.subscription?.trial_days_remaining} days`
   frontend/src/pages/admin/CustomerDetailPage.tsx:462: <span className="font-semibold text-foreground">{tenant.owner.phone || "—"}</span>
-  frontend/src/pages/admin/NewCustomerWizardPage.tsx:312: {currentStep === 1 && "Business Information & Operational Preset"}
+  frontend/src/pages/admin/NewCustomerWizardPage.tsx:334: {currentStep === 1 && "Business Information & Operational Preset"}
   frontend/src/pages/admin/PlatformActivityPage.tsx:98: placeholder="Search tenant ID, administrator, or action..."
-  frontend/src/pages/admin/PlatformAdminPage.tsx:173: description: "Trace tenant provisioning, logins, password changes, and suspensions.",
+  frontend/src/pages/admin/PlatformAdminPage.tsx:180: description: "Trace tenant provisioning, logins, password changes, and suspensions.",
   frontend/src/pages/admin/TenantsDirectoryPage.tsx:77: const isSuspending = tenant.status === "ACTIVE" || tenant.status === "TRIAL";
   frontend/src/pages/admin/TenantsDirectoryPage.tsx:82: `Are you sure you want to ${isSuspending ? "SUSPEND" : "ACTIVATE"} ${tenant.name}?`
   frontend/src/pages/admin/TenantsDirectoryPage.tsx:90: await apiClient.post(`/tenants/${tenant.id}/toggle_status/`, {
@@ -104,7 +116,7 @@ Keywords: tenant, entitlement, paise, preset, flag, canvas, table session
   frontend/src/pages/admin/TenantsDirectoryPage.tsx:112: setToastMsg(`Password reset instructions triggered for ${tenant.owner_email || tenant.name}`);
   frontend/src/pages/admin/TenantsDirectoryPage.tsx:114: setToastMsg(`Failed to trigger reset for ${tenant.name}`);
   frontend/src/pages/admin/TenantsDirectoryPage.tsx:465: onClick={() => navigate(`/admin/tenants/${tenant.id}`)}
-  frontend/src/pages/dashboard/DashboardPage.tsx:166: { key: "venue_profile_chosen", label: "Venue Preset", path: "/settings/venue" },
+  frontend/src/pages/dashboard/DashboardPage.tsx:448: { key: "venue_profile_chosen", label: "Venue Preset", path: "/settings/venue" },
   frontend/src/pages/dev/DevDesignSystemPage.tsx:318: id="preset-qs"
   frontend/src/pages/dev/DevDesignSystemPage.tsx:319: name="preset"
   frontend/src/pages/dev/DevDesignSystemPage.tsx:328: id="preset-cafe"
@@ -112,42 +124,44 @@ Keywords: tenant, entitlement, paise, preset, flag, canvas, table session
   frontend/src/pages/dev/DevDesignSystemPage.tsx:338: id="preset-fine"
   frontend/src/pages/dev/DevDesignSystemPage.tsx:339: name="preset"
   frontend/src/pages/dev/DevDesignSystemPage.tsx:412: { id: "1", title: "Tenant Info" },
-  frontend/src/pages/orders/FloorPOSPage.tsx:212: setSuccessToast("Table session successfully transferred.");
-  frontend/src/pages/orders/FloorPOSPage.tsx:215: setErrorToast("Could not transfer table session.");
-  frontend/src/pages/team/RolesGuidePage.tsx:99: "Count drawer cash at shift end and reconcile against expected integer paise total",
-  ... and 9 more instances.
+  ... and 12 more instances.
 
 j. COUNTER VENUE TABLE LEAKAGE (Count: 0)
   0 table leaks found in counter venue modules.
 
-k. ORANGE COLOR INVARIANTS (Count: 26)
+k. ORANGE COLOR INVARIANTS (Count: 31)
 Rule: Orange (#FF6A00) reserved exclusively for primary brand actions; forbidden for warnings/errors/destructive
-  frontend/src/components/layout/AppShell.tsx:658: (White text on #FF6A00 check) className="bg-[#FF6A00] hover:bg-[#FF6A00]/90 text-white font-bold text-xs"
+  frontend/src/components/layout/AppShell.tsx:443: (White text on #FF6A00 check) <span className="inline-flex items-center justify-center px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-[#FF6A00] text-white">
+  frontend/src/components/layout/AppShell.tsx:753: (White text on #FF6A00 check) className="text-xs bg-[#FF6A00] hover:bg-[#FF6A00]/90 text-white"
+  frontend/src/components/layout/AppShell.tsx:901: (White text on #FF6A00 check) className="bg-[#FF6A00] hover:bg-[#FF6A00]/90 text-white font-bold text-xs"
   frontend/src/pages/admin/CustomerDetailPage.tsx:283: (White text on #FF6A00 check) className="text-xs bg-[#FF6A00] hover:bg-[#FF6A00]/90 text-white"
   frontend/src/pages/admin/CustomerDetailPage.tsx:529: (White text on #FF6A00 check) className="text-xs bg-[#FF6A00] text-white"
-  frontend/src/pages/admin/NewCustomerWizardPage.tsx:342: (White text on #FF6A00 check) ? "bg-[#FF6A00] text-white shadow-xs"
-  frontend/src/pages/admin/NewCustomerWizardPage.tsx:497: (White text on #FF6A00 check) <Button onClick={handleNext} className="gap-2 bg-[#FF6A00] hover:bg-[#FF6A00]/90 text-white font-bold text-xs">
-  frontend/src/pages/admin/NewCustomerWizardPage.tsx:569: (White text on #FF6A00 check) <Button onClick={handleNext} className="gap-2 bg-[#FF6A00] hover:bg-[#FF6A00]/90 text-white font-bold text-xs">
-  frontend/src/pages/admin/NewCustomerWizardPage.tsx:609: (White text on #FF6A00 check) <Badge className="bg-[#FF6A00] text-white text-[9px] px-1.5 py-0 font-bold uppercase">
-  frontend/src/pages/admin/NewCustomerWizardPage.tsx:662: (White text on #FF6A00 check) className={`text-xs h-9 ${form.trial_days === days ? "bg-[#FF6A00] hover:bg-[#FF6A00]/90 text-white font-bold" : ""}`}
-  frontend/src/pages/admin/NewCustomerWizardPage.tsx:679: (White text on #FF6A00 check) <Button onClick={handleNext} className="gap-2 bg-[#FF6A00] hover:bg-[#FF6A00]/90 text-white font-bold text-xs">
-  frontend/src/pages/admin/NewCustomerWizardPage.tsx:721: (White text on #FF6A00 check) className={`text-xs h-9 ${form.outlets_count === num ? "bg-[#FF6A00] hover:bg-[#FF6A00]/90 text-white font-bold" : ""}`}
-  frontend/src/pages/admin/NewCustomerWizardPage.tsx:764: (White text on #FF6A00 check) <Button onClick={handleNext} className="gap-2 bg-[#FF6A00] hover:bg-[#FF6A00]/90 text-white font-bold text-xs">
-  frontend/src/pages/admin/NewCustomerWizardPage.tsx:950: (White text on #FF6A00 check) className="gap-1.5 bg-[#FF6A00] hover:bg-[#FF6A00]/90 text-white font-bold text-xs"
-  frontend/src/pages/admin/PlatformAdminPage.tsx:239: (White text on #FF6A00 check) className="text-xs bg-[#FF6A00] hover:bg-[#FF6A00]/90 text-white gap-1.5"
-  frontend/src/pages/admin/PlatformAdminPage.tsx:351: (White text on #FF6A00 check) className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-[#FF6A00] text-white hover:bg-[#FF6A00]/90 transition-all shadow-sm"
+  frontend/src/pages/admin/NewCustomerWizardPage.tsx:364: (White text on #FF6A00 check) ? "bg-[#FF6A00] text-white shadow-xs"
+  frontend/src/pages/admin/NewCustomerWizardPage.tsx:527: (White text on #FF6A00 check) <Button onClick={handleNext} className="gap-2 bg-[#FF6A00] hover:bg-[#FF6A00]/90 text-white font-bold text-xs">
+  frontend/src/pages/admin/NewCustomerWizardPage.tsx:599: (White text on #FF6A00 check) <Button onClick={handleNext} className="gap-2 bg-[#FF6A00] hover:bg-[#FF6A00]/90 text-white font-bold text-xs">
+  frontend/src/pages/admin/NewCustomerWizardPage.tsx:639: (White text on #FF6A00 check) <Badge className="bg-[#FF6A00] text-white text-[9px] px-1.5 py-0 font-bold uppercase">
+  frontend/src/pages/admin/NewCustomerWizardPage.tsx:692: (White text on #FF6A00 check) className={`text-xs h-9 ${form.trial_days === days ? "bg-[#FF6A00] hover:bg-[#FF6A00]/90 text-white font-bold" : ""}`}
+  frontend/src/pages/admin/NewCustomerWizardPage.tsx:709: (White text on #FF6A00 check) <Button onClick={handleNext} className="gap-2 bg-[#FF6A00] hover:bg-[#FF6A00]/90 text-white font-bold text-xs">
+  frontend/src/pages/admin/NewCustomerWizardPage.tsx:751: (White text on #FF6A00 check) className={`text-xs h-9 ${form.outlets_count === num ? "bg-[#FF6A00] hover:bg-[#FF6A00]/90 text-white font-bold" : ""}`}
+  frontend/src/pages/admin/NewCustomerWizardPage.tsx:794: (White text on #FF6A00 check) <Button onClick={handleNext} className="gap-2 bg-[#FF6A00] hover:bg-[#FF6A00]/90 text-white font-bold text-xs">
+  frontend/src/pages/admin/NewCustomerWizardPage.tsx:980: (White text on #FF6A00 check) className="gap-1.5 bg-[#FF6A00] hover:bg-[#FF6A00]/90 text-white font-bold text-xs"
+  frontend/src/pages/admin/PlatformAdminPage.tsx:248: (White text on #FF6A00 check) className="text-xs bg-[#FF6A00] hover:bg-[#FF6A00]/90 text-white gap-1.5"
+  frontend/src/pages/admin/PlatformAdminPage.tsx:360: (White text on #FF6A00 check) className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-[#FF6A00] text-white hover:bg-[#FF6A00]/90 transition-all shadow-sm"
   frontend/src/pages/admin/PlatformHealthPage.tsx:247: (White text on #FF6A00 check) className="inline-flex items-center justify-center gap-2 w-full py-2 rounded-lg font-bold text-xs bg-[#FF6A00] text-white hover:bg-[#FF6A00]/90 transition-all shadow-xs"
-  frontend/src/pages/admin/PlatformPlansPage.tsx:154: (White text on #FF6A00 check) className="text-xs bg-[#FF6A00] hover:bg-[#FF6A00]/90 text-white gap-1.5"
-  frontend/src/pages/admin/PlatformPlansPage.tsx:195: (White text on #FF6A00 check) <div className="absolute -top-2.5 right-4 px-2 py-0.5 bg-[#FF6A00] text-white text-[10px] font-black uppercase tracking-wider rounded-full shadow-xs">
-  frontend/src/pages/admin/PlatformPlansPage.tsx:421: (White text on #FF6A00 check) className="bg-[#FF6A00] hover:bg-[#FF6A00]/90 text-white text-xs gap-1.5"
+  frontend/src/pages/admin/PlatformPlansPage.tsx:390: (White text on #FF6A00 check) className="text-xs bg-[#FF6A00] hover:bg-[#FF6A00]/90 text-white gap-1.5"
+  frontend/src/pages/admin/PlatformPlansPage.tsx:431: (White text on #FF6A00 check) <div className="absolute -top-2.5 right-4 px-2 py-0.5 bg-[#FF6A00] text-white text-[10px] font-black uppercase tracking-wider rounded-full shadow-xs">
+  frontend/src/pages/admin/PlatformPlansPage.tsx:729: (White text on #FF6A00 check) className="bg-[#FF6A00] hover:bg-[#FF6A00]/90 text-white text-xs gap-1.5"
+  frontend/src/pages/admin/PlatformPlansPage.tsx:1047: (White text on #FF6A00 check) className="bg-[#FF6A00] hover:bg-[#FF6A00]/90 text-white text-xs gap-1.5"
   frontend/src/pages/admin/TenantsDirectoryPage.tsx:262: (White text on #FF6A00 check) className="text-xs bg-[#FF6A00] hover:bg-[#FF6A00]/90 text-white gap-1.5"
   frontend/src/pages/auth/LoginPage.tsx:473: (White text on #FF6A00 check) ? "bg-[#FF6A00] text-white font-bold"
   frontend/src/pages/billing/BillingPage.tsx:374: (White text on #FF6A00 check) className="w-full min-h-[50px] text-base font-extrabold bg-[#FF6A00] hover:bg-[#FF6A00]/90 text-white gap-2 shadow-sm"
   frontend/src/pages/billing/ShiftCloseoutPage.tsx:149: (White text on #FF6A00 check) className="w-full h-11 bg-[#FF6A00] hover:bg-[#FF6A00]/90 text-white font-bold text-sm gap-2 mt-4"
+  frontend/src/pages/dashboard/DashboardPage.tsx:942: (White text on #FF6A00 check) ? "bg-[#FF6A00] text-white shadow-sm"
   frontend/src/pages/orders/FloorPOSPage.tsx:710: (White text on #FF6A00 check) className="w-full min-h-[48px] text-sm font-bold bg-[#FF6A00] hover:bg-[#FF6A00]/90 text-white gap-2 shadow-sm"
   frontend/src/pages/orders/FloorPOSPage.tsx:755: (White text on #FF6A00 check) className="bg-[#FF6A00] text-white"
   frontend/src/pages/orders/FloorPOSPage.tsx:795: (White text on #FF6A00 check) className="bg-[#FF6A00] text-white"
   frontend/src/pages/staff/StaffPage.tsx:231: (White text on #FF6A00 check) WAITER: "bg-[#FF6A00]/10 text-[#0B1F3B] dark:text-white border-[#FF6A00]/30",
+  frontend/src/pages/venue/VenueLayoutHubPage.tsx:202: (White text on #FF6A00 check) ? "bg-[#FF6A00] text-white shadow-sm font-black"
 
 l. LOGS & TECH DEBT COUNTERS:
   console.log occurrences: 0
@@ -155,7 +169,7 @@ l. LOGS & TECH DEBT COUNTERS:
   FIXME comments: 0
 
 m. /dev/* ROUTES IN PRODUCTION (Count: 1)
-  frontend/dist/assets/index-DDOc8m7K.js: contains '/dev/' route reference
+  frontend/dist/assets/index-BjFAKdjB.js: contains '/dev/' route reference
 
 n. SECRETS PRINTED IN UI (Count: 0)
   0 tokens or secrets rendered in UI.
