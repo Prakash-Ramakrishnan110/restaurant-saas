@@ -15,6 +15,7 @@ class Tenant(UUIDModel, TimeStampedModel):
         BAKERY = "BAKERY", "Bakery"
         CAFE = "CAFE", "Café"
         RESTAURANT = "RESTAURANT", "Restaurant"
+        DHABA = "DHABA", "Dhaba / Highway Dining"
         FINE_DINING = "FINE_DINING", "Fine Dining"
         HOTEL = "HOTEL", "Hotel"
         FOOD_COURT = "FOOD_COURT", "Food Court"

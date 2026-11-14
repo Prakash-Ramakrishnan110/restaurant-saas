@@ -179,3 +179,49 @@ def test_staff_only_table_opening_policy(venue_test_setup):
         {"guest_count": 2},
     )
     assert res.status_code == 403
+
+
+@pytest.mark.django_db
+def test_waiter_seats_guests_via_open_endpoint(venue_test_setup):
+    from apps.venues.tests.conftest import make_client
+
+    s = venue_test_setup
+    waiter = s["waiter_a1"]
+    tenant = s["tenant_a"]
+    table = s["table_a1_2"]
+    assert table.status == TableStatus.AVAILABLE
+
+    client = make_client(waiter, tenant)
+
+    # 1. Direct POST /table-sessions/ is forbidden (405 Method Not Allowed)
+    forbidden_direct = client.post(
+        "/api/v1/table-sessions/",
+        {"table_id": str(table.id), "guest_count": 2},
+        format="json",
+    )
+    assert forbidden_direct.status_code == 405
+
+    # 2. Waiter seats guests via explicit /api/v1/table-sessions/open/ endpoint
+    res = client.post(
+        "/api/v1/table-sessions/open/",
+        {"table_id": str(table.id), "guest_count": 2},
+        format="json",
+    )
+    assert res.status_code == 201
+    data = res.json()
+    assert data["status"] == "OPEN"
+    assert data["table"] == str(table.id)
+    assert data["guest_count"] == 2
+
+    # 3. Table status automatically transitions to OCCUPIED
+    table.refresh_from_db()
+    assert table.status == TableStatus.OCCUPIED
+
+    # 4. Attempting to seat guests again on already occupied table returns 409 Conflict
+    conflict_res = client.post(
+        "/api/v1/table-sessions/open/",
+        {"table_id": str(table.id), "guest_count": 3},
+        format="json",
+    )
+    assert conflict_res.status_code == 409
+

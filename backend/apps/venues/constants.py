@@ -42,10 +42,14 @@ class SectionType(models.TextChoices):
     OUTDOOR = "OUTDOOR", "Outdoor"
     VIP = "VIP", "VIP"
     PRIVATE_ROOM = "PRIVATE_ROOM", "Private Room"
+    GARDEN_HUTS = "GARDEN_HUTS", "Garden Huts / Cabanas"
+    DHABA_LAWN = "DHABA_LAWN", "Dhaba Lawn"
 
 
 class TableType(models.TextChoices):
     TABLE = "TABLE", "Dining Table"
+    HUT = "HUT", "Dhaba Hut / Gazebo / Cottage"
+    CABANA = "CABANA", "Garden Cabana / Tent"
     BOOTH = "BOOTH", "Booth Seating"
     BAR_SEAT = "BAR_SEAT", "Bar Stool"
     ROOM = "ROOM", "Hotel Room"

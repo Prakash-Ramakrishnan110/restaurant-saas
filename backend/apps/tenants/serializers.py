@@ -326,8 +326,8 @@ class PlatformCustomerCreateSerializer(serializers.Serializer):
     initial_password = serializers.CharField(
         max_length=128, required=False, allow_blank=True, default=""
     )
-    plan_slug = serializers.ChoiceField(
-        choices=["starter", "professional", "business", "enterprise"],
+    plan_slug = serializers.CharField(
+        max_length=64,
         default="starter",
     )
     trial_days = serializers.IntegerField(default=14, min_value=1, max_value=90)

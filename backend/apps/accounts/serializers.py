@@ -58,13 +58,14 @@ class ChangePasswordSerializer(serializers.Serializer):
 class BranchSummarySerializer(serializers.ModelSerializer):
     class Meta:
         model = Branch
-        fields = ("id", "name", "is_active")
+        fields = ("id", "name", "venue_profile", "is_active")
 
 
 class MembershipSummarySerializer(serializers.ModelSerializer):
     tenant_name = serializers.CharField(source="tenant.name", read_only=True)
     tenant_slug = serializers.CharField(source="tenant.slug", read_only=True)
     tenant_status = serializers.CharField(source="tenant.status", read_only=True)
+    business_type = serializers.CharField(source="tenant.business_type", read_only=True)
     branches = BranchSummarySerializer(many=True, read_only=True)
 
     class Meta:
@@ -75,6 +76,7 @@ class MembershipSummarySerializer(serializers.ModelSerializer):
             "tenant_name",
             "tenant_slug",
             "tenant_status",
+            "business_type",
             "role",
             "branches",
             "is_active",

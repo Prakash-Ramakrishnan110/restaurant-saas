@@ -180,6 +180,7 @@ class PurchaseOrderItemSerializer(serializers.ModelSerializer):
 class PurchaseOrderSerializer(serializers.ModelSerializer):
     items = PurchaseOrderItemSerializer(many=True, required=False)
     supplier_name = serializers.CharField(source="supplier.name", read_only=True)
+    order_number = serializers.CharField(required=False, allow_blank=True)
 
     class Meta:
         model = PurchaseOrder
@@ -209,6 +210,12 @@ class PurchaseOrderSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         items_data = validated_data.pop("items", None)
         request = self.context.get("request")
+        if not validated_data.get("order_number"):
+            from django.utils import timezone
+            year = timezone.now().year
+            tenant = validated_data.get("tenant") or (getattr(request, "tenant", None) if request else None)
+            count = PurchaseOrder.objects.filter(tenant=tenant).count() + 1
+            validated_data["order_number"] = f"PO-{year}-{count:04d}"
         if items_data is None and request and hasattr(request, "data"):
             items_data = request.data.get("items", [])
         items_data = items_data or []

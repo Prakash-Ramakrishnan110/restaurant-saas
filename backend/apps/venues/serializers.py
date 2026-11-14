@@ -313,7 +313,8 @@ class OpenSessionSerializer(serializers.Serializer):
 
 class QRCodeSerializer(serializers.ModelSerializer[QRCode]):
     table_label = serializers.CharField(source="table.label", read_only=True)
-    service_area_name = serializers.CharField(source="service_area.name", read_only=True)
+    section_name = serializers.CharField(source="table.section.name", read_only=True, default="")
+    service_area_name = serializers.CharField(source="service_area.name", read_only=True, default="")
 
     class Meta:
         model = QRCode
@@ -323,6 +324,7 @@ class QRCodeSerializer(serializers.ModelSerializer[QRCode]):
             "target_type",
             "table",
             "table_label",
+            "section_name",
             "service_area",
             "service_area_name",
             "public_token",

@@ -1,5 +1,6 @@
 from datetime import timedelta
 
+from django.db import models
 from django.http import Http404
 from django.utils import timezone
 from django.utils.text import slugify
@@ -654,7 +655,7 @@ class PlatformCustomerCreateView(APIView):
 
         from apps.audit.models import AuditLog
         from apps.subscriptions.models import Plan, Subscription, SubscriptionStatus
-        from apps.venues.constants import AreaType
+        from apps.venues.constants import AreaType, SectionType, TableType
         from apps.venues.models import (
             BranchCapabilities,
             DiningTable,
@@ -757,6 +758,7 @@ class PlatformCustomerCreateView(APIView):
             Tenant.BusinessType.CAFE: Branch.VenueProfile.CAFE,
             Tenant.BusinessType.FINE_DINING: Branch.VenueProfile.FINE_DINING,
             Tenant.BusinessType.HOTEL: Branch.VenueProfile.HOTEL_RESTAURANT,
+            Tenant.BusinessType.DHABA: Branch.VenueProfile.CASUAL_DINING,
             Tenant.BusinessType.RESTAURANT: Branch.VenueProfile.CASUAL_DINING,
         }
         venue_prof = venue_profile_map.get(business_type, Branch.VenueProfile.CASUAL_DINING)
@@ -841,6 +843,54 @@ class PlatformCustomerCreateView(APIView):
                 area_type="ROOM_SERVICE",
                 sort_order=2,
             )
+        elif business_type == Tenant.BusinessType.DHABA:
+            BranchCapabilities.objects.create(
+                tenant=tenant,
+                branch=first_branch,
+                uses_tables=True,
+                allows_takeaway=True,
+            )
+            area = ServiceArea.objects.create(
+                tenant=tenant,
+                branch=first_branch,
+                name="Outdoor Huts & Lawn",
+                area_type=AreaType.DINING,
+                sort_order=1,
+            )
+            sec_huts = Section.objects.create(
+                tenant=tenant,
+                branch=first_branch,
+                service_area=area,
+                name="Garden Huts",
+                section_type=SectionType.GARDEN_HUTS,
+                sort_order=1,
+            )
+            for h_no in range(1, 5):
+                DiningTable.objects.create(
+                    tenant=tenant,
+                    branch=first_branch,
+                    section=sec_huts,
+                    label=f"Hut {h_no}",
+                    table_type=TableType.HUT,
+                    capacity=6,
+                )
+            sec_lawn = Section.objects.create(
+                tenant=tenant,
+                branch=first_branch,
+                service_area=area,
+                name="Open Lawn",
+                section_type=SectionType.DHABA_LAWN,
+                sort_order=2,
+            )
+            for t_no in range(1, 5):
+                DiningTable.objects.create(
+                    tenant=tenant,
+                    branch=first_branch,
+                    section=sec_lawn,
+                    label=f"Lawn {t_no}",
+                    table_type=TableType.TABLE,
+                    capacity=4,
+                )
         else:
             BranchCapabilities.objects.create(
                 tenant=tenant,
@@ -964,11 +1014,18 @@ class PlatformSummaryView(APIView):
 
         plan_counts: dict[str, int] = {}
         mrr_paise = 0
+        active_subs_with_plan = []
         for sub in Subscription.objects.select_related("plan").all():
             plan_name = sub.plan.name if sub.plan else "Unknown"
             plan_counts[plan_name] = plan_counts.get(plan_name, 0) + 1
             if sub.status == SubscriptionStatus.ACTIVE and sub.plan:
+                active_subs_with_plan.append(sub)
                 mrr_paise += sub.plan.price_paise
+
+        has_set_plan_prices = (
+            len(active_subs_with_plan) > 0
+            and all(s.plan is not None and s.plan.price_paise > 0 for s in active_subs_with_plan)
+        )
 
         return Response(
             {
@@ -977,7 +1034,8 @@ class PlatformSummaryView(APIView):
                 "suspended_tenants": suspended_tenants,
                 "new_this_week": new_this_week,
                 "plan_distribution": plan_counts,
-                "mrr_paise": mrr_paise,
+                "mrr_paise": mrr_paise if has_set_plan_prices else 0,
+                "has_set_plan_prices": has_set_plan_prices,
                 "api_health": "HEALTHY",
             }
         )
@@ -992,7 +1050,7 @@ class SupportTicketViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         user = self.request.user
         if getattr(user, "is_platform_admin", False):
-            return SupportTicket.objects.all().select_related("tenant")
+            return SupportTicket.unscoped.all().select_related("tenant")
         tenant = getattr(self.request, "tenant", None) or getattr(user, "tenant", None)
         if not tenant:
             return SupportTicket.objects.none()

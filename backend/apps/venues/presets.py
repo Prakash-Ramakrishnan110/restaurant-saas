@@ -144,6 +144,7 @@ BUSINESS_TYPE_TO_VENUE_PROFILE: dict[str, str] = {
     Tenant.BusinessType.TEA_SHOP: Branch.VenueProfile.QUICK_SERVICE,
     Tenant.BusinessType.BAKERY: Branch.VenueProfile.QUICK_SERVICE,
     Tenant.BusinessType.CAFE: Branch.VenueProfile.CAFE,
+    Tenant.BusinessType.DHABA: Branch.VenueProfile.CASUAL_DINING,
     Tenant.BusinessType.RESTAURANT: Branch.VenueProfile.CASUAL_DINING,
     Tenant.BusinessType.FINE_DINING: Branch.VenueProfile.FINE_DINING,
     Tenant.BusinessType.HOTEL: Branch.VenueProfile.HOTEL_RESTAURANT,

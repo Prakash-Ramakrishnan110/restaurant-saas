@@ -1138,14 +1138,19 @@ def get_qr_sheet_data(
         label = ""
         area_name = ""
         section_name = ""
-        if qr.target_type == QRTargetType.TABLE and qr.table:
+        if qr.table:
             label = qr.table.label
             section_name = qr.table.section.name if qr.table.section else ""
-            area_name = (
-                qr.table.section.service_area.name
-                if qr.table.section and qr.table.section.service_area
-                else ""
-            )
+            if qr.table.section and qr.table.section.service_area:
+                area_name = qr.table.section.service_area.name
+            elif qr.table.section:
+                area_name = qr.table.section.name
+            elif qr.service_area:
+                area_name = qr.service_area.name
+            elif qr.target_type == QRTargetType.ROOM:
+                area_name = "Guest Rooms"
+            else:
+                area_name = "Dining Area"
         elif qr.service_area:
             label = qr.service_area.name
             area_name = qr.service_area.name

@@ -114,6 +114,12 @@ def get_tenant_entitlements_summary(tenant: Any) -> dict[str, Any]:
     floor_editor = bool(get_entitlement(tenant, "floor_editor", False))
     table_merge = bool(get_entitlement(tenant, "table_merge", False))
     courses = bool(get_entitlement(tenant, "courses", False))
+    allows_huts = bool(get_entitlement(tenant, "allows_huts", False))
+    allows_waiter_call = bool(get_entitlement(tenant, "allows_waiter_call", False))
+    allows_minimum_spend = bool(get_entitlement(tenant, "allows_minimum_spend", False))
+    allows_room_service = bool(get_entitlement(tenant, "allows_room_service", False))
+    allows_room_folio = bool(get_entitlement(tenant, "allows_room_folio", False))
+    kds_multi_station = bool(get_entitlement(tenant, "kds_multi_station", False))
 
     def calc_remaining(limit_val: int | None, current_val: int) -> int | None:
         if limit_val is None:
@@ -160,6 +166,12 @@ def get_tenant_entitlements_summary(tenant: Any) -> dict[str, Any]:
             "floor_editor": {"enabled": floor_editor},
             "table_merge": {"enabled": table_merge},
             "courses": {"enabled": courses},
+            "allows_huts": {"enabled": allows_huts},
+            "allows_waiter_call": {"enabled": allows_waiter_call},
+            "allows_minimum_spend": {"enabled": allows_minimum_spend},
+            "allows_room_service": {"enabled": allows_room_service},
+            "allows_room_folio": {"enabled": allows_room_folio},
+            "kds_multi_station": {"enabled": kds_multi_station},
         },
         "usage": {
             "branches": branch_count,
