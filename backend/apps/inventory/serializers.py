@@ -212,8 +212,11 @@ class PurchaseOrderSerializer(serializers.ModelSerializer):
         request = self.context.get("request")
         if not validated_data.get("order_number"):
             from django.utils import timezone
+
             year = timezone.now().year
-            tenant = validated_data.get("tenant") or (getattr(request, "tenant", None) if request else None)
+            tenant = validated_data.get("tenant") or (
+                getattr(request, "tenant", None) if request else None
+            )
             count = PurchaseOrder.objects.filter(tenant=tenant).count() + 1
             validated_data["order_number"] = f"PO-{year}-{count:04d}"
         if items_data is None and request and hasattr(request, "data"):

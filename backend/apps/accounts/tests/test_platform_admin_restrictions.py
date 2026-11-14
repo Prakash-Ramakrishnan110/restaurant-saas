@@ -109,7 +109,9 @@ def test_platform_admin_denied_restaurant_customers(platform_admin_env):
         status.HTTP_403_FORBIDDEN,
         status.HTTP_404_NOT_FOUND,
     )
-    assert client.post("/api/v1/customers/", {"name": "Test Customer", "phone": "9876543210"}).status_code in (
+    assert client.post(
+        "/api/v1/customers/", {"name": "Test Customer", "phone": "9876543210"}
+    ).status_code in (
         status.HTTP_403_FORBIDDEN,
         status.HTTP_404_NOT_FOUND,
     )
@@ -145,4 +147,3 @@ def test_platform_admin_denied_restaurant_payments(platform_admin_env):
         status.HTTP_403_FORBIDDEN,
         status.HTTP_404_NOT_FOUND,
     )
-

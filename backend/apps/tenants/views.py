@@ -1022,9 +1022,8 @@ class PlatformSummaryView(APIView):
                 active_subs_with_plan.append(sub)
                 mrr_paise += sub.plan.price_paise
 
-        has_set_plan_prices = (
-            len(active_subs_with_plan) > 0
-            and all(s.plan is not None and s.plan.price_paise > 0 for s in active_subs_with_plan)
+        has_set_plan_prices = len(active_subs_with_plan) > 0 and all(
+            s.plan is not None and s.plan.price_paise > 0 for s in active_subs_with_plan
         )
 
         return Response(

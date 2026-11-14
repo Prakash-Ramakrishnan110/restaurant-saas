@@ -19,7 +19,10 @@ class AuditLogListView(generics.ListAPIView):
         super().check_permissions(request)
         user = request.user
         # Platform administrators have platform-wide audit access
-        if getattr(user, "is_platform_admin", False) or getattr(user, "role", None) == Role.PLATFORM_ADMIN:
+        if (
+            getattr(user, "is_platform_admin", False)
+            or getattr(user, "role", None) == Role.PLATFORM_ADMIN
+        ):
             return
 
         tenant = getattr(request, "tenant", None) or get_current_tenant()
@@ -35,7 +38,10 @@ class AuditLogListView(generics.ListAPIView):
 
     def get_queryset(self):
         user = self.request.user
-        if getattr(user, "is_platform_admin", False) or getattr(user, "role", None) == Role.PLATFORM_ADMIN:
+        if (
+            getattr(user, "is_platform_admin", False)
+            or getattr(user, "role", None) == Role.PLATFORM_ADMIN
+        ):
             qs = AuditLog.objects.all()
             tenant_id = self.request.query_params.get("tenant_id")
             if tenant_id:

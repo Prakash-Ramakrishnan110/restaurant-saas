@@ -40,4 +40,3 @@ class StockTransactionType(models.TextChoices):
     OUTWARD_SALE = "OUTWARD_SALE", "Outward Recipe Depletion"
     WASTAGE = "WASTAGE", "Wastage / Spoilage Write-Off"
     MANUAL_ADJUSTMENT = "MANUAL_ADJUSTMENT", "Manual Stock Reconciliation"
-

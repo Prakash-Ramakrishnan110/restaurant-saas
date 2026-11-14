@@ -18,7 +18,9 @@ SEEDED_SLUGS = {
 
 
 class Command(BaseCommand):
-    help = "Cleans up non-seeded test tenants and their dependencies to keep demo database pristine."
+    help = (
+        "Cleans up non-seeded test tenants and their dependencies to keep demo database pristine."
+    )
 
     def handle(self, *args, **options):
         unseeded = list(Tenant.objects.exclude(slug__in=SEEDED_SLUGS))
@@ -51,47 +53,83 @@ class Command(BaseCommand):
                     )
 
                     # Delete non-tenant_id junction/child tables
-                    cursor.execute("""
+                    cursor.execute(
+                        """
                         DELETE FROM accounts_membership_branches
                         WHERE branch_id IN (SELECT id FROM tenants_branch WHERE tenant_id = %s)
                            OR membership_id IN (SELECT id FROM accounts_membership WHERE tenant_id = %s)
-                    """, [t_id, t_id])
+                    """,
+                        [t_id, t_id],
+                    )
 
-                    cursor.execute("""
+                    cursor.execute(
+                        """
                         DELETE FROM orders_orderitem
                         WHERE order_id IN (SELECT id FROM orders_order WHERE tenant_id = %s)
                            OR menu_item_id IN (SELECT id FROM menu_items WHERE tenant_id = %s)
-                    """, [t_id, t_id])
+                    """,
+                        [t_id, t_id],
+                    )
 
-                    cursor.execute("""
+                    cursor.execute(
+                        """
                         DELETE FROM menu_item_variants
                         WHERE item_id IN (SELECT id FROM menu_items WHERE tenant_id = %s)
-                    """, [t_id])
+                    """,
+                        [t_id],
+                    )
 
-                    cursor.execute("""
+                    cursor.execute(
+                        """
                         DELETE FROM menu_item_option_groups
                         WHERE item_id IN (SELECT id FROM menu_items WHERE tenant_id = %s)
                            OR group_id IN (SELECT id FROM menu_option_groups WHERE tenant_id = %s)
-                    """, [t_id, t_id])
+                    """,
+                        [t_id, t_id],
+                    )
 
-                    cursor.execute("""
+                    cursor.execute(
+                        """
                         DELETE FROM menu_options
                         WHERE group_id IN (SELECT id FROM menu_option_groups WHERE tenant_id = %s)
-                    """, [t_id])
+                    """,
+                        [t_id],
+                    )
 
                     # Delete dependent order tables
                     for tbl in [
-                        "orders_orderevent", "orders_billinvoice", "orders_servicerequest",
-                        "orders_order", "orders_cashiershiftcloseout", "orders_customers",
-                        "venues_tablesession", "venues_staffsectionassignment", "venues_qrcode",
-                        "venues_diningtable", "venues_tablegroup", "venues_tokencounter",
-                        "venues_section", "venues_servicearea", "venues_branchcapabilities",
-                        "menu_branch_item_availability", "menu_items", "menu_option_groups", "menu_categories",
-                        "inventory_recipeitem", "inventory_recipe", "inventory_purchaseorderitem",
-                        "inventory_purchaseorder", "inventory_stocktransaction", "inventory_wastagelog",
-                        "inventory_ingredient", "inventory_supplier", "subscriptions_subscription",
-                        "tenants_supportticket", "tenants_businesssettings",
-                        "accounts_membership", "tenants_branch"
+                        "orders_orderevent",
+                        "orders_billinvoice",
+                        "orders_servicerequest",
+                        "orders_order",
+                        "orders_cashiershiftcloseout",
+                        "orders_customers",
+                        "venues_tablesession",
+                        "venues_staffsectionassignment",
+                        "venues_qrcode",
+                        "venues_diningtable",
+                        "venues_tablegroup",
+                        "venues_tokencounter",
+                        "venues_section",
+                        "venues_servicearea",
+                        "venues_branchcapabilities",
+                        "menu_branch_item_availability",
+                        "menu_items",
+                        "menu_option_groups",
+                        "menu_categories",
+                        "inventory_recipeitem",
+                        "inventory_recipe",
+                        "inventory_purchaseorderitem",
+                        "inventory_purchaseorder",
+                        "inventory_stocktransaction",
+                        "inventory_wastagelog",
+                        "inventory_ingredient",
+                        "inventory_supplier",
+                        "subscriptions_subscription",
+                        "tenants_supportticket",
+                        "tenants_businesssettings",
+                        "accounts_membership",
+                        "tenants_branch",
                     ]:
                         cursor.execute(f"DELETE FROM {tbl} WHERE tenant_id = %s", [t_id])
 

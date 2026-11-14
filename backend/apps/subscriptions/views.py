@@ -44,7 +44,12 @@ class PlanListView(APIView):
     def post(self, request: Request) -> Response:
         if not getattr(request.user, "is_platform_admin", False):
             return Response(
-                {"error": {"code": "FORBIDDEN", "message": "Only platform administrators can create plans."}},
+                {
+                    "error": {
+                        "code": "FORBIDDEN",
+                        "message": "Only platform administrators can create plans.",
+                    }
+                },
                 status=status.HTTP_403_FORBIDDEN,
             )
 
@@ -67,7 +72,12 @@ class PlanListView(APIView):
 
         if Plan.objects.filter(slug=slug).exists():
             return Response(
-                {"error": {"code": "DUPLICATE_SLUG", "message": f"A plan with slug '{slug}' already exists."}},
+                {
+                    "error": {
+                        "code": "DUPLICATE_SLUG",
+                        "message": f"A plan with slug '{slug}' already exists.",
+                    }
+                },
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
@@ -100,7 +110,12 @@ class PlanDetailView(APIView):
     def patch(self, request: Request, pk: str) -> Response:
         if not getattr(request.user, "is_platform_admin", False):
             return Response(
-                {"error": {"code": "FORBIDDEN", "message": "Only platform administrators can update plans."}},
+                {
+                    "error": {
+                        "code": "FORBIDDEN",
+                        "message": "Only platform administrators can update plans.",
+                    }
+                },
                 status=status.HTTP_403_FORBIDDEN,
             )
 

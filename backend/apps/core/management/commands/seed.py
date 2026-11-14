@@ -455,7 +455,8 @@ class Command(BaseCommand):
             section=sec3_ac,
         )
         u3_kitchen, _ = User.objects.get_or_create(
-            email="kitchen@spicegarden.com", defaults={"full_name": "Chef Sanjeev", "is_active": True}
+            email="kitchen@spicegarden.com",
+            defaults={"full_name": "Chef Sanjeev", "is_active": True},
         )
         u3_kitchen.set_password(default_password)
         u3_kitchen.save()
@@ -707,7 +708,8 @@ class Command(BaseCommand):
             user=u5_cashier, tenant=t5, defaults={"role": Role.CASHIER, "is_active": True}
         )
         u5_kitchen, _ = User.objects.get_or_create(
-            email="kitchen@foodieplaza.in", defaults={"full_name": "Chef Lin Wok", "is_active": True}
+            email="kitchen@foodieplaza.in",
+            defaults={"full_name": "Chef Lin Wok", "is_active": True},
         )
         u5_kitchen.set_password(default_password)
         u5_kitchen.save()
@@ -825,7 +827,11 @@ class Command(BaseCommand):
             branch=b7,
             service_area=sa7_vip,
             name="Royal Suites",
-            defaults={"color": "#7C3AED", "section_type": SectionType.PRIVATE_ROOM, "is_active": True},
+            defaults={
+                "color": "#7C3AED",
+                "section_type": SectionType.PRIVATE_ROOM,
+                "is_active": True,
+            },
         )
         for i in range(1, 9):
             tbl, _ = DiningTable.objects.get_or_create(
@@ -1318,7 +1324,9 @@ class Command(BaseCommand):
         # 6. Artisan Bakehouse (Bakery)
         set_current_tenant(t6)
         cat_bk1, _ = MenuCategory.objects.get_or_create(
-            tenant=t6, name="Breads & Viennoiserie", defaults={"name_ta": "ரொட்டி வகைகள்", "sort_order": 1}
+            tenant=t6,
+            name="Breads & Viennoiserie",
+            defaults={"name_ta": "ரொட்டி வகைகள்", "sort_order": 1},
         )
         cat_bk2, _ = MenuCategory.objects.get_or_create(
             tenant=t6, name="Cakes & Patisserie", defaults={"name_ta": "கேக் வகைகள்", "sort_order": 2}
@@ -1328,11 +1336,56 @@ class Command(BaseCommand):
         )
 
         bakery_items = [
-            (cat_bk1, "Artisanal Sourdough Loaf", "புளிப்பு ரொட்டி", "Slow-fermented wild yeast crusty sourdough", 18000, FoodType.VEG, 5, True),
-            (cat_bk1, "Butter Croissant", "பட்டர் குரோசண்ட்", "Flaky layered French butter pastry", 12000, FoodType.EGG, 3, True),
-            (cat_bk2, "Red Velvet Cake Slice", "ரெட் வெல்வெட் கேக்", "Velvety cocoa cake with cream cheese frosting", 22000, FoodType.EGG, 2, True),
-            (cat_bk2, "Dark Chocolate Macarons (4 pcs)", "சாக்லேட் மக்காரோன்", "Almond meringue shells with Belgian ganache", 28000, FoodType.EGG, 2, False),
-            (cat_bk3, "Cold Brew Mocha", "கோல்ட் ப்ரூ மோக்கா", "Single-origin 18-hour cold brew with chocolate", 16000, FoodType.VEG, 4, False),
+            (
+                cat_bk1,
+                "Artisanal Sourdough Loaf",
+                "புளிப்பு ரொட்டி",
+                "Slow-fermented wild yeast crusty sourdough",
+                18000,
+                FoodType.VEG,
+                5,
+                True,
+            ),
+            (
+                cat_bk1,
+                "Butter Croissant",
+                "பட்டர் குரோசண்ட்",
+                "Flaky layered French butter pastry",
+                12000,
+                FoodType.EGG,
+                3,
+                True,
+            ),
+            (
+                cat_bk2,
+                "Red Velvet Cake Slice",
+                "ரெட் வெல்வெட் கேக்",
+                "Velvety cocoa cake with cream cheese frosting",
+                22000,
+                FoodType.EGG,
+                2,
+                True,
+            ),
+            (
+                cat_bk2,
+                "Dark Chocolate Macarons (4 pcs)",
+                "சாக்லேட் மக்காரோன்",
+                "Almond meringue shells with Belgian ganache",
+                28000,
+                FoodType.EGG,
+                2,
+                False,
+            ),
+            (
+                cat_bk3,
+                "Cold Brew Mocha",
+                "கோல்ட் ப்ரூ மோக்கா",
+                "Single-origin 18-hour cold brew with chocolate",
+                16000,
+                FoodType.VEG,
+                4,
+                False,
+            ),
         ]
         for cat, name, name_ta, desc, price, food, prep, best in bakery_items:
             m_itm, _ = MenuItem.objects.get_or_create(
@@ -1353,20 +1406,60 @@ class Command(BaseCommand):
         # 7. Royal Dum Pukht (Fine Dining)
         set_current_tenant(t7)
         cat_fd1, _ = MenuCategory.objects.get_or_create(
-            tenant=t7, name="Shahi Dastarkhwan Starters", defaults={"name_ta": "ஷாஃபி ஸ்டார்ட்டர்ஸ்", "sort_order": 1}
+            tenant=t7,
+            name="Shahi Dastarkhwan Starters",
+            defaults={"name_ta": "ஷாஃபி ஸ்டார்ட்டர்ஸ்", "sort_order": 1},
         )
         cat_fd2, _ = MenuCategory.objects.get_or_create(
-            tenant=t7, name="Nawabi Royal Mains", defaults={"name_ta": "நவாபி மெயின்ஸ்", "sort_order": 2}
+            tenant=t7,
+            name="Nawabi Royal Mains",
+            defaults={"name_ta": "நவாபி மெயின்ஸ்", "sort_order": 2},
         )
         cat_fd3, _ = MenuCategory.objects.get_or_create(
             tenant=t7, name="Meetha & Desserts", defaults={"name_ta": "இனிப்புகள்", "sort_order": 3}
         )
 
         fine_dining_items = [
-            (cat_fd1, "Lucknowi Galouti Kebab", "கலௌதி கபாப்", "Mouth-melting minced lamb infused with 32 royal spices", 59000, FoodType.NON_VEG, 18, True),
-            (cat_fd2, "Shahi Awadhi Dum Biryani", "அவதி தம் பிரியாணி", "Aged basmati and tender meat cooked under sealed dough purdah", 65000, FoodType.NON_VEG, 22, True),
-            (cat_fd2, "Zaffrani Gosht Korma", "ஜாப்ரானி கோஷ்ட் கோர்மா", "Slow braised mutton in rich almond saffron gravy", 69000, FoodType.NON_VEG, 20, False),
-            (cat_fd3, "Shahi Tukda Gold", "ஷாஃபி துக்டா", "Crispy fried brioche soaked in saffron rabri with edible gold foil", 29000, FoodType.VEG, 10, True),
+            (
+                cat_fd1,
+                "Lucknowi Galouti Kebab",
+                "கலௌதி கபாப்",
+                "Mouth-melting minced lamb infused with 32 royal spices",
+                59000,
+                FoodType.NON_VEG,
+                18,
+                True,
+            ),
+            (
+                cat_fd2,
+                "Shahi Awadhi Dum Biryani",
+                "அவதி தம் பிரியாணி",
+                "Aged basmati and tender meat cooked under sealed dough purdah",
+                65000,
+                FoodType.NON_VEG,
+                22,
+                True,
+            ),
+            (
+                cat_fd2,
+                "Zaffrani Gosht Korma",
+                "ஜாப்ரானி கோஷ்ட் கோர்மா",
+                "Slow braised mutton in rich almond saffron gravy",
+                69000,
+                FoodType.NON_VEG,
+                20,
+                False,
+            ),
+            (
+                cat_fd3,
+                "Shahi Tukda Gold",
+                "ஷாஃபி துக்டா",
+                "Crispy fried brioche soaked in saffron rabri with edible gold foil",
+                29000,
+                FoodType.VEG,
+                10,
+                True,
+            ),
         ]
         for cat, name, name_ta, desc, price, food, prep, best in fine_dining_items:
             m_itm, _ = MenuItem.objects.get_or_create(

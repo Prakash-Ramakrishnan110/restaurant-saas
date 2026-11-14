@@ -279,4 +279,3 @@ class StockTransaction(TenantOwnedModel):
 
     def __str__(self) -> str:
         return f"{self.transaction_type} {self.ingredient.name}: {self.quantity_change} -> {self.balance_after}"
-

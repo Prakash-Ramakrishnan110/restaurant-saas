@@ -224,4 +224,3 @@ def test_waiter_seats_guests_via_open_endpoint(venue_test_setup):
         format="json",
     )
     assert conflict_res.status_code == 409
-

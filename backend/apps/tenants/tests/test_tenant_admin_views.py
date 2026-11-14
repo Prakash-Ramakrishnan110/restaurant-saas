@@ -142,3 +142,67 @@ def test_platform_summary_view(admin_setup):
     owner_client.credentials(HTTP_AUTHORIZATION=f"Bearer {owner_token}")
     res_forbid = owner_client.get("/api/v1/platform/summary/")
     assert res_forbid.status_code == 403
+
+
+@pytest.mark.django_db
+def test_support_tickets_and_announcements_views(admin_setup):
+    admin_client = admin_setup["client"]
+    tenant = admin_setup["tenant"]
+    owner = admin_setup["owner"]
+    owner.must_change_password = False
+    owner.save(update_fields=["must_change_password"])
+
+    owner_client = APIClient()
+    owner_token = str(RefreshToken.for_user(owner).access_token)
+    owner_client.credentials(
+        HTTP_AUTHORIZATION=f"Bearer {owner_token}",
+        HTTP_X_TENANT_ID=str(tenant.id),
+    )
+
+    # Owner creates and lists support tickets
+    res_create = owner_client.post(
+        "/api/v1/support-tickets/",
+        {"subject": "Need printer help", "description": "80mm receipt setup"},
+    )
+    assert res_create.status_code == 201
+    assert owner_client.get("/api/v1/support-tickets/").status_code == 200
+    assert admin_client.get("/api/v1/support-tickets/").status_code == 200
+
+    # Platform admin creates, updates, and deletes announcement
+    res_ann = admin_client.post(
+        "/api/v1/announcements/",
+        {
+            "title": "Scheduled Maintenance",
+            "message": "Brief downtime tonight",
+            "announcement_type": "INFO",
+            "target_business_type": "ALL",
+            "is_active": True,
+        },
+    )
+    assert res_ann.status_code == 201
+    ann_id = res_ann.data["id"]
+
+    assert owner_client.get("/api/v1/announcements/").status_code == 200
+    assert admin_client.get("/api/v1/announcements/").status_code == 200
+    assert (
+        admin_client.patch(
+            f"/api/v1/announcements/{ann_id}/",
+            {"title": "Updated Maintenance"},
+        ).status_code
+        == 200
+    )
+
+    # Non-platform admin cannot create, update, or delete announcements
+    assert (
+        owner_client.post(
+            "/api/v1/announcements/",
+            {"title": "Fake", "message": "Nope"},
+        ).status_code
+        == 403
+    )
+    assert (
+        owner_client.patch(f"/api/v1/announcements/{ann_id}/", {"title": "Hack"}).status_code == 403
+    )
+    assert owner_client.delete(f"/api/v1/announcements/{ann_id}/").status_code == 403
+
+    assert admin_client.delete(f"/api/v1/announcements/{ann_id}/").status_code == 204
