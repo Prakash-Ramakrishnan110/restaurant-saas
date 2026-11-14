@@ -73,13 +73,13 @@ export const BrandLogo: React.FC<BrandLogoProps> = ({
   // Using Tailwind classes (text-[#0B1F3B] dark:text-white) guarantees contrast >= 14:1 in dark mode!
   return (
     <div
-      className={`inline-flex items-center gap-2.5 select-none ${className}`}
+      className={`inline-flex items-center gap-1.5 sm:gap-2.5 select-none ${className}`}
       aria-label="ServeMyFood"
     >
       {iconElement}
       <div className="flex flex-col">
         <span
-          className="font-bold tracking-tight text-xl leading-none font-display font-['Poppins',sans-serif]"
+          className="font-bold tracking-tight text-base sm:text-xl leading-none font-display font-['Poppins',sans-serif]"
           style={{ letterSpacing: "-0.03em" }}
         >
           <span
