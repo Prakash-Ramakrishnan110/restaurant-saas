@@ -4,10 +4,7 @@ import * as path from "path";
 
 const rawApiUrl = process.env.VITE_API_BASE_URL || "http://127.0.0.1:8000/api/v1";
 const API_URL = rawApiUrl.endsWith("/") ? rawApiUrl : `${rawApiUrl}/`;
-const SCREENSHOT_DIR = path.resolve(
-  process.cwd(),
-  "../docs/evidence/screenshots/qr-ordering"
-);
+const SCREENSHOT_DIR = path.resolve(process.cwd(), "../docs/evidence/screenshots/qr-ordering");
 
 async function getOwnerApiContext() {
   const ctx = await pwRequest.newContext({ baseURL: API_URL });
@@ -116,9 +113,6 @@ test.describe.serial("Customer Phone QR Ordering (Live Stack E2E)", () => {
 
     const customerContext = await browser.newContext({
       viewport: { width: 390, height: 844 },
-    });
-    const staffContext = await browser.newContext({
-      viewport: { width: 1280, height: 800 },
     });
 
     try {
@@ -233,7 +227,10 @@ test.describe.serial("Customer Phone QR Ordering (Live Stack E2E)", () => {
         timeout: 10000,
       });
       await staffPage.screenshot({ path: path.join(SCREENSHOT_DIR, "staff-needs-approval.png") });
-      await staffPage.getByRole("button", { name: /^Accept$/i }).first().click();
+      await staffPage
+        .getByRole("button", { name: /^Accept$/i })
+        .first()
+        .click();
 
       await expect(page.getByText("Received")).toBeVisible({ timeout: 15000 });
     } finally {
@@ -267,9 +264,9 @@ test.describe.serial("Customer Phone QR Ordering (Live Stack E2E)", () => {
       await page.getByRole("button", { name: /View order/i }).click();
       await page.getByRole("button", { name: /^Place order$/i }).click();
       await page.waitForURL(new RegExp(`/q/${token3}/o/`), { timeout: 20000 });
-      await expect(
-        page.getByText("Please pay at the counter to start your order")
-      ).toBeVisible({ timeout: 15000 });
+      await expect(page.getByText("Please pay at the counter to start your order")).toBeVisible({
+        timeout: 15000,
+      });
       await page.screenshot({ path: path.join(SCREENSHOT_DIR, "pay-first-token.png") });
 
       // BROWSE_ONLY in fresh context (bypasses 30s browser Cache-Control from earlier load)
