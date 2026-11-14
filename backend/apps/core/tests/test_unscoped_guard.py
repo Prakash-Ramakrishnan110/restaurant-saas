@@ -15,6 +15,7 @@ def test_unscoped_manager_guard():
         "tenants/views.py",
         "tenants/models.py",
         "tenants/migrations",
+        "orders/public_views.py",  # Public unauthenticated tracking_token lookup before tenant context is set
         "rbac/permissions.py",
         "audit/models.py",
         "audit/services.py",

@@ -2,6 +2,7 @@ from datetime import timedelta
 from pathlib import Path
 
 import environ
+from corsheaders.defaults import default_headers
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
@@ -142,8 +143,6 @@ CELERY_BEAT_SCHEDULE = {
 }
 
 # CORS & CSRF
-from corsheaders.defaults import default_headers
-
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOW_HEADERS = [
     *default_headers,

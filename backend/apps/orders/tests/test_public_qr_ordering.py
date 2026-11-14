@@ -64,7 +64,9 @@ def qr_ordering_fixture():
         price_paise=299900,
         entitlements={"max_branches": 5, "max_tables": 50},
     )
-    tenant = Tenant.objects.create(name="Kaveri Kitchen", slug="kaveri-qr", status=Tenant.Status.ACTIVE)
+    tenant = Tenant.objects.create(
+        name="Kaveri Kitchen", slug="kaveri-qr", status=Tenant.Status.ACTIVE
+    )
     Subscription.objects.create(tenant=tenant, plan=plan, status=SubscriptionStatus.ACTIVE)
     BusinessSettings.objects.create(
         tenant=tenant, legal_name="Kaveri Kitchen", brand_primary_color="#FF6A00"
@@ -81,7 +83,9 @@ def qr_ordering_fixture():
     area = ServiceArea.unscoped.create(
         tenant=tenant, branch=branch, name="Main Hall", area_type=AreaType.DINING
     )
-    section = Section.unscoped.create(tenant=tenant, branch=branch, service_area=area, name="Indoor")
+    section = Section.unscoped.create(
+        tenant=tenant, branch=branch, service_area=area, name="Indoor"
+    )
     table = DiningTable.unscoped.create(
         tenant=tenant, branch=branch, section=section, label="T1", capacity=4
     )
@@ -128,7 +132,11 @@ def qr_ordering_fixture():
     ItemOptionGroup.objects.create(item=dosa, group=opt_group)
 
     hidden_item = MenuItem.objects.create(
-        tenant=tenant, category=cat, name="Secret Chef Item", base_price_paise=50000, is_active=False
+        tenant=tenant,
+        category=cat,
+        name="Secret Chef Item",
+        base_price_paise=50000,
+        is_active=False,
     )
     soldout_item = MenuItem.objects.create(
         tenant=tenant, category=cat, name="Sold Out Vada", base_price_paise=4000, is_active=True
@@ -138,7 +146,9 @@ def qr_ordering_fixture():
     )
 
     # Foreign tenant
-    other_tenant = Tenant.objects.create(name="Other Spice", slug="other-qr", status=Tenant.Status.ACTIVE)
+    other_tenant = Tenant.objects.create(
+        name="Other Spice", slug="other-qr", status=Tenant.Status.ACTIVE
+    )
     Subscription.objects.create(tenant=other_tenant, plan=plan, status=SubscriptionStatus.ACTIVE)
     other_cat = MenuCategory.objects.create(tenant=other_tenant, name="Foreign")
     foreign_item = MenuItem.objects.create(
@@ -310,7 +320,15 @@ def test_modes_staff_policy_approval_reject_and_pay_first(qr_ordering_fixture):
         f["caps"].save()
         r = client.post(
             url,
-            data={"items": [{"menu_item_id": str(f["dosa"].id), "option_ids": [str(f["opt_extra"].id)], "quantity": 1}]},
+            data={
+                "items": [
+                    {
+                        "menu_item_id": str(f["dosa"].id),
+                        "option_ids": [str(f["opt_extra"].id)],
+                        "quantity": 1,
+                    }
+                ]
+            },
             format="json",
             HTTP_IDEMPOTENCY_KEY=f"idem-{mode}",
         )
@@ -322,7 +340,15 @@ def test_modes_staff_policy_approval_reject_and_pay_first(qr_ordering_fixture):
     f["caps"].save()
     r_staff_only = client.post(
         url,
-        data={"items": [{"menu_item_id": str(f["dosa"].id), "option_ids": [str(f["opt_extra"].id)], "quantity": 1}]},
+        data={
+            "items": [
+                {
+                    "menu_item_id": str(f["dosa"].id),
+                    "option_ids": [str(f["opt_extra"].id)],
+                    "quantity": 1,
+                }
+            ]
+        },
         format="json",
         HTTP_IDEMPOTENCY_KEY="idem-staff-only",
     )
@@ -334,7 +360,15 @@ def test_modes_staff_policy_approval_reject_and_pay_first(qr_ordering_fixture):
     f["caps"].save()
     r_pending = client.post(
         url,
-        data={"items": [{"menu_item_id": str(f["dosa"].id), "option_ids": [str(f["opt_extra"].id)], "quantity": 1}]},
+        data={
+            "items": [
+                {
+                    "menu_item_id": str(f["dosa"].id),
+                    "option_ids": [str(f["opt_extra"].id)],
+                    "quantity": 1,
+                }
+            ]
+        },
         format="json",
         HTTP_IDEMPOTENCY_KEY="idem-approval-1",
     )
@@ -345,7 +379,10 @@ def test_modes_staff_policy_approval_reject_and_pay_first(qr_ordering_fixture):
 
     # Role matrix on approve/reject: kitchen denied (403), waiter allowed (200)
     k_client = auth_client(f["kitchen"], f["tenant"])
-    assert k_client.post(f"/api/v1/orders/{order.id}/approve/").status_code == status.HTTP_403_FORBIDDEN
+    assert (
+        k_client.post(f"/api/v1/orders/{order.id}/approve/").status_code
+        == status.HTTP_403_FORBIDDEN
+    )
 
     w_client = auth_client(f["waiter"], f["tenant"])
     r_app = w_client.post(f"/api/v1/orders/{order.id}/approve/")
@@ -356,12 +393,23 @@ def test_modes_staff_policy_approval_reject_and_pay_first(qr_ordering_fixture):
     # Reject requires reason
     r_pending2 = client.post(
         url,
-        data={"items": [{"menu_item_id": str(f["dosa"].id), "option_ids": [str(f["opt_extra"].id)], "quantity": 1}]},
+        data={
+            "items": [
+                {
+                    "menu_item_id": str(f["dosa"].id),
+                    "option_ids": [str(f["opt_extra"].id)],
+                    "quantity": 1,
+                }
+            ]
+        },
         format="json",
         HTTP_IDEMPOTENCY_KEY="idem-reject-1",
     )
     order2 = Order.unscoped.get(order_number=r_pending2.data["order_number"])
-    assert w_client.post(f"/api/v1/orders/{order2.id}/reject/", data={}, format="json").status_code == 400
+    assert (
+        w_client.post(f"/api/v1/orders/{order2.id}/reject/", data={}, format="json").status_code
+        == 400
+    )
     r_rej = w_client.post(
         f"/api/v1/orders/{order2.id}/reject/", data={"reason": "Out of batter"}, format="json"
     )
@@ -382,7 +430,15 @@ def test_modes_staff_policy_approval_reject_and_pay_first(qr_ordering_fixture):
     f["caps"].save()
     r_pay = client.post(
         f"/api/v1/public/qr/{f['qr_counter'].public_token}/orders/",
-        data={"items": [{"menu_item_id": str(f["dosa"].id), "option_ids": [str(f["opt_extra"].id)], "quantity": 1}]},
+        data={
+            "items": [
+                {
+                    "menu_item_id": str(f["dosa"].id),
+                    "option_ids": [str(f["opt_extra"].id)],
+                    "quantity": 1,
+                }
+            ]
+        },
         format="json",
         HTTP_IDEMPOTENCY_KEY="idem-payfirst-1",
     )
@@ -413,7 +469,15 @@ def test_abuse_limits_and_12h_tracking_expiry(qr_ordering_fixture):
     assert (
         client.post(
             url,
-            data={"items": [{"menu_item_id": str(f["dosa"].id), "option_ids": [str(f["opt_extra"].id)], "quantity": 11}]},
+            data={
+                "items": [
+                    {
+                        "menu_item_id": str(f["dosa"].id),
+                        "option_ids": [str(f["opt_extra"].id)],
+                        "quantity": 11,
+                    }
+                ]
+            },
             format="json",
             HTTP_IDEMPOTENCY_KEY="idem-qty-11",
         ).status_code
@@ -426,7 +490,11 @@ def test_abuse_limits_and_12h_tracking_expiry(qr_ordering_fixture):
             url,
             data={
                 "items": [
-                    {"menu_item_id": str(f["dosa"].id), "option_ids": [str(f["opt_extra"].id)], "quantity": 1}
+                    {
+                        "menu_item_id": str(f["dosa"].id),
+                        "option_ids": [str(f["opt_extra"].id)],
+                        "quantity": 1,
+                    }
                     for _ in range(31)
                 ]
             },
@@ -440,14 +508,30 @@ def test_abuse_limits_and_12h_tracking_expiry(qr_ordering_fixture):
     for i in range(3):
         r = client.post(
             url,
-            data={"items": [{"menu_item_id": str(f["dosa"].id), "option_ids": [str(f["opt_extra"].id)], "quantity": 1}]},
+            data={
+                "items": [
+                    {
+                        "menu_item_id": str(f["dosa"].id),
+                        "option_ids": [str(f["opt_extra"].id)],
+                        "quantity": 1,
+                    }
+                ]
+            },
             format="json",
             HTTP_IDEMPOTENCY_KEY=f"idem-open-{i}",
         )
         assert r.status_code == 201
     r_4th = client.post(
         url,
-        data={"items": [{"menu_item_id": str(f["dosa"].id), "option_ids": [str(f["opt_extra"].id)], "quantity": 1}]},
+        data={
+            "items": [
+                {
+                    "menu_item_id": str(f["dosa"].id),
+                    "option_ids": [str(f["opt_extra"].id)],
+                    "quantity": 1,
+                }
+            ]
+        },
         format="json",
         HTTP_IDEMPOTENCY_KEY="idem-open-4",
     )

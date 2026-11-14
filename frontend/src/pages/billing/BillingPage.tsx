@@ -253,9 +253,7 @@ export const BillingPage: React.FC = () => {
                       <button
                         key={m}
                         type="button"
-                        onClick={() =>
-                          setOrderPaymentMethods((prev) => ({ ...prev, [ord.id]: m }))
-                        }
+                        onClick={() => setOrderPaymentMethods((prev) => ({ ...prev, [ord.id]: m }))}
                         className={`flex-1 py-1.5 rounded text-[11px] font-semibold border transition-colors ${
                           method === m
                             ? "bg-[#0B1F3B] text-white border-[#0B1F3B]"
@@ -272,9 +270,7 @@ export const BillingPage: React.FC = () => {
                     onClick={() => handleSettleAwaitingOrder(ord)}
                     className="w-full min-h-[40px] bg-[#FF6A00] hover:bg-[#E55F00] text-[#0B1F3B] font-bold text-xs"
                   >
-                    {settlingOrderId === ord.id
-                      ? "Processing..."
-                      : "Mark Paid & Send to Kitchen"}
+                    {settlingOrderId === ord.id ? "Processing..." : "Mark Paid & Send to Kitchen"}
                   </Button>
                 </div>
               );

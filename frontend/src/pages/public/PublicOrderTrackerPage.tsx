@@ -244,7 +244,10 @@ export const PublicOrderTrackerPage: React.FC = () => {
                     const done = activeStep >= idx;
                     const current = activeStep === idx;
                     return (
-                      <li key={step.label} className="flex flex-col items-center text-center gap-1.5">
+                      <li
+                        key={step.label}
+                        className="flex flex-col items-center text-center gap-1.5"
+                      >
                         <div
                           className={`w-10 h-10 rounded-full flex items-center justify-center border-2 transition-colors ${
                             done
@@ -330,4 +333,3 @@ export const PublicOrderTrackerPage: React.FC = () => {
     </div>
   );
 };
-

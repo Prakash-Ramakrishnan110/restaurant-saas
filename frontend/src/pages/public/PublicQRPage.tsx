@@ -12,12 +12,7 @@ import {
   Sparkles,
   Trash2,
 } from "lucide-react";
-import {
-  publicQrApi,
-  PublicQRMenuResponse,
-  PublicMenuItem,
-  FoodType,
-} from "../../api/publicQr";
+import { publicQrApi, PublicQRMenuResponse, PublicMenuItem, FoodType } from "../../api/publicQr";
 import { formatRupees } from "../../utils/currency";
 import { evaluateBrandColor } from "../../lib/colorUtils";
 import {
@@ -87,13 +82,7 @@ function getInitials(name: string): string {
   return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
 }
 
-function FoodTypeBadge({
-  foodType,
-  lang,
-}: {
-  foodType: FoodType;
-  lang: CustomerLang;
-}) {
+function FoodTypeBadge({ foodType, lang }: { foodType: FoodType; lang: CustomerLang }) {
   const copy = PUBLIC_QR_COPY[lang];
   const isNonVeg = foodType === "NON_VEG";
   const isEgg = foodType === "EGG";
@@ -297,8 +286,7 @@ export const PublicQRPage: React.FC = () => {
 
   const openItemSheet = (item: PublicMenuItem) => {
     if (!item.is_available || menu?.ordering_mode === "BROWSE_ONLY") return;
-    const defaultVariant =
-      item.variants.find((v) => v.is_default) || item.variants[0] || null;
+    const defaultVariant = item.variants.find((v) => v.is_default) || item.variants[0] || null;
     const defaultOptionIds: string[] = [];
     item.option_groups.forEach((grp) => {
       grp.options.forEach((opt) => {
@@ -708,9 +696,7 @@ export const PublicQRPage: React.FC = () => {
                     type="button"
                     onClick={() => setActiveCategoryId(cat.id)}
                     className={`min-h-[44px] px-4 rounded-full text-xs font-bold whitespace-nowrap transition-colors ${
-                      selected
-                        ? ""
-                        : "bg-muted text-muted-foreground hover:text-foreground"
+                      selected ? "" : "bg-muted text-muted-foreground hover:text-foreground"
                     }`}
                     style={
                       selected

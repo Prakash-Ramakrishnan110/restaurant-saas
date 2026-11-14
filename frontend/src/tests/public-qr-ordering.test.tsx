@@ -250,9 +250,7 @@ describe("Customer Phone QR Ordering", () => {
     vi.mocked(publicQrApi.trackOrder).mockResolvedValueOnce({ data: baseTracker } as any);
     const payFirstView = renderTrackerPage("tok", "trk-1");
     await waitFor(() => {
-      expect(
-        screen.getByText("Please pay at the counter to start your order")
-      ).toBeInTheDocument();
+      expect(screen.getByText("Please pay at the counter to start your order")).toBeInTheDocument();
       expect(screen.getByText("#12")).toBeInTheDocument();
     });
     const payFirstAxe = await axe(payFirstView.container);

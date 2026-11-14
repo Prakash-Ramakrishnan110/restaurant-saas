@@ -419,20 +419,24 @@ test.describe("Prompt 3B: 8 Core E2E Flows", () => {
   });
 
   // Flow 7: Public /q/:token Customer Landing Page
-  test("Flow 7: Public QR landing page displays coming soon notice with tenant branding", async ({ page }) => {
-    await page.route("**/api/v1/public/qr/guest-token-123/", async (route) => {
+  test("Flow 7: Public QR landing page displays browse-only notice with tenant branding", async ({ page }) => {
+    await page.route("**/api/v1/public/qr/guest-token-123/menu/", async (route) => {
       await route.fulfill({
         status: 200,
         contentType: "application/json",
         body: JSON.stringify({
-          valid: true,
-          tenant_name: "Spice Garden",
           display_name: "Spice Garden Café",
-          logo_url: null,
+          logo_url: "",
           brand_primary_color: "#FF6A00",
-          table_identifier: "Table 05",
+          target_type: "TABLE",
+          target_label: "05",
           area_name: "Courtyard",
           branch_name: "Guindy",
+          ordering_mode: "BROWSE_ONLY",
+          payment_timing: "PAY_LATER",
+          session_policy: "CUSTOMER_CAN_OPEN",
+          active_session_open: false,
+          categories: [],
         }),
       });
     });
@@ -441,10 +445,8 @@ test.describe("Prompt 3B: 8 Core E2E Flows", () => {
     await page.waitForLoadState("networkidle");
 
     await expect(page.getByText("Spice Garden Café")).toBeVisible();
-    await expect(page.getByText("Guindy • Courtyard • Table 05")).toBeVisible();
-    await expect(
-      page.getByText("Online ordering is coming soon. Please ask our staff to take your order.")
-    ).toBeVisible();
+    await expect(page.getByText("Table 05")).toBeVisible();
+    await expect(page.getByText("Please ask our staff to order")).toBeVisible();
     await expect(page.getByText("Powered by ServeMyFood")).toBeVisible();
 
     // Capture screenshot of public page

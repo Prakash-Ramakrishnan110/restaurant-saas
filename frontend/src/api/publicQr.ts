@@ -158,4 +158,3 @@ export const publicQrApi = {
       `/public/orders/${encodeURIComponent(trackingToken)}/`
     ),
 };
-

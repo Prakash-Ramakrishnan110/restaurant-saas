@@ -6,6 +6,7 @@ import { OnboardingWizardPage } from "../pages/onboarding/OnboardingWizardPage";
 import { BrandingSettingsPage } from "../pages/settings/BrandingSettingsPage";
 import { PublicQRPage } from "../pages/public/PublicQRPage";
 import { apiClient } from "../api/client";
+import { publicQrApi } from "../api/publicQr";
 
 // Mock API client
 vi.mock("../api/client", () => {
@@ -129,19 +130,23 @@ describe("Prompt 3B Frontend: Public QR Landing Page", () => {
     vi.clearAllMocks();
   });
 
-  it("renders coming soon message with tenant branding when QR token is valid", async () => {
-    (apiClient.get as any).mockResolvedValueOnce({
+  it("renders branded QR page in browse-only mode when QR token is valid", async () => {
+    vi.spyOn(publicQrApi, "getMenu").mockResolvedValueOnce({
       data: {
-        valid: true,
-        tenant_name: "Madurai Mess",
         display_name: "Madurai Mess Grand",
-        logo_url: null,
+        logo_url: "",
         brand_primary_color: "#FF6A00",
-        table_identifier: "Table 04",
-        area_name: "Main AC Hall",
         branch_name: "Town Hall Branch",
+        area_name: "Main AC Hall",
+        target_type: "TABLE",
+        target_label: "04",
+        ordering_mode: "BROWSE_ONLY",
+        payment_timing: "PAY_LATER",
+        session_policy: "CUSTOMER_CAN_OPEN",
+        active_session_open: false,
+        categories: [],
       },
-    });
+    } as any);
 
     render(
       <MemoryRouter initialEntries={["/q/valid-token-123"]}>
@@ -155,20 +160,21 @@ describe("Prompt 3B Frontend: Public QR Landing Page", () => {
       expect(screen.getByText("Madurai Mess Grand")).toBeDefined();
     });
 
-    // Check location label
-    expect(screen.getByText("Town Hall Branch • Main AC Hall • Table 04")).toBeDefined();
+    // Check location badge & branch name
+    expect(screen.getByText("Table 04")).toBeDefined();
+    expect(screen.getByText("Town Hall Branch")).toBeDefined();
 
-    // Check friendly coming soon text
-    expect(
-      screen.getByText("Online ordering is coming soon. Please ask our staff to take your order.")
-    ).toBeDefined();
+    // Check browse-only notice
+    expect(screen.getByText("Please ask our staff to order")).toBeDefined();
 
     // Check powered by footer
     expect(screen.getByText(/Powered by ServeMyFood/i)).toBeDefined();
   });
 
   it("renders friendly not found page when QR token is invalid or inactive", async () => {
-    (apiClient.get as any).mockRejectedValueOnce(new Error("Token not found"));
+    vi.spyOn(publicQrApi, "getMenu").mockRejectedValueOnce({
+      response: { status: 404 },
+    });
 
     render(
       <MemoryRouter initialEntries={["/q/invalid-token-404"]}>
@@ -179,11 +185,11 @@ describe("Prompt 3B Frontend: Public QR Landing Page", () => {
     );
 
     await waitFor(() => {
-      expect(screen.getByText("QR Code Inactive or Invalid")).toBeDefined();
+      expect(screen.getByText("Menu unavailable")).toBeDefined();
     });
 
     expect(
-      screen.getByText(/This QR code could not be verified or has been replaced by venue staff/i)
+      screen.getByText(/This QR code is not active. Please ask our staff for a fresh code./i)
     ).toBeDefined();
   });
 });

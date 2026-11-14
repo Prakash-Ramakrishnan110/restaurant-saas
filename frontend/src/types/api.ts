@@ -2856,6 +2856,7 @@ export interface components {
             readonly table_session_id: string | null;
             readonly table_label: string;
             order_workflow?: components["schemas"]["OrderWorkflowDafEnum"];
+            source?: components["schemas"]["SourceEnum"];
             /** @description Sequential daily token number for counter service */
             token_number?: number | null;
             status?: components["schemas"]["Status92cEnum"];
@@ -2869,6 +2870,7 @@ export interface components {
             /** @description Unique human-readable order identifier */
             order_number?: string;
             order_workflow?: components["schemas"]["OrderWorkflowDafEnum"];
+            source?: components["schemas"]["SourceEnum"];
             /** @description Sequential daily token number for counter service */
             token_number?: number | null;
             status?: components["schemas"]["Status92cEnum"];
@@ -3092,10 +3094,10 @@ export interface components {
             readonly table_session_id: string | null;
             readonly table_label: string | null;
             order_workflow?: components["schemas"]["OrderWorkflowDafEnum"];
+            source?: components["schemas"]["SourceEnum"];
             /** @description Sequential daily token number for counter service */
             token_number?: number | null;
             status?: components["schemas"]["Status92cEnum"];
-            source?: components["schemas"]["SourceEnum"];
             payment_status?: components["schemas"]["PaymentStatusEnum"];
             rejected_reason?: string;
             /** Format: date-time */
@@ -3196,10 +3198,10 @@ export interface components {
             /** @description Unique human-readable order identifier */
             order_number?: string;
             order_workflow?: components["schemas"]["OrderWorkflowDafEnum"];
+            source?: components["schemas"]["SourceEnum"];
             /** @description Sequential daily token number for counter service */
             token_number?: number | null;
             status?: components["schemas"]["Status92cEnum"];
-            source?: components["schemas"]["SourceEnum"];
             payment_status?: components["schemas"]["PaymentStatusEnum"];
             rejected_reason?: string;
             /** Format: date-time */
@@ -3806,10 +3808,10 @@ export interface components {
             /** @description Unique human-readable order identifier */
             order_number?: string;
             order_workflow?: components["schemas"]["OrderWorkflowDafEnum"];
+            source?: components["schemas"]["SourceEnum"];
             /** @description Sequential daily token number for counter service */
             token_number?: number | null;
             status?: components["schemas"]["Status92cEnum"];
-            source?: components["schemas"]["SourceEnum"];
             payment_status?: components["schemas"]["PaymentStatusEnum"];
             rejected_reason?: string;
             /** Format: date-time */
