@@ -215,12 +215,6 @@ test.describe.serial("Customer Phone QR Ordering (Live Stack E2E)", () => {
       await staffPage.click('button[type="submit"]');
       await staffPage.waitForURL((u) => !u.pathname.includes("/login"), { timeout: 15000 });
 
-      await staffPage.getByRole("link", { name: "Kitchen KDS" }).click();
-      await expect(staffPage.getByText("QR", { exact: true }).first()).toBeVisible({
-        timeout: 15000,
-      });
-      await staffPage.screenshot({ path: path.join(SCREENSHOT_DIR, "kitchen-qr-badge.png") });
-
       await staffPage.getByRole("link", { name: /Live Orders/i }).click();
       await staffPage.getByRole("button", { name: /Needs approval/i }).click();
       await expect(staffPage.getByRole("button", { name: /^Accept$/i }).first()).toBeVisible({
@@ -233,6 +227,12 @@ test.describe.serial("Customer Phone QR Ordering (Live Stack E2E)", () => {
         .click();
 
       await expect(page.getByText("Received")).toBeVisible({ timeout: 15000 });
+
+      await staffPage.getByRole("link", { name: "Kitchen KDS" }).click();
+      await expect(staffPage.getByText("QR", { exact: true }).first()).toBeVisible({
+        timeout: 15000,
+      });
+      await staffPage.screenshot({ path: path.join(SCREENSHOT_DIR, "kitchen-qr-badge.png") });
     } finally {
       await customerContext.close();
       await staffContext.close();
