@@ -143,13 +143,18 @@ export const FloorPOSPage: React.FC = () => {
           })
         : Promise.resolve([]);
 
+      const canCheckAvailability = ["OWNER", "MANAGER", "KITCHEN"].includes(
+        (activeTenant.role || "").toUpperCase()
+      );
       const [tblData, catRes, itemRes, sessRes, srvRes, availRes, ordRes] = await Promise.all([
         tblPromise,
         apiClient.get<any>("/menu/categories/"),
         apiClient.get<any>("/menu/items/"),
         apiClient.get<any>("/sessions/").catch(() => ({ data: [] })),
         ordersApi.getServiceRequests("PENDING").catch(() => ({ data: [] })),
-        apiClient.get<any>("/menu/availability/").catch(() => ({ data: [] })),
+        canCheckAvailability
+          ? apiClient.get<any>("/menu/availability/").catch(() => ({ data: [] }))
+          : Promise.resolve({ data: [] }),
         ordersApi.getOrders().catch(() => ({ data: [] })),
       ]);
 

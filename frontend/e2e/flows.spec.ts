@@ -1,8 +1,11 @@
-import { test, expect } from "@playwright/test";
+import { test, expect } from "./fixtures";
 
 test.describe("ServeMyFood 8 Core E2E Flows", () => {
   // Flow 1: Login & Logout
   test("Flow 1: successful login redirects to dashboard and logout returns to login", async ({ page }) => {
+    await page.route("**/api/v1/**", async (route) => {
+      await route.fulfill({ status: 200, contentType: "application/json", body: "[]" });
+    });
     await page.route("**/api/v1/auth/login/", async (route) => {
       await route.fulfill({
         status: 200,
@@ -93,7 +96,7 @@ test.describe("ServeMyFood 8 Core E2E Flows", () => {
   });
 
   // Flow 2: Wrong Password Handling
-  test("Flow 2: wrong credentials shows error alert", async ({ page }) => {
+  test("Flow 2: [negative] wrong credentials shows error alert", async ({ page }) => {
     await page.route("**/api/v1/auth/login/", async (route) => {
       await route.fulfill({
         status: 401,
@@ -117,7 +120,7 @@ test.describe("ServeMyFood 8 Core E2E Flows", () => {
   });
 
   // Flow 3: Rate Limit Countdown / Lockout
-  test("Flow 3: 429 response displays active rate-limit countdown timer", async ({ page }) => {
+  test("Flow 3: [negative] 429 response displays active rate-limit countdown timer", async ({ page }) => {
     await page.route("**/api/v1/auth/login/", async (route) => {
       await route.fulfill({
         status: 429,
@@ -146,6 +149,9 @@ test.describe("ServeMyFood 8 Core E2E Flows", () => {
   test("Flow 4: user with must_change_password=true is forced to /change-password", async ({ page }) => {
     let passwordChanged = false;
 
+    await page.route("**/api/v1/**", async (route) => {
+      await route.fulfill({ status: 200, contentType: "application/json", body: "[]" });
+    });
     await page.route("**/api/v1/auth/login/", async (route) => {
       await route.fulfill({
         status: 200,

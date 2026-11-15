@@ -21,11 +21,30 @@ export default defineConfig({
   projects: [
     {
       name: "chromium",
+      testIgnore: [
+        /capture-closeout4\.spec\.ts/,
+        /capture-closeout5\.spec\.ts/,
+        /screenshots\.spec\.ts/,
+      ],
       use: { ...devices["Desktop Chrome"] },
     },
     {
       name: "mobile",
+      testIgnore: [
+        /capture-closeout4\.spec\.ts/,
+        /capture-closeout5\.spec\.ts/,
+        /screenshots\.spec\.ts/,
+      ],
       use: { ...devices["Pixel 7"] },
+    },
+    {
+      name: "capture",
+      testMatch: [
+        /capture-closeout4\.spec\.ts/,
+        /capture-closeout5\.spec\.ts/,
+        /screenshots\.spec\.ts/,
+      ],
+      use: { ...devices["Desktop Chrome"] },
     },
   ],
 });

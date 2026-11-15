@@ -16,8 +16,9 @@ $Timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss K"
 $GitCommit = (git rev-parse HEAD 2>$null)
 $GitBranch = (git branch --show-current 2>$null)
 $GitTag = (git describe --tags --always 2>$null)
-$GitStatusShort = (git status --porcelain 2>$null)
+$GitStatusShort = (git status --porcelain -- . ':!docs/evidence' 2>$null)
 $IsClean = [string]::IsNullOrWhiteSpace($GitStatusShort)
+$WorkingTreeLabel = if ($IsClean) { "Clean (code)" } else { "Modified (code/untracked files outside docs/evidence)" }
 
 Write-Host "==============================================================================" -ForegroundColor Cyan
 Write-Host "   ServeMyFood - Single Verification Script (verify_all.ps1)                  " -ForegroundColor Cyan
@@ -37,7 +38,7 @@ function Run-Gate {
         [string]$WorkingDir = $RepoRoot
     )
 
-    Write-Host "`n[$Id/16] Running Gate: $Name..." -ForegroundColor Yellow
+    Write-Host "`n[$Id/19] Running Gate: $Name..." -ForegroundColor Yellow
     $OutPath = Join-Path $EvidenceDir $OutputFile
 
     $sw = [System.Diagnostics.Stopwatch]::StartNew()
@@ -216,25 +217,25 @@ Run-Gate -Id 12 `
     }
 
 # ------------------------------------------------------------------------------
-# 13. Frontend Vitest Unit & Component Tests
+# 13. Frontend Production Build
 # ------------------------------------------------------------------------------
 Run-Gate -Id 13 `
-    -Name "Frontend Vitest Unit Suite" `
-    -OutputFile "frontend-vitest.txt" `
-    -WorkingDir (Join-Path $RepoRoot "frontend") `
-    -Action {
-        npm.cmd run test
-    }
-
-# ------------------------------------------------------------------------------
-# 14. Frontend Production Build
-# ------------------------------------------------------------------------------
-Run-Gate -Id 14 `
     -Name "Frontend Production Build" `
     -OutputFile "frontend-build.txt" `
     -WorkingDir (Join-Path $RepoRoot "frontend") `
     -Action {
         npm.cmd run build
+    }
+
+# ------------------------------------------------------------------------------
+# 14. Frontend Vitest Unit & Component Tests
+# ------------------------------------------------------------------------------
+Run-Gate -Id 14 `
+    -Name "Frontend Vitest Unit Suite" `
+    -OutputFile "frontend-vitest.txt" `
+    -WorkingDir (Join-Path $RepoRoot "frontend") `
+    -Action {
+        npm.cmd run test
     }
 
 # ------------------------------------------------------------------------------
@@ -261,14 +262,58 @@ Run-Gate -Id 15 `
     }
 
 # ------------------------------------------------------------------------------
-# 16. Playwright Browser E2E Suite
+# 16. Playwright Browser E2E Suite (Behavior Tests Only)
 # ------------------------------------------------------------------------------
 Run-Gate -Id 16 `
     -Name "Playwright Browser E2E Test Suite" `
     -OutputFile "e2e-report.txt" `
     -WorkingDir (Join-Path $RepoRoot "frontend") `
     -Action {
-        npx.cmd playwright test
+        npx.cmd playwright test --project=chromium --project=mobile
+    }
+
+# ------------------------------------------------------------------------------
+# 17. Tax Claim & GST Term Scan
+# ------------------------------------------------------------------------------
+Run-Gate -Id 17 `
+    -Name "Tax Claim & GST Term Scan" `
+    -OutputFile "tax-scan.txt" `
+    -WorkingDir $RepoRoot `
+    -Action {
+        $hits = git grep -n -i -E "cgst|sgst|igst|tax_paise|tax invoice|\b(5|12|18|28)%[[:space:]]*(gst|tax)" -- frontend/src backend/apps ':!**/migrations/**' ':!**/tests/**' ':!**/*.test.*' ':!**/*.spec.*'
+        $filtered = @($hits | Where-Object { $_ -and $_ -notmatch "NOT A TAX INVOICE" -and $_ -notmatch 'placeholder="' })
+        if ($filtered.Count -gt 0) {
+            $filtered | ForEach-Object { Write-Output $_ }
+            Write-Output "FAIL: Found $($filtered.Count) prohibited tax/GST references."
+            $global:LASTEXITCODE = 1
+        } else {
+            Write-Output "PASS: 0 prohibited tax/GST references in frontend/src and backend/apps."
+            $global:LASTEXITCODE = 0
+        }
+    }
+
+# ------------------------------------------------------------------------------
+# 18. Image Processing & Safety Pytest
+# ------------------------------------------------------------------------------
+Run-Gate -Id 18 `
+    -Name "Image Processing & Safety Pytest" `
+    -OutputFile "image-safety-check.txt" `
+    -WorkingDir (Join-Path $RepoRoot "backend") `
+    -Action {
+        $env:TEST_DB_PORT = "5435"
+        uv run pytest apps/tenants/tests/test_prompt3b_branding_logo.py --no-cov -q
+    }
+
+# ------------------------------------------------------------------------------
+# 19. Waiter Availability Isolation Pytest
+# ------------------------------------------------------------------------------
+Run-Gate -Id 19 `
+    -Name "Waiter Availability Isolation Pytest" `
+    -OutputFile "waiter-isolation-check.txt" `
+    -WorkingDir (Join-Path $RepoRoot "backend") `
+    -Action {
+        $env:TEST_DB_PORT = "5435"
+        uv run pytest apps/menu/tests/test_menu_rbac_matrix.py -k "waiter" --no-cov -q
     }
 
 
@@ -322,6 +367,15 @@ if ($E2ETxt) {
     if ($cleanE2E -match "(\d+)\s+flaky") { $E2EFlaky = $matches[1] }
 }
 
+$TaxScanTxt = Get-Content (Join-Path $EvidenceDir "tax-scan.txt") -Raw -ErrorAction SilentlyContinue
+$TaxScanSummary = if ($TaxScanTxt -match "PASS:\s*(.+)") { "PASS ($($matches[1].Trim()))" } else { "FAIL (see tax-scan.txt)" }
+
+$ImageTxt = Get-Content (Join-Path $EvidenceDir "image-safety-check.txt") -Raw -ErrorAction SilentlyContinue
+$ImageSummary = if ($ImageTxt -match "(\d+)\s+passed") { "PASS ($($matches[1]) passed)" } else { "FAIL (see image-safety-check.txt)" }
+
+$WaiterTxt = Get-Content (Join-Path $EvidenceDir "waiter-isolation-check.txt") -Raw -ErrorAction SilentlyContinue
+$WaiterSummary = if ($WaiterTxt -match "(\d+)\s+passed") { "PASS ($($matches[1]) passed)" } else { "FAIL (see waiter-isolation-check.txt)" }
+
 $FinalVerdict = if ($OverallPassed) { "PASS" } else { "FAIL" }
 
 # ==============================================================================
@@ -335,7 +389,7 @@ $SummaryLines += "Generated At:    $Timestamp"
 $SummaryLines += "Git Branch:      $GitBranch"
 $SummaryLines += "Git Commit:      $GitCommit"
 $SummaryLines += "Target Tag:      $GitTag"
-$SummaryLines += "Working Tree:    $(if ($IsClean) { 'Clean' } else { 'Modified (staged/unstaged files present)' })"
+$SummaryLines += "Working Tree:    $WorkingTreeLabel"
 $SummaryLines += "Overall Result:  $FinalVerdict"
 $SummaryLines += "=============================================================================="
 $SummaryLines += ""
@@ -355,9 +409,9 @@ $SummaryLines += "Backend Pytest Tests:            $BackendPassed passed, $Backe
 $SummaryLines += "Backend Total Code Coverage:     $BackendCoverage (Threshold >= 92.0%, apps/orders >= 90.0%)"
 $SummaryLines += "Frontend Vitest Tests:           $FrontendPassed passed, $FrontendFailed failed ($FrontendSuitesPassed suites passed)"
 $SummaryLines += "Playwright E2E Tests:            $E2EPassed passed, $E2EFailed failed, $E2ESkipped skipped, $E2EFlaky flaky"
-$SummaryLines += "Image Processing & Safety:       PASS (SVG rejected, animated rejected, EXIF stripped, quota enforced)"
-$SummaryLines += "Waiter Availability Isolation:   PASS (Role.WAITER receives 403 on ALL availability endpoints)"
-$SummaryLines += "Tax Claim Policy (ADR 0021):     PASS (Zero tax rates or legal claims in active UI, serializers, seed)"
+$SummaryLines += "Image Processing & Safety:       $ImageSummary"
+$SummaryLines += "Waiter Availability Isolation:   $WaiterSummary"
+$SummaryLines += "Tax Claim Policy (ADR 0021):     $TaxScanSummary"
 $SummaryLines += "-----------------------------------------------------------------------------------------------------------------"
 $SummaryLines += ""
 $SummaryLines += "FINAL CLOSE-OUT VERDICT: $FinalVerdict"

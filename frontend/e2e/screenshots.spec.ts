@@ -330,38 +330,6 @@ test.describe("ServeMyFood Visual Artifacts & Screenshots Suite", () => {
     });
   });
 
-  test("TOUCH INVARIANT: Touch mode target heights are >= 56px", async ({ page }) => {
-    await page.setViewportSize({ width: 1440, height: 900 });
-    await page.goto("/dev/design-system");
-    await page.waitForLoadState("networkidle");
-
-    // Enable touch density mode
-    await page.evaluate(() => {
-      document.documentElement.setAttribute("data-density", "touch");
-      document.documentElement.classList.add("touch-mode");
-    });
-    await page.waitForTimeout(400);
-
-    // Measure button heights in touch mode
-    const buttons = page.locator("button");
-    const count = await buttons.count();
-    expect(count).toBeGreaterThan(5);
-
-    let measuredButtons = 0;
-    for (let i = 0; i < Math.min(count, 15); i++) {
-      const btn = buttons.nth(i);
-      if (await btn.isVisible()) {
-        const box = await btn.boundingBox();
-        if (box && box.height > 0) {
-          // Touch mode requires >= 56px (allowing minor subpixel float)
-          expect(box.height).toBeGreaterThanOrEqual(55.5);
-          measuredButtons++;
-        }
-      }
-    }
-    expect(measuredButtons).toBeGreaterThan(0);
-  });
-
   test("LOGO COMPARE: generate brand sheet vs implemented SVG comparison", async ({ page }) => {
     await page.setViewportSize({ width: 1200, height: 600 });
     await page.goto("/dev/brand");

@@ -1,4 +1,4 @@
-import { test, expect } from "@playwright/test";
+import { test, expect } from "./fixtures";
 import path from "path";
 import fs from "fs";
 
@@ -9,6 +9,10 @@ async function mockAuthenticatedOwner(page: any) {
   await page.addInitScript(() => {
     localStorage.setItem("servemyfood_has_session", "true");
     localStorage.setItem("servemyfood_tenant_id", "ten-spice-1");
+  });
+
+  await page.route("**/api/v1/**", async (route: any) => {
+    await route.fulfill({ status: 200, contentType: "application/json", body: "[]" });
   });
 
   await page.route("**/api/v1/auth/refresh/", async (route: any) => {

@@ -1,4 +1,4 @@
-import { test, expect } from "@playwright/test";
+import { test, expect } from "./fixtures";
 import path from "path";
 import fs from "fs";
 
@@ -59,6 +59,10 @@ async function setupDemoMockRoutes(page: any, state: DemoState) {
     },
     { tid: state.tenantId }
   );
+
+  await page.route("**/api/v1/**", async (route: any) => {
+    await route.fulfill({ status: 200, contentType: "application/json", body: "[]" });
+  });
 
   await page.route("**/api/v1/auth/refresh/", async (route: any) => {
     await route.fulfill({
@@ -661,7 +665,7 @@ test.describe("ServeMyFood: 5-Minute End-to-End Live Demo Journey (D1)", () => {
     await expect(page.locator("text=Active Daily Token").first()).toBeVisible({ timeout: 10000 });
   });
 
-  test("Security & Isolation Checks: Client tampered prices ignored and tenant isolation enforced", async ({
+  test("Security & Isolation Checks: [negative] Client tampered prices ignored and tenant isolation enforced", async ({
     page,
   }) => {
     const secState: DemoState = {

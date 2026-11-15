@@ -587,7 +587,10 @@ def test_public_qr_edge_cases_room_counter_session_and_plain_notes(
 
     from django.core.signing import TimestampSigner
     from django.http import Http404
+    from rest_framework.request import Request
+    from rest_framework.test import APIRequestFactory
 
+    from apps.orders.models import Order
     from apps.orders.public_views import (
         PublicQRTokenThrottle,
         _build_target_label,
@@ -601,9 +604,10 @@ def test_public_qr_edge_cases_room_counter_session_and_plain_notes(
 
     # Throttle cache key with and without token
     throttle = PublicQRTokenThrottle()
-    assert throttle.get_cache_key(None, SimpleNamespace(kwargs={})) is None
+    drf_request = Request(APIRequestFactory().get("/"))
+    assert throttle.get_cache_key(drf_request, SimpleNamespace(kwargs={})) is None
     assert "tok-abc" in (
-        throttle.get_cache_key(None, SimpleNamespace(kwargs={"token": "tok-abc"})) or ""
+        throttle.get_cache_key(drf_request, SimpleNamespace(kwargs={"token": "tok-abc"})) or ""
     )
 
     # _status_message_key coverage for all lifecycle statuses
@@ -615,7 +619,7 @@ def test_public_qr_edge_cases_room_counter_session_and_plain_notes(
         (OrderStatus.CANCELLED, "ORDER_CANCELLED"),
         ("UNKNOWN", "ORDER_RECEIVED"),
     ]:
-        dummy = SimpleNamespace(status=st_val, rejected_reason="")
+        dummy = Order(status=st_val, rejected_reason="")
         assert _status_message_key(dummy, PaymentTiming.PAY_LATER) == expected_key
 
     # Room QR target label + inactive branch / suspended tenant 404

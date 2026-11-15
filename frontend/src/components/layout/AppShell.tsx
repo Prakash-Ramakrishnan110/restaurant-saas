@@ -141,6 +141,10 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
     ) {
       setUsesTables(false);
     }
+    const role = (tenant.role || "").toUpperCase();
+    if (!user || user.is_platform_admin || (role && !["OWNER", "MANAGER"].includes(role))) {
+      return;
+    }
     apiClient
       .get<any>("/business/")
       .then((res) => {
@@ -171,7 +175,7 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
 
   // Live order counts polling for badges
   useEffect(() => {
-    if (user?.is_platform_admin) return;
+    if (!user || user.is_platform_admin) return;
 
     const pollCounts = async () => {
       try {
@@ -210,7 +214,7 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
   const [supportSuccess, setSupportSuccess] = useState<string | null>(null);
 
   const fetchTenantTickets = useCallback(async () => {
-    if (user?.is_platform_admin) return;
+    if (!user || user.is_platform_admin) return;
     setLoadingTickets(true);
     try {
       const res = await apiClient.get<ListResponse<any>>("/support-tickets/");
@@ -224,19 +228,13 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
   }, [user]);
 
   useEffect(() => {
-    if (!user?.is_platform_admin) {
-      fetchTenantTickets();
-    }
-  }, [user, fetchTenantTickets]);
-
-  useEffect(() => {
-    if (supportOpen && !user?.is_platform_admin) {
+    if (supportOpen && user && !user.is_platform_admin) {
       fetchTenantTickets();
     }
   }, [supportOpen, user, fetchTenantTickets]);
 
   useEffect(() => {
-    if (user?.is_platform_admin) return;
+    if (!user || user.is_platform_admin) return;
 
     apiClient
       .get<ListResponse<any> | any[]>("/announcements/")

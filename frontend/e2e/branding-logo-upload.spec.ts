@@ -1,4 +1,4 @@
-import { test, expect } from "@playwright/test";
+import { test, expect } from "./fixtures";
 
 test.describe("Branding Logo Upload & Preview Suite", () => {
   test("Owner uploads a PNG logo and verifies rendered preview in logo card and QR standee", async ({

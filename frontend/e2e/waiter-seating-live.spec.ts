@@ -1,4 +1,4 @@
-import { test, expect, request as playwrightRequest } from "@playwright/test";
+import { test, expect, request as playwrightRequest } from "./fixtures";
 
 const API_BASE = "http://localhost:8000/api/v1/";
 
@@ -104,6 +104,9 @@ test.describe("Waiter Seating Live Stack Flow (No Stubs)", () => {
     await expect(page.getByRole("heading", { name: `Table ${tableLabel}` })).toBeVisible();
 
     // 7. Also verify hand-seating on 390px phone viewport against the real backend
+    await expect(
+      page.locator("button").filter({ hasText: tableLabel }).first()
+    ).not.toContainText("Free", { timeout: 10000 });
     await page.setViewportSize({ width: 390, height: 844 });
     const secondFreeBtn = page.locator("button").filter({ hasText: "Free" }).first();
     await expect(secondFreeBtn).toBeVisible({ timeout: 10000 });

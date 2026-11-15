@@ -143,7 +143,7 @@ export const RolesGuidePage: React.FC = () => {
       primaryScreens: [
         { name: "Kitchen KDS Station", path: "/kds" },
         { name: "Today's Availability", path: "/menu/availability" },
-        { name: "Menu Recipes", path: "/menu" },
+        { name: "Menu Management", path: "/menu" },
       ],
       dailyDutiesEn: [
         "Watch digital KDS tickets sorted chronologically; start oldest tickets first",

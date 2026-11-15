@@ -1,4 +1,4 @@
-import { test, expect } from "@playwright/test";
+import { test, expect } from "./fixtures";
 
 // Helper to mock auth & common tenant endpoints for a given role
 async function setupOperationsMock(
@@ -30,6 +30,10 @@ async function setupOperationsMock(
   await page.addInitScript(() => {
     localStorage.setItem("servemyfood_has_session", "true");
     localStorage.setItem("servemyfood_tenant_id", "ten-alpha-1");
+  });
+
+  await page.route("**/api/v1/**", async (route: any) => {
+    await route.fulfill({ status: 200, contentType: "application/json", body: "[]" });
   });
 
   await page.route("**/api/v1/auth/refresh/", async (route: any) => {
@@ -597,7 +601,7 @@ test.describe("Production Operational & Sidebar Suite", () => {
     await expect(page.getByText("Active Tickets")).toBeVisible();
   });
 
-  test("Option 4: Cashier Billing, Multi-Split Settlement & 80mm Receipt", async ({ page }) => {
+  test("Option 4: Cashier Billing, Full Settlement & 80mm Receipt", async ({ page }) => {
     await setupOperationsMock(page, "CASHIER", false);
     await page.goto("/billing");
     await page.waitForLoadState("networkidle");

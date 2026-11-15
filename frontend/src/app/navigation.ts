@@ -22,7 +22,6 @@ import {
   PlusCircle,
   LifeBuoy,
   Megaphone,
-  Boxes,
 } from "lucide-react";
 
 export interface NavItem {
@@ -153,12 +152,6 @@ export function getNavigationGroups(ctx: NavigationContext): NavGroup[] {
     { label: "Cashier Billing", path: "/billing", icon: Receipt, permission: "order.create" },
     { label: "Bills", path: "/billing/bills", icon: FileText, permission: "order.create" },
     { label: "Shift Close", path: "/billing/closeout", icon: Clock, permission: "order.create" },
-    {
-      label: "Inventory & Stock",
-      path: "/inventory",
-      icon: Boxes,
-      permission: "inventory.view",
-    },
     { label: "Menu", path: "/menu", icon: UtensilsCrossed, permission: "menu.view" },
     {
       label: "Today's Availability",

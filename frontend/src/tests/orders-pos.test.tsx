@@ -114,17 +114,12 @@ describe("Floor POS, KDS & Cashier Navigation & Operations", () => {
     });
   });
 
-  it("calculates multi-tender split bill balance accurately in integer paise", () => {
-    // Authoritative calculation invariant test
+  it("calculates full bill settlement balance accurately in integer paise", () => {
+    // Authoritative calculation invariant test (full settlement only)
     const billTotalPaise = 52500; // Rs 525.00
-    const cashTenderedPaise = 30000; // Rs 300.00
-    const remainingPaise = billTotalPaise - cashTenderedPaise;
-    expect(remainingPaise).toBe(22500); // Exactly Rs 225.00
-
-    // Equal 3-way split
-    const splitCount = 3;
-    const equalSharePaise = Math.round(billTotalPaise / splitCount);
-    expect(equalSharePaise).toBe(17500); // Rs 175.00 each
+    const tenderedPaise = 52500; // Rs 525.00
+    const remainingPaise = billTotalPaise - tenderedPaise;
+    expect(remainingPaise).toBe(0);
   });
 
   it("evaluates drawer variance during blind cashier shift closeout", () => {

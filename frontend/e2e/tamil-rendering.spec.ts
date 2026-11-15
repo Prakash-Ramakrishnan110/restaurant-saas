@@ -1,4 +1,4 @@
-import { test, expect } from "@playwright/test";
+import { test, expect } from "./fixtures";
 
 test.describe("Tamil Localization and Typography Rendering", () => {
   test("renders Tamil heading and body text on /dev/brand without missing glyphs", async ({ page }) => {

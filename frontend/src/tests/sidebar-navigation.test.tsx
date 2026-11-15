@@ -92,7 +92,7 @@ describe("AppShell Sidebar Navigation Structure & Role Filtering", () => {
     // Daily work items including Inventory
     expect(screen.getAllByText("Menu").length).toBeGreaterThanOrEqual(1);
     expect(screen.getByText("Today's Availability")).toBeDefined();
-    expect(screen.getByText("Inventory & Stock")).toBeDefined();
+    expect(screen.queryByText("Inventory & Stock")).toBeNull();
 
     // Unified Venue Layout hub replaces separate Areas, Tables, Floor Plan
     expect(screen.getByText("Venue Layout")).toBeDefined();
@@ -133,8 +133,8 @@ describe("AppShell Sidebar Navigation Structure & Role Filtering", () => {
       expect(screen.getByText("Venue Layout")).toBeDefined();
     });
 
-    // Daily work has Inventory & Stock
-    expect(screen.getByText("Inventory & Stock")).toBeDefined();
+    // Daily work hides Inventory & Stock
+    expect(screen.queryByText("Inventory & Stock")).toBeNull();
 
     // Separate clutter should not exist in sidebar
     expect(screen.queryByText("Counters and Tokens")).toBeNull();
@@ -165,7 +165,7 @@ describe("AppShell Sidebar Navigation Structure & Role Filtering", () => {
     );
 
     expect(screen.getByText("Venue Layout")).toBeDefined();
-    expect(screen.getByText("Inventory & Stock")).toBeDefined();
+    expect(screen.queryByText("Inventory & Stock")).toBeNull();
     expect(screen.queryByText("Counters and Tokens")).toBeNull();
   });
 

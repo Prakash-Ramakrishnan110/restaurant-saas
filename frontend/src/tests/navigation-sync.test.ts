@@ -115,7 +115,7 @@ describe("Sidebar Map & Navigation Synchronization", () => {
     expect(allPaths).toContain("/onboarding");
     expect(allPaths).toContain("/branches");
     expect(allPaths).toContain("/venue");
-    expect(allPaths).toContain("/inventory");
+    expect(allPaths).not.toContain("/inventory");
     expect(allPaths).toContain("/qr");
     expect(allPaths).toContain("/staff");
     expect(allPaths).toContain("/settings/branding");
@@ -160,7 +160,7 @@ describe("Sidebar Map & Navigation Synchronization", () => {
     const groups = getNavigationGroups(hotelCtx);
     const allPaths = groups.flatMap((g) => g.items.map((i) => i.path));
     expect(allPaths).toContain("/venue");
-    expect(allPaths).toContain("/inventory");
+    expect(allPaths).not.toContain("/inventory");
   });
 
   it("waiter role sees only floor operations and menu", () => {
