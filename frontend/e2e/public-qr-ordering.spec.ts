@@ -330,10 +330,13 @@ test.describe.serial("Customer Phone QR Ordering (Live Stack E2E)", () => {
       });
       await expect(staffPage.getByText("QR", { exact: true }).first()).toBeVisible();
       await staffPage.screenshot({ path: path.join(SCREENSHOT_DIR, "staff-needs-approval.png") });
-      await staffPage
-        .getByRole("button", { name: /^Accept$/i })
-        .first()
-        .click();
+      await Promise.all([
+        staffPage.waitForResponse((res) => res.url().includes("/approve") && res.status() < 400),
+        staffPage
+          .getByRole("button", { name: /^Accept$/i })
+          .first()
+          .click(),
+      ]);
 
       await page.getByRole("button", { name: /Refresh/i }).click();
       await expect(page.getByRole("heading", { name: "Received" })).toBeVisible({ timeout: 15000 });

@@ -1,8 +1,10 @@
 import { test, expect } from "./fixtures";
 
 test.describe("Tamil Localization and Typography Rendering", () => {
-  test("renders Tamil heading and body text on /dev/brand without missing glyphs", async ({ page }) => {
-    await page.goto("/dev/brand");
+  test("renders Tamil heading and body text on /dev/brand without missing glyphs", async ({
+    page,
+  }) => {
+    await page.goto("/dev/brand", { waitUntil: "networkidle" });
 
     const tamilHeading = page.locator('[data-testid="tamil-heading"]');
     await expect(tamilHeading).toBeVisible();
