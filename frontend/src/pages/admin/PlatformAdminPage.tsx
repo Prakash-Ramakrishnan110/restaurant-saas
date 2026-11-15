@@ -23,7 +23,14 @@ import { unwrapList, ListResponse } from "../../api/pagination";
 import { useAuth } from "../../context/AuthContext";
 import { Button } from "../../components/ui/button";
 import { Badge } from "../../components/ui/badge";
-import { Card, CardContent } from "../../components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "../../components/ui/card";
+import { DonutChart, HorizontalBarChart } from "../../components/ui/DashboardCharts";
 import { formatRupees } from "../../utils/currency";
 
 export interface TenantItem {
@@ -343,6 +350,62 @@ export const PlatformAdminPage: React.FC = () => {
             </span>
           </div>
         </div>
+      </div>
+
+      {/* 1.5 Platform Analytics Graphs */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <Card className="border border-border">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base font-heading">Tenants by Subscription Plan</CardTitle>
+            <CardDescription>Distribution across active SaaS tiers</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <HorizontalBarChart
+              emptyText="No customer tenants created yet."
+              items={Object.entries(summary?.plan_distribution || {}).map(([plan, count], idx) => ({
+                label: plan,
+                value: count,
+                displayValue: `${count} tenant${count === 1 ? "" : "s"}`,
+                color: ["#FF6A00", "#2563EB", "#10B981", "#8B5CF6"][idx % 4],
+              }))}
+            />
+          </CardContent>
+        </Card>
+
+        <Card className="border border-border">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base font-heading">Tenant Status Overview</CardTitle>
+            <CardDescription>Active vs trial vs suspended accounts</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <DonutChart
+              centerLabel="Tenants"
+              centerValue={String(summary?.total_tenants ?? tenants.length)}
+              emptyText="No customer tenants created yet."
+              slices={[
+                {
+                  label: "Active",
+                  value:
+                    tenants.filter((t) => t.status === "ACTIVE").length ||
+                    (summary?.active_tenants ?? 0),
+                  color: "#10B981",
+                },
+                {
+                  label: "Trial",
+                  value: tenants.filter((t) => t.status === "TRIAL").length,
+                  color: "#2563EB",
+                },
+                {
+                  label: "Suspended",
+                  value:
+                    tenants.filter((t) => t.status === "SUSPENDED").length ||
+                    (summary?.suspended_tenants ?? 0),
+                  color: "#DC2626",
+                },
+              ]}
+            />
+          </CardContent>
+        </Card>
       </div>
 
       {/* 2. Backend & Database Access Card */}

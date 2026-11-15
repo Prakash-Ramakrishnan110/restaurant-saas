@@ -30,6 +30,7 @@ import {
 } from "../../components/ui/card";
 import { Skeleton } from "../../components/ui/skeleton";
 import { UpgradeModal } from "../../components/app/UpgradeModal";
+import { DonutChart, HorizontalBarChart } from "../../components/ui/DashboardCharts";
 import { apiClient } from "../../api/client";
 import { ordersApi, KDSTicket } from "../../api/orders";
 import { unwrapList } from "../../api/pagination";
@@ -644,35 +645,39 @@ export const DashboardPage: React.FC = () => {
           </Card>
         </div>
 
-        {/* 2 Columns: Payment Breakdown & Top Bestsellers */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        {/* 2 Columns: Payment Breakdown & Top Bestsellers (with Visual Charts) */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
           <Card className="border border-border">
             <CardHeader className="pb-3">
               <CardTitle className="text-base font-heading">Sales by Payment Method</CardTitle>
               <CardDescription>Tender distribution collected today</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-3">
-              {["CASH", "UPI", "CARD"].map((method) => {
-                const paise = todayReport?.sales_by_payment_method?.[method] || 0;
-                const totalPaise = todayReport?.sales_paise || 1;
-                const pct = todayReport?.sales_paise ? Math.round((paise / totalPaise) * 100) : 0;
-                return (
-                  <div key={method} className="space-y-1.5">
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="font-semibold text-foreground">{method}</span>
-                      <span className="font-bold text-foreground">
-                        {formatRupees(paise)} ({pct}%)
-                      </span>
-                    </div>
-                    <div className="w-full bg-muted rounded-full h-2 overflow-hidden">
-                      <div
-                        className="bg-[#FF6A00] h-full rounded-full transition-all"
-                        style={{ width: `${pct}%` }}
-                      />
-                    </div>
-                  </div>
-                );
-              })}
+            <CardContent>
+              <DonutChart
+                centerLabel="Total"
+                centerValue={todayReport ? formatRupees(todayReport.sales_paise) : "₹0.00"}
+                emptyText="No settled payments recorded yet today."
+                slices={[
+                  {
+                    label: "CASH",
+                    value: todayReport?.sales_by_payment_method?.CASH || 0,
+                    displayValue: formatRupees(todayReport?.sales_by_payment_method?.CASH || 0),
+                    color: "#FF6A00",
+                  },
+                  {
+                    label: "UPI",
+                    value: todayReport?.sales_by_payment_method?.UPI || 0,
+                    displayValue: formatRupees(todayReport?.sales_by_payment_method?.UPI || 0),
+                    color: "#2563EB",
+                  },
+                  {
+                    label: "CARD",
+                    value: todayReport?.sales_by_payment_method?.CARD || 0,
+                    displayValue: formatRupees(todayReport?.sales_by_payment_method?.CARD || 0),
+                    color: "#10B981",
+                  },
+                ]}
+              />
             </CardContent>
           </Card>
 
@@ -682,29 +687,70 @@ export const DashboardPage: React.FC = () => {
               <CardDescription>Highest volume dishes ordered today</CardDescription>
             </CardHeader>
             <CardContent>
-              {todayReport?.top_items && todayReport.top_items.length > 0 ? (
-                <div className="divide-y divide-border">
-                  {todayReport.top_items.map((item, idx) => (
-                    <div key={idx} className="py-2.5 flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <span className="text-xs font-black w-5 text-muted-foreground">
-                          #{idx + 1}
-                        </span>
-                        <div>
-                          <p className="text-sm font-semibold text-foreground">{item.item_name}</p>
-                          <p className="text-xs text-muted-foreground">{item.quantity} orders</p>
-                        </div>
-                      </div>
-                      <span className="text-sm font-bold text-foreground">
-                        {formatRupees(item.total_paise)}
-                      </span>
-                    </div>
-                  ))}
-                </div>
+              <HorizontalBarChart
+                emptyText="No orders completed yet today."
+                items={(todayReport?.top_items || []).map((item, idx) => ({
+                  label: `#${idx + 1} ${item.item_name}`,
+                  subLabel: `${item.quantity} orders`,
+                  value: item.total_paise || item.quantity,
+                  displayValue: formatRupees(item.total_paise),
+                  color: idx === 0 ? "#FF6A00" : idx === 1 ? "#F59E0B" : "#3B82F6",
+                }))}
+              />
+            </CardContent>
+          </Card>
+
+          <Card className="border border-border">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base font-heading">
+                {usesTables ? "Live Table Occupancy" : "Order Flow Snapshot"}
+              </CardTitle>
+              <CardDescription>
+                {usesTables ? "Current dining floor utilization" : "Active vs settled orders today"}
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {usesTables ? (
+                <DonutChart
+                  centerLabel="Occupied"
+                  centerValue={`${occupancy?.percent ?? 0}%`}
+                  emptyText="No dining tables configured yet."
+                  slices={[
+                    {
+                      label: "Occupied",
+                      value: occupancy?.occupied ?? 0,
+                      color: "#FF6A00",
+                    },
+                    {
+                      label: "Reserved",
+                      value: occupancy?.reserved ?? 0,
+                      color: "#8B5CF6",
+                    },
+                    {
+                      label: "Available",
+                      value: occupancy?.available ?? 0,
+                      color: "#10B981",
+                    },
+                  ]}
+                />
               ) : (
-                <div className="py-8 text-center text-sm text-muted-foreground">
-                  No orders completed yet today.
-                </div>
+                <DonutChart
+                  centerLabel="Orders"
+                  centerValue={String(todayReport?.orders_count ?? 0)}
+                  emptyText="No orders placed yet today."
+                  slices={[
+                    {
+                      label: "In Progress",
+                      value: todayReport?.open_orders ?? 0,
+                      color: "#FF6A00",
+                    },
+                    {
+                      label: "Settled",
+                      value: todayReport?.settled_invoices_count ?? 0,
+                      color: "#10B981",
+                    },
+                  ]}
+                />
               )}
             </CardContent>
           </Card>
