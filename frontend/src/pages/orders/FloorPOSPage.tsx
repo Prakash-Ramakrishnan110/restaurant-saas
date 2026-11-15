@@ -135,8 +135,16 @@ export const FloorPOSPage: React.FC = () => {
   const fetchData = async () => {
     if (!activeTenant) return;
     try {
-      const [tblRes, catRes, itemRes, sessRes, srvRes, availRes, ordRes] = await Promise.all([
-        usesTables ? apiClient.get<any>("/tables/") : Promise.resolve({ data: [] }),
+      const tblPromise = usesTables
+        ? apiClient.get<any>("/tables/").then((res) => {
+            const data = res.data?.results || res.data || [];
+            setTables(data);
+            return data;
+          })
+        : Promise.resolve([]);
+
+      const [tblData, catRes, itemRes, sessRes, srvRes, availRes, ordRes] = await Promise.all([
+        tblPromise,
         apiClient.get<any>("/menu/categories/"),
         apiClient.get<any>("/menu/items/"),
         apiClient.get<any>("/sessions/").catch(() => ({ data: [] })),
@@ -145,7 +153,6 @@ export const FloorPOSPage: React.FC = () => {
         ordersApi.getOrders().catch(() => ({ data: [] })),
       ]);
 
-      const tblData = tblRes.data?.results || tblRes.data || [];
       const sessData = sessRes.data?.results || sessRes.data || [];
       const rawOrd = ordRes.data as { results?: any[] } | any[];
       const ordData = Array.isArray(rawOrd) ? rawOrd : rawOrd?.results || [];

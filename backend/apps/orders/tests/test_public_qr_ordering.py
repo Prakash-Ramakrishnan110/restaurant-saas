@@ -572,8 +572,245 @@ def test_concurrent_orders_unique_order_numbers(qr_ordering_fixture):
         finally:
             connection.close()
 
-    with ThreadPoolExecutor(max_workers=6) as pool:
-        numbers = list(pool.map(place_one, range(12)))
+    with ThreadPoolExecutor(max_workers=8) as pool:
+        numbers = list(pool.map(place_one, range(30)))
 
-    assert len(numbers) == 12
-    assert len(set(numbers)) == 12
+    assert len(numbers) == 30
+    assert len(set(numbers)) == 30
+
+
+@pytest.mark.django_db
+def test_public_qr_edge_cases_room_counter_session_and_plain_notes(
+    qr_ordering_fixture, monkeypatch
+):
+    from types import SimpleNamespace
+
+    from django.core.signing import TimestampSigner
+    from django.http import Http404
+
+    from apps.orders.public_views import (
+        PublicQRTokenThrottle,
+        _build_target_label,
+        _resolve_active_qr,
+        _status_message_key,
+    )
+    from apps.venues.constants import TableType
+
+    f = qr_ordering_fixture
+    client = APIClient()
+
+    # Throttle cache key with and without token
+    throttle = PublicQRTokenThrottle()
+    assert throttle.get_cache_key(None, SimpleNamespace(kwargs={})) is None
+    assert "tok-abc" in (
+        throttle.get_cache_key(None, SimpleNamespace(kwargs={"token": "tok-abc"})) or ""
+    )
+
+    # _status_message_key coverage for all lifecycle statuses
+    for st_val, expected_key in [
+        (OrderStatus.PREPARING, "ORDER_PREPARING"),
+        (OrderStatus.READY, "ORDER_READY"),
+        (OrderStatus.SERVED, "ORDER_SERVED"),
+        (OrderStatus.COMPLETED, "ORDER_COMPLETED"),
+        (OrderStatus.CANCELLED, "ORDER_CANCELLED"),
+        ("UNKNOWN", "ORDER_RECEIVED"),
+    ]:
+        dummy = SimpleNamespace(status=st_val, rejected_reason="")
+        assert _status_message_key(dummy, PaymentTiming.PAY_LATER) == expected_key
+
+    # Room QR target label + inactive branch / suspended tenant 404
+    room_table = DiningTable.unscoped.create(
+        tenant=f["tenant"],
+        branch=f["branch"],
+        section=f["table"].section,
+        label="Room 101",
+        table_type=TableType.ROOM,
+    )
+    qr_room = QRCode.unscoped.create(
+        tenant=f["tenant"],
+        branch=f["branch"],
+        target_type=QRTargetType.ROOM,
+        table=room_table,
+        public_token=f"tok-room-{uuid.uuid4().hex[:10]}",
+        is_active=True,
+    )
+    assert _build_target_label(qr_room) == (QRTargetType.ROOM, "Room 101")
+    bare_qr = SimpleNamespace(
+        table=None, target_type=QRTargetType.COUNTER, service_area=None, label="Takeout"
+    )
+    assert _build_target_label(bare_qr) == (QRTargetType.COUNTER, "Counter")
+    fallback_qr = SimpleNamespace(
+        table=None, target_type="CUSTOM", service_area=None, label="Patio"
+    )
+    assert _build_target_label(fallback_qr) == ("CUSTOM", "Patio")
+
+    # Unknown tracking token -> 404
+    assert client.get("/api/v1/public/orders/does-not-exist-token/").status_code == 404
+
+    # Validation errors on order creation
+    url = f"/api/v1/public/qr/{f['qr_table'].public_token}/orders/"
+    assert client.post(url, {"items": []}, format="json").status_code == 400
+    assert (
+        client.post(
+            url,
+            {"items": []},
+            format="json",
+            HTTP_IDEMPOTENCY_KEY="k-empty",
+        ).status_code
+        == 400
+    )
+    assert (
+        client.post(
+            url,
+            {"items": [{"menu_item_id": str(f["dosa"].id), "quantity": 1}], "notes": "x" * 301},
+            format="json",
+            HTTP_IDEMPOTENCY_KEY="k-long-note",
+        ).status_code
+        == 400
+    )
+    assert (
+        client.post(
+            url,
+            {"items": ["bad-item"]},
+            format="json",
+            HTTP_IDEMPOTENCY_KEY="k-bad-item",
+        ).status_code
+        == 400
+    )
+    assert (
+        client.post(
+            url,
+            {"items": [{"menu_item_id": str(f["dosa"].id), "quantity": "abc"}]},
+            format="json",
+            HTTP_IDEMPOTENCY_KEY="k-bad-qty",
+        ).status_code
+        == 400
+    )
+    assert (
+        client.post(
+            url,
+            {"items": [{"menu_item_id": str(f["dosa"].id), "quantity": 1, "notes": "y" * 201}]},
+            format="json",
+            HTTP_IDEMPOTENCY_KEY="k-line-note",
+        ).status_code
+        == 400
+    )
+    assert (
+        client.post(
+            url,
+            {"items": [{"menu_item_id": str(f["dosa"].id), "quantity": 1, "option_ids": "bad"}]},
+            format="json",
+            HTTP_IDEMPOTENCY_KEY="k-bad-opts",
+        ).status_code
+        == 400
+    )
+
+    # Signed session token validation (invalid & closed)
+    assert (
+        client.post(
+            url,
+            {
+                "items": [{"menu_item_id": str(f["dosa"].id), "quantity": 1}],
+                "session_token": "tampered",
+            },
+            format="json",
+            HTTP_IDEMPOTENCY_KEY="k-bad-sess",
+        ).status_code
+        == 403
+    )
+    closed_sess = TableSession.unscoped.create(
+        tenant=f["tenant"],
+        branch=f["branch"],
+        table=f["table"],
+        status=SessionStatus.CLOSED,
+    )
+    signed_closed = TimestampSigner(salt="qr-session").sign(closed_sess.session_code)
+    assert (
+        client.post(
+            url,
+            {
+                "items": [{"menu_item_id": str(f["dosa"].id), "quantity": 1}],
+                "session_token": signed_closed,
+            },
+            format="json",
+            HTTP_IDEMPOTENCY_KEY="k-closed-sess",
+        ).status_code
+        == 403
+    )
+
+    # Counter QR order with HTML note stored as plain text + Token # label
+    counter_url = f"/api/v1/public/qr/{f['qr_counter'].public_token}/orders/"
+    xss_note = "<script>alert(1)</script> Extra crisp"
+    res_counter = client.post(
+        counter_url,
+        {
+            "items": [
+                {
+                    "menu_item_id": str(f["dosa"].id),
+                    "option_ids": [str(f["opt_extra"].id)],
+                    "quantity": 1,
+                    "notes": xss_note,
+                }
+            ],
+            "notes": xss_note,
+        },
+        format="json",
+        HTTP_IDEMPOTENCY_KEY="k-counter-1",
+    )
+    assert res_counter.status_code == 201
+    assert res_counter.data["token_number"] is not None
+    tr = client.get(f"/api/v1/public/orders/{res_counter.data['tracking_token']}/")
+    assert tr.status_code == 200
+    assert tr.data["target_label"].startswith("Token #")
+    assert tr.data["items"][0]["notes"] == xss_note
+
+    # Order total exceeded check
+    monkeypatch.setattr(
+        "apps.orders.public_views.get_qr_limits",
+        lambda: {
+            "MAX_LINES_PER_ORDER": 30,
+            "MIN_QTY_PER_LINE": 1,
+            "MAX_QTY_PER_LINE": 10,
+            "MAX_LINE_NOTE_CHARS": 200,
+            "MAX_ORDER_NOTE_CHARS": 300,
+            "MAX_OPEN_QR_ORDERS_PER_SESSION": 10,
+            "MAX_QR_ORDERS_PER_10_MIN": 1,
+            "MAX_ORDER_TOTAL_PAISE": 100,
+            "TRACKING_EXPIRE_HOURS": 12,
+        },
+    )
+    # Counter 10-min rate limit (already 1 recent counter order)
+    assert (
+        client.post(
+            counter_url,
+            {"items": [{"menu_item_id": str(f["dosa"].id), "quantity": 1}]},
+            format="json",
+            HTTP_IDEMPOTENCY_KEY="k-counter-rate",
+        ).status_code
+        == 429
+    )
+    # Room QR order exceeds total cap (100 paise)
+    room_url = f"/api/v1/public/qr/{qr_room.public_token}/orders/"
+    assert (
+        client.post(
+            room_url,
+            {"items": [{"menu_item_id": str(f["dosa"].id), "quantity": 1}]},
+            format="json",
+            HTTP_IDEMPOTENCY_KEY="k-room-cap",
+        ).status_code
+        == 400
+    )
+
+    # Suspended tenant & inactive branch -> 404
+    f["branch"].is_active = False
+    f["branch"].save()
+    with pytest.raises(Http404):
+        _resolve_active_qr(f["qr_table"].public_token)
+    f["branch"].is_active = True
+    f["branch"].save()
+    f["tenant"].status = Tenant.Status.SUSPENDED
+    f["tenant"].save()
+    with pytest.raises(Http404):
+        _resolve_active_qr(f["qr_table"].public_token)
+    f["tenant"].status = Tenant.Status.ACTIVE
+    f["tenant"].save()

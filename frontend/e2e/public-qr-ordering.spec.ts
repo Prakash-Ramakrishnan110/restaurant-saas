@@ -4,7 +4,7 @@ import * as path from "path";
 
 const rawApiUrl = process.env.VITE_API_BASE_URL || "http://127.0.0.1:8000/api/v1";
 const API_URL = rawApiUrl.endsWith("/") ? rawApiUrl : `${rawApiUrl}/`;
-const SCREENSHOT_DIR = path.resolve(process.cwd(), "../docs/evidence/screenshots/qr-ordering");
+const SCREENSHOT_DIR = path.resolve(process.cwd(), "../docs/evidence/qr-ordering");
 
 async function getOwnerApiContext() {
   const ctx = await pwRequest.newContext({ baseURL: API_URL });
@@ -60,31 +60,16 @@ test.describe.serial("Customer Phone QR Ordering (Live Stack E2E)", () => {
       qr_session_policy: capJson.qr_session_policy || "CUSTOMER_CAN_OPEN",
     };
 
-    // Clean up any leftover open QR orders from previous test runs so session limits are fresh
-    const ordRes = await authedCtx.get("orders/");
-    if (ordRes.ok()) {
-      const ordJson = await ordRes.json();
-      const ordList = Array.isArray(ordJson) ? ordJson : ordJson.results || [];
-      for (const o of ordList) {
-        if (
-          o.source === "QR" &&
-          !["BILLED", "COMPLETED", "CANCELLED", "SERVED"].includes(o.status)
-        ) {
-          await authedCtx.post(`orders/${o.id}/cancel/`, {
-            data: { reason: "E2E setup cleanup" },
-          });
-        }
-      }
-    }
-    const sessRes = await authedCtx.get("table-sessions/");
+    // Clean up any leftover open table sessions for this table so session limits are fresh
+    const sessRes = await authedCtx.get("table-sessions/?status=OPEN");
     if (sessRes.ok()) {
       const sessJson = await sessRes.json();
       const sessList = Array.isArray(sessJson) ? sessJson : sessJson.results || [];
-      for (const s of sessList) {
-        if (s.status === "OPEN") {
-          await authedCtx.post(`table-sessions/${s.id}/close/`);
-        }
-      }
+      await Promise.all(
+        sessList
+          .filter((s: any) => s.status === "OPEN" && (!firstQr.table || s.table === firstQr.table))
+          .map((s: any) => authedCtx.post(`table-sessions/${s.id}/close/`))
+      );
     }
     if (firstQr.table) {
       await authedCtx.post(`tables/${firstQr.table}/status/`, {
@@ -170,7 +155,7 @@ test.describe.serial("Customer Phone QR Ordering (Live Stack E2E)", () => {
         latency: 150,
       });
 
-      await page.getByRole("button", { name: /^Place order$/i }).click();
+      await page.getByRole("button", { name: /^Place order$/i }).dblclick();
       await page.waitForURL(new RegExp(`/q/${qrToken}/o/`), { timeout: 20000 });
       await expect(page.getByText("Items in your order")).toBeVisible({ timeout: 15000 });
       await page.screenshot({ path: path.join(SCREENSHOT_DIR, "tracker-received.png") });
@@ -195,6 +180,14 @@ test.describe.serial("Customer Phone QR Ordering (Live Stack E2E)", () => {
     });
 
     try {
+      const staffPage = await staffContext.newPage();
+      await staffPage.goto("/login");
+      await staffPage.fill('input[type="email"]', "owner@spicegarden.com");
+      await staffPage.fill('input[type="password"]', "Password123!");
+      await staffPage.click('button[type="submit"]');
+      await staffPage.waitForURL((u) => !u.pathname.includes("/login"), { timeout: 15000 });
+      await staffPage.getByRole("link", { name: /Live Orders/i }).click();
+
       const page = await customerContext.newPage();
       await page.goto(`/q/${token2}`);
       await page.waitForSelector("article", { timeout: 20000 });
@@ -208,14 +201,7 @@ test.describe.serial("Customer Phone QR Ordering (Live Stack E2E)", () => {
       });
       await page.screenshot({ path: path.join(SCREENSHOT_DIR, "approval-waiting.png") });
 
-      const staffPage = await staffContext.newPage();
-      await staffPage.goto("/login");
-      await staffPage.fill('input[type="email"]', "owner@spicegarden.com");
-      await staffPage.fill('input[type="password"]', "Password123!");
-      await staffPage.click('button[type="submit"]');
-      await staffPage.waitForURL((u) => !u.pathname.includes("/login"), { timeout: 15000 });
-
-      await staffPage.getByRole("link", { name: /Live Orders/i }).click();
+      await staffPage.getByRole("button", { name: /Refresh/i }).click();
       await staffPage.getByRole("button", { name: /Needs approval/i }).click();
       await expect(staffPage.getByRole("button", { name: /^Accept$/i }).first()).toBeVisible({
         timeout: 10000,
@@ -268,42 +254,43 @@ test.describe.serial("Customer Phone QR Ordering (Live Stack E2E)", () => {
         timeout: 15000,
       });
       await page.screenshot({ path: path.join(SCREENSHOT_DIR, "pay-first-token.png") });
-
-      // BROWSE_ONLY in fresh context (bypasses 30s browser Cache-Control from earlier load)
-      await authedCtx.patch(capPath, { data: { qr_ordering_mode: "BROWSE_ONLY" } });
-      const ctxBrowse = await browser.newContext({ viewport: { width: 390, height: 844 } });
-      try {
-        const pBrowse = await ctxBrowse.newPage();
-        await pBrowse.goto(`/q/${qrToken}`);
-        await expect(pBrowse.getByText("Please ask our staff to order")).toBeVisible({
-          timeout: 15000,
-        });
-        await pBrowse.screenshot({ path: path.join(SCREENSHOT_DIR, "browse-only.png") });
-      } finally {
-        await ctxBrowse.close();
-      }
-
-      // DISABLED in fresh context
-      await authedCtx.patch(capPath, { data: { qr_ordering_mode: "DISABLED" } });
-      const ctxDisabled = await browser.newContext({ viewport: { width: 390, height: 844 } });
-      try {
-        const pDisabled = await ctxDisabled.newPage();
-        await pDisabled.goto(`/q/${qrToken}`);
-        await expect(pDisabled.getByText("Ordering is closed")).toBeVisible({ timeout: 15000 });
-
-        // Invalid QR & Foreign tracking token
-        await pDisabled.goto("/q/invalid-nonexistent-token-xyz");
-        await expect(pDisabled.getByText("Menu unavailable")).toBeVisible({ timeout: 15000 });
-
-        await pDisabled.goto(`/q/${qrToken}/o/invalid-tracking-token-xyz`);
-        await expect(pDisabled.getByText("Order details no longer available")).toBeVisible({
-          timeout: 15000,
-        });
-      } finally {
-        await ctxDisabled.close();
-      }
     } finally {
       await customerContext.close();
+    }
+  });
+
+  test("4. BROWSE_ONLY, DISABLED, Invalid QR & Cross-tenant tracker", async ({ browser }) => {
+    await authedCtx.patch(capPath, { data: { qr_ordering_mode: "BROWSE_ONLY" } });
+    const ctxBrowse = await browser.newContext({ viewport: { width: 390, height: 844 } });
+    try {
+      const pBrowse = await ctxBrowse.newPage();
+      await pBrowse.goto(`/q/${qrToken}`);
+      await expect(pBrowse.getByText("Please ask our staff to order")).toBeVisible({
+        timeout: 15000,
+      });
+      await pBrowse.screenshot({ path: path.join(SCREENSHOT_DIR, "browse-only.png") });
+    } finally {
+      await ctxBrowse.close();
+    }
+
+    await authedCtx.patch(capPath, { data: { qr_ordering_mode: "DISABLED" } });
+    const ctxDisabled = await browser.newContext({ viewport: { width: 390, height: 844 } });
+    try {
+      const pDisabled = await ctxDisabled.newPage();
+      await pDisabled.goto(`/q/${qrToken}`);
+      await expect(pDisabled.getByText("Ordering is closed")).toBeVisible({ timeout: 15000 });
+      await pDisabled.screenshot({ path: path.join(SCREENSHOT_DIR, "disabled.png") });
+
+      await pDisabled.goto("/q/invalid-nonexistent-token-xyz");
+      await expect(pDisabled.getByText("Menu unavailable")).toBeVisible({ timeout: 15000 });
+      await pDisabled.screenshot({ path: path.join(SCREENSHOT_DIR, "invalid-qr.png") });
+
+      await pDisabled.goto(`/q/${qrToken}/o/invalid-tracking-token-xyz`);
+      await expect(pDisabled.getByText("Order details no longer available")).toBeVisible({
+        timeout: 15000,
+      });
+    } finally {
+      await ctxDisabled.close();
     }
   });
 });

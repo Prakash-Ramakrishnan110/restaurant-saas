@@ -23,6 +23,7 @@ def test_unscoped_manager_guard():
         "core/managers.py",
         "core/models.py",
         "core/management/commands/seed.py",
+        "core/management/commands/reset_e2e_state.py",
         "accounts/migrations",
         "subscriptions/migrations",
         "tests",  # Tests are allowed to use unscoped to setup test fixtures

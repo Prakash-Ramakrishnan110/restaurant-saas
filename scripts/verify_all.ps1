@@ -276,12 +276,16 @@ Run-Gate -Id 16 `
 # Extract Parsed Metrics for SUMMARY.txt
 # ==============================================================================
 $PytestTxt = Get-Content (Join-Path $EvidenceDir "backend-pytest.txt") -Raw -ErrorAction SilentlyContinue
-$BackendPassed = "Unknown"
+$BackendPassed = "0"
+$BackendFailed = "0"
 $BackendCoverage = "Unknown"
 if ($PytestTxt) {
     $cleanPytest = $PytestTxt -replace "\x1b\[[0-9;]*[a-zA-Z]", ""
-    if ($cleanPytest -match "(\d+)\s+passed.*in\s+([\d\.]+)s") {
+    if ($cleanPytest -match "(\d+)\s+passed") {
         $BackendPassed = $matches[1]
+    }
+    if ($cleanPytest -match "(\d+)\s+failed") {
+        $BackendFailed = $matches[1]
     }
     if ($cleanPytest -match "Required test coverage of \d+% reached\. Total coverage:\s+([\d\.]+)%") {
         $BackendCoverage = "$($matches[1])%"
@@ -291,21 +295,31 @@ if ($PytestTxt) {
 }
 
 $VitestTxt = Get-Content (Join-Path $EvidenceDir "frontend-vitest.txt") -Raw -ErrorAction SilentlyContinue
-$FrontendPassed = "Unknown"
+$FrontendPassed = "0"
+$FrontendFailed = "0"
+$FrontendSuitesPassed = "0"
 if ($VitestTxt) {
     $cleanVitest = $VitestTxt -replace "\x1b\[[0-9;]*[a-zA-Z]", ""
-    if ($cleanVitest -match "Tests\s+(\d+)\s+passed") {
-        $FrontendPassed = $matches[1]
+    if ($cleanVitest -match "Test Files\s+(?:\d+\s+failed\s*\|\s*)?(\d+)\s+passed") {
+        $FrontendSuitesPassed = $matches[1]
+    }
+    if ($cleanVitest -match "Tests\s+(?:(\d+)\s+failed\s*\|\s*)?(\d+)\s+passed") {
+        if ($matches[1]) { $FrontendFailed = $matches[1] }
+        $FrontendPassed = $matches[2]
     }
 }
 
 $E2ETxt = Get-Content (Join-Path $EvidenceDir "e2e-report.txt") -Raw -ErrorAction SilentlyContinue
-$E2EPassed = "Unknown"
+$E2EPassed = "0"
+$E2EFailed = "0"
+$E2ESkipped = "0"
+$E2EFlaky = "0"
 if ($E2ETxt) {
     $cleanE2E = $E2ETxt -replace "\x1b\[[0-9;]*[a-zA-Z]", ""
-    if ($cleanE2E -match "(\d+)\s+passed") {
-        $E2EPassed = $matches[1]
-    }
+    if ($cleanE2E -match "(\d+)\s+passed") { $E2EPassed = $matches[1] }
+    if ($cleanE2E -match "(\d+)\s+failed") { $E2EFailed = $matches[1] }
+    if ($cleanE2E -match "(\d+)\s+skipped") { $E2ESkipped = $matches[1] }
+    if ($cleanE2E -match "(\d+)\s+flaky") { $E2EFlaky = $matches[1] }
 }
 
 $FinalVerdict = if ($OverallPassed) { "PASS" } else { "FAIL" }
@@ -337,10 +351,10 @@ $SummaryLines += "--------------------------------------------------------------
 $SummaryLines += ""
 $SummaryLines += "2. KEY VERIFIED METRICS"
 $SummaryLines += "-----------------------------------------------------------------------------------------------------------------"
-$SummaryLines += "Backend Pytest Tests Passed:     $BackendPassed (0 failures)"
-$SummaryLines += "Backend Total Code Coverage:     $BackendCoverage (Threshold >= 90.0%, Menu >= 90.0%)"
-$SummaryLines += "Frontend Vitest Tests Passed:    $FrontendPassed (0 failures across 9 test suites)"
-$SummaryLines += "Playwright E2E Tests Passed:     $E2EPassed across Desktop (1280x720) & Mobile (390x844)"
+$SummaryLines += "Backend Pytest Tests:            $BackendPassed passed, $BackendFailed failed"
+$SummaryLines += "Backend Total Code Coverage:     $BackendCoverage (Threshold >= 92.0%, apps/orders >= 90.0%)"
+$SummaryLines += "Frontend Vitest Tests:           $FrontendPassed passed, $FrontendFailed failed ($FrontendSuitesPassed suites passed)"
+$SummaryLines += "Playwright E2E Tests:            $E2EPassed passed, $E2EFailed failed, $E2ESkipped skipped, $E2EFlaky flaky"
 $SummaryLines += "Image Processing & Safety:       PASS (SVG rejected, animated rejected, EXIF stripped, quota enforced)"
 $SummaryLines += "Waiter Availability Isolation:   PASS (Role.WAITER receives 403 on ALL availability endpoints)"
 $SummaryLines += "Tax Claim Policy (ADR 0021):     PASS (Zero tax rates or legal claims in active UI, serializers, seed)"

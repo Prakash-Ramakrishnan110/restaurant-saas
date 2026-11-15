@@ -33,7 +33,7 @@ ignore = [
 [tool.pytest.ini_options]
 DJANGO_SETTINGS_MODULE = "config.settings.test"
 python_files = ["test_*.py", "*_test.py"]
-addopts = "--strict-markers --cov=apps --cov-report=term-missing --cov-fail-under=90"
+addopts = "--strict-markers --cov=apps --cov-report=term-missing --cov-fail-under=92"
 asyncio_default_fixture_loop_scope = "function"
 filterwarnings = [
     "ignore::DeprecationWarning",
@@ -66,7 +66,7 @@ omit = [
 ]
 
 [tool.coverage.report]
-fail_under = 90
+fail_under = 92
 show_missing = true
 exclude_lines = [
     "pragma: no cover",
