@@ -258,529 +258,529 @@ export const StaffApp: React.FC = () => {
             }
           >
             <Routes>
-                {/* Public Auth & Customer Landing Routes */}
-                <Route path="/login" element={<LoginPage />} />
-                <Route path="/change-password" element={<ChangePasswordPage />} />
-                <Route path="/suspended" element={<SuspendedPage />} />
-                <Route path="/403" element={<ForbiddenPage />} />
-                <Route path="/q/:token" element={<PublicQRPage />} />
-                <Route path="/q/:token/o/:trackingToken" element={<PublicOrderTrackerPage />} />
+              {/* Public Auth & Customer Landing Routes */}
+              <Route path="/login" element={<LoginPage />} />
+              <Route path="/change-password" element={<ChangePasswordPage />} />
+              <Route path="/suspended" element={<SuspendedPage />} />
+              <Route path="/403" element={<ForbiddenPage />} />
+              <Route path="/q/:token" element={<PublicQRPage />} />
+              <Route path="/q/:token/o/:trackingToken" element={<PublicOrderTrackerPage />} />
 
-                {/* Dev Showcase Routes (DEV builds only) */}
-                {import.meta.env.DEV && (
-                  <>
-                    <Route path="/dev/brand" element={<DevBrandPage />} />
-                    <Route path="/dev/design-system" element={<DevDesignSystemPage />} />
-                  </>
-                )}
+              {/* Dev Showcase Routes (DEV builds only) */}
+              {import.meta.env.DEV && (
+                <>
+                  <Route path="/dev/brand" element={<DevBrandPage />} />
+                  <Route path="/dev/design-system" element={<DevDesignSystemPage />} />
+                </>
+              )}
 
-                {/* Protected App Routes inside AppShell */}
-                <Route
-                  path="/dashboard"
-                  element={
-                    <ProtectedRoute>
-                      <DashboardPage />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/pos"
-                  element={
-                    <ProtectedRoute>
-                      <FloorPOSPage />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/orders/floor"
-                  element={
-                    <ProtectedRoute>
-                      <FloorPOSPage />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/orders"
-                  element={
-                    <ProtectedRoute>
-                      <LiveOrdersPage />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/orders/live"
-                  element={
-                    <ProtectedRoute>
-                      <LiveOrdersPage />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/orders/ready"
-                  element={
-                    <ProtectedRoute>
-                      <ReadyToServePage />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/serve"
-                  element={
-                    <ProtectedRoute>
-                      <ReadyToServePage />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/room-service"
-                  element={
-                    <ProtectedRoute>
-                      <RoomServicePage />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/takeaway"
-                  element={
-                    <ProtectedRoute>
-                      <TakeawayPage />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/kds"
-                  element={
-                    <ProtectedRoute>
-                      <KDSPage />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/orders/kds"
-                  element={
-                    <ProtectedRoute>
-                      <KDSPage />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/billing"
-                  element={
-                    <ProtectedRoute>
-                      <BillingPage />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/orders/billing"
-                  element={
-                    <ProtectedRoute>
-                      <BillingPage />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/billing/invoices"
-                  element={
-                    <ProtectedRoute>
-                      <InvoicesHistoryPage />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/billing/bills"
-                  element={
-                    <ProtectedRoute>
-                      <InvoicesHistoryPage />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/billing/closeout"
-                  element={
-                    <ProtectedRoute>
-                      <ShiftCloseoutPage />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/billing/room-charges"
-                  element={
-                    <ProtectedRoute>
-                      <RoomChargesPage />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/reports/sales"
-                  element={
-                    <ProtectedRoute>
-                      <SalesReportsPage />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/reports/items"
-                  element={
-                    <ProtectedRoute>
-                      <ItemReportsPage />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/reports/payments"
-                  element={
-                    <ProtectedRoute>
-                      <PaymentReportsPage />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/reports/exceptions"
-                  element={
-                    <ProtectedRoute>
-                      <ExceptionsReportPage />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/reports/staff"
-                  element={
-                    <ProtectedRoute>
-                      <StaffReportPage />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/reports/outlets"
-                  element={
-                    <ProtectedRoute>
-                      <OutletComparisonPage />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/inventory"
-                  element={
-                    <ProtectedRoute>
-                      <StockOverviewPage />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/inventory/recipes"
-                  element={
-                    <ProtectedRoute>
-                      <RecipesPage />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/inventory/purchases"
-                  element={
-                    <ProtectedRoute>
-                      <SuppliersPurchasesPage />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/inventory/wastage"
-                  element={
-                    <ProtectedRoute>
-                      <WastagePage />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/inventory/reports"
-                  element={
-                    <ProtectedRoute>
-                      <InventoryReportsPage />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/activity"
-                  element={
-                    <ProtectedRoute>
-                      <ActivityLogPage />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/menu/options"
-                  element={
-                    <ProtectedRoute>
-                      <MenuOptionsPage />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/settings/sound"
-                  element={
-                    <ProtectedRoute>
-                      <SoundSettingsPage />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/settings/devices"
-                  element={
-                    <ProtectedRoute>
-                      <DeviceSettingsPage />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/admin"
-                  element={
-                    <ProtectedRoute requirePlatformAdmin>
-                      <PlatformAdminPage />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/admin/tenants"
-                  element={
-                    <ProtectedRoute requirePlatformAdmin>
-                      <TenantsDirectoryPage />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/admin/tenants/new"
-                  element={
-                    <ProtectedRoute requirePlatformAdmin>
-                      <NewCustomerWizardPage />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/admin/tenants/:id"
-                  element={
-                    <ProtectedRoute requirePlatformAdmin>
-                      <CustomerDetailPage />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/admin/dashboard"
-                  element={
-                    <ProtectedRoute requirePlatformAdmin>
-                      <PlatformAdminPage />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/admin/plans"
-                  element={
-                    <ProtectedRoute requirePlatformAdmin>
-                      <PlatformPlansPage />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/admin/activity"
-                  element={
-                    <ProtectedRoute requirePlatformAdmin>
-                      <PlatformActivityPage />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/admin/support"
-                  element={
-                    <ProtectedRoute requirePlatformAdmin>
-                      <PlatformSupportPage />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/admin/announcements"
-                  element={
-                    <ProtectedRoute requirePlatformAdmin>
-                      <PlatformAnnouncementsPage />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/admin/health"
-                  element={
-                    <ProtectedRoute requirePlatformAdmin>
-                      <PlatformHealthPage />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/onboarding"
-                  element={
-                    <ProtectedRoute>
-                      <OnboardingWizardPage />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/branches"
-                  element={
-                    <ProtectedRoute>
-                      <BranchesPage />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/venue"
-                  element={
-                    <ProtectedRoute>
-                      <VenueLayoutHubPage />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/venue/layout"
-                  element={
-                    <ProtectedRoute>
-                      <VenueLayoutHubPage />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/venue/branches"
-                  element={
-                    <ProtectedRoute>
-                      <BranchesPage />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/venue/areas"
-                  element={
-                    <ProtectedRoute>
-                      <AreasPage />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/venue/tables"
-                  element={
-                    <ProtectedRoute>
-                      <TablesPage />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/venue/rooms"
-                  element={
-                    <ProtectedRoute>
-                      <RoomsPage />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/venue/counters"
-                  element={
-                    <ProtectedRoute>
-                      <CountersPage />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/venue/floor"
-                  element={
-                    <ProtectedRoute>
-                      <FloorPlanPage />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/venue/floor-plan"
-                  element={
-                    <ProtectedRoute>
-                      <FloorPlanPage />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/qr"
-                  element={
-                    <ProtectedRoute>
-                      <QRCodesPage />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/staff"
-                  element={
-                    <ProtectedRoute>
-                      <StaffPage />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/customers"
-                  element={
-                    <ProtectedRoute>
-                      <CustomersPage />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/team/roles"
-                  element={
-                    <ProtectedRoute>
-                      <RolesGuidePage />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/menu"
-                  element={
-                    <ProtectedRoute>
-                      <MenuPage />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/menu/availability"
-                  element={
-                    <ProtectedRoute>
-                      <MenuAvailabilityPage />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/settings/venue"
-                  element={
-                    <ProtectedRoute>
-                      <VenueSettingsPage />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/settings/branding"
-                  element={
-                    <ProtectedRoute>
-                      <BrandingSettingsPage />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/settings/account"
-                  element={
-                    <ProtectedRoute>
-                      <AccountPage />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/settings/plan"
-                  element={
-                    <ProtectedRoute>
-                      <PlanBillingPage />
-                    </ProtectedRoute>
-                  }
-                />
+              {/* Protected App Routes inside AppShell */}
+              <Route
+                path="/dashboard"
+                element={
+                  <ProtectedRoute>
+                    <DashboardPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/pos"
+                element={
+                  <ProtectedRoute>
+                    <FloorPOSPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/orders/floor"
+                element={
+                  <ProtectedRoute>
+                    <FloorPOSPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/orders"
+                element={
+                  <ProtectedRoute>
+                    <LiveOrdersPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/orders/live"
+                element={
+                  <ProtectedRoute>
+                    <LiveOrdersPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/orders/ready"
+                element={
+                  <ProtectedRoute>
+                    <ReadyToServePage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/serve"
+                element={
+                  <ProtectedRoute>
+                    <ReadyToServePage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/room-service"
+                element={
+                  <ProtectedRoute>
+                    <RoomServicePage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/takeaway"
+                element={
+                  <ProtectedRoute>
+                    <TakeawayPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/kds"
+                element={
+                  <ProtectedRoute>
+                    <KDSPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/orders/kds"
+                element={
+                  <ProtectedRoute>
+                    <KDSPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/billing"
+                element={
+                  <ProtectedRoute>
+                    <BillingPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/orders/billing"
+                element={
+                  <ProtectedRoute>
+                    <BillingPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/billing/invoices"
+                element={
+                  <ProtectedRoute>
+                    <InvoicesHistoryPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/billing/bills"
+                element={
+                  <ProtectedRoute>
+                    <InvoicesHistoryPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/billing/closeout"
+                element={
+                  <ProtectedRoute>
+                    <ShiftCloseoutPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/billing/room-charges"
+                element={
+                  <ProtectedRoute>
+                    <RoomChargesPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/reports/sales"
+                element={
+                  <ProtectedRoute>
+                    <SalesReportsPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/reports/items"
+                element={
+                  <ProtectedRoute>
+                    <ItemReportsPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/reports/payments"
+                element={
+                  <ProtectedRoute>
+                    <PaymentReportsPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/reports/exceptions"
+                element={
+                  <ProtectedRoute>
+                    <ExceptionsReportPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/reports/staff"
+                element={
+                  <ProtectedRoute>
+                    <StaffReportPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/reports/outlets"
+                element={
+                  <ProtectedRoute>
+                    <OutletComparisonPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/inventory"
+                element={
+                  <ProtectedRoute>
+                    <StockOverviewPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/inventory/recipes"
+                element={
+                  <ProtectedRoute>
+                    <RecipesPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/inventory/purchases"
+                element={
+                  <ProtectedRoute>
+                    <SuppliersPurchasesPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/inventory/wastage"
+                element={
+                  <ProtectedRoute>
+                    <WastagePage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/inventory/reports"
+                element={
+                  <ProtectedRoute>
+                    <InventoryReportsPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/activity"
+                element={
+                  <ProtectedRoute>
+                    <ActivityLogPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/menu/options"
+                element={
+                  <ProtectedRoute>
+                    <MenuOptionsPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/settings/sound"
+                element={
+                  <ProtectedRoute>
+                    <SoundSettingsPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/settings/devices"
+                element={
+                  <ProtectedRoute>
+                    <DeviceSettingsPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin"
+                element={
+                  <ProtectedRoute requirePlatformAdmin>
+                    <PlatformAdminPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/tenants"
+                element={
+                  <ProtectedRoute requirePlatformAdmin>
+                    <TenantsDirectoryPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/tenants/new"
+                element={
+                  <ProtectedRoute requirePlatformAdmin>
+                    <NewCustomerWizardPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/tenants/:id"
+                element={
+                  <ProtectedRoute requirePlatformAdmin>
+                    <CustomerDetailPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/dashboard"
+                element={
+                  <ProtectedRoute requirePlatformAdmin>
+                    <PlatformAdminPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/plans"
+                element={
+                  <ProtectedRoute requirePlatformAdmin>
+                    <PlatformPlansPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/activity"
+                element={
+                  <ProtectedRoute requirePlatformAdmin>
+                    <PlatformActivityPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/support"
+                element={
+                  <ProtectedRoute requirePlatformAdmin>
+                    <PlatformSupportPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/announcements"
+                element={
+                  <ProtectedRoute requirePlatformAdmin>
+                    <PlatformAnnouncementsPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/health"
+                element={
+                  <ProtectedRoute requirePlatformAdmin>
+                    <PlatformHealthPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/onboarding"
+                element={
+                  <ProtectedRoute>
+                    <OnboardingWizardPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/branches"
+                element={
+                  <ProtectedRoute>
+                    <BranchesPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/venue"
+                element={
+                  <ProtectedRoute>
+                    <VenueLayoutHubPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/venue/layout"
+                element={
+                  <ProtectedRoute>
+                    <VenueLayoutHubPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/venue/branches"
+                element={
+                  <ProtectedRoute>
+                    <BranchesPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/venue/areas"
+                element={
+                  <ProtectedRoute>
+                    <AreasPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/venue/tables"
+                element={
+                  <ProtectedRoute>
+                    <TablesPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/venue/rooms"
+                element={
+                  <ProtectedRoute>
+                    <RoomsPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/venue/counters"
+                element={
+                  <ProtectedRoute>
+                    <CountersPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/venue/floor"
+                element={
+                  <ProtectedRoute>
+                    <FloorPlanPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/venue/floor-plan"
+                element={
+                  <ProtectedRoute>
+                    <FloorPlanPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/qr"
+                element={
+                  <ProtectedRoute>
+                    <QRCodesPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/staff"
+                element={
+                  <ProtectedRoute>
+                    <StaffPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/customers"
+                element={
+                  <ProtectedRoute>
+                    <CustomersPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/team/roles"
+                element={
+                  <ProtectedRoute>
+                    <RolesGuidePage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/menu"
+                element={
+                  <ProtectedRoute>
+                    <MenuPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/menu/availability"
+                element={
+                  <ProtectedRoute>
+                    <MenuAvailabilityPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/settings/venue"
+                element={
+                  <ProtectedRoute>
+                    <VenueSettingsPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/settings/branding"
+                element={
+                  <ProtectedRoute>
+                    <BrandingSettingsPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/settings/account"
+                element={
+                  <ProtectedRoute>
+                    <AccountPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/settings/plan"
+                element={
+                  <ProtectedRoute>
+                    <PlanBillingPage />
+                  </ProtectedRoute>
+                }
+              />
 
-                {/* Default Redirects & 404 */}
+              {/* Default Redirects & 404 */}
               <Route path="/" element={<RootRedirect />} />
               <Route path="*" element={<NotFoundPage />} />
             </Routes>
