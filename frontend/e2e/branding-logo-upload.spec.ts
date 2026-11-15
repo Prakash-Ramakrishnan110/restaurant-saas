@@ -29,8 +29,9 @@ test.describe("Branding Logo Upload & Preview Suite", () => {
     const pngBuffer = Buffer.from(base64Png, "base64");
 
     // 4. Upload PNG via file input
-    const fileChooserPromise = page.waitForEvent("filechooser", { timeout: 5000 }).catch(() => null);
-    await page.locator('input[type="file"]').setInputFiles({
+    const fileInput = page.locator('input[type="file"]');
+    await fileInput.waitFor({ state: "attached", timeout: 10000 });
+    await fileInput.setInputFiles({
       name: "restaurant-logo.png",
       mimeType: "image/png",
       buffer: pngBuffer,
@@ -55,4 +56,3 @@ test.describe("Branding Logo Upload & Preview Suite", () => {
     expect(isQrImageLoaded).toBe(true);
   });
 });
-

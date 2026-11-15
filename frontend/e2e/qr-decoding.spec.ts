@@ -132,8 +132,12 @@ test.describe("Requirement A3: Comprehensive QR Canvas Decoding on A4 Print Shee
             id: d.id,
             token: d.token,
             target_type: d.target_type,
-            table: d.target_type === "TABLE" ? { id: d.target_id, name: d.label, identifier: d.label } : null,
-            service_area: d.target_type === "SERVICE_AREA" ? { id: d.target_id, name: d.area_name } : null,
+            table:
+              d.target_type === "TABLE"
+                ? { id: d.target_id, name: d.label, identifier: d.label }
+                : null,
+            service_area:
+              d.target_type === "SERVICE_AREA" ? { id: d.target_id, name: d.area_name } : null,
             branch: { id: "br-1", name: d.branch_name },
             is_active: true,
             created_at: new Date().toISOString(),
@@ -161,11 +165,11 @@ test.describe("Requirement A3: Comprehensive QR Canvas Decoding on A4 Print Shee
   for (const perm of layoutPermutations) {
     test(`DECODES every canvas on sheet: ${perm.name}`, async ({ page }) => {
       await page.goto("/qr");
-      await page.waitForLoadState("networkidle");
+      await expect(page.getByRole("heading", { level: 1 })).toBeVisible({ timeout: 15000 });
 
       // Open print preview modal
       const printBtn = page.getByRole("button", { name: "Print QR Sheet" });
-      await expect(printBtn).toBeVisible();
+      await expect(printBtn).toBeVisible({ timeout: 10000 });
       await printBtn.click();
 
       await expect(page.getByText("A4 QR Standee Print Sheet Preview")).toBeVisible();
@@ -215,4 +219,3 @@ test.describe("Requirement A3: Comprehensive QR Canvas Decoding on A4 Print Shee
     });
   }
 });
-

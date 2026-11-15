@@ -90,8 +90,7 @@ test.describe.serial("Customer Phone QR Ordering (Live Stack E2E)", () => {
       }
       if (workingQrs.length >= 2) break;
     }
-    const selectedIdx =
-      test.info().project.name === "mobile" && workingQrs.length > 1 ? 1 : 0;
+    const selectedIdx = test.info().project.name === "mobile" && workingQrs.length > 1 ? 1 : 0;
     const selectedQr = workingQrs[selectedIdx] || workingQrs[0] || firstQr;
     tableId = selectedQr.table || null;
     qrTokens = branchQrs.map((q: any) => q.public_token);
@@ -185,7 +184,7 @@ test.describe.serial("Customer Phone QR Ordering (Live Stack E2E)", () => {
     }
   });
 
-  test("2. Direct order, 360px no horizontal scroll (EN & TA), Tamil & Dark mode, Slow 4G", async ({
+  test("2a. 360px no horizontal scroll (EN & TA), Tamil & Dark mode screenshots", async ({
     browser,
   }, testInfo) => {
     await authedCtx.patch(capPath, {
@@ -228,6 +227,31 @@ test.describe.serial("Customer Phone QR Ordering (Live Stack E2E)", () => {
       await page.evaluate(() => document.documentElement.classList.add("dark"));
       await page.screenshot({ path: path.join(SCREENSHOT_DIR, "dark.png") });
       await page.evaluate(() => document.documentElement.classList.remove("dark"));
+    } finally {
+      await customerContext.close();
+    }
+  });
+
+  test("2b. Direct order, cart persistence on reload, zero localStorage tokens, Slow 4G", async ({
+    browser,
+  }, testInfo) => {
+    await authedCtx.patch(capPath, {
+      data: {
+        qr_ordering_mode: "ORDER_DIRECT",
+        payment_timing: "PAY_LATER",
+        qr_session_policy: "CUSTOMER_CAN_OPEN",
+      },
+    });
+
+    const customerContext = await browser.newContext({
+      viewport: { width: 390, height: 844 },
+    });
+
+    try {
+      const page = await customerContext.newPage();
+      attachApiErrorGuard(page, testInfo);
+      await page.goto(`/q/${qrToken}`);
+      await page.waitForSelector("article", { timeout: 20000 });
 
       // Open item sheet -> add -> reload persists cart, zero token keys in localStorage
       await page.locator("article").filter({ hasText: "Add" }).first().click();
@@ -407,8 +431,13 @@ test.describe.serial("Customer Phone QR Ordering (Live Stack E2E)", () => {
       });
       await page.screenshot({ path: path.join(SCREENSHOT_DIR, "pay-first-token.png") });
 
-      await staffPage.getByRole("button", { name: /Refresh/i }).first().click();
-      const markPaidBtn = staffPage.getByRole("button", { name: /Mark Paid & Send to Kitchen/i }).first();
+      await staffPage
+        .getByRole("button", { name: /Refresh/i })
+        .first()
+        .click();
+      const markPaidBtn = staffPage
+        .getByRole("button", { name: /Mark Paid & Send to Kitchen/i })
+        .first();
       await expect(markPaidBtn).toBeVisible({ timeout: 15000 });
       await markPaidBtn.click();
 

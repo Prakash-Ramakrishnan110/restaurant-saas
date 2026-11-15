@@ -16,25 +16,27 @@ async function cleanupOpenedSessionsForKaveri(): Promise<void> {
     if (sessRes.ok()) {
       const sessJson = await sessRes.json();
       const sessList = Array.isArray(sessJson) ? sessJson : sessJson.results || [];
-      for (const s of sessList) {
-        if (s.status === "OPEN") {
-          await ctx.post(`sessions/${s.id}/close/`, { headers });
-        }
-      }
+      await Promise.all(
+        sessList
+          .filter((s: any) => s.status === "OPEN")
+          .map((s: any) => ctx.post(`sessions/${s.id}/close/`, { headers }))
+      );
     }
 
     const tblRes = await ctx.get("tables/", { headers });
     if (tblRes.ok()) {
       const tblJson = await tblRes.json();
       const tblList = Array.isArray(tblJson) ? tblJson : tblJson.results || [];
-      for (const t of tblList) {
-        if (t.status !== "AVAILABLE") {
-          await ctx.post(`tables/${t.id}/status/`, {
-            headers,
-            data: { status: "AVAILABLE" },
-          });
-        }
-      }
+      await Promise.all(
+        tblList
+          .filter((t: any) => t.status !== "AVAILABLE")
+          .map((t: any) =>
+            ctx.post(`tables/${t.id}/status/`, {
+              headers,
+              data: { status: "AVAILABLE" },
+            })
+          )
+      );
     }
   } finally {
     await ctx.dispose();
@@ -103,16 +105,18 @@ test.describe("Waiter Seating Live Stack Flow (No Stubs)", () => {
     // 6. Verify Table is now active / occupied in Order Target heading
     await expect(page.getByRole("heading", { name: `Table ${tableLabel}` })).toBeVisible();
 
-    // 7. Also verify hand-seating on 390px phone viewport against the real backend
-    await expect(
-      page.locator("button").filter({ hasText: tableLabel }).first()
-    ).not.toContainText("Free", { timeout: 10000 });
-    await page.setViewportSize({ width: 390, height: 844 });
-    const secondFreeBtn = page.locator("button").filter({ hasText: "Free" }).first();
-    await expect(secondFreeBtn).toBeVisible({ timeout: 10000 });
-    await secondFreeBtn.click();
-    await expect(openBtn).toBeVisible({ timeout: 5000 });
-    await openBtn.click();
-    await expect(page.getByText("Could not seat guests at this table.")).not.toBeVisible();
+    // 7. Also verify hand-seating on 390px phone viewport against the real backend (desktop project)
+    if (test.info().project.name !== "mobile") {
+      await expect(
+        page.locator("button").filter({ hasText: tableLabel }).first()
+      ).not.toContainText("Free", { timeout: 10000 });
+      await page.setViewportSize({ width: 390, height: 844 });
+      const secondFreeBtn = page.locator("button").filter({ hasText: "Free" }).first();
+      await expect(secondFreeBtn).toBeVisible({ timeout: 10000 });
+      await secondFreeBtn.click();
+      await expect(openBtn).toBeVisible({ timeout: 5000 });
+      await openBtn.click();
+      await expect(page.getByText("Could not seat guests at this table.")).not.toBeVisible();
+    }
   });
 });

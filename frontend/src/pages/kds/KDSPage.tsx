@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useRef } from "react";
-import { ChefHat, Clock, CheckCircle2, Volume2, VolumeX, Flame } from "lucide-react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
+import { ChefHat, Clock, CheckCircle2, Volume2, VolumeX, Flame, Search } from "lucide-react";
 import { ordersApi, KDSTicket } from "../../api/orders";
 import { unwrapList } from "../../api/pagination";
 import { useAuth } from "../../context/AuthContext";
@@ -10,10 +10,21 @@ interface WindowWithWebkitAudio extends Window {
   webkitAudioContext?: typeof AudioContext;
 }
 
+// Readable ticket age: "7m", "2h 5m", "3d 4h" (raw minutes like 9921m are unreadable)
+const formatElapsed = (minutes: number): string => {
+  if (minutes < 60) return `${minutes}m`;
+  if (minutes < 1440) return `${Math.floor(minutes / 60)}h ${minutes % 60}m`;
+  return `${Math.floor(minutes / 1440)}d ${Math.floor((minutes % 1440) / 60)}h`;
+};
+
 export const KDSPage: React.FC = () => {
   const { activeTenant } = useAuth();
   const [tickets, setTickets] = useState<KDSTicket[]>([]);
   const [selectedStation, setSelectedStation] = useState<string>("ALL");
+  const [statusFilter, setStatusFilter] = useState<"ALL" | "PLACED" | "PREPARING">("ALL");
+  const [sourceFilter, setSourceFilter] = useState<"ALL" | "QR" | "POS">("ALL");
+  const [searchQuery, setSearchQuery] = useState<string>("");
+  const [sortOrder, setSortOrder] = useState<"OLDEST" | "NEWEST">("OLDEST");
   const [soundEnabled, setSoundEnabled] = useState<boolean>(true);
   const previousTicketCount = useRef<number>(0);
 
@@ -83,199 +94,320 @@ export const KDSPage: React.FC = () => {
     { id: "CHAI_BAR", label: "Chai & Snacks" },
   ];
 
-  const ticketList = Array.isArray(tickets) ? tickets : [];
+  const ticketList = useMemo(() => (Array.isArray(tickets) ? tickets : []), [tickets]);
+
+  const filteredTickets = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase();
+    const list = ticketList.filter((t) => {
+      if (statusFilter !== "ALL" && t.status !== statusFilter) return false;
+      if (sourceFilter === "QR" && t.source !== "QR") return false;
+      if (sourceFilter === "POS" && t.source === "QR") return false;
+      if (q) {
+        const matchesTable = (t.table_label || "").toLowerCase().includes(q);
+        const matchesNotes = (t.notes || "").toLowerCase().includes(q);
+        const matchesItem = (t.items || []).some((line) =>
+          (line.item_name || "").toLowerCase().includes(q)
+        );
+        if (!matchesTable && !matchesNotes && !matchesItem) return false;
+      }
+      return true;
+    });
+    return [...list].sort((a, b) =>
+      sortOrder === "OLDEST"
+        ? b.elapsed_minutes - a.elapsed_minutes
+        : a.elapsed_minutes - b.elapsed_minutes
+    );
+  }, [ticketList, statusFilter, sourceFilter, searchQuery, sortOrder]);
+
+  const hasActiveFilters =
+    statusFilter !== "ALL" || sourceFilter !== "ALL" || searchQuery.trim().length > 0;
 
   return (
-    <div className="flex flex-col min-h-[calc(100vh-8rem)] md:h-[calc(100vh-4rem)] bg-background font-sans md:overflow-hidden">
-      {/* Header Bar */}
-      <div className="border-b border-border bg-card px-3 sm:px-4 py-3 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
-        <div className="flex items-center gap-3 min-w-0">
-          <ChefHat className="h-6 w-6 shrink-0 text-[#FF6A00]" />
-          <div className="min-w-0">
-            <h1 className="text-base sm:text-lg font-extrabold font-heading text-foreground leading-tight">
-              Kitchen Display System (KDS)
-            </h1>
-            <p className="text-xs text-muted-foreground">
-              Live station tickets with automatic 3s auto-sync and SLA countdowns.
-            </p>
+    <div className="flex flex-col min-h-[calc(100vh-4rem)] bg-background font-sans">
+      {/* Sticky Header & Filter Bar */}
+      <div className="sticky top-0 z-10 border-b border-border bg-card/95 backdrop-blur px-3 sm:px-5 py-3 space-y-2.5">
+        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
+          <div className="flex items-center gap-3 min-w-0">
+            <ChefHat className="h-6 w-6 shrink-0 text-[#FF6A00]" />
+            <div className="min-w-0">
+              <h1 className="text-base sm:text-lg font-extrabold font-heading text-foreground leading-tight">
+                Kitchen Display System (KDS)
+              </h1>
+              <p className="text-xs text-muted-foreground">
+                Live station queue with automatic 3s auto-sync and SLA timers.
+              </p>
+            </div>
+          </div>
+
+          {/* Station Filter & Sound Toggle */}
+          <div className="flex flex-wrap items-center gap-2">
+            <div className="flex flex-wrap gap-1 border border-border rounded-lg p-0.5 bg-muted/40 max-w-full">
+              {STATIONS.map((st) => (
+                <button
+                  key={st.id}
+                  onClick={() => setSelectedStation(st.id)}
+                  className={`px-3 py-1 rounded-md text-xs font-bold transition-colors ${
+                    selectedStation === st.id
+                      ? "bg-[#0A192F] text-white dark:bg-white dark:text-black shadow-sm"
+                      : "text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  {st.label}
+                </button>
+              ))}
+            </div>
+
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                setSoundEnabled(true);
+                playChime();
+              }}
+              className="h-8 px-2.5 text-xs font-semibold gap-1.5"
+              data-testid="start-sound-btn"
+            >
+              <Volume2 className="h-3.5 w-3.5 text-[#FF6A00]" />
+              Start Sound
+            </Button>
+
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setSoundEnabled(!soundEnabled)}
+              className="h-8 w-8 p-0"
+              title={soundEnabled ? "Audio alert on" : "Audio muted"}
+            >
+              {soundEnabled ? (
+                <Volume2 className="h-4 w-4 text-[#FF6A00]" />
+              ) : (
+                <VolumeX className="h-4 w-4 text-muted-foreground" />
+              )}
+            </Button>
+
+            <Badge variant="outline" className="text-xs px-2.5 py-1 font-bold">
+              {ticketList.length} Active Tickets
+            </Badge>
           </div>
         </div>
 
-        {/* Station Filter & Sound Toggle */}
-        <div className="flex flex-wrap items-center gap-2">
-          <div className="flex flex-wrap gap-1 border border-border rounded-lg p-0.5 bg-muted/40 max-w-full">
-            {STATIONS.map((st) => (
-              <button
-                key={st.id}
-                onClick={() => setSelectedStation(st.id)}
-                className={`px-3 py-1 rounded-md text-xs font-bold transition-colors ${
-                  selectedStation === st.id
-                    ? "bg-[#0A192F] text-white dark:bg-white dark:text-black shadow-sm"
-                    : "text-muted-foreground hover:text-foreground"
-                }`}
-              >
-                {st.label}
-              </button>
-            ))}
+        {/* Queue Filters: Status, Source, Search, Sort */}
+        <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-border/60">
+          <div className="flex flex-wrap items-center gap-2">
+            {/* Status Filter */}
+            <div className="flex items-center gap-1 border border-border rounded-lg p-0.5 bg-muted/30">
+              {(
+                [
+                  { id: "ALL", label: "All Status" },
+                  { id: "PLACED", label: "Queued" },
+                  { id: "PREPARING", label: "Cooking" },
+                ] as const
+              ).map((opt) => (
+                <button
+                  key={opt.id}
+                  onClick={() => setStatusFilter(opt.id)}
+                  className={`px-2.5 py-1 rounded-md text-xs font-semibold transition-colors ${
+                    statusFilter === opt.id
+                      ? "bg-foreground text-background shadow-sm"
+                      : "text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+
+            {/* Source Filter */}
+            <div className="flex items-center gap-1 border border-border rounded-lg p-0.5 bg-muted/30">
+              {(
+                [
+                  { id: "ALL", label: "All Sources" },
+                  { id: "QR", label: "QR Orders" },
+                  { id: "POS", label: "Staff POS" },
+                ] as const
+              ).map((opt) => (
+                <button
+                  key={opt.id}
+                  onClick={() => setSourceFilter(opt.id)}
+                  className={`px-2.5 py-1 rounded-md text-xs font-semibold transition-colors ${
+                    sourceFilter === opt.id
+                      ? "bg-[#FF6A00] text-[#0B1F3B] shadow-sm font-bold"
+                      : "text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
           </div>
 
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => {
-              setSoundEnabled(true);
-              playChime();
-            }}
-            className="h-8 px-2.5 text-xs font-semibold gap-1.5"
-            data-testid="start-sound-btn"
-          >
-            <Volume2 className="h-3.5 w-3.5 text-[#FF6A00]" />
-            Start Sound
-          </Button>
+          <div className="flex flex-wrap items-center gap-2 flex-1 sm:flex-initial justify-end">
+            <div className="relative min-w-[190px] flex-1 sm:w-56">
+              <Search className="h-3.5 w-3.5 text-muted-foreground absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search table or dish..."
+                className="w-full h-8 pl-8 pr-3 rounded-lg border border-border bg-background text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-[#FF6A00]/40"
+              />
+            </div>
 
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setSoundEnabled(!soundEnabled)}
-            className="h-8 w-8 p-0"
-            title={soundEnabled ? "Audio alert on" : "Audio muted"}
-          >
-            {soundEnabled ? (
-              <Volume2 className="h-4 w-4 text-[#FF6A00]" />
-            ) : (
-              <VolumeX className="h-4 w-4 text-muted-foreground" />
+            <button
+              onClick={() => setSortOrder((prev) => (prev === "OLDEST" ? "NEWEST" : "OLDEST"))}
+              className="h-8 px-2.5 rounded-lg border border-border bg-background text-xs font-semibold text-foreground hover:bg-muted transition-colors"
+              title="Toggle ticket sort order"
+            >
+              Sort: {sortOrder === "OLDEST" ? "Oldest first (SLA)" : "Newest first"}
+            </button>
+
+            {hasActiveFilters && (
+              <button
+                onClick={() => {
+                  setStatusFilter("ALL");
+                  setSourceFilter("ALL");
+                  setSearchQuery("");
+                }}
+                className="h-8 px-2.5 rounded-lg text-xs font-semibold text-[#FF6A00] hover:bg-[#FF6A00]/10 transition-colors"
+              >
+                Reset
+              </button>
             )}
-          </Button>
-
-          <Badge variant="outline" className="text-xs px-2.5 py-1 font-bold">
-            {ticketList.length} Active Tickets
-          </Badge>
+          </div>
         </div>
       </div>
 
-      {/* Ticket Cards Grid */}
-      <div className="flex-1 p-3 sm:p-4 grid grid-cols-1 md:flex md:flex-row md:overflow-x-auto gap-4 items-start">
-        {ticketList.length === 0 ? (
-          <div className="w-full h-full flex flex-col items-center justify-center text-center p-12 text-muted-foreground">
+      {/* Scrollable Queue List (Non-card layout) */}
+      <div className="flex-1 p-3 sm:p-5">
+        {filteredTickets.length === 0 ? (
+          <div className="w-full flex flex-col items-center justify-center text-center p-12 rounded-xl border border-dashed border-border bg-card/40 text-muted-foreground">
             <CheckCircle2 className="h-12 w-12 text-emerald-500/40 mb-3" />
-            <h3 className="text-base font-bold text-foreground">Kitchen Queue Clear!</h3>
+            <h3 className="text-base font-bold text-foreground">
+              {hasActiveFilters ? "No matching tickets" : "Kitchen Queue Clear!"}
+            </h3>
             <p className="text-xs text-muted-foreground mt-1">
-              No active tickets in preparation for this station.
+              {hasActiveFilters
+                ? "Try clearing your status, source, or search filters."
+                : "No active tickets in preparation for this station."}
             </p>
           </div>
         ) : (
-          ticketList.map((t) => {
-            const isLate = t.elapsed_minutes >= 20;
-            const isWarning = t.elapsed_minutes >= 10 && t.elapsed_minutes < 20;
+          <div className="divide-y divide-border rounded-xl border border-border bg-card overflow-hidden">
+            {filteredTickets.map((t) => {
+              const isLate = t.elapsed_minutes >= 20;
+              const isWarning = t.elapsed_minutes >= 10 && t.elapsed_minutes < 20;
 
-            return (
-              <div
-                key={t.id}
-                className={`w-full md:w-80 md:shrink-0 rounded-xl border flex flex-col bg-card shadow-sm transition-all ${
-                  isLate
-                    ? "border-destructive ring-2 ring-destructive/40 bg-red-50/20 dark:bg-red-950/20"
-                    : isWarning
-                      ? "border-amber-400 bg-amber-50/20 dark:bg-amber-950/20"
-                      : "border-border"
-                }`}
-              >
-                {/* Ticket Header */}
+              return (
                 <div
-                  className={`p-3 rounded-t-xl border-b flex items-center justify-between ${
+                  key={t.id}
+                  className={`flex flex-col lg:flex-row lg:items-center gap-4 p-4 border-l-[6px] transition-colors hover:bg-muted/20 ${
                     isLate
-                      ? "bg-destructive text-white"
+                      ? "border-l-destructive"
                       : isWarning
-                        ? "bg-amber-500 text-white"
-                        : "bg-[#0A192F] text-white"
+                        ? "border-l-amber-400"
+                        : "border-l-emerald-500"
                   }`}
                 >
-                  <div className="flex items-center gap-2">
-                    <span className="font-heading font-extrabold text-base">{t.table_label}</span>
-                    {t.source === "QR" && (
-                      <Badge className="text-[10px] bg-[#FF6A00] text-[#0B1F3B] font-bold border-none">
-                        QR
-                      </Badge>
-                    )}
-                    <Badge
-                      variant="outline"
-                      className="text-[10px] bg-black/20 text-white border-none"
-                    >
-                      {t.status}
-                    </Badge>
-                  </div>
-                  <div className="flex items-center gap-1 text-xs font-bold font-mono">
-                    <Clock className="h-3.5 w-3.5" />
-                    <span>{t.elapsed_minutes}m</span>
-                  </div>
-                </div>
-
-                {/* Ticket Order Notes */}
-                {t.notes && (
-                  <div className="bg-amber-100 dark:bg-amber-950/40 px-3 py-1.5 text-xs text-amber-900 dark:text-amber-200 font-semibold border-b border-amber-200">
-                    ⚠️ {t.notes}
-                  </div>
-                )}
-
-                {/* Line Items List */}
-                <div className="p-3 flex-1 space-y-2 overflow-y-auto max-h-[360px]">
-                  {(t.items || []).map((line) => (
-                    <div
-                      key={line.id}
-                      className="flex flex-col py-1 border-b border-border/40 last:border-none"
-                    >
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <span className="font-extrabold text-sm text-[#FF6A00] min-w-[20px]">
-                            {line.quantity}×
-                          </span>
-                          <span className="font-bold text-xs text-foreground">
-                            {line.item_name}
-                          </span>
-                        </div>
-                        <Badge variant="secondary" className="text-[10px] px-1 py-0 font-bold">
-                          {line.course}
+                  {/* Left: Table, Source, Status, Elapsed Timer */}
+                  <div className="lg:w-52 shrink-0 flex flex-row lg:flex-col items-center lg:items-start justify-between gap-2">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="font-heading font-extrabold text-lg text-foreground">
+                        {t.table_label}
+                      </span>
+                      {t.source === "QR" && (
+                        <Badge className="text-xs bg-[#FF6A00] text-[#0B1F3B] font-bold border-none">
+                          QR
                         </Badge>
-                      </div>
-                      {line.notes && (
-                        <span className="text-[11px] text-amber-700 dark:text-amber-400 font-semibold pl-6">
-                          • {line.notes}
-                        </span>
                       )}
+                      <Badge variant="outline" className="text-xs font-semibold">
+                        {t.status}
+                      </Badge>
                     </div>
-                  ))}
-                </div>
+                    <div
+                      className={`inline-flex items-center gap-1.5 text-xs font-bold font-mono px-2.5 py-1 rounded-full shrink-0 ${
+                        isLate
+                          ? "bg-destructive text-white"
+                          : isWarning
+                            ? "bg-amber-500 text-white"
+                            : "bg-muted text-foreground"
+                      }`}
+                    >
+                      <Clock className="h-3.5 w-3.5" />
+                      <span>{formatElapsed(t.elapsed_minutes)}</span>
+                    </div>
+                  </div>
 
-                {/* Bump Action Buttons */}
-                <div className="p-3 border-t border-border bg-muted/20 flex gap-2">
-                  {t.status === "PLACED" && (
-                    <Button
-                      onClick={() => handleBump(t.id)}
-                      className="w-full h-10 font-bold text-xs bg-[#FF6A00] hover:bg-[#E05D00] text-[#0B1F3B] gap-1.5"
-                    >
-                      <Flame className="h-4 w-4" /> Start Cooking
-                    </Button>
-                  )}
-                  {t.status === "PREPARING" && (
-                    <Button
-                      onClick={() => handleBump(t.id)}
-                      className="w-full h-10 font-bold text-xs bg-emerald-600 hover:bg-emerald-700 text-white gap-1.5"
-                    >
-                      <CheckCircle2 className="h-4 w-4" /> Mark Ready
-                    </Button>
-                  )}
-                  {t.status === "READY" && (
-                    <Button
-                      onClick={() => handleBump(t.id)}
-                      variant="outline"
-                      className="w-full h-10 font-bold text-xs text-foreground gap-1.5"
-                    >
-                      Serve Food
-                    </Button>
-                  )}
+                  {/* Middle: Order Notes + Line Items */}
+                  <div className="flex-1 min-w-0 space-y-2">
+                    {t.notes && (
+                      <div className="rounded-md bg-amber-100/80 dark:bg-amber-950/40 px-3 py-1.5 text-xs text-amber-900 dark:text-amber-200 font-semibold border border-amber-200/80 dark:border-amber-800/50">
+                        ⚠️ {t.notes}
+                      </div>
+                    )}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-1.5">
+                      {(t.items || []).map((line) => (
+                        <div
+                          key={line.id}
+                          className="flex flex-col py-1 border-b border-border/40 sm:border-none"
+                        >
+                          <div className="flex items-center justify-between gap-2">
+                            <div className="flex items-center gap-2.5 min-w-0">
+                              <span className="font-extrabold text-base text-[#FF6A00] min-w-[26px]">
+                                {line.quantity}×
+                              </span>
+                              <span className="font-semibold text-sm text-foreground truncate">
+                                {line.item_name}
+                              </span>
+                            </div>
+                            <Badge
+                              variant="secondary"
+                              className="text-[11px] px-1.5 py-0.5 font-bold shrink-0"
+                            >
+                              {line.course}
+                            </Badge>
+                          </div>
+                          {line.notes && (
+                            <span className="text-xs text-amber-700 dark:text-amber-400 font-semibold pl-9">
+                              • {line.notes}
+                            </span>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Right: Bump Action */}
+                  <div className="lg:w-44 shrink-0 flex items-center justify-end">
+                    {t.status === "PLACED" && (
+                      <Button
+                        onClick={() => handleBump(t.id)}
+                        className="w-full h-11 font-bold text-sm bg-[#FF6A00] hover:bg-[#E05D00] text-[#0B1F3B] gap-2"
+                      >
+                        <Flame className="h-4 w-4" /> Start Cooking
+                      </Button>
+                    )}
+                    {t.status === "PREPARING" && (
+                      <Button
+                        onClick={() => handleBump(t.id)}
+                        className="w-full h-11 font-bold text-sm bg-emerald-600 hover:bg-emerald-700 text-white gap-2"
+                      >
+                        <CheckCircle2 className="h-4 w-4" /> Mark Ready
+                      </Button>
+                    )}
+                    {t.status === "READY" && (
+                      <Button
+                        onClick={() => handleBump(t.id)}
+                        variant="outline"
+                        className="w-full h-10 font-bold text-xs text-foreground gap-1.5"
+                      >
+                        Serve Food
+                      </Button>
+                    )}
+                  </div>
                 </div>
-              </div>
-            );
-          })
+              );
+            })}
+          </div>
         )}
       </div>
     </div>
