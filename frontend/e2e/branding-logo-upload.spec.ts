@@ -14,6 +14,7 @@ test.describe("Branding Logo Upload & Preview Suite", () => {
 
     // Wait for authenticated session
     await page.waitForURL((url) => !url.pathname.includes("/login"), { timeout: 15000 });
+    await page.waitForLoadState("networkidle");
 
     // 2. Navigate to Branding Settings
     await page.goto("/settings/branding", { waitUntil: "load" });
