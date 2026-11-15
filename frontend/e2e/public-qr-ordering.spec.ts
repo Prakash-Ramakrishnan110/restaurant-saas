@@ -121,15 +121,6 @@ test.describe.serial("Customer Phone QR Ordering (Live Stack E2E)", () => {
       await page.waitForSelector("article", { timeout: 20000 });
       await page.screenshot({ path: path.join(SCREENSHOT_DIR, "menu.png") });
 
-      // Enable Slow 4G throttling via CDP
-      const cdp = await customerContext.newCDPSession(page);
-      await cdp.send("Network.emulateNetworkConditions", {
-        offline: false,
-        downloadThroughput: (1.6 * 1024 * 1024) / 8,
-        uploadThroughput: (750 * 1024) / 8,
-        latency: 150,
-      });
-
       // Check 360px zero horizontal overflow
       await page.setViewportSize({ width: 360, height: 800 });
       const overflow360 = await page.evaluate(
@@ -169,6 +160,15 @@ test.describe.serial("Customer Phone QR Ordering (Live Stack E2E)", () => {
       await page.getByRole("button", { name: /View order/i }).click();
       await expect(page.getByRole("dialog", { name: /Your order/i })).toBeVisible();
       await page.screenshot({ path: path.join(SCREENSHOT_DIR, "cart.png") });
+
+      // Enable Slow 4G throttling via CDP for order submission & tracker load
+      const cdp = await customerContext.newCDPSession(page);
+      await cdp.send("Network.emulateNetworkConditions", {
+        offline: false,
+        downloadThroughput: (1.6 * 1024 * 1024) / 8,
+        uploadThroughput: (750 * 1024) / 8,
+        latency: 150,
+      });
 
       await page.getByRole("button", { name: /^Place order$/i }).click();
       await page.waitForURL(new RegExp(`/q/${qrToken}/o/`), { timeout: 20000 });
