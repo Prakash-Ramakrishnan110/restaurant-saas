@@ -75,6 +75,7 @@ describe("Sidebar Map & Navigation Synchronization", () => {
       "/admin/health",
       "/admin/activity",
       "/admin/support",
+      "/admin/leads",
       "/admin/announcements",
     ]);
 

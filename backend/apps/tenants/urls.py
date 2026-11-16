@@ -7,7 +7,9 @@ from apps.tenants.views import (
     OnboardingStatusView,
     PlatformAnnouncementViewSet,
     PlatformCustomerCreateView,
+    PlatformDemoLeadViewSet,
     PlatformSummaryView,
+    PublicDemoLeadView,
     SupportTicketViewSet,
     TenantViewSet,
 )
@@ -119,5 +121,21 @@ urlpatterns = [
             {"get": "retrieve", "patch": "partial_update", "delete": "destroy"}
         ),
         name="announcement-detail",
+    ),
+    # Public Demo Lead Capture + Platform Admin Lead Management
+    path(
+        "public/leads/",
+        PublicDemoLeadView.as_view(),
+        name="public-demo-lead-create",
+    ),
+    path(
+        "platform/leads/",
+        PlatformDemoLeadViewSet.as_view({"get": "list"}),
+        name="platform-lead-list",
+    ),
+    path(
+        "platform/leads/<uuid:pk>/",
+        PlatformDemoLeadViewSet.as_view({"get": "retrieve", "patch": "partial_update"}),
+        name="platform-lead-detail",
     ),
 ]

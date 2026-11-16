@@ -1,3 +1,4 @@
+import re
 from typing import Any
 
 from rest_framework import serializers
@@ -6,6 +7,7 @@ from apps.tenants.color_utils import validate_brand_primary_color, validate_gsti
 from apps.tenants.models import (
     Branch,
     BusinessSettings,
+    DemoLead,
     PlatformAnnouncement,
     SupportTicket,
     Tenant,
@@ -431,3 +433,85 @@ class PlatformAnnouncementSerializer(serializers.ModelSerializer[PlatformAnnounc
             "updated_at",
         )
         read_only_fields = ("id", "created_at", "updated_at")
+
+
+_INDIAN_MOBILE_RE = re.compile(r"^[6-9]\d{9}$")
+
+
+class PublicDemoLeadCreateSerializer(serializers.ModelSerializer[DemoLead]):
+    """Validates public demo booking submissions with honeypot & consent guards."""
+
+    website = serializers.CharField(required=False, allow_blank=True, write_only=True)
+    consent = serializers.BooleanField(required=True)
+
+    class Meta:
+        model = DemoLead
+        fields = (
+            "name",
+            "phone",
+            "business_type",
+            "city",
+            "message",
+            "language",
+            "consent",
+            "website",
+        )
+
+    def validate_website(self, value: str) -> str:
+        if value and value.strip():
+            raise serializers.ValidationError("Invalid submission.")
+        return ""
+
+    def validate_phone(self, value: str) -> str:
+        digits = re.sub(r"[\s\-+]", "", value or "")
+        if digits.startswith("91") and len(digits) == 12:
+            digits = digits[2:]
+        elif digits.startswith("0") and len(digits) == 11:
+            digits = digits[1:]
+        if not _INDIAN_MOBILE_RE.match(digits):
+            raise serializers.ValidationError("Enter a valid 10-digit Indian mobile number.")
+        return digits
+
+    def validate_consent(self, value: bool) -> bool:
+        if not value:
+            raise serializers.ValidationError("Consent is required before submitting.")
+        return value
+
+    def validate_language(self, value: str) -> str:
+        val = (value or "en").lower().strip()
+        return val if val in ("en", "ta") else "en"
+
+    def create(self, validated_data: dict[str, Any]) -> DemoLead:
+        validated_data.pop("website", None)
+        return super().create(validated_data)
+
+
+class DemoLeadAdminSerializer(serializers.ModelSerializer[DemoLead]):
+    class Meta:
+        model = DemoLead
+        fields = (
+            "id",
+            "name",
+            "phone",
+            "business_type",
+            "city",
+            "message",
+            "language",
+            "consent",
+            "status",
+            "notes",
+            "created_at",
+            "updated_at",
+        )
+        read_only_fields = (
+            "id",
+            "name",
+            "phone",
+            "business_type",
+            "city",
+            "message",
+            "language",
+            "consent",
+            "created_at",
+            "updated_at",
+        )

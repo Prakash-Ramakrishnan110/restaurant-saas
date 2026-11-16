@@ -1,5 +1,8 @@
+import logging
 from datetime import timedelta
 
+from django.conf import settings
+from django.core.cache import cache
 from django.db import models
 from django.http import Http404
 from django.utils import timezone
@@ -9,7 +12,7 @@ from drf_spectacular.utils import extend_schema
 from rest_framework import serializers, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.exceptions import PermissionDenied
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -28,6 +31,7 @@ from apps.rbac.permissions import (
 from apps.tenants.models import (
     Branch,
     BusinessSettings,
+    DemoLead,
     PlatformAnnouncement,
     SupportTicket,
     Tenant,
@@ -37,9 +41,11 @@ from apps.tenants.serializers import (
     BranchSerializer,
     BusinessLogoResponseSerializer,
     BusinessProfileSerializer,
+    DemoLeadAdminSerializer,
     OnboardingStatusSerializer,
     PlatformAnnouncementSerializer,
     PlatformCustomerCreateSerializer,
+    PublicDemoLeadCreateSerializer,
     SupportTicketSerializer,
     TenantCreateSerializer,
     TenantDetailSerializer,
@@ -1095,3 +1101,126 @@ class PlatformAnnouncementViewSet(viewsets.ModelViewSet):
         if not getattr(self.request.user, "is_platform_admin", False):
             raise PermissionDenied("Only platform administrators can delete announcements.")
         instance.delete()
+
+
+_lead_logger = logging.getLogger("apps.tenants.leads")
+
+
+class PublicDemoLeadView(APIView):
+    """Public demo request endpoint with Origin check, honeypot, and IP/phone throttling."""
+
+    permission_classes = [AllowAny]
+    authentication_classes = []
+
+    def _is_origin_allowed(self, request: Request) -> bool:
+        origin = request.META.get("HTTP_ORIGIN", "").strip()
+        if not origin:
+            return True
+        allowed = set(getattr(settings, "MARKETING_ALLOWED_ORIGINS", [])) | set(
+            getattr(settings, "CORS_ALLOWED_ORIGINS", [])
+        )
+        allowed |= {
+            "http://localhost:4173",
+            "http://localhost:5174",
+            "http://127.0.0.1:4173",
+            "http://127.0.0.1:5174",
+            "http://localhost:5173",
+        }
+        return origin in allowed
+
+    def _check_rate_limit(self, key: str, limit: int, window_seconds: int) -> bool:
+        try:
+            count = cache.get(key, 0)
+            if int(count) >= limit:
+                return False
+            if count == 0:
+                cache.set(key, 1, timeout=window_seconds)
+            else:
+                cache.incr(key)
+            return True
+        except Exception:
+            return True
+
+    @extend_schema(request=PublicDemoLeadCreateSerializer, responses={201: OpenApiTypes.OBJECT})
+    def post(self, request: Request) -> Response:
+        if not self._is_origin_allowed(request):
+            return Response(
+                {"error": {"code": "FORBIDDEN_ORIGIN", "message": "Origin not allowed."}},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        client_ip = (
+            request.META.get("HTTP_X_FORWARDED_FOR", "").split(",")[0].strip()
+            or request.META.get("REMOTE_ADDR", "unknown")
+        )
+        if not self._check_rate_limit(f"lead:ip:{client_ip}", limit=5, window_seconds=600):
+            return Response(
+                {
+                    "error": {
+                        "code": "RATE_LIMITED",
+                        "message": "Too many requests. Please wait a few minutes and try again.",
+                    }
+                },
+                status=status.HTTP_429_TOO_MANY_REQUESTS,
+            )
+
+        serializer = PublicDemoLeadCreateSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        normalized_phone = serializer.validated_data["phone"]
+
+        if not self._check_rate_limit(f"lead:phone:{normalized_phone}", limit=3, window_seconds=3600):
+            return Response(
+                {
+                    "error": {
+                        "code": "RATE_LIMITED",
+                        "message": "Too many requests. Please wait a few minutes and try again.",
+                    }
+                },
+                status=status.HTTP_429_TOO_MANY_REQUESTS,
+            )
+
+        lead = serializer.save()
+        _lead_logger.info(
+            "demo_lead_received business_type=%s language=%s",
+            lead.business_type,
+            lead.language,
+        )
+        return Response(
+            {
+                "status": "received",
+                "message": "Thank you. Our team will reach out shortly.",
+            },
+            status=status.HTTP_201_CREATED,
+        )
+
+
+class PlatformDemoLeadViewSet(viewsets.ModelViewSet):
+    """Platform-admin-only management of public demo leads."""
+
+    serializer_class = DemoLeadAdminSerializer
+    permission_classes = [IsPlatformAdmin]
+    pagination_class = StandardResultsSetPagination
+    http_method_names = ["get", "patch", "head", "options"]
+
+    def get_queryset(self) -> models.QuerySet[DemoLead]:
+        qs = DemoLead.objects.all()
+        status_param = self.request.query_params.get("status")
+        if status_param:
+            qs = qs.filter(status=status_param)
+        return qs
+
+    def perform_update(self, serializer: serializers.BaseSerializer[DemoLead]) -> None:
+        instance = serializer.instance
+        old_status = instance.status if instance else None
+        updated = serializer.save()
+        if old_status != updated.status:
+            from apps.audit.models import AuditLog
+
+            AuditLog.objects.create(
+                actor=self.request.user if self.request.user.is_authenticated else None,
+                action="platform.lead.status_updated",
+                entity_type="DemoLead",
+                entity_id=str(updated.id),
+                before_state={"status": old_status},
+                after_state={"status": updated.status},
+            )

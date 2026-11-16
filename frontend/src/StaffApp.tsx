@@ -156,6 +156,10 @@ const PlatformSupportPage = lazyNamed(
   () => import("./pages/admin/PlatformSupportPage"),
   "PlatformSupportPage"
 );
+const PlatformLeadsPage = lazyNamed(
+  () => import("./pages/admin/PlatformLeadsPage"),
+  "PlatformLeadsPage"
+);
 const PlatformAnnouncementsPage = lazyNamed(
   () => import("./pages/admin/PlatformAnnouncementsPage"),
   "PlatformAnnouncementsPage"
@@ -592,6 +596,14 @@ export const StaffApp: React.FC = () => {
                 element={
                   <ProtectedRoute requirePlatformAdmin>
                     <PlatformSupportPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/leads"
+                element={
+                  <ProtectedRoute requirePlatformAdmin>
+                    <PlatformLeadsPage />
                   </ProtectedRoute>
                 }
               />

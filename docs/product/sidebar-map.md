@@ -120,6 +120,7 @@ Platform admins see this group alone. They never see a restaurant's orders, bill
 | Platform Activity Log | /admin/activity | P1 |
 | Subscriptions & Renewals | /admin/subscriptions | P2 |
 | Support Requests | /admin/support | P2 |
+| Demo Leads (public book-a-demo queue) | /admin/leads | P1 |
 | Announcements | /admin/announcements | P2 |
 | Business Types & Setup Templates | /admin/templates | P2 |
 | System Health | /admin/health | P2 |

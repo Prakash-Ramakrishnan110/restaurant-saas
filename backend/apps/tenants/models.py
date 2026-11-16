@@ -210,3 +210,42 @@ class PlatformAnnouncement(UUIDModel, TimeStampedModel):
 
     def __str__(self) -> str:
         return f"[{self.announcement_type}] {self.title}"
+
+
+class DemoLead(UUIDModel, TimeStampedModel):
+    """Public demo-booking lead stored at platform level without tenant coupling."""
+
+    class LeadStatus(models.TextChoices):
+        NEW = "NEW", "New"
+        CONTACTED = "CONTACTED", "Contacted"
+        CLOSED = "CLOSED", "Closed"
+
+    class BusinessType(models.TextChoices):
+        TEA_SHOP = "TEA_SHOP", "Tea shop"
+        BAKERY = "BAKERY", "Bakery"
+        CAFE = "CAFE", "Cafe"
+        RESTAURANT = "RESTAURANT", "Restaurant"
+        FINE_DINING = "FINE_DINING", "Fine dining"
+        HOTEL = "HOTEL", "Hotel restaurant"
+        FOOD_COURT = "FOOD_COURT", "Food court"
+
+    name = models.CharField(max_length=120)
+    phone = models.CharField(max_length=15, db_index=True)
+    business_type = models.CharField(max_length=32, choices=BusinessType.choices)
+    city = models.CharField(max_length=80)
+    message = models.TextField(blank=True, default="")
+    language = models.CharField(max_length=8, default="en")
+    consent = models.BooleanField(default=False)
+    status = models.CharField(
+        max_length=16,
+        choices=LeadStatus.choices,
+        default=LeadStatus.NEW,
+        db_index=True,
+    )
+    notes = models.TextField(blank=True, default="")
+
+    class Meta:
+        ordering = ["-created_at"]
+
+    def __str__(self) -> str:
+        return f"{self.business_type} ({self.city}) [{self.status}]"

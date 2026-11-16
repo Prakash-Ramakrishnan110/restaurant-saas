@@ -22,6 +22,7 @@ import {
   PlusCircle,
   LifeBuoy,
   Megaphone,
+  PhoneCall,
 } from "lucide-react";
 
 export interface NavItem {
@@ -72,6 +73,7 @@ export function getNavigationGroups(ctx: NavigationContext): NavGroup[] {
           { label: "System Health", path: "/admin/health", icon: Activity },
           { label: "Audit & Activity", path: "/admin/activity", icon: FileText },
           { label: "Support Desk", path: "/admin/support", icon: LifeBuoy },
+          { label: "Demo Leads", path: "/admin/leads", icon: PhoneCall },
           { label: "Announcements", path: "/admin/announcements", icon: Megaphone },
         ],
       },
