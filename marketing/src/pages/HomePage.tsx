@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { ChevronDown, Pause, Play } from "lucide-react";
+import { Check, ChevronDown, Pause, Play } from "lucide-react";
 import { getWhatsAppHref } from "../../content/site";
 import type { Lang } from "../routes";
 import { DeviceFrame } from "../components/DeviceFrame";
@@ -49,6 +49,7 @@ const JOURNEY_STEPS = [
 
 const WHO_IT_IS_FOR = [
   {
+    tag: "Counter & Token",
     title: "Tea shops and bakeries",
     src: "/shots/tea-counters.webp",
     alt: "Tea shop counter and token queue screen",
@@ -59,6 +60,7 @@ const WHO_IT_IS_FOR = [
     ],
   },
   {
+    tag: "Table & Kitchen",
     title: "Cafes and restaurants",
     src: "/shots/waiter-order.webp",
     alt: "Cafe and restaurant waiter order screen",
@@ -69,6 +71,7 @@ const WHO_IT_IS_FOR = [
     ],
   },
   {
+    tag: "Multi-Outlet",
     title: "Hotels",
     src: "/shots/hotel-areas.webp",
     alt: "Hotel multi-outlet sections and dining areas screen",
@@ -82,24 +85,28 @@ const WHO_IT_IS_FOR = [
 
 const FEATURE_ROWS = [
   {
+    eyebrow: "01 • Kitchen Display",
     title: "Kitchen screen with sound alert",
     body: "Every new order arrives on the kitchen screen immediately with a clear chime. Cooks see cooking time, spice notes and a one-tap Ready button.",
     src: "/shots/kitchen-kds.webp",
     alt: "Kitchen Display System screen with live tickets",
   },
   {
+    eyebrow: "02 • Bilingual Menu",
     title: "Menu with photos and Tamil names",
     body: "Show clear dish photos alongside English and Tamil names so every staff member finds items fast. Organise dishes into simple categories with veg and non-veg tags.",
     src: "/shots/menu-photos.webp",
     alt: "Menu management screen with dish photos and Tamil names",
   },
   {
+    eyebrow: "03 • Live Availability",
     title: "Sold-out in one tap",
     body: "When a dish finishes during a rush, mark it unavailable in a single tap. Waiters and cashiers stop seeing it right away so guests are never disappointed.",
     src: "/shots/sold-out.webp",
     alt: "Today's availability screen with one-tap sold-out toggles",
   },
   {
+    eyebrow: "04 • Role Control",
     title: "Separate logins for each role",
     body: "Waiters see orders, cooks see the kitchen screen, cashiers see billing, and owners see daily sales. Each person gets only the screens needed for their work.",
     src: "/shots/staff-roles.webp",
@@ -156,21 +163,27 @@ export const HomePage: React.FC<HomePageProps> = () => {
   }, [paused, reducedMotion]);
 
   const currentStep = JOURNEY_STEPS[activeStep];
-
   const whatsappHref = getWhatsAppHref("Hello, I would like a free demo of ServeMyFood.");
 
   return (
     <div>
-      {/* 2. Hero (Cream #FFF3E0) */}
-      <section className="bg-[#FFF3E0] py-14 lg:py-24 overflow-x-hidden">
+      {/* 2. Hero (Cream #FFF3E0 with subtle radial warmth) */}
+      <section className="bg-[radial-gradient(ellipse_at_top_right,_#FFE6C7_0%,_#FFF3E0_52%,_#FFFBF7_100%)] py-14 lg:py-24 overflow-x-hidden border-b border-[#E6E1D8]">
         <div className="mx-auto max-w-[1120px] px-5 sm:px-6 grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
           <div className="lg:col-span-6 space-y-6">
-            <h1 className="font-display font-semibold text-[36px] leading-[40px] lg:text-[56px] lg:leading-[64px] text-[#0B1F3B]">
+            <div className="inline-flex items-center gap-2 rounded-full border border-[#E6E1D8] bg-white px-4 py-1.5 text-[14px] font-semibold text-[#0B1F3B]">
+              <span className="h-2 w-2 rounded-full bg-[#FF6A00]" aria-hidden="true" />
+              <span>For tea shops, cafes, restaurants and hotels</span>
+            </div>
+
+            <h1 className="font-display font-semibold text-[36px] leading-[40px] lg:text-[56px] lg:leading-[64px] text-[#0B1F3B] tracking-[-0.02em]">
               Take orders. Run the kitchen. Get paid. See today&apos;s sales.
             </h1>
+
             <p className="text-[18px] leading-[1.6] text-[#0B1F3B]/85 max-w-[70ch]">
-              One simple system for tea shops, cafes, restaurants and hotels.
+              One simple system built for fast service in English and Tamil.
             </p>
+
             <div className="flex flex-wrap items-center gap-4 pt-1">
               <a
                 href="#book-demo-band"
@@ -180,17 +193,18 @@ export const HomePage: React.FC<HomePageProps> = () => {
               </a>
               <a
                 href="#how-it-works"
-                className="inline-flex items-center justify-center h-[52px] px-6 rounded-[12px] border border-[#0B1F3B]/25 bg-white text-[16px] font-semibold text-[#0B1F3B] hover:bg-white/80 transition-colors"
+                className="inline-flex items-center justify-center h-[52px] px-6 rounded-[12px] border border-[#0B1F3B]/20 bg-white text-[16px] font-semibold text-[#0B1F3B] hover:bg-white/80 transition-colors"
               >
                 See how it works
               </a>
             </div>
-            <p className="text-[15px] text-[#0B1F3B]/90">
+
+            <p className="text-[15px] font-medium text-[#0B1F3B]/85">
               Works on phone, tablet and computer. Tamil and English.
             </p>
           </div>
 
-          <div className="lg:col-span-6 relative pt-4 pb-6 sm:pb-8">
+          <div className="lg:col-span-6 relative pt-5 pb-8 sm:pb-10">
             {/* Tablet frame: Kitchen screen */}
             <DeviceFrame
               kind="tablet"
@@ -207,8 +221,8 @@ export const HomePage: React.FC<HomePageProps> = () => {
               eager
               className="w-[30%] min-w-[116px] max-w-[158px] absolute left-0 bottom-0 ring-4 ring-[#FFF3E0]"
             />
-            {/* Stage 2 sliding chip */}
-            <div className="inline-flex items-center gap-2 rounded-full border border-[#E6E1D8] bg-white px-3.5 py-1.5 text-[14px] font-semibold text-[#0B1F3B] absolute right-3 top-0 animate-chip-slide">
+            {/* Stage 2 floating chip */}
+            <div className="inline-flex items-center gap-2 rounded-full border border-[#E6E1D8] bg-white px-4 py-2 text-[14px] font-semibold text-[#0B1F3B] shadow-md absolute right-3 top-0 animate-chip-slide">
               <span className="h-2.5 w-2.5 rounded-full bg-[#FF6A00]" aria-hidden="true" />
               <span>New order T4</span>
             </div>
@@ -262,13 +276,17 @@ export const HomePage: React.FC<HomePageProps> = () => {
                     <span
                       className={`inline-flex h-11 w-11 sm:h-12 sm:w-12 items-center justify-center rounded-full border text-[15px] sm:text-[16px] font-semibold transition-colors ${
                         isActive
-                          ? "bg-[#FF6A00] border-[#FF6A00] text-[#0B1F3B]"
+                          ? "bg-[#FF6A00] border-[#FF6A00] text-[#0B1F3B] shadow-sm"
                           : "bg-white border-[#E6E1D8] text-[#0B1F3B]"
                       }`}
                     >
                       {idx + 1}
                     </span>
-                    <span className="text-[13px] sm:text-[16px] font-semibold text-[#0B1F3B]">
+                    <span
+                      className={`text-[13px] sm:text-[16px] font-semibold ${
+                        isActive ? "text-[#0B1F3B]" : "text-[#0B1F3B]/75"
+                      }`}
+                    >
                       {st.label}
                     </span>
                   </button>
@@ -277,12 +295,12 @@ export const HomePage: React.FC<HomePageProps> = () => {
             </div>
           </div>
 
-          {/* One Large Device Frame (Crossfades across steps) */}
-          <div className="max-w-[820px] mx-auto space-y-4 text-center">
+          {/* One Large Device Frame */}
+          <div className="max-w-[880px] mx-auto space-y-5 text-center">
             <div key={currentStep.id} className="animate-step-in">
               <DeviceFrame kind="laptop" src={currentStep.src} alt={currentStep.alt} />
             </div>
-            <p className="text-[18px] leading-[1.6] text-[#0B1F3B] max-w-[70ch] mx-auto">
+            <p className="text-[18px] leading-[1.6] font-medium text-[#0B1F3B] max-w-[70ch] mx-auto">
               {currentStep.caption}
             </p>
           </div>
@@ -290,7 +308,7 @@ export const HomePage: React.FC<HomePageProps> = () => {
       </section>
 
       {/* 4. Who it is for (Cream #FFF3E0) */}
-      <section id="who-it-is-for" className="bg-[#FFF3E0] py-14 lg:py-24">
+      <section id="who-it-is-for" className="bg-[#FFF3E0] py-14 lg:py-24 border-y border-[#E6E1D8]">
         <div className="mx-auto max-w-[1120px] px-5 sm:px-6 space-y-10">
           <div className="max-w-[70ch] space-y-3">
             <div className="h-1 w-12 rounded-full bg-[#FF6A00]" aria-hidden="true" />
@@ -303,7 +321,7 @@ export const HomePage: React.FC<HomePageProps> = () => {
             {WHO_IT_IS_FOR.map((card) => (
               <article
                 key={card.title}
-                className="rounded-[16px] border border-[#E6E1D8] bg-white p-6 flex flex-col gap-5"
+                className="rounded-[16px] border border-[#E6E1D8] bg-white p-6 flex flex-col gap-5 shadow-[0_10px_30px_-15px_rgba(11,31,59,0.12)]"
               >
                 <div className="overflow-hidden rounded-[12px] border border-[#E6E1D8] aspect-[16/10] bg-[#FFFBF7]">
                   <img
@@ -314,14 +332,19 @@ export const HomePage: React.FC<HomePageProps> = () => {
                     className="h-full w-full object-cover object-top"
                   />
                 </div>
-                <h3 className="font-display font-semibold text-[22px] leading-[1.3] text-[#0B1F3B]">
-                  {card.title}
-                </h3>
+                <div className="space-y-2">
+                  <span className="inline-block rounded-full bg-[#FFF3E0] px-3 py-1 text-[13px] font-semibold text-[#0B1F3B]">
+                    {card.tag}
+                  </span>
+                  <h3 className="font-display font-semibold text-[22px] leading-[1.3] text-[#0B1F3B]">
+                    {card.title}
+                  </h3>
+                </div>
                 <ul className="space-y-2.5 text-[18px] leading-[1.6] text-[#0B1F3B]/85">
                   {card.outcomes.map((line) => (
                     <li key={line} className="flex items-start gap-2.5">
-                      <span
-                        className="mt-2.5 h-2 w-2 rounded-full bg-[#FF6A00] shrink-0"
+                      <Check
+                        className="mt-1.5 h-5 w-5 text-[#FF6A00] shrink-0"
                         aria-hidden="true"
                       />
                       <span>{line}</span>
@@ -336,7 +359,7 @@ export const HomePage: React.FC<HomePageProps> = () => {
 
       {/* 5. Features (White #FFFFFF) */}
       <section className="bg-white py-14 lg:py-24">
-        <div className="mx-auto max-w-[1120px] px-5 sm:px-6 space-y-12">
+        <div className="mx-auto max-w-[1120px] px-5 sm:px-6 space-y-14">
           <div className="max-w-[70ch] space-y-3">
             <div className="h-1 w-12 rounded-full bg-[#FF6A00]" aria-hidden="true" />
             <h2 className="font-display font-semibold text-[30px] sm:text-[36px] leading-[1.2] text-[#0B1F3B]">
@@ -344,7 +367,7 @@ export const HomePage: React.FC<HomePageProps> = () => {
             </h2>
           </div>
 
-          <div className="space-y-12 lg:space-y-16">
+          <div className="space-y-16 lg:space-y-20">
             {FEATURE_ROWS.map((row, idx) => {
               const imageFirst = idx % 2 === 1;
               return (
@@ -353,6 +376,9 @@ export const HomePage: React.FC<HomePageProps> = () => {
                   className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center"
                 >
                   <div className={`lg:col-span-5 space-y-3 ${imageFirst ? "lg:order-2" : ""}`}>
+                    <span className="inline-block text-[14px] font-semibold text-[#0B1F3B]/75">
+                      {row.eyebrow}
+                    </span>
                     <h3 className="font-display font-semibold text-[26px] leading-[1.25] text-[#0B1F3B]">
                       {row.title}
                     </h3>
@@ -371,7 +397,10 @@ export const HomePage: React.FC<HomePageProps> = () => {
       </section>
 
       {/* 6. Book a demo band (Navy #0B1F3B) */}
-      <section id="book-demo-band" className="bg-[#0B1F3B] text-white py-14 lg:py-24">
+      <section
+        id="book-demo-band"
+        className="bg-[radial-gradient(ellipse_at_top_right,_#183B6E_0%,_#0B1F3B_65%)] text-white py-14 lg:py-24"
+      >
         <div className="mx-auto max-w-[1120px] px-5 sm:px-6 flex flex-col lg:flex-row lg:items-center justify-between gap-8">
           <div className="space-y-3 max-w-[70ch]">
             <h2 className="font-display font-semibold text-[30px] sm:text-[36px] leading-[1.2]">
