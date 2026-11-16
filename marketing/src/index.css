@@ -60,8 +60,26 @@
   animation: stepFadeIn 0.35s ease-out both;
 }
 
+@keyframes chipSlide {
+  0%,
+  100% {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  15%,
+  80% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-chip-slide {
+  animation: chipSlide 4.5s ease-in-out infinite;
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .animate-step-in {
+  .animate-step-in,
+  .animate-chip-slide {
     animation: none;
   }
 }

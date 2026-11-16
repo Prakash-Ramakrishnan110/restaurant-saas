@@ -1,7 +1,6 @@
 import React from "react";
-import { Globe, LogIn } from "lucide-react";
-import { SITE_CONFIG, hasTodoValue } from "../../content/site";
-import { getPagePath, type Lang, type PageId } from "../routes";
+import { SITE_CONFIG } from "../../content/site";
+import type { Lang, PageId } from "../routes";
 
 interface LayoutProps {
   lang: Lang;
@@ -10,22 +9,7 @@ interface LayoutProps {
   children: React.ReactNode;
 }
 
-export const Layout: React.FC<LayoutProps> = ({ lang, page, onNavigate, children }) => {
-  const otherLang: Lang = lang === "en" ? "ta" : "en";
-  const switchPath = getPagePath(page === "404" ? "home" : page, otherLang);
-  const homePath = getPagePath("home", lang);
-  const demoPath = getPagePath("book-demo", lang);
-  const privacyPath = getPagePath("privacy", lang);
-  const termsPath = getPagePath("terms", lang);
-
-  const missingTodos = [
-    hasTodoValue(SITE_CONFIG.siteUrl) && "siteUrl",
-    hasTodoValue(SITE_CONFIG.whatsappNumber) && "whatsappNumber",
-    hasTodoValue(SITE_CONFIG.contactPhone) && "contactPhone",
-    hasTodoValue(SITE_CONFIG.contactEmail) && "contactEmail",
-    hasTodoValue(SITE_CONFIG.address) && "address",
-  ].filter(Boolean);
-
+export const Layout: React.FC<LayoutProps> = ({ page, onNavigate, children }) => {
   const handleLinkClick = (e: React.MouseEvent<HTMLAnchorElement>, path: string) => {
     if (onNavigate && !e.metaKey && !e.ctrlKey && !e.shiftKey && !e.altKey) {
       e.preventDefault();
@@ -34,140 +18,71 @@ export const Layout: React.FC<LayoutProps> = ({ lang, page, onNavigate, children
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#FFFBF7] text-[#0B1F3B]">
-      {import.meta.env.DEV && missingTodos.length > 0 && (
-        <div
-          role="status"
-          className="bg-amber-100 border-b border-amber-300 px-4 py-1.5 text-center text-xs font-semibold text-amber-950"
-        >
-          DEV TODO: Fill {missingTodos.join(", ")} in marketing/content/site.ts before production build.
-        </div>
-      )}
-
-      <header className="sticky top-0 z-20 border-b border-[#0B1F3B]/10 bg-white/95 backdrop-blur">
-        <div className="mx-auto max-w-6xl px-4 sm:px-6 py-3.5 flex flex-wrap items-center justify-between gap-3">
+    <div className="min-h-screen flex flex-col bg-white text-[#0B1F3B] font-sans">
+      {/* 1. Sticky Header */}
+      <header className="sticky top-0 z-30 border-b border-[#E6E1D8] bg-white/95 backdrop-blur">
+        <div className="mx-auto max-w-[1120px] px-5 sm:px-6 h-20 flex items-center justify-between gap-4">
           <a
-            href={homePath}
-            onClick={(e) => handleLinkClick(e, homePath)}
-            className="flex items-center gap-2.5 font-display font-bold text-lg text-[#0B1F3B]"
+            href="/"
+            onClick={(e) => handleLinkClick(e, "/")}
+            className="inline-flex items-center min-h-[48px] shrink-0"
           >
             <img
-              src="/brand/mark-orange.svg"
+              src="/brand/logo-horizontal-light.svg"
               alt="ServeMyFood"
-              width={32}
-              height={32}
-              className="h-8 w-8"
+              width={168}
+              height={36}
+              className="h-8 sm:h-9 w-auto"
             />
-            <span>{SITE_CONFIG.productName}</span>
           </a>
 
-          {page === "home" && (
-            <div className="hidden md:flex items-center gap-5 text-xs font-semibold text-slate-700">
-              <a href="#how-it-works" className="hover:text-[#0B1F3B]">
-                {lang === "ta" ? "செயல்முறை" : "How it works"}
-              </a>
-              <a href="#businesses" className="hover:text-[#0B1F3B]">
-                {lang === "ta" ? "வணிகங்கள்" : "Businesses"}
-              </a>
-              <a href="#features" className="hover:text-[#0B1F3B]">
-                {lang === "ta" ? "வசதிகள்" : "Features"}
-              </a>
-              <a href="#faq" className="hover:text-[#0B1F3B]">
-                {lang === "ta" ? "கேள்விகள்" : "FAQ"}
-              </a>
-            </div>
-          )}
-
-          <nav aria-label="Primary navigation" className="flex flex-wrap items-center gap-2 sm:gap-3">
-            <a
-              href={switchPath}
-              onClick={(e) => handleLinkClick(e, switchPath)}
-              className="inline-flex items-center gap-1.5 rounded-lg border border-[#0B1F3B]/20 bg-white px-3 py-2 text-xs sm:text-sm font-semibold text-[#0B1F3B] hover:bg-[#FFF3E0]"
-            >
-              <Globe className="h-4 w-4 text-[#FF6A00]" />
-              <span>{lang === "en" ? "தமிழ்" : "English"}</span>
+          <nav aria-label="Primary navigation" className="hidden md:flex items-center gap-6 text-[15px] font-medium text-[#0B1F3B]">
+            <a href={page === "home" ? "#how-it-works" : "/#how-it-works"} className="inline-flex items-center min-h-[48px] px-2 hover:text-[#FF6A00] transition-colors">
+              How it works
             </a>
-
-            <a
-              href={SITE_CONFIG.appUrl}
-              className="inline-flex items-center gap-1.5 rounded-lg border border-[#0B1F3B]/20 px-3 py-2 text-xs sm:text-sm font-semibold text-[#0B1F3B] hover:bg-slate-100"
-            >
-              <LogIn className="h-4 w-4" />
-              <span>{lang === "ta" ? "உள்நுழைக" : "Login"}</span>
+            <a href={page === "home" ? "#who-it-is-for" : "/#who-it-is-for"} className="inline-flex items-center min-h-[48px] px-2 hover:text-[#FF6A00] transition-colors">
+              Who it is for
             </a>
-
-            <a
-              href={demoPath}
-              onClick={(e) => handleLinkClick(e, demoPath)}
-              className="inline-flex items-center justify-center rounded-lg bg-[#FF6A00] px-4 py-2 text-xs sm:text-sm font-bold text-[#0B1F3B] hover:bg-[#e55f00]"
-            >
-              {lang === "ta" ? "டெமோ பதிவு" : "Book a demo"}
+            <a href={page === "home" ? "#faq" : "/#faq"} className="inline-flex items-center min-h-[48px] px-2 hover:text-[#FF6A00] transition-colors">
+              FAQ
             </a>
           </nav>
+
+          <a
+            href="#book-demo-band"
+            className="inline-flex items-center justify-center h-[52px] px-4 sm:px-5 rounded-[12px] bg-[#FF6A00] text-[15px] font-semibold text-[#0B1F3B] hover:bg-[#e55f00] transition-colors shrink-0"
+          >
+            Book a demo
+          </a>
         </div>
       </header>
 
       <main className="flex-1">{children}</main>
 
-      <footer className="border-t border-[#0B1F3B]/10 bg-[#0B1F3B] text-white mt-16">
-        <div className="mx-auto max-w-6xl px-4 sm:px-6 py-10 grid grid-cols-1 sm:grid-cols-3 gap-6 text-sm">
-          <div>
-            <div className="font-display font-bold text-base">{SITE_CONFIG.companyName}</div>
-            <p className="mt-2 text-xs text-slate-300">{SITE_CONFIG.address}</p>
-            <p className="mt-1 text-xs text-slate-300">{SITE_CONFIG.contactEmail}</p>
+      {/* 8. Footer */}
+      <footer className="border-t border-[#E6E1D8] bg-white text-[#0B1F3B]">
+        <div className="mx-auto max-w-[1120px] px-5 sm:px-6 py-12 flex flex-col sm:flex-row sm:items-center justify-between gap-6">
+          <div className="space-y-1">
+            <div className="font-display font-semibold text-[18px]">{SITE_CONFIG.companyName}</div>
+            <p className="text-[15px] text-[#0B1F3B]/80">
+              {SITE_CONFIG.contactEmail} • {SITE_CONFIG.address}
+            </p>
           </div>
 
-          <div className="flex flex-col gap-2 text-xs">
-            <span className="font-bold uppercase tracking-wider text-[#FF6A00]">
-              {lang === "ta" ? "வணிக வகைகள்" : "Businesses"}
-            </span>
+          <div className="flex items-center gap-4 text-[15px] font-medium">
             <a
-              href={getPagePath("tea-shops", lang)}
-              onClick={(e) => handleLinkClick(e, getPagePath("tea-shops", lang))}
-              className="text-slate-200 hover:text-white underline-offset-4 hover:underline"
+              href="/privacy/"
+              onClick={(e) => handleLinkClick(e, "/privacy/")}
+              className="inline-flex items-center min-h-[48px] px-2 hover:underline underline-offset-4"
             >
-              {lang === "ta" ? "தேநீர்க் கடை & பேக்கரி" : "Tea shops & bakeries"}
+              Privacy
             </a>
             <a
-              href={getPagePath("restaurants", lang)}
-              onClick={(e) => handleLinkClick(e, getPagePath("restaurants", lang))}
-              className="text-slate-200 hover:text-white underline-offset-4 hover:underline"
+              href="/terms/"
+              onClick={(e) => handleLinkClick(e, "/terms/")}
+              className="inline-flex items-center min-h-[48px] px-2 hover:underline underline-offset-4"
             >
-              {lang === "ta" ? "உணவகம் & கஃபே" : "Restaurants & cafes"}
-            </a>
-            <a
-              href={getPagePath("hotels", lang)}
-              onClick={(e) => handleLinkClick(e, getPagePath("hotels", lang))}
-              className="text-slate-200 hover:text-white underline-offset-4 hover:underline"
-            >
-              {lang === "ta" ? "ஹோட்டல் உணவகங்கள்" : "Hotels"}
-            </a>
-          </div>
-
-          <div className="flex flex-col gap-2 text-xs">
-            <span className="font-bold uppercase tracking-wider text-[#FF6A00]">
-              {lang === "ta" ? "சட்ட விவரங்கள்" : "Legal & Language"}
-            </span>
-            <a
-              href={privacyPath}
-              onClick={(e) => handleLinkClick(e, privacyPath)}
-              className="text-slate-200 hover:text-white underline-offset-4 hover:underline"
-            >
-              {lang === "ta" ? "தனியுரிமைக் கொள்கை" : "Privacy"}
-            </a>
-            <a
-              href={termsPath}
-              onClick={(e) => handleLinkClick(e, termsPath)}
-              className="text-slate-200 hover:text-white underline-offset-4 hover:underline"
-            >
-              {lang === "ta" ? "விதிமுறைகள்" : "Terms"}
-            </a>
-            <a
-              href={switchPath}
-              onClick={(e) => handleLinkClick(e, switchPath)}
-              className="text-slate-200 hover:text-white underline-offset-4 hover:underline"
-            >
-              {lang === "en" ? "தமிழில் பார்க்க" : "View in English"}
+              Terms
             </a>
           </div>
         </div>
