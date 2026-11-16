@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <rect width="1200" height="630" fill="#FFF3E0" />
+  <rect x="60" y="60" width="1080" height="510" rx="28" fill="#0B1F3B" />
+  <circle cx="140" cy="145" r="34" fill="#FF6A00" />
+  <text x="195" y="158" font-family="Poppins, sans-serif" font-size="38" font-weight="700" fill="#FFFFFF">ServeMyFood</text>
+  <text x="106" y="275" font-family="Poppins, sans-serif" font-size="54" font-weight="700" fill="#FFFFFF">Take orders. Run the kitchen.</text>
+  <text x="106" y="345" font-family="Poppins, sans-serif" font-size="54" font-weight="700" fill="#FF6A00">Get paid. See today's sales.</text>
+  <text x="106" y="425" font-family="Inter, sans-serif" font-size="28" fill="#CBD5E1">Tea shops • Bakeries • Cafes • Restaurants • Hotels</text>
+  <rect x="106" y="468" width="290" height="58" rx="12" fill="#FF6A00" />
+  <text x="251" y="506" text-anchor="middle" font-family="Poppins, sans-serif" font-size="24" font-weight="700" fill="#0B1F3B">English &amp; தமிழ்</text>
+</svg>

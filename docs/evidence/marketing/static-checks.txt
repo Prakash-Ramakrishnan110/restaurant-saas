@@ -1,0 +1,3 @@
+﻿Initial home JS gzip size: 62.66 KB (limit: 150 KB)
+PASS: Verified 15 prerendered pages, forbidden claims, tea-shop zero-table rule, and JS budget.
+

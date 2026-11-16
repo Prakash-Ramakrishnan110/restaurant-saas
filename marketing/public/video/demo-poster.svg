@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="720" viewBox="0 0 1280 720">
+  <rect width="1280" height="720" fill="#0B1F3B" />
+  <rect x="70" y="70" width="1140" height="580" rx="24" fill="#132B4F" stroke="#FF6A00" stroke-width="3" />
+  <text x="640" y="320" text-anchor="middle" font-family="Poppins, sans-serif" font-size="48" font-weight="700" fill="#FFFFFF">ServeMyFood — 60-Second Walkthrough</text>
+  <text x="640" y="385" text-anchor="middle" font-family="Inter, sans-serif" font-size="26" fill="#CBD5E1">Order on phone • Kitchen alert • Serve • Cashier bill • Today's sales</text>
+</svg>
