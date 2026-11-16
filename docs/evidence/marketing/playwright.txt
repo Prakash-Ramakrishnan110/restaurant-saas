@@ -1,20 +1,20 @@
 ﻿
 Running 12 tests using 1 worker
 
-  ok 1 [chromium] › tests\marketing.spec.ts:24:5 › ServeMyFood Marketing Static Site Verification › Page home-en renders cleanly with zero console/3rd-party/a11y/overflow issues (4.6s)
-  ok 2 [chromium] › tests\marketing.spec.ts:24:5 › ServeMyFood Marketing Static Site Verification › Page home-ta renders cleanly with zero console/3rd-party/a11y/overflow issues (4.4s)
-  ok 3 [chromium] › tests\marketing.spec.ts:24:5 › ServeMyFood Marketing Static Site Verification › Page tea-shops-en renders cleanly with zero console/3rd-party/a11y/overflow issues (3.0s)
-  ok 4 [chromium] › tests\marketing.spec.ts:24:5 › ServeMyFood Marketing Static Site Verification › Page tea-shops-ta renders cleanly with zero console/3rd-party/a11y/overflow issues (2.8s)
-  ok 5 [chromium] › tests\marketing.spec.ts:24:5 › ServeMyFood Marketing Static Site Verification › Page restaurants-en renders cleanly with zero console/3rd-party/a11y/overflow issues (2.6s)
-  ok 6 [chromium] › tests\marketing.spec.ts:24:5 › ServeMyFood Marketing Static Site Verification › Page restaurants-ta renders cleanly with zero console/3rd-party/a11y/overflow issues (3.2s)
-  ok 7 [chromium] › tests\marketing.spec.ts:24:5 › ServeMyFood Marketing Static Site Verification › Page hotels-en renders cleanly with zero console/3rd-party/a11y/overflow issues (3.3s)
-  ok 8 [chromium] › tests\marketing.spec.ts:24:5 › ServeMyFood Marketing Static Site Verification › Page hotels-ta renders cleanly with zero console/3rd-party/a11y/overflow issues (3.8s)
-  ok 9 [chromium] › tests\marketing.spec.ts:24:5 › ServeMyFood Marketing Static Site Verification › Page book-demo-en renders cleanly with zero console/3rd-party/a11y/overflow issues (3.0s)
-  ok 10 [chromium] › tests\marketing.spec.ts:24:5 › ServeMyFood Marketing Static Site Verification › Page book-demo-ta renders cleanly with zero console/3rd-party/a11y/overflow issues (3.1s)
-  ok 11 [chromium] › tests\marketing.spec.ts:92:3 › ServeMyFood Marketing Static Site Verification › Hero animation pause/play, reduced-motion storyboard, and video attributes (2.5s)
-  ok 12 [chromium] › tests\marketing.spec.ts:115:3 › ServeMyFood Marketing Static Site Verification › Book a demo form validates invalid phone and submits cleanly (2.9s)
+  ok 1 [chromium] › tests\marketing.spec.ts:24:5 › ServeMyFood Marketing Static Site Verification › Page home-en renders cleanly with zero console/3rd-party/a11y/overflow issues (6.5s)
+  ok 2 [chromium] › tests\marketing.spec.ts:24:5 › ServeMyFood Marketing Static Site Verification › Page home-ta renders cleanly with zero console/3rd-party/a11y/overflow issues (5.6s)
+  ok 3 [chromium] › tests\marketing.spec.ts:24:5 › ServeMyFood Marketing Static Site Verification › Page tea-shops-en renders cleanly with zero console/3rd-party/a11y/overflow issues (5.2s)
+  ok 4 [chromium] › tests\marketing.spec.ts:24:5 › ServeMyFood Marketing Static Site Verification › Page tea-shops-ta renders cleanly with zero console/3rd-party/a11y/overflow issues (4.7s)
+  ok 5 [chromium] › tests\marketing.spec.ts:24:5 › ServeMyFood Marketing Static Site Verification › Page restaurants-en renders cleanly with zero console/3rd-party/a11y/overflow issues (3.7s)
+  ok 6 [chromium] › tests\marketing.spec.ts:24:5 › ServeMyFood Marketing Static Site Verification › Page restaurants-ta renders cleanly with zero console/3rd-party/a11y/overflow issues (3.8s)
+  ok 7 [chromium] › tests\marketing.spec.ts:24:5 › ServeMyFood Marketing Static Site Verification › Page hotels-en renders cleanly with zero console/3rd-party/a11y/overflow issues (3.6s)
+  ok 8 [chromium] › tests\marketing.spec.ts:24:5 › ServeMyFood Marketing Static Site Verification › Page hotels-ta renders cleanly with zero console/3rd-party/a11y/overflow issues (3.2s)
+  ok 9 [chromium] › tests\marketing.spec.ts:24:5 › ServeMyFood Marketing Static Site Verification › Page book-demo-en renders cleanly with zero console/3rd-party/a11y/overflow issues (3.7s)
+  ok 10 [chromium] › tests\marketing.spec.ts:24:5 › ServeMyFood Marketing Static Site Verification › Page book-demo-ta renders cleanly with zero console/3rd-party/a11y/overflow issues (5.0s)
+  ok 11 [chromium] › tests\marketing.spec.ts:92:3 › ServeMyFood Marketing Static Site Verification › Hero animation pause/play, reduced-motion storyboard, and video attributes (4.2s)
+  ok 12 [chromium] › tests\marketing.spec.ts:115:3 › ServeMyFood Marketing Static Site Verification › Book a demo form validates invalid phone and submits cleanly (9.4s)
 
-  Slow test file: [chromium] › tests\marketing.spec.ts (39.2s)
+  Slow test file: [chromium] › tests\marketing.spec.ts (58.6s)
   Consider running tests from slow files in parallel, see https://playwright.dev/docs/test-parallel.
-  12 passed (1.4m)
+  12 passed (2.0m)
 

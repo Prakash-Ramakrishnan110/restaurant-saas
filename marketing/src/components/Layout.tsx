@@ -44,7 +44,7 @@ export const Layout: React.FC<LayoutProps> = ({ lang, page, onNavigate, children
         </div>
       )}
 
-      <header className="border-b border-[#0B1F3B]/10 bg-white">
+      <header className="sticky top-0 z-20 border-b border-[#0B1F3B]/10 bg-white/95 backdrop-blur">
         <div className="mx-auto max-w-6xl px-4 sm:px-6 py-3.5 flex flex-wrap items-center justify-between gap-3">
           <a
             href={homePath}
@@ -60,6 +60,23 @@ export const Layout: React.FC<LayoutProps> = ({ lang, page, onNavigate, children
             />
             <span>{SITE_CONFIG.productName}</span>
           </a>
+
+          {page === "home" && (
+            <div className="hidden md:flex items-center gap-5 text-xs font-semibold text-slate-700">
+              <a href="#how-it-works" className="hover:text-[#0B1F3B]">
+                {lang === "ta" ? "செயல்முறை" : "How it works"}
+              </a>
+              <a href="#businesses" className="hover:text-[#0B1F3B]">
+                {lang === "ta" ? "வணிகங்கள்" : "Businesses"}
+              </a>
+              <a href="#features" className="hover:text-[#0B1F3B]">
+                {lang === "ta" ? "வசதிகள்" : "Features"}
+              </a>
+              <a href="#faq" className="hover:text-[#0B1F3B]">
+                {lang === "ta" ? "கேள்விகள்" : "FAQ"}
+              </a>
+            </div>
+          )}
 
           <nav aria-label="Primary navigation" className="flex flex-wrap items-center gap-2 sm:gap-3">
             <a
