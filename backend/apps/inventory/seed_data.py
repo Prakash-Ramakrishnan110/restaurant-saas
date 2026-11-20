@@ -105,11 +105,10 @@ def seed_inventory_for_all_venues() -> None:
         tenant = Tenant.objects.filter(name=tenant_name).first()
         if tenant is None:
             continue
+        set_current_tenant(tenant)
         branch = Branch.objects.filter(tenant=tenant, is_active=True).order_by("created_at").first()
         if branch is None:
             continue
-
-        set_current_tenant(tenant)
         InventorySettings.objects.update_or_create(
             branch=branch,
             defaults={"tenant": tenant, "mode": mode},

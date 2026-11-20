@@ -690,7 +690,14 @@ def test_stage_a_endpoints_reports_paste_and_transfers(inv_env: dict[str, Any]) 
     assert item_res.status_code == 201
     item_id = item_res.data["id"]
 
-    # Quick update + spreadsheet paste preview & apply
+    # Quick update + conversions + spreadsheet paste preview & apply
+    conv_res = owner.post(
+        f"/api/v1/inventory/items/{item_id}/conversions/",
+        {"unit_name": "kg", "factor_to_base": "1000.000"},
+        format="json",
+    )
+    assert conv_res.status_code == 201
+
     qu_res = owner.post(
         f"/api/v1/inventory/items/{item_id}/quick-update/",
         {"branch_id": str(branch.id), "delta_quantity": "250", "reason_code": "COUNT_ADJUST"},
@@ -790,14 +797,56 @@ def test_stage_a_endpoints_reports_paste_and_transfers(inv_env: dict[str, Any]) 
     )
     assert owner.get(f"/api/v1/inventory/alerts/?branch_id={branch.id}").status_code == 200
 
-    # 3. All 5 reports (JSON + CSV, plus Kitchen without costs)
+    # 3. Recipe create & partial_update + All 5 reports (JSON + CSV, date filters, Kitchen without costs)
+    prep_res = owner.post(
+        "/api/v1/inventory/items/",
+        {
+            "branch_id": str(branch.id),
+            "name": "Pea Puree",
+            "item_type": InventoryItemType.PREPARED,
+            "base_unit": BaseUnit.GRAM,
+            "category": InventoryCategory.PREPARED,
+        },
+        format="json",
+    )
+    assert prep_res.status_code == 201
+    prep_id = prep_res.data["id"]
+
+    rec_res = owner.post(
+        "/api/v1/inventory/recipes/",
+        {
+            "output_item": prep_id,
+            "yield_portions": "500",
+            "preparation_instructions": "Blend peas",
+            "lines": [{"item": item_id, "quantity_per_portion": "500", "waste_percent": "2"}],
+        },
+        format="json",
+    )
+    assert rec_res.status_code == 201
+    rec_id = rec_res.data["id"]
+
+    rec_upd = owner.patch(
+        f"/api/v1/inventory/recipes/{rec_id}/",
+        {
+            "yield_portions": "600",
+            "preparation_instructions": "Blend peas finely",
+            "lines": [{"item": item_id, "quantity_per_portion": "550", "waste_percent": "3"}],
+        },
+        format="json",
+    )
+    assert rec_upd.status_code == 200
+
     for rpt in ("stock-on-hand", "movements", "low-stock", "wastage", "usage"):
-        j_res = owner.get(f"/api/v1/inventory/reports/{rpt}/?branch_id={branch.id}")
+        j_res = owner.get(
+            f"/api/v1/inventory/reports/{rpt}/?branch_id={branch.id}&date_from=2020-01-01&date_to=2030-12-31&item_id={item_id}"
+        )
         assert j_res.status_code == 200
         c_res = owner.get(f"/api/v1/inventory/reports/{rpt}/?branch_id={branch.id}&export=csv")
         assert c_res.status_code == 200
         k_res = kitchen.get(f"/api/v1/inventory/reports/{rpt}/?branch_id={branch.id}")
         assert k_res.status_code == 200
+        kc_res = kitchen.get(f"/api/v1/inventory/reports/{rpt}/?branch_id={branch.id}&export=csv")
+        assert kc_res.status_code == 200
 
     assert owner.get(f"/api/v1/inventory/reports/unknown/?branch_id={branch.id}").status_code == 404
 

@@ -18,11 +18,8 @@ async function loginAs(page: import("@playwright/test").Page, email: string) {
 
 async function navTo(page: import("@playwright/test").Page, href: string) {
   const link = page.locator(`a[href="${href}"]`).first();
-  if (await link.isVisible().catch(() => false)) {
-    await link.click();
-  } else {
-    await page.goto(href);
-  }
+  await link.waitFor({ state: "attached", timeout: 15000 });
+  await link.evaluate((el: HTMLElement) => el.click());
 }
 
 test.describe("Stage A: Inventory Core Live E2E", () => {
@@ -89,7 +86,7 @@ test.describe("Stage A: Inventory Core Live E2E", () => {
   test("4. Mobile stock overview captures phone screenshot cleanly", async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 });
     await loginAs(page, "owner@spicegarden.com");
-    await page.goto("/inventory");
+    await navTo(page, "/inventory");
     await expect(page.getByText("Fresh Malai Paneer")).toBeVisible({ timeout: 15000 });
     await page.screenshot({ path: path.join(STAGE_A_DIR, "stock-mobile.png") });
   });

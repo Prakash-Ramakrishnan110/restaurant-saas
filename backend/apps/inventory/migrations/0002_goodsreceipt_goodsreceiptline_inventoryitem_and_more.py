@@ -298,9 +298,6 @@ class Migration(migrations.Migration):
             options={
                 'ordering': ['-sequence_number', '-created_at'],
             },
-            managers=[
-                ('objects', django.db.models.manager.Manager()),
-            ],
         ),
         migrations.CreateModel(
             name='StockTransfer',

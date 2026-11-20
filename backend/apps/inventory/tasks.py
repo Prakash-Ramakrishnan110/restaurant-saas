@@ -21,6 +21,17 @@ def _with_tenant_context(tenant_id: str | None) -> Token[Any] | None:
     return None
 
 
+def _reset_context(token: Token[Any] | None) -> None:
+    if token is not None:
+        reset_current_tenant(token)
+    try:
+        from celery._state import _set_task_join_will_block
+
+        _set_task_join_will_block(False)
+    except Exception:
+        pass
+
+
 @shared_task(bind=True, max_retries=3, default_retry_delay=10)
 def deduct_order_line_stock_task(self, order_line_id: str, tenant_id: str | None = None) -> str:
     """Post-commit Celery task to idempotently deduct stock for an accepted/paid order line."""
@@ -31,8 +42,7 @@ def deduct_order_line_stock_task(self, order_line_id: str, tenant_id: str | None
             return "SKIPPED"
         return result.status
     finally:
-        if token is not None:
-            reset_current_tenant(token)
+        _reset_context(token)
 
 
 @shared_task(bind=True, max_retries=3, default_retry_delay=10)
@@ -42,8 +52,7 @@ def deduct_takeaway_packaging_task(self, order_id: str, tenant_id: str | None = 
     try:
         return deduct_takeaway_packaging(order_id)
     finally:
-        if token is not None:
-            reset_current_tenant(token)
+        _reset_context(token)
 
 
 @shared_task(bind=True, max_retries=3, default_retry_delay=10)
@@ -56,5 +65,4 @@ def cancel_order_line_deduction_task(
         cancel_order_line_deduction(order_line_id, was_preparing=was_preparing)
         return "OK"
     finally:
-        if token is not None:
-            reset_current_tenant(token)
+        _reset_context(token)

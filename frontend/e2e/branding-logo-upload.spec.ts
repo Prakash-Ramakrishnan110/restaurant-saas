@@ -16,8 +16,10 @@ test.describe("Branding Logo Upload & Preview Suite", () => {
     await page.waitForURL((url) => !url.pathname.includes("/login"), { timeout: 15000 });
     await page.waitForLoadState("networkidle");
 
-    // 2. Navigate to Branding Settings
-    await page.goto("/settings/branding", { waitUntil: "load" });
+    // 2. Navigate to Branding Settings via sidebar link (SPA navigation, avoids full reload)
+    const brandingLink = page.locator('a[href="/settings/branding"]').first();
+    await brandingLink.waitFor({ state: "attached", timeout: 15000 });
+    await brandingLink.evaluate((el: HTMLElement) => el.click());
 
     await expect(page.getByRole("heading", { name: /Branding & Business Identity/i })).toBeVisible({
       timeout: 10000,
