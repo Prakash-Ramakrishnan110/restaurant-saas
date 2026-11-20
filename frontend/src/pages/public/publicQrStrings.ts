@@ -22,6 +22,9 @@ export const PUBLIC_QR_COPY: Record<
     specialNote: string;
     notePlaceholder: string;
     estimate: string;
+    navMenu: string;
+    navSearch: string;
+    navCart: string;
     addToCart: string;
     viewCart: string;
     itemsInCart: (count: number) => string;
@@ -95,6 +98,9 @@ export const PUBLIC_QR_COPY: Record<
     specialNote: "Cooking note (optional)",
     notePlaceholder: "e.g. Less spicy, no onion",
     estimate: "Estimate",
+    navMenu: "Menu",
+    navSearch: "Search",
+    navCart: "My cart",
     addToCart: "Add to order",
     viewCart: "View order",
     itemsInCart: (count) => `${count} ${count === 1 ? "item" : "items"}`,
@@ -166,6 +172,9 @@ export const PUBLIC_QR_COPY: Record<
     specialNote: "சமையல் குறிப்பு (விருப்பம்)",
     notePlaceholder: "எ.கா. காரம் குறைவாக, வெங்காயம் வேண்டாம்",
     estimate: "மதிப்பீடு",
+    navMenu: "மெனு",
+    navSearch: "தேடல்",
+    navCart: "என் கூடை",
     addToCart: "ஆர்டரில் சேர்க்க",
     viewCart: "ஆர்டரைப் பார்",
     itemsInCart: (count) => `${count} உணவுகள்`,

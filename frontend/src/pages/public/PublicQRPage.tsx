@@ -2,6 +2,7 @@ import React, { useEffect, useState, useMemo, useCallback, useRef } from "react"
 import { useParams, useNavigate } from "react-router-dom";
 import {
   Search,
+  UtensilsCrossed,
   ShoppingBag,
   Plus,
   Minus,
@@ -661,6 +662,7 @@ export const PublicQRPage: React.FC = () => {
           <div className="relative">
             <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <input
+              id="guest-search-input"
               type="search"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
@@ -811,13 +813,62 @@ export const PublicQRPage: React.FC = () => {
         )}
       </main>
 
-      <footer className="py-4 text-center text-xs text-muted-foreground border-t border-border">
+      <footer className="py-4 pb-24 text-center text-xs text-muted-foreground border-t border-border">
         {copy.poweredBy}
       </footer>
 
+      {/* Guest Bottom Navigation */}
+      <nav
+        aria-label="Guest navigation"
+        className="fixed bottom-0 inset-x-0 z-30 bg-background/95 backdrop-blur border-t border-border"
+      >
+        <div className="max-w-lg mx-auto grid grid-flow-col auto-cols-fr">
+          <button
+            type="button"
+            onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+            className="min-h-[56px] flex flex-col items-center justify-center gap-0.5 text-[11px] font-semibold text-foreground"
+          >
+            <UtensilsCrossed className="h-5 w-5" />
+            <span>{copy.navMenu}</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              window.scrollTo({ top: 0, behavior: "smooth" });
+              document.getElementById("guest-search-input")?.focus();
+            }}
+            className="min-h-[56px] flex flex-col items-center justify-center gap-0.5 text-[11px] font-semibold text-foreground"
+          >
+            <Search className="h-5 w-5" />
+            <span>{copy.navSearch}</span>
+          </button>
+          {!isBrowseOnly && (
+            <button
+              type="button"
+              onClick={() => {
+                setOrderError(null);
+                setCartOpen(true);
+              }}
+              className="min-h-[56px] relative flex flex-col items-center justify-center gap-0.5 text-[11px] font-semibold text-foreground"
+            >
+              <ShoppingBag className="h-5 w-5" />
+              <span>{copy.navCart}</span>
+              {totalCartCount > 0 && (
+                <span
+                  className="absolute top-1.5 left-1/2 ml-2 min-w-[18px] h-[18px] px-1 rounded-full text-[10px] font-bold flex items-center justify-center"
+                  style={{ backgroundColor: brandTheme.bg, color: brandTheme.text }}
+                >
+                  {totalCartCount}
+                </span>
+              )}
+            </button>
+          )}
+        </div>
+      </nav>
+
       {/* Sticky Cart Bar */}
       {!isBrowseOnly && totalCartCount > 0 && (
-        <div className="fixed bottom-0 inset-x-0 z-30 p-3 bg-background/95 backdrop-blur border-t border-border">
+        <div className="fixed bottom-14 inset-x-0 z-30 p-3 bg-background/95 backdrop-blur border-t border-border">
           <div className="max-w-lg mx-auto">
             <button
               type="button"
