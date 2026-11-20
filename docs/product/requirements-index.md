@@ -28,6 +28,7 @@ ServeMyFood is a resilient, multi-tenant restaurant management and digital floor
 | **REQ-BILL-01** | Cashier & Billing | Pilot 1: Cash/UPI reconciliation, and printable thermal demo receipts without tax lines. | ADR 0017, Pilot 1 Milestone | **PROVEN (v0.8.0)** |
 | **REQ-RPT-01** | Sales & Close-Out | Pilot 1: Owner daily sales dashboard, shift close-out (Z-report), and cashier cash drawer reconciliation. | ADR 0017, Pilot 1 Milestone | **PROVEN (v0.8.0)** |
 | **REQ-QR-01** | Guest Phone QR Ordering | Mobile-first guest ordering from scanned QR codes (`ORDER_DIRECT`, `ORDER_WITH_APPROVAL`, `BROWSE_ONLY`, `DISABLED`, `PAY_FIRST`, `PAY_LATER`), server-side pricing, staff approval queue, and live token/status tracking. | ADR 0023, `public_views.py`, `PublicQRPage.tsx`, `PublicOrderTrackerPage.tsx` | **PROVEN (v1.1.0-qr-ordering)** |
+| **REQ-INV-01** | Inventory Core (Stage A) | Append-only `StockMovement` ledger, recomputable `StockLevel`, weighted average cost (Decimal/paise, zero float, zero tax fields), post-commit Celery order/packaging deduction with Stock Health retry, SIMPLE/STANDARD/ADVANCED branch modes, 7-permission RBAC cost gating, receiving/wastage/counts/recipes/suppliers/reports, and Today's Availability low-stock alerts. | ADR 0024, `apps.inventory`, `frontend/src/pages/inventory/*`, `e2e/inventory-stage-a.spec.ts` | **PROVEN (v1.2.0-inventory-a)** |
 
 ---
 

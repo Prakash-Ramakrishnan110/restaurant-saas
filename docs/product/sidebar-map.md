@@ -54,8 +54,17 @@ Never show an item that has no working page. Hidden items are listed here with t
 | Taxes | /reports/taxes | ADVICE |
 | Feedback | /reports/feedback | LATER |
 
-### Inventory (I O M)
-Stock, Recipes, Purchases, Suppliers, Wastage & Expiry, Low-stock Alerts. All P3.
+### Inventory (I O M K; W sees nothing)
+| Item | Route | Roles | Rule | Phase |
+|---|---|---|---|---|
+| Stock | /inventory | O M I K | K sees quantities only (no costs) | NOW |
+| Receive stock | /inventory/receive | O M I K | | NOW |
+| Wastage | /inventory/wastage | O M I K C | | NOW |
+| Counts | /inventory/counts | O M I K | | NOW |
+| Recipes | /inventory/recipes | O M I | Standard & Advanced (hidden for Tea Shop / Food Court) | NOW |
+| Suppliers and Orders | /inventory/purchases | O M I | Standard & Advanced (hidden for Tea Shop / Food Court) | NOW |
+| Inventory reports | /inventory/reports | O M I | | NOW |
+| Inventory settings | /inventory/settings | O M I | Standard & Advanced | NOW |
 
 ### Customers (O M)
 | Item | Phase |

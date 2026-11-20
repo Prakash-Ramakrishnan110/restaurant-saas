@@ -23,6 +23,13 @@ import {
   LifeBuoy,
   Megaphone,
   PhoneCall,
+  Boxes,
+  Truck,
+  Trash2,
+  ClipboardCheck,
+  BarChart3,
+  Settings2,
+  Building2,
 } from "lucide-react";
 
 export interface NavItem {
@@ -82,6 +89,23 @@ export function getNavigationGroups(ctx: NavigationContext): NavGroup[] {
 
   // 2. Kitchen role
   if (role === "KITCHEN") {
+    const kitchenInventory: NavItem[] = [
+      { label: "Stock", path: "/inventory", icon: Boxes, permission: "inventory.view" },
+      {
+        label: "Receive stock",
+        path: "/inventory/receive",
+        icon: Truck,
+        permission: "inventory.receive",
+      },
+      { label: "Wastage", path: "/inventory/wastage", icon: Trash2, permission: "inventory.waste" },
+      {
+        label: "Counts",
+        path: "/inventory/counts",
+        icon: ClipboardCheck,
+        permission: "inventory.count",
+      },
+    ].filter((item) => (!item.permission ? true : can(item.permission)));
+
     return [
       {
         label: "Kitchen Station",
@@ -91,6 +115,14 @@ export function getNavigationGroups(ctx: NavigationContext): NavGroup[] {
           { label: "Menu", path: "/menu", icon: UtensilsCrossed },
         ],
       },
+      ...(kitchenInventory.length > 0
+        ? [
+            {
+              label: "Inventory",
+              items: kitchenInventory,
+            },
+          ]
+        : []),
     ];
   }
 
@@ -213,10 +245,79 @@ export function getNavigationGroups(ctx: NavigationContext): NavGroup[] {
       : []),
   ];
 
+  const isSimpleVenue =
+    businessType === "TEA_SHOP" || businessType === "FOOD_COURT" || venueProfile === "FOOD_COURT";
+  const isKitchen = role === "KITCHEN";
+  const isWaiter = role === "WAITER";
+
+  const inventoryItems: NavItem[] = isWaiter
+    ? []
+    : [
+        { label: "Stock", path: "/inventory", icon: Boxes, permission: "inventory.view" },
+        {
+          label: "Receive stock",
+          path: "/inventory/receive",
+          icon: Truck,
+          permission: "inventory.receive",
+        },
+        {
+          label: "Wastage",
+          path: "/inventory/wastage",
+          icon: Trash2,
+          permission: "inventory.waste",
+        },
+        {
+          label: "Counts",
+          path: "/inventory/counts",
+          icon: ClipboardCheck,
+          permission: "inventory.count",
+        },
+        ...(!isSimpleVenue && !isKitchen
+          ? [
+              {
+                label: "Recipes",
+                path: "/inventory/recipes",
+                icon: ChefHat,
+                permission: "inventory.manage",
+              },
+              {
+                label: "Suppliers and Orders",
+                path: "/inventory/purchases",
+                icon: Building2,
+                permission: "inventory.manage",
+              },
+            ]
+          : []),
+        ...(!isKitchen
+          ? [
+              {
+                label: "Inventory reports",
+                path: "/inventory/reports",
+                icon: BarChart3,
+                permission: "inventory.view",
+              },
+            ]
+          : []),
+        ...(!isSimpleVenue && !isKitchen
+          ? [
+              {
+                label: "Inventory settings",
+                path: "/inventory/settings",
+                icon: Settings2,
+                permission: "inventory.manage",
+              },
+            ]
+          : []),
+      ];
+
   const groups: NavGroup[] = [
     {
       label: "Daily work",
       items: dailyItems,
+    },
+    {
+      label: "Inventory",
+      items: inventoryItems,
     },
     {
       label: "Restaurant setup",

@@ -1,42 +1,123 @@
 from django.db import models
 
 
-class UnitOfMeasure(models.TextChoices):
-    KG = "KG", "Kilogram (kg)"
-    GRAM = "GRAM", "Gram (g)"
-    LITER = "LITER", "Liter (L)"
-    ML = "ML", "Milliliter (mL)"
-    PIECE = "PIECE", "Piece (pc)"
-    PACKET = "PACKET", "Packet (pkt)"
+class InventoryItemType(models.TextChoices):
+    INGREDIENT = "INGREDIENT", "Ingredient"
+    PREPARED = "PREPARED", "Prepared"
+    FINISHED = "FINISHED", "Finished"
+    PACKAGING = "PACKAGING", "Packaging"
+    SUPPLY = "SUPPLY", "Supply"
 
 
-class IngredientCategory(models.TextChoices):
-    DRY_GOODS = "DRY_GOODS", "Dry Goods & Grains"
-    DAIRY = "DAIRY", "Dairy & Eggs"
-    MEAT = "MEAT", "Meat & Seafood"
-    VEGETABLE = "VEGETABLE", "Vegetables & Produce"
-    BEVERAGE = "BEVERAGE", "Beverages & Liquids"
-    SPICE_CONDIMENT = "SPICE_CONDIMENT", "Spices & Condiments"
-    PACKAGING = "PACKAGING", "Packaging & Disposables"
+class BaseUnit(models.TextChoices):
+    GRAM = "g", "Grams (g)"
+    MILLILITER = "ml", "Milliliters (ml)"
+    PIECE = "piece", "Piece"
+
+
+class InventoryCategory(models.TextChoices):
+    PRODUCE = "PRODUCE", "Produce & Vegetables"
+    DAIRY = "DAIRY", "Dairy & Milk"
+    MEAT_POULTRY = "MEAT_POULTRY", "Meat & Poultry"
+    SPICES_MASALA = "SPICES_MASALA", "Spices & Masala"
+    GRAINS_FLOUR = "GRAINS_FLOUR", "Grains, Rice & Flour"
+    OIL_GHEE = "OIL_GHEE", "Oil & Ghee"
+    BEVERAGES = "BEVERAGES", "Tea, Coffee & Beverages"
+    BAKERY = "BAKERY", "Bakery & Sweets"
+    PREPARED = "PREPARED", "Prepared Bases"
+    PACKAGING = "PACKAGING", "Packaging & Cups"
+    CLEANING = "CLEANING", "Cleaning & Supplies"
+    OTHER = "OTHER", "Other"
+
+
+class StockLocationType(models.TextChoices):
+    STORE = "STORE", "Store"
+    KITCHEN = "KITCHEN", "Kitchen"
+    BAR = "BAR", "Bar"
+    COUNTER = "COUNTER", "Counter"
+
+
+class StockMovementType(models.TextChoices):
+    OPENING = "OPENING", "Opening Balance"
+    PURCHASE = "PURCHASE", "Purchase Receipt"
+    SALE_USAGE = "SALE_USAGE", "Sale Usage"
+    PRODUCTION_IN = "PRODUCTION_IN", "Production In"
+    PRODUCTION_USAGE = "PRODUCTION_USAGE", "Production Usage"
+    WASTE = "WASTE", "Waste"
+    ADJUSTMENT = "ADJUSTMENT", "Manual Adjustment"
+    COUNT_VARIANCE = "COUNT_VARIANCE", "Count Variance"
+    TRANSFER_OUT = "TRANSFER_OUT", "Transfer Out"
+    TRANSFER_IN = "TRANSFER_IN", "Transfer In"
+    SUPPLIER_RETURN = "SUPPLIER_RETURN", "Supplier Return"
+    PACKAGING_USAGE = "PACKAGING_USAGE", "Packaging Usage"
+
+
+class WasteReason(models.TextChoices):
+    SPOILED = "SPOILED", "Spoiled"
+    EXPIRED = "EXPIRED", "Expired"
+    DROPPED = "DROPPED", "Dropped"
+    COOKING_ERROR = "COOKING_ERROR", "Cooking Error"
+    STAFF_MEAL = "STAFF_MEAL", "Staff Meal"
+    COMPLIMENTARY = "COMPLIMENTARY", "Complimentary"
+    RETURNED_BY_GUEST = "RETURNED_BY_GUEST", "Returned by Guest"
+    UNSOLD = "UNSOLD", "Unsold"
+    CANCELLED_AFTER_COOKING = "CANCELLED_AFTER_COOKING", "Cancelled After Cooking"
     OTHER = "OTHER", "Other"
 
 
 class PurchaseOrderStatus(models.TextChoices):
     DRAFT = "DRAFT", "Draft"
-    RECEIVED = "RECEIVED", "Received & Stocked"
+    SENT = "SENT", "Sent"
+    PARTIAL = "PARTIAL", "Partially Received"
+    RECEIVED = "RECEIVED", "Received"
     CANCELLED = "CANCELLED", "Cancelled"
 
 
-class WastageReason(models.TextChoices):
-    EXPIRED = "EXPIRED", "Expired / Date Passed"
-    SPOILED = "SPOILED", "Spoiled / Quality Degraded"
-    BURNT_PREP = "BURNT_PREP", "Burnt / Prep Error"
-    SPILLAGE = "SPILLAGE", "Spillage / Handling Drop"
-    OTHER = "OTHER", "Other"
+class StockCountType(models.TextChoices):
+    FULL = "FULL", "Full Count"
+    CATEGORY = "CATEGORY", "By Category"
 
 
-class StockTransactionType(models.TextChoices):
-    INWARD_PURCHASE = "INWARD_PURCHASE", "Inward Purchase"
-    OUTWARD_SALE = "OUTWARD_SALE", "Outward Recipe Depletion"
-    WASTAGE = "WASTAGE", "Wastage / Spoilage Write-Off"
-    MANUAL_ADJUSTMENT = "MANUAL_ADJUSTMENT", "Manual Stock Reconciliation"
+class StockCountStatus(models.TextChoices):
+    DRAFT = "DRAFT", "Draft"
+    SUBMITTED = "SUBMITTED", "Submitted"
+    APPROVED = "APPROVED", "Approved"
+
+
+class StockTransferStatus(models.TextChoices):
+    DRAFT = "DRAFT", "Draft"
+    APPROVED = "APPROVED", "Approved"
+    COMPLETED = "COMPLETED", "Completed"
+    CANCELLED = "CANCELLED", "Cancelled"
+
+
+class DeductionStatus(models.TextChoices):
+    PENDING = "PENDING", "Pending"
+    COMPLETED = "COMPLETED", "Completed"
+    FAILED = "FAILED", "Failed"
+    CANCELLED_WASTED = "CANCELLED_WASTED", "Cancelled After Cooking"
+
+
+class InventoryMode(models.TextChoices):
+    SIMPLE = "SIMPLE", "Simple"
+    STANDARD = "STANDARD", "Standard"
+    ADVANCED = "ADVANCED", "Advanced"
+
+
+class PackagingMode(models.TextChoices):
+    NONE = "NONE", "Not Auto-Deducted"
+    PER_ORDER = "PER_ORDER", "Per Takeaway Order"
+    PER_ITEM = "PER_ITEM", "Per Takeaway Item"
+
+
+BUSINESS_TYPE_DEFAULT_MODE: dict[str, str] = {
+    "TEA_SHOP": InventoryMode.SIMPLE,
+    "FOOD_COURT": InventoryMode.SIMPLE,
+    "BAKERY": InventoryMode.STANDARD,
+    "CAFE": InventoryMode.STANDARD,
+    "RESTAURANT": InventoryMode.STANDARD,
+    "FINE_DINING": InventoryMode.STANDARD,
+    "DHABA": InventoryMode.STANDARD,
+    "CLOUD_KITCHEN": InventoryMode.STANDARD,
+    "HOTEL": InventoryMode.ADVANCED,
+}

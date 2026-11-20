@@ -25,6 +25,7 @@ export const MenuAvailabilityPage: React.FC = () => {
   const [branches, setBranches] = useState<any[]>([]);
   const [selectedBranchId, setSelectedBranchId] = useState<string>("");
   const [items, setItems] = useState<ItemAvailabilityRecord[]>([]);
+  const [lowStockCount, setLowStockCount] = useState<number>(0);
   const [categories, setCategories] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
@@ -82,6 +83,10 @@ export const MenuAvailabilityPage: React.FC = () => {
         is_available: it.is_available !== false,
       }));
       setItems(mapped);
+      apiClient
+        .get<{ summary?: { low_stock_count?: number } }>(`/inventory/alerts/?branch_id=${branchId}`)
+        .then((aRes) => setLowStockCount(aRes.data?.summary?.low_stock_count || 0))
+        .catch(() => setLowStockCount(0));
     } catch (err: any) {
       setErrorMsg(err?.response?.data?.message || "Failed to load branch items.");
     }
@@ -204,6 +209,18 @@ export const MenuAvailabilityPage: React.FC = () => {
           </div>
         )}
       </div>
+
+      {/* Low Stock Inventory Badge */}
+      {lowStockCount > 0 && (
+        <div className="p-3 rounded-lg border border-amber-300 bg-amber-50/80 dark:bg-amber-950/30 text-amber-900 dark:text-amber-200 text-xs flex items-center justify-between gap-2">
+          <span className="font-bold">
+            Low stock alert: {lowStockCount} stock item(s) are low or negative in this outlet.
+          </span>
+          <a href="/inventory" className="font-bold underline">
+            Open Stock
+          </a>
+        </div>
+      )}
 
       {/* Error Message */}
       {errorMsg && (

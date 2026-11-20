@@ -803,9 +803,19 @@ paths:
                 type: object
                 additionalProperties: {}
           description: ''
-  /api/v1/inventory/ingredients/:
+  /api/v1/inventory/alerts/:
     get:
-      operationId: inventory_ingredients_list
+      operationId: inventory_alerts_retrieve
+      tags:
+      - inventory
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/v1/inventory/counts/:
+    get:
+      operationId: inventory_counts_list
       parameters:
       - name: page
         required: false
@@ -828,23 +838,23 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PaginatedIngredientList'
+                $ref: '#/components/schemas/PaginatedStockCountList'
           description: ''
     post:
-      operationId: inventory_ingredients_create
+      operationId: inventory_counts_create
       tags:
       - inventory
       requestBody:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/IngredientRequest'
+              $ref: '#/components/schemas/StockCountRequest'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/IngredientRequest'
+              $ref: '#/components/schemas/StockCountRequest'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/IngredientRequest'
+              $ref: '#/components/schemas/StockCountRequest'
         required: true
       security:
       - jwtAuth: []
@@ -853,18 +863,18 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Ingredient'
+                $ref: '#/components/schemas/StockCount'
           description: ''
-  /api/v1/inventory/ingredients/{id}/:
+  /api/v1/inventory/counts/{id}/:
     get:
-      operationId: inventory_ingredients_retrieve
+      operationId: inventory_counts_retrieve
       parameters:
       - in: path
         name: id
         schema:
           type: string
           format: uuid
-        description: A UUID string identifying this ingredient.
+        description: A UUID string identifying this stock count.
         required: true
       tags:
       - inventory
@@ -875,17 +885,178 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Ingredient'
+                $ref: '#/components/schemas/StockCount'
+          description: ''
+  /api/v1/inventory/counts/{id}/approve/:
+    post:
+      operationId: inventory_counts_approve_create
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this stock count.
+        required: true
+      tags:
+      - inventory
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StockCountRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/StockCountRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/StockCountRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StockCount'
+          description: ''
+  /api/v1/inventory/counts/{id}/submit/:
+    post:
+      operationId: inventory_counts_submit_create
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this stock count.
+        required: true
+      tags:
+      - inventory
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StockCountRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/StockCountRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/StockCountRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StockCount'
+          description: ''
+  /api/v1/inventory/health/:
+    get:
+      operationId: inventory_health_retrieve
+      tags:
+      - inventory
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          description: No response body
+    post:
+      operationId: inventory_health_create
+      tags:
+      - inventory
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/v1/inventory/items/:
+    get:
+      operationId: inventory_items_list
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      tags:
+      - inventory
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedInventoryItemList'
+          description: ''
+    post:
+      operationId: inventory_items_create
+      tags:
+      - inventory
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InventoryItemRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/InventoryItemRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/InventoryItemRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InventoryItem'
+          description: ''
+  /api/v1/inventory/items/{id}/:
+    get:
+      operationId: inventory_items_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this inventory item.
+        required: true
+      tags:
+      - inventory
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InventoryItem'
           description: ''
     put:
-      operationId: inventory_ingredients_update
+      operationId: inventory_items_update
       parameters:
       - in: path
         name: id
         schema:
           type: string
           format: uuid
-        description: A UUID string identifying this ingredient.
+        description: A UUID string identifying this inventory item.
         required: true
       tags:
       - inventory
@@ -893,13 +1064,13 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/IngredientRequest'
+              $ref: '#/components/schemas/InventoryItemRequest'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/IngredientRequest'
+              $ref: '#/components/schemas/InventoryItemRequest'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/IngredientRequest'
+              $ref: '#/components/schemas/InventoryItemRequest'
         required: true
       security:
       - jwtAuth: []
@@ -908,17 +1079,17 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Ingredient'
+                $ref: '#/components/schemas/InventoryItem'
           description: ''
     patch:
-      operationId: inventory_ingredients_partial_update
+      operationId: inventory_items_partial_update
       parameters:
       - in: path
         name: id
         schema:
           type: string
           format: uuid
-        description: A UUID string identifying this ingredient.
+        description: A UUID string identifying this inventory item.
         required: true
       tags:
       - inventory
@@ -926,13 +1097,13 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/PatchedIngredientRequest'
+              $ref: '#/components/schemas/PatchedInventoryItemRequest'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/PatchedIngredientRequest'
+              $ref: '#/components/schemas/PatchedInventoryItemRequest'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/PatchedIngredientRequest'
+              $ref: '#/components/schemas/PatchedInventoryItemRequest'
       security:
       - jwtAuth: []
       responses:
@@ -940,17 +1111,17 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Ingredient'
+                $ref: '#/components/schemas/InventoryItem'
           description: ''
     delete:
-      operationId: inventory_ingredients_destroy
+      operationId: inventory_items_destroy
       parameters:
       - in: path
         name: id
         schema:
           type: string
           format: uuid
-        description: A UUID string identifying this ingredient.
+        description: A UUID string identifying this inventory item.
         required: true
       tags:
       - inventory
@@ -959,16 +1130,16 @@ paths:
       responses:
         '204':
           description: No response body
-  /api/v1/inventory/ingredients/{id}/adjust-stock/:
+  /api/v1/inventory/items/{id}/conversions/:
     post:
-      operationId: inventory_ingredients_adjust_stock_create
+      operationId: inventory_items_conversions_create
       parameters:
       - in: path
         name: id
         schema:
           type: string
           format: uuid
-        description: A UUID string identifying this ingredient.
+        description: A UUID string identifying this inventory item.
         required: true
       tags:
       - inventory
@@ -976,13 +1147,13 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/IngredientRequest'
+              $ref: '#/components/schemas/InventoryItemRequest'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/IngredientRequest'
+              $ref: '#/components/schemas/InventoryItemRequest'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/IngredientRequest'
+              $ref: '#/components/schemas/InventoryItemRequest'
         required: true
       security:
       - jwtAuth: []
@@ -991,11 +1162,302 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Ingredient'
+                $ref: '#/components/schemas/InventoryItem'
           description: ''
-  /api/v1/inventory/purchases/:
+  /api/v1/inventory/items/{id}/quick-update/:
+    post:
+      operationId: inventory_items_quick_update_create
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this inventory item.
+        required: true
+      tags:
+      - inventory
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InventoryItemRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/InventoryItemRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/InventoryItemRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InventoryItem'
+          description: ''
+  /api/v1/inventory/items/paste-apply/:
+    post:
+      operationId: inventory_items_paste_apply_create
+      tags:
+      - inventory
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InventoryItemRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/InventoryItemRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/InventoryItemRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InventoryItem'
+          description: ''
+  /api/v1/inventory/items/paste-preview/:
+    post:
+      operationId: inventory_items_paste_preview_create
+      tags:
+      - inventory
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InventoryItemRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/InventoryItemRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/InventoryItemRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InventoryItem'
+          description: ''
+  /api/v1/inventory/locations/:
     get:
-      operationId: inventory_purchases_list
+      operationId: inventory_locations_list
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      tags:
+      - inventory
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedStockLocationList'
+          description: ''
+    post:
+      operationId: inventory_locations_create
+      tags:
+      - inventory
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StockLocationRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/StockLocationRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/StockLocationRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StockLocation'
+          description: ''
+  /api/v1/inventory/locations/{id}/:
+    get:
+      operationId: inventory_locations_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this stock location.
+        required: true
+      tags:
+      - inventory
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StockLocation'
+          description: ''
+    put:
+      operationId: inventory_locations_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this stock location.
+        required: true
+      tags:
+      - inventory
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StockLocationRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/StockLocationRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/StockLocationRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StockLocation'
+          description: ''
+    patch:
+      operationId: inventory_locations_partial_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this stock location.
+        required: true
+      tags:
+      - inventory
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedStockLocationRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedStockLocationRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedStockLocationRequest'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StockLocation'
+          description: ''
+    delete:
+      operationId: inventory_locations_destroy
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this stock location.
+        required: true
+      tags:
+      - inventory
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/v1/inventory/movements/:
+    get:
+      operationId: inventory_movements_list
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      tags:
+      - inventory
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedStockMovementList'
+          description: ''
+  /api/v1/inventory/movements/{id}/:
+    get:
+      operationId: inventory_movements_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this stock movement.
+        required: true
+      tags:
+      - inventory
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StockMovement'
+          description: ''
+  /api/v1/inventory/purchase-orders/:
+    get:
+      operationId: inventory_purchase_orders_list
       parameters:
       - name: page
         required: false
@@ -1021,7 +1483,7 @@ paths:
                 $ref: '#/components/schemas/PaginatedPurchaseOrderList'
           description: ''
     post:
-      operationId: inventory_purchases_create
+      operationId: inventory_purchase_orders_create
       tags:
       - inventory
       requestBody:
@@ -1035,6 +1497,7 @@ paths:
           multipart/form-data:
             schema:
               $ref: '#/components/schemas/PurchaseOrderRequest'
+        required: true
       security:
       - jwtAuth: []
       responses:
@@ -1044,9 +1507,9 @@ paths:
               schema:
                 $ref: '#/components/schemas/PurchaseOrder'
           description: ''
-  /api/v1/inventory/purchases/{id}/:
+  /api/v1/inventory/purchase-orders/{id}/:
     get:
-      operationId: inventory_purchases_retrieve
+      operationId: inventory_purchase_orders_retrieve
       parameters:
       - in: path
         name: id
@@ -1067,7 +1530,7 @@ paths:
                 $ref: '#/components/schemas/PurchaseOrder'
           description: ''
     put:
-      operationId: inventory_purchases_update
+      operationId: inventory_purchase_orders_update
       parameters:
       - in: path
         name: id
@@ -1089,6 +1552,7 @@ paths:
           multipart/form-data:
             schema:
               $ref: '#/components/schemas/PurchaseOrderRequest'
+        required: true
       security:
       - jwtAuth: []
       responses:
@@ -1099,7 +1563,7 @@ paths:
                 $ref: '#/components/schemas/PurchaseOrder'
           description: ''
     patch:
-      operationId: inventory_purchases_partial_update
+      operationId: inventory_purchase_orders_partial_update
       parameters:
       - in: path
         name: id
@@ -1131,7 +1595,7 @@ paths:
                 $ref: '#/components/schemas/PurchaseOrder'
           description: ''
     delete:
-      operationId: inventory_purchases_destroy
+      operationId: inventory_purchase_orders_destroy
       parameters:
       - in: path
         name: id
@@ -1147,30 +1611,24 @@ paths:
       responses:
         '204':
           description: No response body
-  /api/v1/inventory/purchases/{id}/receive/:
-    post:
-      operationId: inventory_purchases_receive_create
+  /api/v1/inventory/receipts/:
+    get:
+      operationId: inventory_receipts_list
       parameters:
-      - in: path
-        name: id
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
         schema:
-          type: string
-          format: uuid
-        description: A UUID string identifying this purchase order.
-        required: true
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
       tags:
       - inventory
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/PurchaseOrderRequest'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/PurchaseOrderRequest'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/PurchaseOrderRequest'
       security:
       - jwtAuth: []
       responses:
@@ -1178,7 +1636,54 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PurchaseOrder'
+                $ref: '#/components/schemas/PaginatedGoodsReceiptList'
+          description: ''
+    post:
+      operationId: inventory_receipts_create
+      tags:
+      - inventory
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GoodsReceiptRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/GoodsReceiptRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/GoodsReceiptRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GoodsReceipt'
+          description: ''
+  /api/v1/inventory/receipts/{id}/:
+    get:
+      operationId: inventory_receipts_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this goods receipt.
+        required: true
+      tags:
+      - inventory
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GoodsReceipt'
           description: ''
   /api/v1/inventory/recipes/:
     get:
@@ -1222,7 +1727,6 @@ paths:
           multipart/form-data:
             schema:
               $ref: '#/components/schemas/RecipeRequest'
-        required: true
       security:
       - jwtAuth: []
       responses:
@@ -1277,7 +1781,6 @@ paths:
           multipart/form-data:
             schema:
               $ref: '#/components/schemas/RecipeRequest'
-        required: true
       security:
       - jwtAuth: []
       responses:
@@ -1336,41 +1839,41 @@ paths:
       responses:
         '204':
           description: No response body
-  /api/v1/inventory/reports/low-stock/:
+  /api/v1/inventory/reports/{report_type}/:
     get:
-      operationId: inventory_reports_low_stock_list
-      summary: Get low stock ingredient alerts
+      operationId: inventory_reports_retrieve
+      parameters:
+      - in: path
+        name: report_type
+        schema:
+          type: string
+        required: true
       tags:
       - inventory
       security:
       - jwtAuth: []
       responses:
         '200':
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  type: object
-                  additionalProperties: {}
-          description: ''
-  /api/v1/inventory/reports/variance/:
+          description: No response body
+  /api/v1/inventory/settings/:
     get:
-      operationId: inventory_reports_variance_retrieve
-      summary: Get theoretical vs actual inventory variance and food cost report
+      operationId: inventory_settings_retrieve
       tags:
       - inventory
       security:
       - jwtAuth: []
       responses:
         '200':
-          content:
-            application/json:
-              schema:
-                type: object
-                additionalProperties: {}
-                description: Unspecified response body
-          description: ''
+          description: No response body
+    patch:
+      operationId: inventory_settings_partial_update
+      tags:
+      - inventory
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          description: No response body
   /api/v1/inventory/suppliers/:
     get:
       operationId: inventory_suppliers_list
@@ -1527,55 +2030,6 @@ paths:
       responses:
         '204':
           description: No response body
-  /api/v1/inventory/transactions/:
-    get:
-      operationId: inventory_transactions_list
-      parameters:
-      - name: page
-        required: false
-        in: query
-        description: A page number within the paginated result set.
-        schema:
-          type: integer
-      - name: page_size
-        required: false
-        in: query
-        description: Number of results to return per page.
-        schema:
-          type: integer
-      tags:
-      - inventory
-      security:
-      - jwtAuth: []
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/PaginatedStockTransactionList'
-          description: ''
-  /api/v1/inventory/transactions/{id}/:
-    get:
-      operationId: inventory_transactions_retrieve
-      parameters:
-      - in: path
-        name: id
-        schema:
-          type: string
-          format: uuid
-        description: A UUID string identifying this stock transaction.
-        required: true
-      tags:
-      - inventory
-      security:
-      - jwtAuth: []
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/StockTransaction'
-          description: ''
   /api/v1/inventory/wastage/:
     get:
       operationId: inventory_wastage_list
@@ -1601,7 +2055,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PaginatedWastageLogList'
+                $ref: '#/components/schemas/PaginatedStockMovementList'
           description: ''
     post:
       operationId: inventory_wastage_create
@@ -1611,13 +2065,13 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/WastageLogRequest'
+              $ref: '#/components/schemas/StockMovementRequest'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/WastageLogRequest'
+              $ref: '#/components/schemas/StockMovementRequest'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/WastageLogRequest'
+              $ref: '#/components/schemas/StockMovementRequest'
         required: true
       security:
       - jwtAuth: []
@@ -1626,7 +2080,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/WastageLog'
+                $ref: '#/components/schemas/StockMovement'
           description: ''
   /api/v1/inventory/wastage/{id}/:
     get:
@@ -1637,7 +2091,7 @@ paths:
         schema:
           type: string
           format: uuid
-        description: A UUID string identifying this wastage log.
+        description: A UUID string identifying this stock movement.
         required: true
       tags:
       - inventory
@@ -1648,90 +2102,8 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/WastageLog'
+                $ref: '#/components/schemas/StockMovement'
           description: ''
-    put:
-      operationId: inventory_wastage_update
-      parameters:
-      - in: path
-        name: id
-        schema:
-          type: string
-          format: uuid
-        description: A UUID string identifying this wastage log.
-        required: true
-      tags:
-      - inventory
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/WastageLogRequest'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/WastageLogRequest'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/WastageLogRequest'
-        required: true
-      security:
-      - jwtAuth: []
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/WastageLog'
-          description: ''
-    patch:
-      operationId: inventory_wastage_partial_update
-      parameters:
-      - in: path
-        name: id
-        schema:
-          type: string
-          format: uuid
-        description: A UUID string identifying this wastage log.
-        required: true
-      tags:
-      - inventory
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/PatchedWastageLogRequest'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/PatchedWastageLogRequest'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/PatchedWastageLogRequest'
-      security:
-      - jwtAuth: []
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/WastageLog'
-          description: ''
-    delete:
-      operationId: inventory_wastage_destroy
-      parameters:
-      - in: path
-        name: id
-        schema:
-          type: string
-          format: uuid
-        description: A UUID string identifying this wastage log.
-        required: true
-      tags:
-      - inventory
-      security:
-      - jwtAuth: []
-      responses:
-        '204':
-          description: No response body
   /api/v1/invoices/:
     get:
       operationId: invoices_list
@@ -5855,6 +6227,16 @@ components:
       - memberships
       - permissions
       - user
+    BaseUnitEnum:
+      enum:
+      - g
+      - ml
+      - piece
+      type: string
+      description: |-
+        * `g` - Grams (g)
+        * `ml` - Milliliters (ml)
+        * `piece` - Piece
     BillInvoice:
       type: object
       properties:
@@ -6357,23 +6739,31 @@ components:
         * `FOOD_COURT` - Food court
     CategoryEnum:
       enum:
-      - DRY_GOODS
+      - PRODUCE
       - DAIRY
-      - MEAT
-      - VEGETABLE
-      - BEVERAGE
-      - SPICE_CONDIMENT
+      - MEAT_POULTRY
+      - SPICES_MASALA
+      - GRAINS_FLOUR
+      - OIL_GHEE
+      - BEVERAGES
+      - BAKERY
+      - PREPARED
       - PACKAGING
+      - CLEANING
       - OTHER
       type: string
       description: |-
-        * `DRY_GOODS` - Dry Goods & Grains
-        * `DAIRY` - Dairy & Eggs
-        * `MEAT` - Meat & Seafood
-        * `VEGETABLE` - Vegetables & Produce
-        * `BEVERAGE` - Beverages & Liquids
-        * `SPICE_CONDIMENT` - Spices & Condiments
-        * `PACKAGING` - Packaging & Disposables
+        * `PRODUCE` - Produce & Vegetables
+        * `DAIRY` - Dairy & Milk
+        * `MEAT_POULTRY` - Meat & Poultry
+        * `SPICES_MASALA` - Spices & Masala
+        * `GRAINS_FLOUR` - Grains, Rice & Flour
+        * `OIL_GHEE` - Oil & Ghee
+        * `BEVERAGES` - Tea, Coffee & Beverages
+        * `BAKERY` - Bakery & Sweets
+        * `PREPARED` - Prepared Bases
+        * `PACKAGING` - Packaging & Cups
+        * `CLEANING` - Cleaning & Supplies
         * `OTHER` - Other
     ChangePasswordRequest:
       type: object
@@ -6389,6 +6779,14 @@ components:
       required:
       - current_password
       - new_password
+    CountTypeEnum:
+      enum:
+      - FULL
+      - CATEGORY
+      type: string
+      description: |-
+        * `FULL` - Full Count
+        * `CATEGORY` - By Category
     CourseEnum:
       enum:
       - STARTER
@@ -6733,8 +7131,177 @@ components:
         * `VEG` - Vegetarian
         * `NON_VEG` - Non-Vegetarian
         * `EGG` - Contains Egg
-    Ingredient:
+    GoodsReceipt:
       type: object
+      description: Omits all cost/value/margin fields completely when caller lacks
+        inventory.costs.
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        branch:
+          type: string
+          format: uuid
+        location:
+          type: string
+          format: uuid
+        supplier:
+          type: string
+          format: uuid
+          nullable: true
+        supplier_name:
+          type: string
+          readOnly: true
+          default: ''
+        supplier_invoice_number:
+          type: string
+          maxLength: 120
+        total_paid_paise:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: -9223372036854775808
+          format: int64
+        notes:
+          type: string
+        received_at:
+          type: string
+          format: date-time
+        lines:
+          type: array
+          items:
+            $ref: '#/components/schemas/GoodsReceiptLine'
+          readOnly: true
+      required:
+      - branch
+      - id
+      - lines
+      - location
+      - supplier_name
+    GoodsReceiptLine:
+      type: object
+      description: Omits all cost/value/margin fields completely when caller lacks
+        inventory.costs.
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        item:
+          type: string
+          format: uuid
+        item_name:
+          type: string
+          readOnly: true
+        quantity:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,11}(?:\.\d{0,3})?$
+        unit_name:
+          type: string
+          maxLength: 40
+        base_quantity:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,11}(?:\.\d{0,3})?$
+        unit_cost_paise:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: -9223372036854775808
+          format: int64
+        line_total_paise:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: -9223372036854775808
+          format: int64
+        batch_number:
+          type: string
+          maxLength: 100
+        expiry_date:
+          type: string
+          format: date
+          nullable: true
+      required:
+      - base_quantity
+      - id
+      - item
+      - item_name
+      - quantity
+    GoodsReceiptLineRequest:
+      type: object
+      description: Omits all cost/value/margin fields completely when caller lacks
+        inventory.costs.
+      properties:
+        item:
+          type: string
+          format: uuid
+        quantity:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,11}(?:\.\d{0,3})?$
+        unit_name:
+          type: string
+          maxLength: 40
+        base_quantity:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,11}(?:\.\d{0,3})?$
+        unit_cost_paise:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: -9223372036854775808
+          format: int64
+        line_total_paise:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: -9223372036854775808
+          format: int64
+        batch_number:
+          type: string
+          maxLength: 100
+        expiry_date:
+          type: string
+          format: date
+          nullable: true
+      required:
+      - base_quantity
+      - item
+      - quantity
+    GoodsReceiptRequest:
+      type: object
+      description: Omits all cost/value/margin fields completely when caller lacks
+        inventory.costs.
+      properties:
+        branch:
+          type: string
+          format: uuid
+        location:
+          type: string
+          format: uuid
+        supplier:
+          type: string
+          format: uuid
+          nullable: true
+        supplier_invoice_number:
+          type: string
+          maxLength: 120
+        total_paid_paise:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: -9223372036854775808
+          format: int64
+        notes:
+          type: string
+        received_at:
+          type: string
+          format: date-time
+      required:
+      - branch
+      - location
+    InventoryItem:
+      type: object
+      description: Omits all cost/value/margin fields completely when caller lacks
+        inventory.costs.
       properties:
         id:
           type: string
@@ -6746,35 +7313,61 @@ components:
         name_ta:
           type: string
           maxLength: 200
-        sku:
-          type: string
-          maxLength: 50
+        item_type:
+          $ref: '#/components/schemas/ItemTypeEnum'
+        base_unit:
+          $ref: '#/components/schemas/BaseUnitEnum'
         category:
           $ref: '#/components/schemas/CategoryEnum'
-        unit:
-          $ref: '#/components/schemas/UnitEnum'
-        cost_paise:
-          type: integer
-          maximum: 9223372036854775807
-          minimum: -9223372036854775808
-          format: int64
-          description: Standard or weighted average cost per unit in integer paise
-        current_stock:
+        barcode:
           type: string
-          format: decimal
-          pattern: ^-?\d{0,9}(?:\.\d{0,3})?$
-        min_threshold:
-          type: string
-          format: decimal
-          pattern: ^-?\d{0,9}(?:\.\d{0,3})?$
-          description: Threshold below which low-stock replenishment alert is triggered
+          maxLength: 80
         is_active:
           type: boolean
-        is_low_stock:
+        track_expiry:
           type: boolean
+        shelf_life_days:
+          type: integer
+          maximum: 2147483647
+          minimum: 0
+          nullable: true
+        reorder_level:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,11}(?:\.\d{0,3})?$
+        par_level:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,11}(?:\.\d{0,3})?$
+        default_supplier:
+          type: string
+          format: uuid
+          nullable: true
+        packaging_mode:
+          $ref: '#/components/schemas/PackagingModeEnum'
+        packaging_quantity:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,11}(?:\.\d{0,3})?$
+        unit_conversions:
+          type: array
+          items:
+            $ref: '#/components/schemas/UnitConversion'
+          readOnly: true
+        current_quantity:
+          type: string
+          readOnly: true
+        weighted_avg_cost_paise:
+          type: integer
           readOnly: true
         stock_value_paise:
           type: integer
+          readOnly: true
+        is_low_stock:
+          type: boolean
+          readOnly: true
+        is_negative_stock:
+          type: boolean
           readOnly: true
         created_at:
           type: string
@@ -6786,13 +7379,19 @@ components:
           readOnly: true
       required:
       - created_at
+      - current_quantity
       - id
       - is_low_stock
+      - is_negative_stock
       - name
       - stock_value_paise
+      - unit_conversions
       - updated_at
-    IngredientRequest:
+      - weighted_avg_cost_paise
+    InventoryItemRequest:
       type: object
+      description: Omits all cost/value/margin fields completely when caller lacks
+        inventory.costs.
       properties:
         name:
           type: string
@@ -6801,32 +7400,58 @@ components:
         name_ta:
           type: string
           maxLength: 200
-        sku:
-          type: string
-          maxLength: 50
+        item_type:
+          $ref: '#/components/schemas/ItemTypeEnum'
+        base_unit:
+          $ref: '#/components/schemas/BaseUnitEnum'
         category:
           $ref: '#/components/schemas/CategoryEnum'
-        unit:
-          $ref: '#/components/schemas/UnitEnum'
-        cost_paise:
-          type: integer
-          maximum: 9223372036854775807
-          minimum: -9223372036854775808
-          format: int64
-          description: Standard or weighted average cost per unit in integer paise
-        current_stock:
+        barcode:
           type: string
-          format: decimal
-          pattern: ^-?\d{0,9}(?:\.\d{0,3})?$
-        min_threshold:
-          type: string
-          format: decimal
-          pattern: ^-?\d{0,9}(?:\.\d{0,3})?$
-          description: Threshold below which low-stock replenishment alert is triggered
+          maxLength: 80
         is_active:
           type: boolean
+        track_expiry:
+          type: boolean
+        shelf_life_days:
+          type: integer
+          maximum: 2147483647
+          minimum: 0
+          nullable: true
+        reorder_level:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,11}(?:\.\d{0,3})?$
+        par_level:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,11}(?:\.\d{0,3})?$
+        default_supplier:
+          type: string
+          format: uuid
+          nullable: true
+        packaging_mode:
+          $ref: '#/components/schemas/PackagingModeEnum'
+        packaging_quantity:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,11}(?:\.\d{0,3})?$
       required:
       - name
+    ItemTypeEnum:
+      enum:
+      - INGREDIENT
+      - PREPARED
+      - FINISHED
+      - PACKAGING
+      - SUPPLY
+      type: string
+      description: |-
+        * `INGREDIENT` - Ingredient
+        * `PREPARED` - Prepared
+        * `FINISHED` - Finished
+        * `PACKAGING` - Packaging
+        * `SUPPLY` - Supply
     ItemVariant:
       type: object
       properties:
@@ -7039,6 +7664,18 @@ components:
       - name
       - params_schema
       - recommended_profiles
+    LocationTypeEnum:
+      enum:
+      - STORE
+      - KITCHEN
+      - BAR
+      - COUNTER
+      type: string
+      description: |-
+        * `STORE` - Store
+        * `KITCHEN` - Kitchen
+        * `BAR` - Bar
+        * `COUNTER` - Counter
     LoginRequestRequest:
       type: object
       properties:
@@ -7321,6 +7958,34 @@ components:
       required:
       - category
       - name
+    MovementTypeEnum:
+      enum:
+      - OPENING
+      - PURCHASE
+      - SALE_USAGE
+      - PRODUCTION_IN
+      - PRODUCTION_USAGE
+      - WASTE
+      - ADJUSTMENT
+      - COUNT_VARIANCE
+      - TRANSFER_OUT
+      - TRANSFER_IN
+      - SUPPLIER_RETURN
+      - PACKAGING_USAGE
+      type: string
+      description: |-
+        * `OPENING` - Opening Balance
+        * `PURCHASE` - Purchase Receipt
+        * `SALE_USAGE` - Sale Usage
+        * `PRODUCTION_IN` - Production In
+        * `PRODUCTION_USAGE` - Production Usage
+        * `WASTE` - Waste
+        * `ADJUSTMENT` - Manual Adjustment
+        * `COUNT_VARIANCE` - Count Variance
+        * `TRANSFER_OUT` - Transfer Out
+        * `TRANSFER_IN` - Transfer In
+        * `SUPPLIER_RETURN` - Supplier Return
+        * `PACKAGING_USAGE` - Packaging Usage
     OnboardingStatus:
       type: object
       properties:
@@ -7792,6 +8457,16 @@ components:
         * `COUNTER_TOKEN` - Counter Token
         * `ROOM_SERVICE` - Room Service
         * `BAR_TAB` - Bar Tab
+    PackagingModeEnum:
+      enum:
+      - NONE
+      - PER_ORDER
+      - PER_ITEM
+      type: string
+      description: |-
+        * `NONE` - Not Auto-Deducted
+        * `PER_ORDER` - Per Takeaway Order
+        * `PER_ITEM` - Per Takeaway Item
     PaginatedAuditLogList:
       type: object
       required:
@@ -7953,7 +8628,7 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/DiningTable'
-    PaginatedIngredientList:
+    PaginatedGoodsReceiptList:
       type: object
       required:
       - count
@@ -7975,7 +8650,30 @@ components:
         results:
           type: array
           items:
-            $ref: '#/components/schemas/Ingredient'
+            $ref: '#/components/schemas/GoodsReceipt'
+    PaginatedInventoryItemList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/InventoryItem'
     PaginatedKDSTicketList:
       type: object
       required:
@@ -8298,7 +8996,7 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/StaffSectionAssignment'
-    PaginatedStockTransactionList:
+    PaginatedStockCountList:
       type: object
       required:
       - count
@@ -8320,7 +9018,53 @@ components:
         results:
           type: array
           items:
-            $ref: '#/components/schemas/StockTransaction'
+            $ref: '#/components/schemas/StockCount'
+    PaginatedStockLocationList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/StockLocation'
+    PaginatedStockMovementList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/StockMovement'
     PaginatedSupplierList:
       type: object
       required:
@@ -8436,29 +9180,6 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/Tenant'
-    PaginatedWastageLogList:
-      type: object
-      required:
-      - count
-      - results
-      properties:
-        count:
-          type: integer
-          example: 123
-        next:
-          type: string
-          nullable: true
-          format: uri
-          example: http://api.example.org/accounts/?page=4
-        previous:
-          type: string
-          nullable: true
-          format: uri
-          example: http://api.example.org/accounts/?page=2
-        results:
-          type: array
-          items:
-            $ref: '#/components/schemas/WastageLog'
     PatchedAuthMeResponseRequest:
       type: object
       properties:
@@ -8675,8 +9396,10 @@ components:
           minimum: -2147483648
         shape:
           $ref: '#/components/schemas/TableShape'
-    PatchedIngredientRequest:
+    PatchedInventoryItemRequest:
       type: object
+      description: Omits all cost/value/margin fields completely when caller lacks
+        inventory.costs.
       properties:
         name:
           type: string
@@ -8685,30 +9408,42 @@ components:
         name_ta:
           type: string
           maxLength: 200
-        sku:
-          type: string
-          maxLength: 50
+        item_type:
+          $ref: '#/components/schemas/ItemTypeEnum'
+        base_unit:
+          $ref: '#/components/schemas/BaseUnitEnum'
         category:
           $ref: '#/components/schemas/CategoryEnum'
-        unit:
-          $ref: '#/components/schemas/UnitEnum'
-        cost_paise:
-          type: integer
-          maximum: 9223372036854775807
-          minimum: -9223372036854775808
-          format: int64
-          description: Standard or weighted average cost per unit in integer paise
-        current_stock:
+        barcode:
           type: string
-          format: decimal
-          pattern: ^-?\d{0,9}(?:\.\d{0,3})?$
-        min_threshold:
-          type: string
-          format: decimal
-          pattern: ^-?\d{0,9}(?:\.\d{0,3})?$
-          description: Threshold below which low-stock replenishment alert is triggered
+          maxLength: 80
         is_active:
           type: boolean
+        track_expiry:
+          type: boolean
+        shelf_life_days:
+          type: integer
+          maximum: 2147483647
+          minimum: 0
+          nullable: true
+        reorder_level:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,11}(?:\.\d{0,3})?$
+        par_level:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,11}(?:\.\d{0,3})?$
+        default_supplier:
+          type: string
+          format: uuid
+          nullable: true
+        packaging_mode:
+          $ref: '#/components/schemas/PackagingModeEnum'
+        packaging_quantity:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,11}(?:\.\d{0,3})?$
     PatchedMenuCategoryRequest:
       type: object
       properties:
@@ -8869,16 +9604,23 @@ components:
           nullable: true
     PatchedPurchaseOrderRequest:
       type: object
+      description: Omits all cost/value/margin fields completely when caller lacks
+        inventory.costs.
       properties:
+        branch:
+          type: string
+          format: uuid
+          nullable: true
         order_number:
           type: string
+          minLength: 1
+          maxLength: 50
         supplier:
           type: string
           format: uuid
           nullable: true
-        invoice_number:
-          type: string
-          maxLength: 100
+        status:
+          $ref: '#/components/schemas/PurchaseOrderStatusEnum'
         total_cost_paise:
           type: integer
           maximum: 9223372036854775807
@@ -8886,27 +9628,39 @@ components:
           format: int64
         notes:
           type: string
-        items:
-          type: array
-          items:
-            $ref: '#/components/schemas/PurchaseOrderItemRequest'
+        received_at:
+          type: string
+          format: date-time
+          nullable: true
     PatchedRecipeRequest:
       type: object
+      description: Omits all cost/value/margin fields completely when caller lacks
+        inventory.costs.
       properties:
         menu_item:
           type: string
           format: uuid
-        yield_servings:
+          nullable: true
+        variant:
+          type: string
+          format: uuid
+          nullable: true
+        output_item:
+          type: string
+          format: uuid
+          nullable: true
+        yield_portions:
           type: string
           format: decimal
-          pattern: ^-?\d{0,4}(?:\.\d{0,2})?$
-          description: Number of servings produced by this recipe batch (default 1.0)
+          pattern: ^-?\d{0,7}(?:\.\d{0,3})?$
+        version:
+          type: integer
+          maximum: 2147483647
+          minimum: 0
         preparation_instructions:
           type: string
-        items:
-          type: array
-          items:
-            $ref: '#/components/schemas/RecipeItemRequest'
+        is_active:
+          type: boolean
     PatchedSectionRequest:
       type: object
       properties:
@@ -8989,8 +9743,26 @@ components:
           maxLength: 32
         is_active:
           type: boolean
+    PatchedStockLocationRequest:
+      type: object
+      properties:
+        branch:
+          type: string
+          format: uuid
+        name:
+          type: string
+          minLength: 1
+          maxLength: 120
+        location_type:
+          $ref: '#/components/schemas/LocationTypeEnum'
+        is_default:
+          type: boolean
+        is_active:
+          type: boolean
     PatchedSupplierRequest:
       type: object
+      description: Omits all cost/value/margin fields completely when caller lacks
+        inventory.costs.
       properties:
         name:
           type: string
@@ -9008,9 +9780,8 @@ components:
           maxLength: 254
         address:
           type: string
-        gstin:
+        notes:
           type: string
-          maxLength: 50
         is_active:
           type: boolean
     PatchedSupportTicketRequest:
@@ -9040,20 +9811,6 @@ components:
           type: string
           format: date-time
           nullable: true
-    PatchedWastageLogRequest:
-      type: object
-      properties:
-        ingredient:
-          type: string
-          format: uuid
-        quantity:
-          type: string
-          format: decimal
-          pattern: ^-?\d{0,9}(?:\.\d{0,3})?$
-        reason:
-          $ref: '#/components/schemas/ReasonEnum'
-        notes:
-          type: string
     PaymentMethodEnum:
       enum:
       - CASH
@@ -9332,13 +10089,20 @@ components:
       - status
     PurchaseOrder:
       type: object
+      description: Omits all cost/value/margin fields completely when caller lacks
+        inventory.costs.
       properties:
         id:
           type: string
           format: uuid
           readOnly: true
+        branch:
+          type: string
+          format: uuid
+          nullable: true
         order_number:
           type: string
+          maxLength: 50
         supplier:
           type: string
           format: uuid
@@ -9346,13 +10110,9 @@ components:
         supplier_name:
           type: string
           readOnly: true
+          default: ''
         status:
-          allOf:
-          - $ref: '#/components/schemas/PurchaseOrderStatusEnum'
-          readOnly: true
-        invoice_number:
-          type: string
-          maxLength: 100
+          $ref: '#/components/schemas/PurchaseOrderStatusEnum'
         total_cost_paise:
           type: integer
           maximum: 9223372036854775807
@@ -9363,112 +10123,114 @@ components:
         received_at:
           type: string
           format: date-time
-          readOnly: true
           nullable: true
-        items:
-          type: array
-          items:
-            $ref: '#/components/schemas/PurchaseOrderItem'
         created_at:
           type: string
           format: date-time
           readOnly: true
-        updated_at:
-          type: string
-          format: date-time
+        lines:
+          type: array
+          items:
+            $ref: '#/components/schemas/PurchaseOrderLine'
           readOnly: true
       required:
       - created_at
       - id
-      - received_at
-      - status
+      - lines
+      - order_number
       - supplier_name
-      - updated_at
-    PurchaseOrderItem:
+    PurchaseOrderLine:
       type: object
+      description: Omits all cost/value/margin fields completely when caller lacks
+        inventory.costs.
       properties:
         id:
           type: string
           format: uuid
           readOnly: true
-        ingredient:
+        item:
           type: string
           format: uuid
-        ingredient_name:
+        item_name:
           type: string
           readOnly: true
-        ingredient_unit:
-          type: string
-          readOnly: true
-        quantity:
+        quantity_ordered:
           type: string
           format: decimal
-          pattern: ^-?\d{0,9}(?:\.\d{0,3})?$
-        unit_price_paise:
+          pattern: ^-?\d{0,11}(?:\.\d{0,3})?$
+        quantity_received:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,11}(?:\.\d{0,3})?$
+        unit_name:
+          type: string
+          maxLength: 40
+        unit_cost_paise:
           type: integer
           maximum: 9223372036854775807
           minimum: -9223372036854775808
           format: int64
-        subtotal_paise:
+        line_total_paise:
           type: integer
           maximum: 9223372036854775807
           minimum: -9223372036854775808
           format: int64
-        batch_number:
-          type: string
-          maxLength: 100
-        expiry_date:
-          type: string
-          format: date
-          nullable: true
       required:
       - id
-      - ingredient
-      - ingredient_name
-      - ingredient_unit
-      - quantity
-    PurchaseOrderItemRequest:
+      - item
+      - item_name
+      - quantity_ordered
+    PurchaseOrderLineRequest:
       type: object
+      description: Omits all cost/value/margin fields completely when caller lacks
+        inventory.costs.
       properties:
-        ingredient:
+        item:
           type: string
           format: uuid
-        quantity:
+        quantity_ordered:
           type: string
           format: decimal
-          pattern: ^-?\d{0,9}(?:\.\d{0,3})?$
-        unit_price_paise:
+          pattern: ^-?\d{0,11}(?:\.\d{0,3})?$
+        quantity_received:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,11}(?:\.\d{0,3})?$
+        unit_name:
+          type: string
+          maxLength: 40
+        unit_cost_paise:
           type: integer
           maximum: 9223372036854775807
           minimum: -9223372036854775808
           format: int64
-        subtotal_paise:
+        line_total_paise:
           type: integer
           maximum: 9223372036854775807
           minimum: -9223372036854775808
           format: int64
-        batch_number:
-          type: string
-          maxLength: 100
-        expiry_date:
-          type: string
-          format: date
-          nullable: true
       required:
-      - ingredient
-      - quantity
+      - item
+      - quantity_ordered
     PurchaseOrderRequest:
       type: object
+      description: Omits all cost/value/margin fields completely when caller lacks
+        inventory.costs.
       properties:
+        branch:
+          type: string
+          format: uuid
+          nullable: true
         order_number:
           type: string
+          minLength: 1
+          maxLength: 50
         supplier:
           type: string
           format: uuid
           nullable: true
-        invoice_number:
-          type: string
-          maxLength: 100
+        status:
+          $ref: '#/components/schemas/PurchaseOrderStatusEnum'
         total_cost_paise:
           type: integer
           maximum: 9223372036854775807
@@ -9476,19 +10238,25 @@ components:
           format: int64
         notes:
           type: string
-        items:
-          type: array
-          items:
-            $ref: '#/components/schemas/PurchaseOrderItemRequest'
+        received_at:
+          type: string
+          format: date-time
+          nullable: true
+      required:
+      - order_number
     PurchaseOrderStatusEnum:
       enum:
       - DRAFT
+      - SENT
+      - PARTIAL
       - RECEIVED
       - CANCELLED
       type: string
       description: |-
         * `DRAFT` - Draft
-        * `RECEIVED` - Received & Stocked
+        * `SENT` - Sent
+        * `PARTIAL` - Partially Received
+        * `RECEIVED` - Received
         * `CANCELLED` - Cancelled
     QRCode:
       type: object
@@ -9627,22 +10395,10 @@ components:
       description: |-
         * `CUSTOMER_CAN_OPEN` - Customer Can Open
         * `STAFF_ONLY` - Staff Only
-    ReasonEnum:
-      enum:
-      - EXPIRED
-      - SPOILED
-      - BURNT_PREP
-      - SPILLAGE
-      - OTHER
-      type: string
-      description: |-
-        * `EXPIRED` - Expired / Date Passed
-        * `SPOILED` - Spoiled / Quality Degraded
-        * `BURNT_PREP` - Burnt / Prep Error
-        * `SPILLAGE` - Spillage / Handling Drop
-        * `OTHER` - Other
     Recipe:
       type: object
+      description: Omits all cost/value/margin fields completely when caller lacks
+        inventory.costs.
       properties:
         id:
           type: string
@@ -9651,112 +10407,148 @@ components:
         menu_item:
           type: string
           format: uuid
+          nullable: true
         menu_item_name:
           type: string
           readOnly: true
-        menu_item_price_paise:
-          type: integer
+          default: ''
+        variant:
+          type: string
+          format: uuid
+          nullable: true
+        variant_name:
+          type: string
           readOnly: true
-        yield_servings:
+          default: ''
+        output_item:
+          type: string
+          format: uuid
+          nullable: true
+        output_item_name:
+          type: string
+          readOnly: true
+          default: ''
+        yield_portions:
           type: string
           format: decimal
-          pattern: ^-?\d{0,4}(?:\.\d{0,2})?$
-          description: Number of servings produced by this recipe batch (default 1.0)
+          pattern: ^-?\d{0,7}(?:\.\d{0,3})?$
+        version:
+          type: integer
+          maximum: 2147483647
+          minimum: 0
         preparation_instructions:
           type: string
-        total_cost_paise:
-          type: integer
-          readOnly: true
-        items:
+        is_active:
+          type: boolean
+        lines:
           type: array
           items:
-            $ref: '#/components/schemas/RecipeItem'
-        created_at:
+            $ref: '#/components/schemas/RecipeLine'
+          readOnly: true
+        cost_per_portion_paise:
+          type: integer
+          readOnly: true
+        margin_percent:
           type: string
-          format: date-time
+          nullable: true
           readOnly: true
         updated_at:
           type: string
           format: date-time
           readOnly: true
       required:
-      - created_at
+      - cost_per_portion_paise
       - id
-      - menu_item
+      - lines
+      - margin_percent
       - menu_item_name
-      - menu_item_price_paise
-      - total_cost_paise
+      - output_item_name
       - updated_at
-    RecipeItem:
+      - variant_name
+    RecipeLine:
       type: object
+      description: Omits all cost/value/margin fields completely when caller lacks
+        inventory.costs.
       properties:
         id:
           type: string
           format: uuid
           readOnly: true
-        ingredient:
+        item:
           type: string
           format: uuid
-        ingredient_name:
+        item_name:
           type: string
           readOnly: true
-        ingredient_unit:
+        item_name_ta:
           type: string
           readOnly: true
-        ingredient_cost_paise:
-          type: integer
+        base_unit:
+          type: string
           readOnly: true
-        quantity:
+        quantity_per_portion:
           type: string
           format: decimal
-          pattern: ^-?\d{0,7}(?:\.\d{0,3})?$
-          description: Quantity of ingredient in ingredient's base unit required per
-            recipe batch
-        calculated_cost_paise:
-          type: integer
-          readOnly: true
+          pattern: ^-?\d{0,11}(?:\.\d{0,3})?$
+        waste_percent:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,3}(?:\.\d{0,2})?$
       required:
-      - calculated_cost_paise
+      - base_unit
       - id
-      - ingredient
-      - ingredient_cost_paise
-      - ingredient_name
-      - ingredient_unit
-      - quantity
-    RecipeItemRequest:
+      - item
+      - item_name
+      - item_name_ta
+      - quantity_per_portion
+    RecipeLineRequest:
       type: object
+      description: Omits all cost/value/margin fields completely when caller lacks
+        inventory.costs.
       properties:
-        ingredient:
+        item:
           type: string
           format: uuid
-        quantity:
+        quantity_per_portion:
           type: string
           format: decimal
-          pattern: ^-?\d{0,7}(?:\.\d{0,3})?$
-          description: Quantity of ingredient in ingredient's base unit required per
-            recipe batch
+          pattern: ^-?\d{0,11}(?:\.\d{0,3})?$
+        waste_percent:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,3}(?:\.\d{0,2})?$
       required:
-      - ingredient
-      - quantity
+      - item
+      - quantity_per_portion
     RecipeRequest:
       type: object
+      description: Omits all cost/value/margin fields completely when caller lacks
+        inventory.costs.
       properties:
         menu_item:
           type: string
           format: uuid
-        yield_servings:
+          nullable: true
+        variant:
+          type: string
+          format: uuid
+          nullable: true
+        output_item:
+          type: string
+          format: uuid
+          nullable: true
+        yield_portions:
           type: string
           format: decimal
-          pattern: ^-?\d{0,4}(?:\.\d{0,2})?$
-          description: Number of servings produced by this recipe batch (default 1.0)
+          pattern: ^-?\d{0,7}(?:\.\d{0,3})?$
+        version:
+          type: integer
+          maximum: 2147483647
+          minimum: 0
         preparation_instructions:
           type: string
-        items:
-          type: array
-          items:
-            $ref: '#/components/schemas/RecipeItemRequest'
-      required:
-      - menu_item
+        is_active:
+          type: boolean
     RequestTypeEnum:
       enum:
       - WATER
@@ -10155,54 +10947,352 @@ components:
         * `PENDING` - Pending
         * `ACKNOWLEDGED` - Acknowledged
         * `RESOLVED` - Resolved
-    StockTransaction:
+    StockCount:
+      type: object
+      description: Omits all cost/value/margin fields completely when caller lacks
+        inventory.costs.
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        branch:
+          type: string
+          format: uuid
+        location:
+          type: string
+          format: uuid
+        count_type:
+          $ref: '#/components/schemas/CountTypeEnum'
+        category_filter:
+          type: string
+          maxLength: 30
+        is_blind:
+          type: boolean
+        status:
+          $ref: '#/components/schemas/StockCountStatusEnum'
+        notes:
+          type: string
+        submitted_at:
+          type: string
+          format: date-time
+          nullable: true
+        approved_at:
+          type: string
+          format: date-time
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        lines:
+          type: array
+          items:
+            $ref: '#/components/schemas/StockCountLine'
+          readOnly: true
+      required:
+      - branch
+      - created_at
+      - id
+      - lines
+      - location
+    StockCountLine:
+      type: object
+      description: Omits all cost/value/margin fields completely when caller lacks
+        inventory.costs.
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        item:
+          type: string
+          format: uuid
+        item_name:
+          type: string
+          readOnly: true
+        base_unit:
+          type: string
+          readOnly: true
+        expected_quantity:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,11}(?:\.\d{0,3})?$
+        counted_quantity:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,11}(?:\.\d{0,3})?$
+          nullable: true
+        variance_quantity:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,11}(?:\.\d{0,3})?$
+        variance_value_paise:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: -9223372036854775808
+          format: int64
+        reason:
+          type: string
+          maxLength: 200
+      required:
+      - base_unit
+      - id
+      - item
+      - item_name
+    StockCountLineRequest:
+      type: object
+      description: Omits all cost/value/margin fields completely when caller lacks
+        inventory.costs.
+      properties:
+        item:
+          type: string
+          format: uuid
+        expected_quantity:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,11}(?:\.\d{0,3})?$
+        counted_quantity:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,11}(?:\.\d{0,3})?$
+          nullable: true
+        variance_quantity:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,11}(?:\.\d{0,3})?$
+        variance_value_paise:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: -9223372036854775808
+          format: int64
+        reason:
+          type: string
+          maxLength: 200
+      required:
+      - item
+    StockCountRequest:
+      type: object
+      description: Omits all cost/value/margin fields completely when caller lacks
+        inventory.costs.
+      properties:
+        branch:
+          type: string
+          format: uuid
+        location:
+          type: string
+          format: uuid
+        count_type:
+          $ref: '#/components/schemas/CountTypeEnum'
+        category_filter:
+          type: string
+          maxLength: 30
+        is_blind:
+          type: boolean
+        status:
+          $ref: '#/components/schemas/StockCountStatusEnum'
+        notes:
+          type: string
+        submitted_at:
+          type: string
+          format: date-time
+          nullable: true
+        approved_at:
+          type: string
+          format: date-time
+          nullable: true
+      required:
+      - branch
+      - location
+    StockCountStatusEnum:
+      enum:
+      - DRAFT
+      - SUBMITTED
+      - APPROVED
+      type: string
+      description: |-
+        * `DRAFT` - Draft
+        * `SUBMITTED` - Submitted
+        * `APPROVED` - Approved
+    StockLocation:
       type: object
       properties:
         id:
           type: string
           format: uuid
           readOnly: true
-        ingredient:
+        branch:
           type: string
           format: uuid
-        ingredient_name:
+        name:
+          type: string
+          maxLength: 120
+        location_type:
+          $ref: '#/components/schemas/LocationTypeEnum'
+        is_default:
+          type: boolean
+        is_active:
+          type: boolean
+      required:
+      - branch
+      - id
+      - name
+    StockLocationRequest:
+      type: object
+      properties:
+        branch:
+          type: string
+          format: uuid
+        name:
+          type: string
+          minLength: 1
+          maxLength: 120
+        location_type:
+          $ref: '#/components/schemas/LocationTypeEnum'
+        is_default:
+          type: boolean
+        is_active:
+          type: boolean
+      required:
+      - branch
+      - name
+    StockMovement:
+      type: object
+      description: Omits all cost/value/margin fields completely when caller lacks
+        inventory.costs.
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        sequence_number:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+        branch:
+          type: string
+          format: uuid
+        location:
+          type: string
+          format: uuid
+        location_name:
           type: string
           readOnly: true
-        ingredient_unit:
+        item:
+          type: string
+          format: uuid
+        item_name:
           type: string
           readOnly: true
-        transaction_type:
-          $ref: '#/components/schemas/TransactionTypeEnum'
-        quantity_change:
+        base_unit:
+          type: string
+          readOnly: true
+        movement_type:
+          $ref: '#/components/schemas/MovementTypeEnum'
+        quantity:
           type: string
           format: decimal
-          pattern: ^-?\d{0,9}(?:\.\d{0,3})?$
-          description: Positive for inward receipts, negative for outward usage/waste
-        balance_after:
+          pattern: ^-?\d{0,11}(?:\.\d{0,3})?$
+        unit_cost_paise:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: -9223372036854775808
+          format: int64
+        value_paise:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: -9223372036854775808
+          format: int64
+        reference_type:
           type: string
-          format: decimal
-          pattern: ^-?\d{0,9}(?:\.\d{0,3})?$
-          readOnly: true
+          maxLength: 50
         reference_id:
           type: string
           maxLength: 100
+        reason_code:
+          type: string
+          maxLength: 50
         notes:
           type: string
+        actor_name:
+          type: string
+          readOnly: true
+          default: ''
         created_at:
           type: string
           format: date-time
           readOnly: true
       required:
-      - balance_after
+      - actor_name
+      - base_unit
+      - branch
       - created_at
       - id
-      - ingredient
-      - ingredient_name
-      - ingredient_unit
-      - quantity_change
-      - transaction_type
+      - item
+      - item_name
+      - location
+      - location_name
+      - movement_type
+      - quantity
+      - sequence_number
+    StockMovementRequest:
+      type: object
+      description: Omits all cost/value/margin fields completely when caller lacks
+        inventory.costs.
+      properties:
+        sequence_number:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+        branch:
+          type: string
+          format: uuid
+        location:
+          type: string
+          format: uuid
+        item:
+          type: string
+          format: uuid
+        movement_type:
+          $ref: '#/components/schemas/MovementTypeEnum'
+        quantity:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,11}(?:\.\d{0,3})?$
+        unit_cost_paise:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: -9223372036854775808
+          format: int64
+        value_paise:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: -9223372036854775808
+          format: int64
+        reference_type:
+          type: string
+          maxLength: 50
+        reference_id:
+          type: string
+          maxLength: 100
+        reason_code:
+          type: string
+          maxLength: 50
+        notes:
+          type: string
+      required:
+      - branch
+      - item
+      - location
+      - movement_type
+      - quantity
+      - sequence_number
     Supplier:
       type: object
+      description: Omits all cost/value/margin fields completely when caller lacks
+        inventory.costs.
       properties:
         id:
           type: string
@@ -10223,9 +11313,8 @@ components:
           maxLength: 254
         address:
           type: string
-        gstin:
+        notes:
           type: string
-          maxLength: 50
         is_active:
           type: boolean
         created_at:
@@ -10243,6 +11332,8 @@ components:
       - updated_at
     SupplierRequest:
       type: object
+      description: Omits all cost/value/margin fields completely when caller lacks
+        inventory.costs.
       properties:
         name:
           type: string
@@ -10260,9 +11351,8 @@ components:
           maxLength: 254
         address:
           type: string
-        gstin:
+        notes:
           type: string
-          maxLength: 50
         is_active:
           type: boolean
       required:
@@ -10654,34 +11744,46 @@ components:
       description: |-
         * `ACTIVE` - Active
         * `SUSPENDED` - Suspended
-    TransactionTypeEnum:
-      enum:
-      - INWARD_PURCHASE
-      - OUTWARD_SALE
-      - WASTAGE
-      - MANUAL_ADJUSTMENT
-      type: string
-      description: |-
-        * `INWARD_PURCHASE` - Inward Purchase
-        * `OUTWARD_SALE` - Outward Recipe Depletion
-        * `WASTAGE` - Wastage / Spoilage Write-Off
-        * `MANUAL_ADJUSTMENT` - Manual Stock Reconciliation
-    UnitEnum:
-      enum:
-      - KG
-      - GRAM
-      - LITER
-      - ML
-      - PIECE
-      - PACKET
-      type: string
-      description: |-
-        * `KG` - Kilogram (kg)
-        * `GRAM` - Gram (g)
-        * `LITER` - Liter (L)
-        * `ML` - Milliliter (mL)
-        * `PIECE` - Piece (pc)
-        * `PACKET` - Packet (pkt)
+    UnitConversion:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        item:
+          type: string
+          format: uuid
+        unit_name:
+          type: string
+          maxLength: 40
+        factor_to_base:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,8}(?:\.\d{0,6})?$
+      required:
+      - factor_to_base
+      - id
+      - item
+      - unit_name
+    UnitConversionRequest:
+      type: object
+      properties:
+        item:
+          type: string
+          format: uuid
+        unit_name:
+          type: string
+          minLength: 1
+          maxLength: 40
+        factor_to_base:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,8}(?:\.\d{0,6})?$
+      required:
+      - factor_to_base
+      - item
+      - unit_name
     User:
       type: object
       properties:
@@ -10735,73 +11837,6 @@ components:
         * `HOTEL_RESTAURANT` - Hotel Restaurant
         * `FOOD_COURT` - Food Court
         * `BAR_BREWERY` - Bar / Brewery
-    WastageLog:
-      type: object
-      properties:
-        id:
-          type: string
-          format: uuid
-          readOnly: true
-        ingredient:
-          type: string
-          format: uuid
-        ingredient_name:
-          type: string
-          readOnly: true
-        ingredient_unit:
-          type: string
-          readOnly: true
-        quantity:
-          type: string
-          format: decimal
-          pattern: ^-?\d{0,9}(?:\.\d{0,3})?$
-        reason:
-          $ref: '#/components/schemas/ReasonEnum'
-        cost_loss_paise:
-          type: integer
-          readOnly: true
-          description: Total calculated monetary loss in integer paise
-        notes:
-          type: string
-        logged_by:
-          type: string
-          format: uuid
-          readOnly: true
-          nullable: true
-        logged_by_name:
-          type: string
-          readOnly: true
-        created_at:
-          type: string
-          format: date-time
-          readOnly: true
-      required:
-      - cost_loss_paise
-      - created_at
-      - id
-      - ingredient
-      - ingredient_name
-      - ingredient_unit
-      - logged_by
-      - logged_by_name
-      - quantity
-    WastageLogRequest:
-      type: object
-      properties:
-        ingredient:
-          type: string
-          format: uuid
-        quantity:
-          type: string
-          format: decimal
-          pattern: ^-?\d{0,9}(?:\.\d{0,3})?$
-        reason:
-          $ref: '#/components/schemas/ReasonEnum'
-        notes:
-          type: string
-      required:
-      - ingredient
-      - quantity
   securitySchemes:
     jwtAuth:
       type: http

@@ -80,6 +80,11 @@ class Permission:
     # Inventory
     INVENTORY_VIEW = "inventory.view"
     INVENTORY_MANAGE = "inventory.manage"
+    INVENTORY_RECEIVE = "inventory.receive"
+    INVENTORY_WASTE = "inventory.waste"
+    INVENTORY_COUNT = "inventory.count"
+    INVENTORY_APPROVE = "inventory.approve"
+    INVENTORY_COSTS = "inventory.costs"
 
     # Platform Admin
     PLATFORM_ADMIN = "platform.admin"

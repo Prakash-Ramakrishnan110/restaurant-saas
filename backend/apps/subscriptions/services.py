@@ -65,6 +65,9 @@ def get_entitlement(tenant: Any, key: str, default: Any = None) -> Any:
             "floor_editor": False,
             "table_merge": False,
             "courses": False,
+            "inventory": True,
+            "max_inventory_items": 200,
+            "inventory_advanced": False,
         }
         return default_limits.get(key, default)
 
@@ -134,6 +137,16 @@ def get_tenant_entitlements_summary(tenant: Any) -> dict[str, Any]:
     allows_room_service = bool(get_entitlement(tenant, "allows_room_service", False))
     allows_room_folio = bool(get_entitlement(tenant, "allows_room_folio", False))
     kds_multi_station = bool(get_entitlement(tenant, "kds_multi_station", False))
+    inventory_enabled = bool(get_entitlement(tenant, "inventory", True))
+    max_inventory_items = get_entitlement(tenant, "max_inventory_items", 200)
+    inventory_advanced = bool(get_entitlement(tenant, "inventory_advanced", False))
+
+    try:
+        from apps.inventory.models import InventoryItem
+
+        inventory_item_count = InventoryItem.unscoped.filter(tenant=tenant, is_active=True).count()
+    except Exception:
+        inventory_item_count = 0
 
     def calc_remaining(limit_val: int | None, current_val: int) -> int | None:
         if limit_val is None or limit_val < 0:
@@ -192,6 +205,14 @@ def get_tenant_entitlements_summary(tenant: Any) -> dict[str, Any]:
             "allows_room_service": {"enabled": allows_room_service},
             "allows_room_folio": {"enabled": allows_room_folio},
             "kds_multi_station": {"enabled": kds_multi_station},
+            "inventory": {"enabled": inventory_enabled},
+            "inventory_advanced": {"enabled": inventory_advanced},
+            "max_inventory_items": {
+                "limit": max_inventory_items,
+                "current": inventory_item_count,
+                "remaining": calc_remaining(max_inventory_items, inventory_item_count),
+                "over_limit": is_over(max_inventory_items, inventory_item_count),
+            },
         },
         "usage": {
             "branches": branch_count,
@@ -199,6 +220,7 @@ def get_tenant_entitlements_summary(tenant: Any) -> dict[str, Any]:
             "tables": table_count,
             "menu_items": menu_item_count,
             "image_storage_mb": img_mb,
+            "inventory_items": inventory_item_count,
         },
     }
 

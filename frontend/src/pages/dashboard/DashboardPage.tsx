@@ -19,6 +19,7 @@ import {
   Bed,
   Tent,
   Zap,
+  Boxes,
 } from "lucide-react";
 import { Button } from "../../components/ui/button";
 import {
@@ -110,6 +111,15 @@ interface TableOccupancy {
   occupied: number;
   reserved: number;
   percent: number;
+}
+
+interface StockHealthResponse {
+  failed_deductions?: Array<{ id: string }>;
+  summary?: {
+    low_stock_count?: number;
+    out_of_stock_count?: number;
+    negative_stock_count?: number;
+  };
 }
 
 export function getUsageMeterColor(
@@ -214,6 +224,7 @@ export const DashboardPage: React.FC = () => {
   // Operational widgets state
   const [occupancy, setOccupancy] = useState<TableOccupancy | null>(null);
   const [delayedTickets, setDelayedTickets] = useState<KDSTicket[]>([]);
+  const [stockHealth, setStockHealth] = useState<StockHealthResponse | null>(null);
   const [waiterCallActive, setWaiterCallActive] = useState<{
     id: string;
     target: string;
@@ -239,13 +250,15 @@ export const DashboardPage: React.FC = () => {
     const fetchDashboardData = async () => {
       setLoading(true);
       try {
-        const [entRes, onbRes, reportRes, tablesRes, kdsRes] = await Promise.allSettled([
-          apiClient.get<EntitlementsResponse>("/entitlements/"),
-          apiClient.get<OnboardingResponse>("/onboarding/status/"),
-          ordersApi.getTodayReport(),
-          apiClient.get<any>("/tables/"),
-          ordersApi.getKDSTickets(),
-        ]);
+        const [entRes, onbRes, reportRes, tablesRes, kdsRes, stockHealthRes] =
+          await Promise.allSettled([
+            apiClient.get<EntitlementsResponse>("/entitlements/"),
+            apiClient.get<OnboardingResponse>("/onboarding/status/"),
+            ordersApi.getTodayReport(),
+            apiClient.get<any>("/tables/"),
+            ordersApi.getKDSTickets(),
+            apiClient.get<StockHealthResponse>("/inventory/health/"),
+          ]);
 
         if (isMounted) {
           if (entRes.status === "fulfilled") {
@@ -301,6 +314,10 @@ export const DashboardPage: React.FC = () => {
                 t.status !== "CANCELLED"
             );
             setDelayedTickets(delayed);
+          }
+
+          if (stockHealthRes.status === "fulfilled") {
+            setStockHealth(stockHealthRes.value.data);
           }
         }
       } finally {
@@ -968,6 +985,29 @@ export const DashboardPage: React.FC = () => {
             Invite managers, cashiers, and waiters with scoped branch access.
           </p>
         </Link>
+
+        {(currentRole === "OWNER" || currentRole === "BRANCH_MANAGER") && (
+          <Link
+            to="/inventory"
+            data-testid="dashboard-stock-health-card"
+            className="p-5 rounded-xl border border-border bg-card hover:border-[#FF6A00] transition-all group"
+          >
+            <div className="flex items-center justify-between mb-3">
+              <Boxes className="h-6 w-6 text-[#FF6A00] group-hover:scale-110 transition-transform" />
+              {(stockHealth?.failed_deductions?.length ?? 0) > 0 && (
+                <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-destructive/15 text-destructive">
+                  {stockHealth?.failed_deductions?.length} retry needed
+                </span>
+              )}
+            </div>
+            <h4 className="font-bold text-foreground text-sm font-heading">Stock Health</h4>
+            <p className="text-xs text-muted-foreground mt-1">
+              {stockHealth?.summary
+                ? `${stockHealth.summary.low_stock_count ?? 0} low stock · ${stockHealth.summary.out_of_stock_count ?? 0} out · ${stockHealth.summary.negative_stock_count ?? 0} negative`
+                : "Track live ingredient stock, low-stock alerts, and wastage."}
+            </p>
+          </Link>
+        )}
       </div>
 
       <UpgradeModal

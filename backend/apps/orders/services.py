@@ -45,6 +45,47 @@ ALLOWED_TRANSITIONS: dict[str, list[str]] = {
 
 
 @transaction.atomic
+def _schedule_order_stock_deduction(order: Order) -> None:
+    """Enqueue idempotent post-commit stock & takeaway packaging deduction tasks."""
+    line_ids = [str(lid) for lid in order.items.values_list("id", flat=True)]
+    order_id = str(order.id)
+    is_takeaway = order.order_workflow == OrderWorkflow.COUNTER_TOKEN
+
+    def _enqueue() -> None:
+        try:
+            from apps.inventory.tasks import (
+                deduct_order_line_stock_task,
+                deduct_takeaway_packaging_task,
+            )
+
+            for lid in line_ids:
+                deduct_order_line_stock_task.delay(lid)
+            if is_takeaway:
+                deduct_takeaway_packaging_task.delay(order_id)
+        except Exception:
+            pass
+
+    transaction.on_commit(_enqueue)
+
+
+def _schedule_order_cancellation_waste(order: Order, *, was_preparing: bool) -> None:
+    """Enqueue post-commit CANCELLED_AFTER_COOKING waste task when cancelled after preparing."""
+    if not was_preparing:
+        return
+    line_ids = [str(lid) for lid in order.items.values_list("id", flat=True)]
+
+    def _enqueue() -> None:
+        try:
+            from apps.inventory.tasks import cancel_order_line_deduction_task
+
+            for lid in line_ids:
+                cancel_order_line_deduction_task.delay(lid, True)
+        except Exception:
+            pass
+
+    transaction.on_commit(_enqueue)
+
+
 def transition_order_status(
     order: Order,
     new_status: str,
@@ -80,13 +121,15 @@ def transition_order_status(
 
     order.save()
 
-    if new_status in (OrderStatus.SERVED, OrderStatus.COMPLETED):
-        try:
-            from apps.inventory.services import deplete_stock_for_order
-
-            deplete_stock_for_order(order)
-        except Exception:
-            pass
+    if new_status == OrderStatus.PREPARING:
+        _schedule_order_stock_deduction(order)
+    elif new_status == OrderStatus.CANCELLED:
+        was_preparing = from_status in {
+            OrderStatus.PREPARING,
+            OrderStatus.READY,
+            OrderStatus.SERVED,
+        }
+        _schedule_order_cancellation_waste(order, was_preparing=was_preparing)
 
     event_type = (
         OrderEventType.CANCELLED
@@ -499,6 +542,7 @@ def settle_bill(
                 user=user_membership,
                 notes=f"Settled on invoice {invoice.invoice_number}",
             )
+            _schedule_order_stock_deduction(ord_obj)
 
         # Close table session and release physical table
         table_session.status = "CLOSED"
@@ -616,6 +660,7 @@ def settle_order_bill(
                 user=user_membership,
                 notes=f"Settled on counter invoice {invoice.invoice_number}",
             )
+        _schedule_order_stock_deduction(order)
         return invoice
     finally:
         if token is not None:

@@ -38,6 +38,11 @@ ROLE_PERMISSIONS: dict[str, set[str]] = {
         Permission.AUDIT_VIEW,
         Permission.INVENTORY_VIEW,
         Permission.INVENTORY_MANAGE,
+        Permission.INVENTORY_RECEIVE,
+        Permission.INVENTORY_WASTE,
+        Permission.INVENTORY_COUNT,
+        Permission.INVENTORY_APPROVE,
+        Permission.INVENTORY_COSTS,
     },
     Role.BRANCH_MANAGER: {
         Permission.BUSINESS_VIEW,
@@ -66,6 +71,11 @@ ROLE_PERMISSIONS: dict[str, set[str]] = {
         Permission.AUDIT_VIEW,
         Permission.INVENTORY_VIEW,
         Permission.INVENTORY_MANAGE,
+        Permission.INVENTORY_RECEIVE,
+        Permission.INVENTORY_WASTE,
+        Permission.INVENTORY_COUNT,
+        Permission.INVENTORY_APPROVE,
+        Permission.INVENTORY_COSTS,
     },
     Role.CASHIER: {
         Permission.TABLE_VIEW,
@@ -76,6 +86,7 @@ ROLE_PERMISSIONS: dict[str, set[str]] = {
         Permission.ORDER_CREATE,
         Permission.ORDER_CANCEL,
         Permission.PRINTER_REPRINT,
+        Permission.INVENTORY_WASTE,
     },
     Role.WAITER: {
         Permission.TABLE_VIEW,
@@ -91,6 +102,10 @@ ROLE_PERMISSIONS: dict[str, set[str]] = {
         Permission.MENU_VIEW,
         Permission.MENU_AVAILABILITY,
         Permission.PRINTER_REPRINT,
+        Permission.INVENTORY_VIEW,
+        Permission.INVENTORY_RECEIVE,
+        Permission.INVENTORY_WASTE,
+        Permission.INVENTORY_COUNT,
     },
     Role.INVENTORY_MANAGER: {
         Permission.MENU_VIEW,
@@ -98,6 +113,9 @@ ROLE_PERMISSIONS: dict[str, set[str]] = {
         Permission.MENU_AVAILABILITY,
         Permission.INVENTORY_VIEW,
         Permission.INVENTORY_MANAGE,
+        Permission.INVENTORY_RECEIVE,
+        Permission.INVENTORY_WASTE,
+        Permission.INVENTORY_COUNT,
     },
 }
 

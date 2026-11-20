@@ -181,6 +181,18 @@ const InventoryReportsPage = lazyNamed(
   () => import("./pages/inventory/InventoryReportsPage"),
   "InventoryReportsPage"
 );
+const ReceiveStockPage = lazyNamed(
+  () => import("./pages/inventory/ReceiveStockPage"),
+  "ReceiveStockPage"
+);
+const StockCountsPage = lazyNamed(
+  () => import("./pages/inventory/StockCountsPage"),
+  "StockCountsPage"
+);
+const InventorySettingsPage = lazyNamed(
+  () => import("./pages/inventory/InventorySettingsPage"),
+  "InventorySettingsPage"
+);
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -501,6 +513,30 @@ export const StaffApp: React.FC = () => {
                 element={
                   <ProtectedRoute>
                     <InventoryReportsPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/inventory/receive"
+                element={
+                  <ProtectedRoute>
+                    <ReceiveStockPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/inventory/counts"
+                element={
+                  <ProtectedRoute>
+                    <StockCountsPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/inventory/settings"
+                element={
+                  <ProtectedRoute>
+                    <InventorySettingsPage />
                   </ProtectedRoute>
                 }
               />

@@ -116,7 +116,14 @@ describe("Sidebar Map & Navigation Synchronization", () => {
     expect(allPaths).toContain("/onboarding");
     expect(allPaths).toContain("/branches");
     expect(allPaths).toContain("/venue");
-    expect(allPaths).not.toContain("/inventory");
+    expect(allPaths).toContain("/inventory");
+    expect(allPaths).toContain("/inventory/receive");
+    expect(allPaths).toContain("/inventory/wastage");
+    expect(allPaths).toContain("/inventory/counts");
+    expect(allPaths).toContain("/inventory/recipes");
+    expect(allPaths).toContain("/inventory/purchases");
+    expect(allPaths).toContain("/inventory/reports");
+    expect(allPaths).toContain("/inventory/settings");
     expect(allPaths).toContain("/qr");
     expect(allPaths).toContain("/staff");
     expect(allPaths).toContain("/settings/branding");
@@ -147,6 +154,47 @@ describe("Sidebar Map & Navigation Synchronization", () => {
 
     const serveItem = dailyGroup?.items.find((i) => i.path === "/serve");
     expect(serveItem?.label).toBe("Ready for Pickup");
+
+    // Tea shop (simple mode) sees Stock, Receive stock, Wastage, Counts, Reports only
+    expect(allPaths).toContain("/inventory");
+    expect(allPaths).toContain("/inventory/receive");
+    expect(allPaths).toContain("/inventory/wastage");
+    expect(allPaths).toContain("/inventory/counts");
+    expect(allPaths).toContain("/inventory/reports");
+    expect(allPaths).not.toContain("/inventory/recipes");
+    expect(allPaths).not.toContain("/inventory/purchases");
+    expect(allPaths).not.toContain("/inventory/settings");
+  });
+
+  it("waiter sees zero inventory links and kitchen sees stock/receive/wastage/counts only", () => {
+    const waiterGroups = getNavigationGroups({
+      role: "WAITER",
+      usesTables: true,
+      can: (p) => ["table.view", "menu.view", "order.create"].includes(p),
+    });
+    const waiterPaths = waiterGroups.flatMap((g) => g.items.map((i) => i.path));
+    expect(waiterPaths.some((p) => p.startsWith("/inventory"))).toBe(false);
+
+    const kitchenGroups = getNavigationGroups({
+      role: "KITCHEN",
+      usesTables: true,
+      can: (p) =>
+        [
+          "menu.view",
+          "menu.availability",
+          "inventory.view",
+          "inventory.receive",
+          "inventory.waste",
+          "inventory.count",
+        ].includes(p),
+    });
+    const kitchenPaths = kitchenGroups.flatMap((g) => g.items.map((i) => i.path));
+    expect(kitchenPaths).toContain("/inventory");
+    expect(kitchenPaths).toContain("/inventory/receive");
+    expect(kitchenPaths).toContain("/inventory/wastage");
+    expect(kitchenPaths).toContain("/inventory/counts");
+    expect(kitchenPaths).not.toContain("/inventory/recipes");
+    expect(kitchenPaths).not.toContain("/inventory/reports");
   });
 
   it("hotel venue shows unified venue layout and inventory in navigation", () => {
@@ -161,7 +209,7 @@ describe("Sidebar Map & Navigation Synchronization", () => {
     const groups = getNavigationGroups(hotelCtx);
     const allPaths = groups.flatMap((g) => g.items.map((i) => i.path));
     expect(allPaths).toContain("/venue");
-    expect(allPaths).not.toContain("/inventory");
+    expect(allPaths).toContain("/inventory");
   });
 
   it("waiter role sees only floor operations and menu", () => {
@@ -184,7 +232,7 @@ describe("Sidebar Map & Navigation Synchronization", () => {
     expect(paths).not.toContain("/admin");
   });
 
-  it("kitchen role sees strictly KDS, availability and menu", () => {
+  it("kitchen role sees KDS, availability, menu, and kitchen inventory tools", () => {
     const kitchenCtx: NavigationContext = {
       role: "KITCHEN",
       can: () => true,
@@ -193,7 +241,15 @@ describe("Sidebar Map & Navigation Synchronization", () => {
     const groups = getNavigationGroups(kitchenCtx);
     const paths = groups.flatMap((g) => g.items.map((i) => i.path));
 
-    expect(paths).toEqual(["/kds", "/menu/availability", "/menu"]);
+    expect(paths).toEqual([
+      "/kds",
+      "/menu/availability",
+      "/menu",
+      "/inventory",
+      "/inventory/receive",
+      "/inventory/wastage",
+      "/inventory/counts",
+    ]);
     expect(paths).not.toContain("/billing");
     expect(paths).not.toContain("/pos");
     expect(paths).not.toContain("/orders");

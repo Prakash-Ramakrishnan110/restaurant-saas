@@ -1,353 +1,653 @@
+from __future__ import annotations
+
+import pathlib
+import re
+import uuid
 from decimal import Decimal
+from typing import Any
 
 import pytest
-from django.contrib.auth import get_user_model
+from django.core.management import call_command
+from django.db import connection
+from django.test.utils import CaptureQueriesContext
+from rest_framework import status
 from rest_framework.test import APIClient
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from apps.accounts.models import Membership
+from apps.accounts.models import Membership, User
 from apps.core.context import set_current_tenant
 from apps.inventory.constants import (
-    IngredientCategory,
-    PurchaseOrderStatus,
-    StockTransactionType,
-    UnitOfMeasure,
-    WastageReason,
+    BaseUnit,
+    DeductionStatus,
+    InventoryCategory,
+    InventoryItemType,
+    InventoryMode,
+    PackagingMode,
+    StockCountStatus,
+    StockMovementType,
+    WasteReason,
 )
 from apps.inventory.models import (
-    Ingredient,
+    InventoryItem,
+    OrderLineStockDeduction,
     Recipe,
-    RecipeItem,
-    StockTransaction,
+    RecipeLine,
+    StockLevel,
+    StockMovement,
     Supplier,
+    UnitConversion,
 )
 from apps.inventory.services import (
-    deplete_stock_for_order,
+    cancel_order_line_deduction,
+    deduct_order_line,
+    deduct_takeaway_packaging,
+    get_or_create_default_location,
+    post_stock_movement,
+    rebuild_and_compare_stock_levels,
+    round_paise,
+    sanitize_csv_cell,
 )
-from apps.menu.constants import FoodType
-from apps.menu.models import MenuCategory, MenuItem
+from apps.menu.models import ItemVariant, MenuCategory, MenuItem
 from apps.orders.models import Order, OrderItem, OrderStatus, OrderWorkflow
-from apps.rbac.constants import Role
-from apps.subscriptions.constants import SubscriptionStatus
-from apps.subscriptions.models import Plan, Subscription
+from apps.subscriptions.models import Plan, Subscription, SubscriptionStatus
 from apps.tenants.models import Branch, Tenant
+from apps.tenants.services import create_tenant_with_defaults
 
-User = get_user_model()
+
+def _client_for(user: User, tenant: Tenant) -> APIClient:
+    client = APIClient()
+    token = str(RefreshToken.for_user(user).access_token)
+    client.credentials(
+        HTTP_AUTHORIZATION=f"Bearer {token}",
+        HTTP_X_TENANT_ID=str(tenant.id),
+    )
+    return client
 
 
 @pytest.fixture
-def inventory_env():
-    tenant = Tenant.objects.create(
-        name="Spice Garden", slug="spice-garden", status=Tenant.Status.ACTIVE
+def inv_env() -> dict[str, Any]:
+    tenant, owner, _ = create_tenant_with_defaults(
+        name="Spice Vault Test",
+        slug="spice-vault-test",
+        owner_email="owner@spicevault.test",
+        owner_full_name="Vault Owner",
     )
+    owner.must_change_password = False
+    owner.save(update_fields=["must_change_password"])
     set_current_tenant(tenant)
-    plan = Plan.objects.create(name="Pro", slug="pro", entitlements={})
+    branch = Branch.objects.create(tenant=tenant, name="Main Branch")
+    plan = Plan.objects.create(
+        name="Standard Test Plan",
+        slug="standard-inv-test",
+        price_paise=199900,
+        entitlements={
+            "inventory": True,
+            "max_inventory_items": 500,
+            "inventory_advanced": False,
+        },
+    )
+    Subscription.objects.filter(tenant=tenant).delete()
     Subscription.objects.create(tenant=tenant, plan=plan, status=SubscriptionStatus.ACTIVE)
-    branch = Branch.objects.create(tenant=tenant, name="Main Outlet")
 
-    user = User.objects.create_user(
-        email="inventory@spicegarden.com", password="Password123!", full_name="Inventory Lead"
-    )
-    membership = Membership.objects.create(
-        user=user, tenant=tenant, role=Role.INVENTORY_MANAGER, is_active=True
-    )
-
-    client = APIClient()
-    token = str(RefreshToken.for_user(user).access_token)
-    client.credentials(HTTP_AUTHORIZATION=f"Bearer {token}")
-    client.defaults["HTTP_X_TENANT_ID"] = str(tenant.id)
-
-    # Create Menu Category & Items
-    cat = MenuCategory.objects.create(tenant=tenant, name="Main Course")
-    biryani = MenuItem.objects.create(
-        tenant=tenant,
-        category=cat,
-        name="Chicken Biryani",
-        base_price_paise=28000,
-        food_type=FoodType.NON_VEG,
-    )
+    roles: dict[str, APIClient] = {"OWNER": _client_for(owner, tenant)}
+    for role in ["BRANCH_MANAGER", "INVENTORY_MANAGER", "KITCHEN", "CASHIER", "WAITER"]:
+        u = User.objects.create_user(
+            email=f"{role.lower()}@spicevault.test",
+            password="Password123!",
+            full_name=f"{role} User",
+            is_active=True,
+        )
+        u.must_change_password = False
+        u.save(update_fields=["must_change_password"])
+        m = Membership.objects.create(tenant=tenant, user=u, role=role, is_active=True)
+        m.branches.add(branch)
+        roles[role] = _client_for(u, tenant)
 
     return {
         "tenant": tenant,
         "branch": branch,
-        "user": user,
-        "membership": membership,
-        "client": client,
-        "biryani": biryani,
+        "owner": owner,
+        "plan": plan,
+        "clients": roles,
     }
 
 
 @pytest.mark.django_db
-def test_supplier_crud(inventory_env):
-    client = inventory_env["client"]
-    tenant = inventory_env["tenant"]
-
-    res = client.post(
-        "/api/v1/inventory/suppliers/",
-        {
-            "name": "Metro Cash & Carry",
-            "contact_person": "Ramesh Kumar",
-            "phone": "9876543210",
-            "email": "metro@supplies.com",
-            "address": "Koyambedu Wholesale Market, Chennai",
-            "gstin": "33AAAAA0000A1Z5",
-        },
-        format="json",
+def test_stock_movement_is_strictly_append_only_model_and_queryset(inv_env: dict[str, Any]) -> None:
+    tenant = inv_env["tenant"]
+    branch = inv_env["branch"]
+    item = InventoryItem.unscoped.create(
+        tenant=tenant, name="Paneer Block", base_unit=BaseUnit.GRAM
     )
-    assert res.status_code == 201
-    supplier_id = res.data["id"]
+    mv = post_stock_movement(
+        branch=branch,
+        item=item,
+        movement_type=StockMovementType.OPENING,
+        quantity=Decimal("1000.000"),
+        unit_cost_paise=40,
+    )
 
-    supplier = Supplier.objects.get(id=supplier_id, tenant=tenant)
-    assert supplier.name == "Metro Cash & Carry"
-    assert supplier.contact_person == "Ramesh Kumar"
+    with pytest.raises(PermissionError):
+        mv.notes = "tampered"
+        mv.save()
 
-    # List
-    list_res = client.get("/api/v1/inventory/suppliers/")
-    assert list_res.status_code == 200
-    assert len(list_res.data["results"]) == 1
+    with pytest.raises(PermissionError):
+        mv.delete()
+
+    with pytest.raises(PermissionError):
+        StockMovement.unscoped.filter(pk=mv.pk).update(notes="tampered")
+
+    with pytest.raises(PermissionError):
+        StockMovement.unscoped.filter(pk=mv.pk).delete()
 
 
 @pytest.mark.django_db
-def test_ingredient_crud_and_stock_adjustment(inventory_env):
-    client = inventory_env["client"]
-    tenant = inventory_env["tenant"]
-
-    # 1. Create Basmati Rice
-    res = client.post(
-        "/api/v1/inventory/ingredients/",
-        {
-            "name": "Basmati Rice",
-            "name_ta": "பாசுமதி அரிசி",
-            "sku": "RIC-BAS-01",
-            "category": IngredientCategory.DRY_GOODS,
-            "unit": UnitOfMeasure.KG,
-            "cost_paise": 12000,  # ₹120.00 / kg
-            "current_stock": "50.000",
-            "min_threshold": "10.000",
-        },
-        format="json",
+def test_stock_level_equals_sum_of_movements_and_rebuild_command(inv_env: dict[str, Any]) -> None:
+    tenant = inv_env["tenant"]
+    branch = inv_env["branch"]
+    item = InventoryItem.unscoped.create(tenant=tenant, name="Milk", base_unit=BaseUnit.MILLILITER)
+    post_stock_movement(
+        branch=branch,
+        item=item,
+        movement_type=StockMovementType.OPENING,
+        quantity=Decimal("2000.000"),
+        unit_cost_paise=6,
     )
-    assert res.status_code == 201
-    ing_id = res.data["id"]
-
-    rice = Ingredient.objects.get(id=ing_id, tenant=tenant)
-    assert rice.cost_paise == 12000
-    assert rice.current_stock == Decimal("50.000")
-    assert rice.is_low_stock is False
-    assert rice.stock_value_paise == 50 * 12000
-
-    # 2. Adjust Stock down to 8 kg (below threshold)
-    adj_res = client.post(
-        f"/api/v1/inventory/ingredients/{ing_id}/adjust-stock/",
-        {"new_stock": "8.000", "notes": "End of week cycle count"},
-        format="json",
+    post_stock_movement(
+        branch=branch,
+        item=item,
+        movement_type=StockMovementType.WASTE,
+        quantity=Decimal("-250.000"),
+        reason_code=WasteReason.SPOILED,
     )
-    assert adj_res.status_code == 200
-    assert adj_res.data["current_stock"] == "8.000"
-    assert adj_res.data["is_low_stock"] is True
 
-    # 3. Check Audit StockTransaction
-    tx = StockTransaction.objects.filter(ingredient=rice).latest("created_at")
-    assert tx.transaction_type == StockTransactionType.MANUAL_ADJUSTMENT
-    assert tx.quantity_change == Decimal("-42.000")
-    assert tx.balance_after == Decimal("8.000")
+    res = rebuild_and_compare_stock_levels(tenant=tenant, apply=False)
+    assert res["mismatch_count"] == 0
+
+    # Artificially corrupt cached StockLevel and verify rebuild repairs it
+    lvl = StockLevel.unscoped.get(branch=branch, item=item)
+    lvl.quantity = Decimal("999.000")
+    lvl.save(update_fields=["quantity"])
+
+    res_drift = rebuild_and_compare_stock_levels(tenant=tenant, apply=False)
+    assert res_drift["mismatch_count"] == 1
+
+    call_command("rebuild_stock_levels", "--apply")
+    lvl.refresh_from_db()
+    assert lvl.quantity == Decimal("1750.000")
+
+
+def test_decimal_rounding_half_up_and_csv_injection() -> None:
+    assert round_paise(Decimal("12.5")) == 13
+    assert round_paise(Decimal("12.499")) == 12
+    assert round_paise(Decimal("100.5")) == 101
+    assert sanitize_csv_cell("=SUM(A1:A2)") == "'=SUM(A1:A2)"
+    assert sanitize_csv_cell("+cmd") == "'+cmd"
+    assert sanitize_csv_cell("-100") == "'-100"
+    assert sanitize_csv_cell("@evil") == "'@evil"
+    assert sanitize_csv_cell("Paneer") == "Paneer"
 
 
 @pytest.mark.django_db
-def test_recipe_formulation_and_cost_calculation(inventory_env):
-    client = inventory_env["client"]
-    tenant = inventory_env["tenant"]
-    biryani = inventory_env["biryani"]
+def test_weighted_average_cost_and_unit_conversion_and_duplicate_invoice(
+    inv_env: dict[str, Any],
+) -> None:
+    tenant = inv_env["tenant"]
+    branch = inv_env["branch"]
+    owner_client = inv_env["clients"]["OWNER"]
 
-    # Create Ingredients
-    rice = Ingredient.objects.create(
-        tenant=tenant,
-        name="Basmati Rice",
-        unit=UnitOfMeasure.KG,
-        cost_paise=10000,  # ₹100/kg
-        current_stock=Decimal("100.000"),
+    supplier = Supplier.unscoped.create(tenant=tenant, name="Kaveri Dairy")
+    item = InventoryItem.unscoped.create(
+        tenant=tenant, name="Ghee", base_unit=BaseUnit.GRAM, reorder_level=Decimal("500.000")
     )
-    chicken = Ingredient.objects.create(
-        tenant=tenant,
-        name="Fresh Chicken",
-        unit=UnitOfMeasure.KG,
-        cost_paise=22000,  # ₹220/kg
-        current_stock=Decimal("50.000"),
+    UnitConversion.unscoped.create(
+        tenant=tenant, item=item, unit_name="tin", factor_to_base=Decimal("5000.000000")
     )
 
-    # Create Recipe for Biryani: 0.200 kg Rice + 0.250 kg Chicken for 1 serving
-    res = client.post(
+    # First receipt: 1 kg (1000g) at 50000 paise -> 50 paise/g
+    r1 = owner_client.post(
+        "/api/v1/inventory/receipts/",
+        {
+            "branch_id": str(branch.id),
+            "supplier": str(supplier.id),
+            "supplier_invoice_number": "INV-1001",
+            "lines": [
+                {"item": str(item.id), "quantity": "1", "unit_name": "kg", "unit_cost_paise": 50000}
+            ],
+        },
+        format="json",
+    )
+    assert r1.status_code == status.HTTP_201_CREATED
+
+    # Duplicate invoice blocked with 409 unless confirmed
+    r_dup = owner_client.post(
+        "/api/v1/inventory/receipts/",
+        {
+            "branch_id": str(branch.id),
+            "supplier": str(supplier.id),
+            "supplier_invoice_number": "INV-1001",
+            "lines": [
+                {"item": str(item.id), "quantity": "1", "unit_name": "kg", "unit_cost_paise": 70000}
+            ],
+        },
+        format="json",
+    )
+    assert r_dup.status_code == status.HTTP_409_CONFLICT
+
+    # Confirmed second receipt: 1 kg (1000g) at 70000 paise -> WAC = (50000+70000)/2000 = 60 paise/g
+    r2 = owner_client.post(
+        "/api/v1/inventory/receipts/",
+        {
+            "branch_id": str(branch.id),
+            "supplier": str(supplier.id),
+            "supplier_invoice_number": "INV-1001",
+            "confirm_duplicate": True,
+            "lines": [
+                {"item": str(item.id), "quantity": "1", "unit_name": "kg", "unit_cost_paise": 70000}
+            ],
+        },
+        format="json",
+    )
+    assert r2.status_code == status.HTTP_201_CREATED
+    lvl = StockLevel.unscoped.get(branch=branch, item=item)
+    assert lvl.quantity == Decimal("2000.000")
+    assert lvl.weighted_avg_cost_paise == 60
+
+
+@pytest.mark.django_db
+def test_recipe_scaling_variant_waste_cycle_rejection_and_deduction_idempotency(
+    inv_env: dict[str, Any],
+) -> None:
+    tenant = inv_env["tenant"]
+    branch = inv_env["branch"]
+    owner_client = inv_env["clients"]["OWNER"]
+
+    chicken = InventoryItem.unscoped.create(tenant=tenant, name="Chicken", base_unit=BaseUnit.GRAM)
+    prep_a = InventoryItem.unscoped.create(
+        tenant=tenant, name="Prep A", item_type=InventoryItemType.PREPARED, base_unit=BaseUnit.GRAM
+    )
+    prep_b = InventoryItem.unscoped.create(
+        tenant=tenant, name="Prep B", item_type=InventoryItemType.PREPARED, base_unit=BaseUnit.GRAM
+    )
+
+    # Opening 5000g chicken
+    post_stock_movement(
+        branch=branch,
+        item=chicken,
+        movement_type=StockMovementType.OPENING,
+        quantity=Decimal("5000.000"),
+        unit_cost_paise=40,
+    )
+
+    # Self-cycle rejected
+    r_self = owner_client.post(
         "/api/v1/inventory/recipes/",
         {
-            "menu_item": str(biryani.id),
-            "yield_servings": "1.00",
-            "preparation_instructions": "Dum cooking for 45 minutes",
-            "items": [
-                {"ingredient": str(rice.id), "quantity": "0.200"},
-                {"ingredient": str(chicken.id), "quantity": "0.250"},
+            "output_item": str(prep_a.id),
+            "yield_portions": "1",
+            "lines": [{"item": str(prep_a.id), "quantity_per_portion": "100"}],
+        },
+        format="json",
+    )
+    assert r_self.status_code == status.HTTP_400_BAD_REQUEST
+
+    # Transitive cycle Prep A -> Prep B -> Prep A rejected
+    r_ab = owner_client.post(
+        "/api/v1/inventory/recipes/",
+        {
+            "output_item": str(prep_a.id),
+            "yield_portions": "1",
+            "lines": [{"item": str(prep_b.id), "quantity_per_portion": "100"}],
+        },
+        format="json",
+    )
+    assert r_ab.status_code == status.HTTP_201_CREATED
+    r_ba = owner_client.post(
+        "/api/v1/inventory/recipes/",
+        {
+            "output_item": str(prep_b.id),
+            "yield_portions": "1",
+            "lines": [{"item": str(prep_a.id), "quantity_per_portion": "100"}],
+        },
+        format="json",
+    )
+    assert r_ba.status_code == status.HTTP_400_BAD_REQUEST
+
+    # Menu item with variant + 10% waste
+    cat = MenuCategory.objects.create(tenant=tenant, name="Mains")
+    dish = MenuItem.objects.create(
+        tenant=tenant, category=cat, name="Chicken Curry", base_price_paise=30000
+    )
+    large = ItemVariant.objects.create(item=dish, name="Large", price_paise=45000)
+
+    r_var = owner_client.post(
+        "/api/v1/inventory/recipes/",
+        {
+            "menu_item": str(dish.id),
+            "variant": str(large.id),
+            "yield_portions": "1",
+            "lines": [
+                {"item": str(chicken.id), "quantity_per_portion": "200", "waste_percent": "10"}
             ],
         },
         format="json",
     )
-    assert res.status_code == 201
-    recipe_id = res.data["id"]
+    assert r_var.status_code == status.HTTP_201_CREATED
 
-    recipe = Recipe.objects.get(id=recipe_id, tenant=tenant)
-    assert recipe.items.count() == 2
-    # Expected cost: 0.200 * 10000 (2000p) + 0.250 * 22000 (5500p) = 7500 paise (₹75.00)
-    assert recipe.total_cost_paise == 7500
-
-
-@pytest.mark.django_db
-def test_purchase_order_receiving_and_cost_averaging(inventory_env):
-    client = inventory_env["client"]
-    tenant = inventory_env["tenant"]
-
-    supplier = Supplier.objects.create(tenant=tenant, name="Fresh Farms Ltd")
-    milk = Ingredient.objects.create(
-        tenant=tenant,
-        name="Full Cream Milk",
-        unit=UnitOfMeasure.LITER,
-        cost_paise=6000,  # ₹60.00 / L
-        current_stock=Decimal("20.000"),
-    )
-
-    # Create Draft PO: 30 Liters @ ₹65.00 (6500 paise)
-    res = client.post(
-        "/api/v1/inventory/purchases/",
-        {
-            "order_number": "PO-2026-001",
-            "supplier": str(supplier.id),
-            "invoice_number": "INV-FF-8891",
-            "items": [
-                {
-                    "ingredient": str(milk.id),
-                    "quantity": "30.000",
-                    "unit_price_paise": 6500,
-                    "batch_number": "BATCH-NOV-01",
-                }
-            ],
-        },
-        format="json",
-    )
-    assert res.status_code == 201
-    po_id = res.data["id"]
-    assert res.data["total_cost_paise"] == 30 * 6500
-
-    # Receive PO
-    rec_res = client.post(f"/api/v1/inventory/purchases/{po_id}/receive/")
-    assert rec_res.status_code == 200
-    assert rec_res.data["status"] == PurchaseOrderStatus.RECEIVED
-
-    milk.refresh_from_db()
-    # 20L + 30L = 50L
-    assert milk.current_stock == Decimal("50.000")
-    # Weighted average: (20 * 6000 + 30 * 6500) / 50 = (120000 + 195000) / 50 = 315000 / 50 = 6300 paise
-    assert milk.cost_paise == 6300
-
-
-@pytest.mark.django_db
-def test_wastage_logging(inventory_env):
-    client = inventory_env["client"]
-    tenant = inventory_env["tenant"]
-
-    paneer = Ingredient.objects.create(
-        tenant=tenant,
-        name="Fresh Paneer",
-        unit=UnitOfMeasure.KG,
-        cost_paise=35000,  # ₹350.00 / kg
-        current_stock=Decimal("10.000"),
-    )
-
-    # Log 2.5 kg expired paneer
-    res = client.post(
-        "/api/v1/inventory/wastage/",
-        {
-            "ingredient": str(paneer.id),
-            "quantity": "2.500",
-            "reason": WastageReason.EXPIRED,
-            "notes": "Power outage in chiller",
-        },
-        format="json",
-    )
-    assert res.status_code == 201
-    # Cost loss: 2.5 * 35000 = 87500 paise (₹875.00)
-    assert res.data["cost_loss_paise"] == 87500
-
-    paneer.refresh_from_db()
-    assert paneer.current_stock == Decimal("7.500")
-
-
-@pytest.mark.django_db
-def test_recipe_depletion_on_order(inventory_env):
-    tenant = inventory_env["tenant"]
-    branch = inventory_env["branch"]
-    biryani = inventory_env["biryani"]
-
-    rice = Ingredient.objects.create(
-        tenant=tenant,
-        name="Basmati Rice",
-        unit=UnitOfMeasure.KG,
-        cost_paise=10000,
-        current_stock=Decimal("50.000"),
-    )
-    recipe = Recipe.objects.create(tenant=tenant, menu_item=biryani, yield_servings=Decimal("1.00"))
-    RecipeItem.objects.create(
-        tenant=tenant, recipe=recipe, ingredient=rice, quantity=Decimal("0.200")
-    )
-
-    # Create Order for 3 Biryanis
     order = Order.objects.create(
         tenant=tenant,
         branch=branch,
-        order_number="ORD-001",
         order_workflow=OrderWorkflow.TABLE_SERVICE,
-        status=OrderStatus.PLACED,
+        status=OrderStatus.PREPARING,
     )
-    OrderItem.objects.create(
+    line = OrderItem.objects.create(
         order=order,
-        menu_item=biryani,
-        item_name=biryani.name,
-        quantity=3,
-        unit_price_paise=biryani.base_price_paise,
-        subtotal_paise=biryani.base_price_paise * 3,
+        menu_item=dish,
+        item_name=dish.name,
+        variant_name="Large",
+        quantity=2,
+        unit_price_paise=45000,
+        subtotal_paise=90000,
     )
 
-    # Deplete stock
-    depleted = deplete_stock_for_order(order)
-    assert depleted == 1
+    # First deduction: 2 * 200g * 1.10 = 440g
+    d1 = deduct_order_line(line.id)
+    assert d1 is not None and d1.status == DeductionStatus.COMPLETED
+    # Idempotency: second call deducts nothing
+    d2 = deduct_order_line(line.id)
+    assert d2 is not None and d2.id == d1.id
 
-    rice.refresh_from_db()
-    # 50.000 - (3 * 0.200) = 49.400 kg
-    assert rice.current_stock == Decimal("49.400")
+    lvl = StockLevel.unscoped.get(branch=branch, item=chicken)
+    assert lvl.quantity == Decimal("4560.000")
+
+    # Cancel before preparing -> no waste; cancel after preparing -> WASTE movement
+    cancel_order_line_deduction(line.id, was_preparing=False)
+    lvl.refresh_from_db()
+    assert lvl.quantity == Decimal("4560.000")
+
+    cancel_order_line_deduction(line.id, was_preparing=True)
+    lvl.refresh_from_db()
+    assert lvl.quantity == Decimal("4120.000")
+    assert StockMovement.unscoped.filter(
+        branch=branch,
+        movement_type=StockMovementType.WASTE,
+        reason_code=WasteReason.CANCELLED_AFTER_COOKING,
+    ).exists()
 
 
 @pytest.mark.django_db
-def test_low_stock_alerts_and_variance_report(inventory_env):
-    client = inventory_env["client"]
-    tenant = inventory_env["tenant"]
+def test_twenty_orders_exact_deduction_and_takeaway_packaging_and_negative_stock(
+    inv_env: dict[str, Any],
+) -> None:
+    tenant = inv_env["tenant"]
+    branch = inv_env["branch"]
 
-    # Low stock item
-    onion = Ingredient.objects.create(
+    flour = InventoryItem.unscoped.create(tenant=tenant, name="Flour", base_unit=BaseUnit.GRAM)
+    box = InventoryItem.unscoped.create(
         tenant=tenant,
-        name="Red Onions",
-        category=IngredientCategory.VEGETABLE,
-        unit=UnitOfMeasure.KG,
-        cost_paise=4000,
-        current_stock=Decimal("3.000"),
-        min_threshold=Decimal("15.000"),
+        name="Takeaway Box",
+        item_type=InventoryItemType.PACKAGING,
+        base_unit=BaseUnit.PIECE,
+        packaging_mode=PackagingMode.PER_ORDER,
+        packaging_quantity=Decimal("1.000"),
+    )
+    post_stock_movement(
+        branch=branch,
+        item=flour,
+        movement_type=StockMovementType.OPENING,
+        quantity=Decimal("1000.000"),
+        unit_cost_paise=5,
+    )
+    post_stock_movement(
+        branch=branch,
+        item=box,
+        movement_type=StockMovementType.OPENING,
+        quantity=Decimal("10.000"),
+        unit_cost_paise=300,
     )
 
-    # 1. Low stock alerts
-    alert_res = client.get("/api/v1/inventory/reports/low-stock/")
-    assert alert_res.status_code == 200
-    assert len(alert_res.data) >= 1
-    item = next(a for a in alert_res.data if a["ingredient_id"] == str(onion.id))
-    assert item["deficit"] == 12.0
+    cat = MenuCategory.objects.create(tenant=tenant, name="Breads")
+    naan = MenuItem.objects.create(tenant=tenant, category=cat, name="Naan", base_price_paise=6000)
+    rec = Recipe.unscoped.create(tenant=tenant, menu_item=naan, yield_portions=Decimal("1.000"))
+    RecipeLine.unscoped.create(
+        tenant=tenant, recipe=rec, item=flour, quantity_per_portion=Decimal("100.000")
+    )
 
-    # 2. Variance report
-    report_res = client.get("/api/v1/inventory/reports/variance/")
-    assert report_res.status_code == 200
-    assert "total_food_sales_paise" in report_res.data
-    assert "food_cost_percentage" in report_res.data
-    assert "ingredients_breakdown" in report_res.data
+    for _ in range(20):
+        o = Order.objects.create(
+            tenant=tenant,
+            branch=branch,
+            order_workflow=OrderWorkflow.COUNTER_TOKEN,
+            status=OrderStatus.PREPARING,
+        )
+        oi = OrderItem.objects.create(
+            order=o,
+            menu_item=naan,
+            item_name=naan.name,
+            quantity=1,
+            unit_price_paise=6000,
+            subtotal_paise=6000,
+        )
+        deduct_order_line(oi.id)
+        deduct_takeaway_packaging(o.id)
+
+    # 1000 - 20*100 = -1000 (negative stock allowed and flagged)
+    flour_lvl = StockLevel.unscoped.get(branch=branch, item=flour)
+    box_lvl = StockLevel.unscoped.get(branch=branch, item=box)
+    assert flour_lvl.quantity == Decimal("-1000.000")
+    assert box_lvl.quantity == Decimal("-10.000")
+
+    alerts_res = inv_env["clients"]["OWNER"].get(f"/api/v1/inventory/alerts/?branch_id={branch.id}")
+    assert alerts_res.status_code == status.HTTP_200_OK
+    assert alerts_res.data["summary"]["negative_stock_count"] >= 2
+
+
+@pytest.mark.django_db
+def test_count_approval_thresholds_cost_omission_and_role_matrix(inv_env: dict[str, Any]) -> None:
+    tenant = inv_env["tenant"]
+    branch = inv_env["branch"]
+    clients = inv_env["clients"]
+
+    item = InventoryItem.unscoped.create(
+        tenant=tenant,
+        name="Cardamom",
+        base_unit=BaseUnit.GRAM,
+        category=InventoryCategory.SPICES_MASALA,
+    )
+    post_stock_movement(
+        branch=branch,
+        item=item,
+        movement_type=StockMovementType.OPENING,
+        quantity=Decimal("1000.000"),
+        unit_cost_paise=200,
+    )
+
+    # WAITER has zero inventory access
+    assert (
+        clients["WAITER"].get("/api/v1/inventory/items/").status_code == status.HTTP_403_FORBIDDEN
+    )
+    assert (
+        clients["WAITER"].get("/api/v1/inventory/alerts/").status_code == status.HTTP_403_FORBIDDEN
+    )
+
+    # KITCHEN can view items, but cost fields are COMPLETELY OMITTED
+    k_res = clients["KITCHEN"].get(f"/api/v1/inventory/items/?branch_id={branch.id}")
+    assert k_res.status_code == status.HTTP_200_OK
+    k_row = k_res.data["results"][0]
+    assert "weighted_avg_cost_paise" not in k_row
+    assert "stock_value_paise" not in k_row
+
+    # OWNER sees cost fields
+    o_res = clients["OWNER"].get(f"/api/v1/inventory/items/?branch_id={branch.id}")
+    assert o_res.status_code == status.HTTP_200_OK
+    o_row = o_res.data["results"][0]
+    assert o_row["weighted_avg_cost_paise"] == 200
+    assert o_row["stock_value_paise"] == 200000
+
+    # Threshold check: adjustment > 50000 paise blocked for KITCHEN, allowed for OWNER
+    big_adj_k = clients["KITCHEN"].post(
+        f"/api/v1/inventory/items/{item.id}/quick-update/",
+        {"branch_id": str(branch.id), "delta_quantity": "-500", "reason_code": "SPILL"},
+        format="json",
+    )
+    assert big_adj_k.status_code == status.HTTP_403_FORBIDDEN
+
+    # Stock count workflow: KITCHEN creates blind count & submits; KITCHEN cannot approve; OWNER approves
+    c_res = clients["KITCHEN"].post(
+        "/api/v1/inventory/counts/",
+        {"branch_id": str(branch.id), "count_type": "FULL", "is_blind": True},
+        format="json",
+    )
+    assert c_res.status_code == status.HTTP_201_CREATED
+    count_id = c_res.data["id"]
+    assert c_res.data["lines"][0]["expected_quantity"] is None
+
+    s_res = clients["KITCHEN"].post(
+        f"/api/v1/inventory/counts/{count_id}/submit/",
+        {"lines": [{"item_id": str(item.id), "counted_quantity": "900", "reason": "Evaporation"}]},
+        format="json",
+    )
+    assert s_res.status_code == status.HTTP_200_OK
+    assert s_res.data["status"] == StockCountStatus.SUBMITTED
+
+    a_k = clients["KITCHEN"].post(f"/api/v1/inventory/counts/{count_id}/approve/")
+    assert a_k.status_code == status.HTTP_403_FORBIDDEN
+
+    a_o = clients["OWNER"].post(f"/api/v1/inventory/counts/{count_id}/approve/")
+    assert a_o.status_code == status.HTTP_200_OK
+    assert a_o.data["status"] == StockCountStatus.APPROVED
+    assert StockLevel.unscoped.get(branch=branch, item=item).quantity == Decimal("900.000")
+
+    # Entitlement check: ADVANCED mode blocked when inventory_advanced=False
+    adv_res = clients["OWNER"].patch(
+        f"/api/v1/inventory/settings/?branch_id={branch.id}",
+        {"mode": InventoryMode.ADVANCED},
+        format="json",
+    )
+    assert adv_res.status_code == status.HTTP_403_FORBIDDEN
+
+
+@pytest.mark.django_db
+def test_isolation_query_count_500_items_and_failed_deduction_retry(
+    inv_env: dict[str, Any],
+) -> None:
+    tenant_a = inv_env["tenant"]
+    branch_a = inv_env["branch"]
+    client_a = inv_env["clients"]["OWNER"]
+
+    tenant_b, owner_b, _ = create_tenant_with_defaults(
+        name="Other Kitchen B",
+        slug="other-kitchen-b",
+        owner_email="owner@otherb.test",
+        owner_full_name="Owner B",
+    )
+    owner_b.must_change_password = False
+    owner_b.save(update_fields=["must_change_password"])
+    item_b = InventoryItem.unscoped.create(
+        tenant=tenant_b, name="Secret B", base_unit=BaseUnit.GRAM
+    )
+
+    # Foreign ID in URL -> 404
+    assert (
+        client_a.get(f"/api/v1/inventory/items/{item_b.id}/").status_code
+        == status.HTTP_404_NOT_FOUND
+    )
+    # Foreign ID in body -> 400 INVALID_REFERENCE identical to random UUID
+    res_foreign = client_a.post(
+        "/api/v1/inventory/wastage/",
+        {
+            "branch_id": str(branch_a.id),
+            "item": str(item_b.id),
+            "quantity": "10",
+            "reason_code": "SPOILED",
+        },
+        format="json",
+    )
+    res_random = client_a.post(
+        "/api/v1/inventory/wastage/",
+        {
+            "branch_id": str(branch_a.id),
+            "item": str(uuid.uuid4()),
+            "quantity": "10",
+            "reason_code": "SPOILED",
+        },
+        format="json",
+    )
+    assert res_foreign.status_code == status.HTTP_400_BAD_REQUEST
+    assert res_random.status_code == status.HTTP_400_BAD_REQUEST
+    assert res_foreign.data["error"]["code"] == "INVALID_REFERENCE"
+    assert res_random.data["error"]["code"] == "INVALID_REFERENCE"
+
+    # 500 items query-count test (constant queries, no N+1)
+    loc_a = get_or_create_default_location(branch_a)
+    bulk_items = [
+        InventoryItem(tenant=tenant_a, name=f"Bulk Item {i:04d}", base_unit=BaseUnit.GRAM)
+        for i in range(500)
+    ]
+    InventoryItem.unscoped.bulk_create(bulk_items)
+    StockLevel.unscoped.bulk_create(
+        [
+            StockLevel(
+                tenant=tenant_a,
+                branch=branch_a,
+                location=loc_a,
+                item=it,
+                quantity=Decimal("100.000"),
+            )
+            for it in bulk_items
+        ]
+    )
+    with CaptureQueriesContext(connection) as ctx:
+        res_list = client_a.get(f"/api/v1/inventory/items/?branch_id={branch_a.id}")
+    assert res_list.status_code == status.HTTP_200_OK
+    assert len(ctx) <= 15
+
+    # Failed deduction shows in Stock Health and retry succeeds
+    cat = MenuCategory.objects.create(tenant=tenant_a, name="TestCat")
+    mi = MenuItem.objects.create(
+        tenant=tenant_a, category=cat, name="TestDish", base_price_paise=10000
+    )
+    o = Order.objects.create(tenant=tenant_a, branch=branch_a, status=OrderStatus.PREPARING)
+    oi = OrderItem.objects.create(
+        order=o,
+        menu_item=mi,
+        item_name=mi.name,
+        quantity=1,
+        unit_price_paise=10000,
+        subtotal_paise=10000,
+    )
+    failed = OrderLineStockDeduction.unscoped.create(
+        tenant=tenant_a,
+        branch=branch_a,
+        order=o,
+        order_line=oi,
+        status=DeductionStatus.FAILED,
+        error_message="Simulated transient error",
+        attempts=1,
+    )
+    health_res = client_a.get(f"/api/v1/inventory/health/?branch_id={branch_a.id}")
+    assert health_res.status_code == status.HTTP_200_OK
+    assert len(health_res.data["failed_deductions"]) == 1
+
+    retry_res = client_a.post(
+        "/api/v1/inventory/health/",
+        {"branch_id": str(branch_a.id), "deduction_id": str(failed.id)},
+        format="json",
+    )
+    assert retry_res.status_code == status.HTTP_200_OK
+    assert retry_res.data["status"] == DeductionStatus.COMPLETED
+
+
+def test_static_scan_no_float_and_no_tax_words_in_inventory_app() -> None:
+    inv_dir = pathlib.Path(__file__).resolve().parent.parent
+    tax_pattern = re.compile(
+        r"\b(gst|gstin|cgst|sgst|igst|vat|tax_rate|tax_paise)\b", re.IGNORECASE
+    )
+    float_pattern = re.compile(r"\bfloat\s*\(|FloatField")
+
+    for py_file in inv_dir.rglob("*.py"):
+        if "migrations" in py_file.parts or "tests" in py_file.parts:
+            continue
+        content = py_file.read_text(encoding="utf-8")
+        assert not float_pattern.search(content), f"Prohibited float usage in {py_file}"
+        assert not tax_pattern.search(content), f"Prohibited tax word in {py_file}"

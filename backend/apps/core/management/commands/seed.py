@@ -943,6 +943,9 @@ class Command(BaseCommand):
                 f"{t.name:<22} | {v_profile:<16} | {plan_name:<14} | {areas_count:<6} | {tables_count:<7} | {qrs_count:<5} | {items_count:<5}"
             )
         set_current_tenant(None)
+        from apps.inventory.seed_data import seed_inventory_for_all_venues
+
+        seed_inventory_for_all_venues()
 
         self.stdout.write("=" * 90)
         self.stdout.write(
@@ -1639,3 +1642,6 @@ class Command(BaseCommand):
                     status="COOKING",
                 )
         set_current_tenant(None)
+        from apps.inventory.seed_data import seed_inventory_for_all_venues
+
+        seed_inventory_for_all_venues()
