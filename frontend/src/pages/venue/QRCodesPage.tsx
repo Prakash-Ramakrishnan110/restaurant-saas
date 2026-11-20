@@ -193,7 +193,11 @@ function getTargetDetails(item: QRCodeItem | SheetDataItem, origin: string) {
   };
 }
 
-export const QRCodesPage: React.FC = () => {
+interface QRCodesPageProps {
+  embedded?: boolean;
+}
+
+export const QRCodesPage: React.FC<QRCodesPageProps> = ({ embedded = false }) => {
   const { t } = useTranslation();
 
   const [qrCodes, setQrCodes] = useState<QRCodeItem[]>([]);
@@ -411,11 +415,12 @@ export const QRCodesPage: React.FC = () => {
     <div className="space-y-6">
       {/* Page Header (Hidden on Print) */}
       <div className="no-print">
-        <PageHeader
-          title={t("qr.title")}
-          description={t("qr.subtitle")}
-          breadcrumbs={[{ label: "Dashboard", href: "/dashboard" }, { label: "QR Codes" }]}
-          actions={
+        {embedded ? (
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <div>
+              <h2 className="text-lg font-bold text-foreground">{t("qr.title")}</h2>
+              <p className="text-xs text-muted-foreground">{t("qr.subtitle")}</p>
+            </div>
             <div className="flex items-center gap-3">
               <Button
                 variant="outline"
@@ -435,8 +440,35 @@ export const QRCodesPage: React.FC = () => {
                 {t("qr.printSheetButton")}
               </Button>
             </div>
-          }
-        />
+          </div>
+        ) : (
+          <PageHeader
+            title={t("qr.title")}
+            description={t("qr.subtitle")}
+            breadcrumbs={[{ label: "Dashboard", href: "/dashboard" }, { label: "QR Codes" }]}
+            actions={
+              <div className="flex items-center gap-3">
+                <Button
+                  variant="outline"
+                  onClick={fetchQrCodes}
+                  disabled={loading}
+                  className="min-h-[44px]"
+                >
+                  <RefreshCw className={`w-4 h-4 mr-2 ${loading ? "animate-spin" : ""}`} />
+                  Refresh
+                </Button>
+                <Button
+                  onClick={() => setPrintModalOpen(true)}
+                  disabled={loading || sheetData.length === 0}
+                  className="bg-[#FF6A00] hover:bg-[#E55F00] text-navy font-bold min-h-[44px]"
+                >
+                  <Printer className="w-4 h-4 mr-2" />
+                  {t("qr.printSheetButton")}
+                </Button>
+              </div>
+            }
+          />
+        )}
       </div>
 
       {errorMessage && (

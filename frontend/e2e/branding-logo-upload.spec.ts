@@ -23,10 +23,9 @@ test.describe("Branding Logo Upload & Preview Suite", () => {
       timeout: 10000,
     });
 
-    // 3. Create a valid 100x100 solid orange PNG
-    // Minimal valid 1x1 base64 PNG:
+    // 3. Create a valid 64x64 solid orange PNG
     const base64Png =
-      "iVBORw0KGgoAAAANSUhEUgAAAGQAAABkCAYAAABw4pVUAAAABHNCSVQICAgIfAhkiAAAADFJREFUeJztwTEBAAAAwqD1T20LL6AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAgDcaMAAB0/eRlwAAAABJRU5ErkJggg==";
+      "iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAIAAAAlC+aJAAAAYElEQVR4nO3PMQ0AIADAMEAu/n8QwdGQrAq2efb42tIBrxrQGtAa0BrQGtAa0BrQGtAa0BrQGtAa0BrQGtAa0BrQGtAa0BrQGtAa0BrQGtAa0BrQGtAa0BrQGtAa0BrQLk1dAenGmk4DAAAAAElFTkSuQmCC";
     const pngBuffer = Buffer.from(base64Png, "base64");
 
     // 4. Upload PNG via file input

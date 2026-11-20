@@ -317,7 +317,7 @@ export const BrandingSettingsPage: React.FC<BrandingSettingsPageProps> = ({
       )}
 
       {activeTab === "qr" ? (
-        <QRCodesPage key={qrRefreshKey} />
+        <QRCodesPage key={qrRefreshKey} embedded />
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
           {/* Left Form Column */}
