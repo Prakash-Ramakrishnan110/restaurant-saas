@@ -1,5 +1,16 @@
 import React, { useState, useEffect } from "react";
-import { Users, Plus, Edit2, Key, Shield, AlertTriangle, Check, Copy, Power } from "lucide-react";
+import {
+  Users,
+  Plus,
+  Edit2,
+  Key,
+  Shield,
+  AlertTriangle,
+  Check,
+  Copy,
+  Power,
+  Trash2,
+} from "lucide-react";
 import { PageHeader } from "../../components/app/PageHeader";
 import { Card, CardContent } from "../../components/ui/card";
 import { Button } from "../../components/ui/button";
@@ -54,6 +65,7 @@ export const StaffPage: React.FC = () => {
   const [editTarget, setEditTarget] = useState<StaffMembership | null>(null);
   const [resetTarget, setResetTarget] = useState<StaffMembership | null>(null);
   const [deactivateTarget, setDeactivateTarget] = useState<StaffMembership | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<StaffMembership | null>(null);
   const [actionLoading, setActionLoading] = useState<boolean>(false);
 
   // Temporary password modal (SHOWN ONCE)
@@ -212,6 +224,22 @@ export const StaffPage: React.FC = () => {
       await fetchStaff();
     } catch (err: any) {
       setErrorMessage(mapBackendErrorCode(err));
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleDeleteStaff = async () => {
+    if (!deleteTarget) return;
+    setActionLoading(true);
+    setErrorMessage(null);
+    try {
+      await apiClient.delete(`/staff/${deleteTarget.id}/?permanent=true`);
+      setDeleteTarget(null);
+      await fetchStaff();
+    } catch (err: any) {
+      setErrorMessage(err?.response?.data?.detail || mapBackendErrorCode(err));
+      setDeleteTarget(null);
     } finally {
       setActionLoading(false);
     }
@@ -397,10 +425,22 @@ export const StaffPage: React.FC = () => {
                           variant="ghost"
                           size="sm"
                           onClick={() => setDeactivateTarget(staff)}
-                          className="h-8 px-2 text-destructive hover:bg-destructive/10"
+                          className="h-8 px-2 text-amber-600 hover:bg-amber-50"
+                          title={staff.is_active ? "Deactivate staff" : "Activate staff"}
                         >
                           <Power className="w-3.5 h-3.5" />
                         </Button>
+                        {staff.user.id !== user?.id && staff.role !== "OWNER" && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => setDeleteTarget(staff)}
+                            className="h-8 px-2 text-destructive hover:bg-destructive/10"
+                            title="Delete staff member"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </Button>
+                        )}
                       </div>
                     )}
                   </td>
@@ -663,6 +703,18 @@ export const StaffPage: React.FC = () => {
         variant="destructive"
         isLoading={actionLoading}
         onConfirm={handleDeactivate}
+      />
+
+      {/* Delete Staff Confirm Dialog */}
+      <ConfirmDialog
+        open={Boolean(deleteTarget)}
+        onOpenChange={(open) => !open && setDeleteTarget(null)}
+        title={`Delete ${deleteTarget?.user.full_name || "Staff Member"}?`}
+        description="This will permanently remove this staff member from your restaurant. They will lose all access immediately."
+        confirmLabel="Delete Staff"
+        variant="destructive"
+        isLoading={actionLoading}
+        onConfirm={handleDeleteStaff}
       />
     </div>
   );

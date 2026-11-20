@@ -1,352 +1,394 @@
-import React, { useEffect, useState } from "react";
-import { Check, ChevronDown, Pause, Play } from "lucide-react";
-import { getWhatsAppHref } from "../../content/site";
+import React, { useEffect, useRef, useState } from "react";
+import { Check, ChevronDown, Clock, MessageCircle, Pause, Play } from "lucide-react";
+import { FEATURE_CLAIMS } from "../../content/claims";
+import { SITE_CONFIG, getWhatsAppHref, hasTodoValue } from "../../content/site";
+import { DemoForm } from "../components/DemoForm";
+import {
+  StepScreenPreview,
+  VenueMiniPreview,
+} from "../components/LiveAppPreview";
 import type { Lang } from "../routes";
-import { DeviceFrame } from "../components/DeviceFrame";
 
 interface HomePageProps {
   lang?: Lang;
   onNavigate?: (path: string) => void;
 }
 
-const JOURNEY_STEPS = [
+const STEPS = [
   {
     id: "order",
-    label: "Order",
-    caption: "Waiter takes the order at the table or counter on a phone.",
-    src: "/shots/waiter-order.webp",
-    alt: "Waiter taking an order on ServeMyFood phone screen",
+    label: "1. Order",
+    title: "Take the order at the table or counter",
+    desc: "Waiters tap dishes with photos and Tamil names, then send the order straight to the kitchen.",
   },
   {
     id: "kitchen",
-    label: "Kitchen",
-    caption: "Kitchen sees the ticket right away with a clear sound alert.",
-    src: "/shots/kitchen-kds.webp",
-    alt: "Kitchen display screen showing live order tickets",
+    label: "2. Kitchen",
+    title: "Kitchen gets the ticket with a sound alert",
+    desc: "Cooks see every ticket in order with kitchen notes and a live timer, then tap Ready.",
   },
   {
     id: "serve",
-    label: "Serve",
-    caption: "Cook marks the dish ready and the waiter serves it hot.",
-    src: "/shots/sold-out.webp",
-    alt: "Kitchen ready and item availability screen",
+    label: "3. Serve",
+    title: "Waiter sees ready dishes immediately",
+    desc: "Ready orders appear in one queue on the waiter's phone and clear in a single tap.",
   },
   {
     id: "pay",
-    label: "Pay",
-    caption: "Cashier records cash, UPI or card and prints the receipt.",
-    src: "/shots/bill-receipt.webp",
-    alt: "Cashier billing and printed receipt screen",
+    label: "4. Pay",
+    title: "Settle the bill by cash, UPI or card",
+    desc: "Cashiers pull up open bills, record payment, and print a clean receipt without guesswork.",
   },
   {
     id: "sales",
-    label: "Sales",
-    caption: "Owner sees today's sales, top dishes and payment totals.",
-    src: "/shots/owner-dashboard.webp",
-    alt: "Owner dashboard showing today's sales and charts",
+    label: "5. Sales",
+    title: "Check today's sales anytime",
+    desc: "Owners see live daily totals, cash vs UPI split, and bestselling items from any phone.",
   },
 ] as const;
 
-const WHO_IT_IS_FOR = [
+const PROBLEMS = [
   {
-    tag: "Counter & Token",
-    title: "Tea shops and bakeries",
-    src: "/shots/tea-counters.webp",
-    alt: "Tea shop counter and token queue screen",
+    before: "Lost paper slips",
+    after: "Every order goes straight from phone to kitchen screen with a sound chime.",
+  },
+  {
+    before: "Dish finished, guest still orders",
+    after: "Mark any dish sold out in one tap so staff stop taking orders for it right away.",
+  },
+  {
+    before: "Where did today's money go?",
+    after: "See cash, UPI and card totals on your phone at any time of day.",
+  },
+] as const;
+
+const VENUES = [
+  {
+    id: "tea" as const,
+    title: "Tea shop and bakery",
+    subtitle: "Fast counter queues with token numbers",
+    badge: null,
     outcomes: [
-      "Take fast counter orders in two taps.",
-      "Issue token numbers with no paper slips.",
-      "Check daily cash and UPI totals at close.",
+      "Take chai and snack orders in two taps",
+      "Call out token numbers clearly on screen",
+      "Check cash and UPI totals at closing time",
     ],
   },
   {
-    tag: "Table & Kitchen",
-    title: "Cafes and restaurants",
-    src: "/shots/waiter-order.webp",
-    alt: "Cafe and restaurant waiter order screen",
+    id: "restaurant" as const,
+    title: "Cafe and restaurant",
+    subtitle: "Dining rooms, waiters and a busy kitchen",
+    badge: null,
     outcomes: [
-      "Send table orders straight to the kitchen.",
-      "Track cooking and ready status live.",
-      "Split or settle bills cleanly at the counter.",
+      "Send dining orders straight to the kitchen",
+      "Hear a clear chime for every new ticket",
+      "Mark sold-out dishes in one tap",
     ],
   },
   {
-    tag: "Multi-Outlet",
-    title: "Hotels",
-    src: "/shots/hotel-areas.webp",
-    alt: "Hotel multi-outlet sections and dining areas screen",
+    id: "hotel" as const,
+    title: "Hotel",
+    subtitle: "Multiple dining areas and staff roles",
+    badge: "Room service: Coming soon",
     outcomes: [
-      "Manage dining halls, cafes and patios together.",
-      "Compare daily sales across every outlet.",
-      "Give each staff role its own login.",
+      "Separate logins for waiters, cooks and cashiers",
+      "Manage multiple dining areas and branches",
+      "One view of daily sales for the owner",
     ],
   },
 ] as const;
 
-const FEATURE_ROWS = [
+const FAQ_ITEMS = [
   {
-    eyebrow: "01 • Kitchen Display",
-    title: "Kitchen screen with sound alert",
-    body: "Every new order arrives on the kitchen screen immediately with a clear chime. Cooks see cooking time, spice notes and a one-tap Ready button.",
-    src: "/shots/kitchen-kds.webp",
-    alt: "Kitchen Display System screen with live tickets",
+    q: "What devices do I need?",
+    a: "ServeMyFood runs in a web browser on any Android phone, tablet, or computer. You do not need special billing hardware to start.",
   },
   {
-    eyebrow: "02 • Bilingual Menu",
-    title: "Menu with photos and Tamil names",
-    body: "Show clear dish photos alongside English and Tamil names so every staff member finds items fast. Organise dishes into simple categories with veg and non-veg tags.",
-    src: "/shots/menu-photos.webp",
-    alt: "Menu management screen with dish photos and Tamil names",
+    q: "Does it work if my internet is slow?",
+    a: "Yes, it is built to be light on mobile data and works on regular 4G connections. An active internet connection is required because orders sync live between screens.",
   },
   {
-    eyebrow: "03 • Live Availability",
-    title: "Sold-out in one tap",
-    body: "When a dish finishes during a rush, mark it unavailable in a single tap. Waiters and cashiers stop seeing it right away so guests are never disappointed.",
-    src: "/shots/sold-out.webp",
-    alt: "Today's availability screen with one-tap sold-out toggles",
+    q: "Do I need a kitchen printer?",
+    a: "No. Your kitchen can use any spare tablet or phone as a live kitchen screen with a sound alert. Standard browser printing works for counter receipts.",
   },
   {
-    eyebrow: "04 • Role Control",
-    title: "Separate logins for each role",
-    body: "Waiters see orders, cooks see the kitchen screen, cashiers see billing, and owners see daily sales. Each person gets only the screens needed for their work.",
-    src: "/shots/staff-roles.webp",
-    alt: "Staff management screen showing separate logins per role",
-  },
-] as const;
-
-const FAQS = [
-  {
-    q: "What devices work with ServeMyFood?",
-    a: "Any Android phone, tablet, laptop or desktop with a modern web browser works. You do not need special hardware to start.",
-  },
-  {
-    q: "Does it need an internet connection?",
-    a: "Yes. ServeMyFood runs in your browser over shop Wi-Fi or mobile data so kitchen and counter screens stay in sync.",
-  },
-  {
-    q: "Can we use an 80mm receipt printer?",
-    a: "Yes. Billing formats clean 80mm thermal receipts from the browser, and demo receipts are clearly marked.",
-  },
-  {
-    q: "Can staff use it in Tamil?",
-    a: "Yes. Every screen switches between English and Tamil in one tap, and menu items support Tamil names.",
+    q: "Can my staff use it in Tamil?",
+    a: "Yes. Menu items can show both Tamil and English names, and each staff member can switch their screen between Tamil and English.",
   },
   {
     q: "How long does it take to start?",
-    a: "Most shops are ready in one short setup session. We help you enter your menu, floor layout and staff logins.",
+    a: "Most shops add their menu, set up staff logins, and take their first live order on the same day after a short walkthrough.",
   },
   {
     q: "What is not ready yet?",
-    a: "Tax invoices are not ready yet. Online customer payments, stock tracking and hotel room charges are also not live yet.",
+    a: "Tax invoices (GST), direct online guest UPI payments, and kitchen stock/inventory tracking are not ready yet and are marked Coming soon.",
   },
 ] as const;
 
-export const HomePage: React.FC<HomePageProps> = () => {
+export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
   const [activeStep, setActiveStep] = useState(0);
-  const [paused, setPaused] = useState(false);
+  const [openFaq, setOpenFaq] = useState<number | null>(0);
+  const [videoPaused, setVideoPaused] = useState(false);
   const [reducedMotion, setReducedMotion] = useState(false);
+  const [mounted, setMounted] = useState(false);
+  const videoRef = useRef<HTMLVideoElement | null>(null);
+  const heroWrapRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
+    setMounted(true);
     const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
-    setReducedMotion(mq.matches);
-    const onChange = (e: MediaQueryListEvent) => setReducedMotion(e.matches);
-    mq.addEventListener("change", onChange);
-    return () => mq.removeEventListener("change", onChange);
+    const update = () => setReducedMotion(mq.matches);
+    update();
+    mq.addEventListener("change", update);
+    return () => mq.removeEventListener("change", update);
   }, []);
 
   useEffect(() => {
-    if (paused || reducedMotion) return;
-    const timer = window.setInterval(() => {
-      setActiveStep((prev) => (prev + 1) % JOURNEY_STEPS.length);
-    }, 3000);
-    return () => window.clearInterval(timer);
-  }, [paused, reducedMotion]);
+    const v = videoRef.current;
+    if (!v || !mounted || reducedMotion) return;
+    if (videoPaused) {
+      v.pause();
+    } else {
+      v.play().catch(() => {});
+    }
+  }, [videoPaused, mounted, reducedMotion]);
 
-  const currentStep = JOURNEY_STEPS[activeStep];
-  const whatsappHref = getWhatsAppHref("Hello, I would like a free demo of ServeMyFood.");
+  useEffect(() => {
+    const el = heroWrapRef.current;
+    const v = videoRef.current;
+    if (!el || !v || typeof IntersectionObserver === "undefined") return;
+    const obs = new IntersectionObserver(
+      (entries) => {
+        if (!entries[0]?.isIntersecting) {
+          v.pause();
+        } else if (!videoPaused && !reducedMotion) {
+          v.play().catch(() => {});
+        }
+      },
+      { threshold: 0.15 }
+    );
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, [videoPaused, reducedMotion]);
+
+  const currentStep = STEPS[activeStep] ?? STEPS[0];
+  const liveClaims = FEATURE_CLAIMS.filter((c) => c.status === "LIVE");
+  const soonClaims = FEATURE_CLAIMS.filter((c) => c.status === "SOON");
+  const whatsappHref = getWhatsAppHref(
+    "Hi ServeMyFood team, I would like a quick demo for my restaurant."
+  );
 
   return (
     <div>
-      {/* 2. Hero (Cream #FFF3E0 with subtle radial warmth) */}
-      <section className="bg-[radial-gradient(ellipse_at_top_right,_#FFE6C7_0%,_#FFF3E0_52%,_#FFFBF7_100%)] py-14 lg:py-24 overflow-x-hidden border-b border-[#E6E1D8]">
-        <div className="mx-auto max-w-[1120px] px-5 sm:px-6 grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
-          <div className="lg:col-span-6 space-y-6">
-            <div className="inline-flex items-center gap-2 rounded-full border border-[#E6E1D8] bg-white px-4 py-1.5 text-[14px] font-semibold text-[#0B1F3B]">
-              <span className="h-2 w-2 rounded-full bg-[#FF6A00]" aria-hidden="true" />
-              <span>For tea shops, cafes, restaurants and hotels</span>
-            </div>
-
-            <h1 className="font-display font-semibold text-[36px] leading-[40px] lg:text-[56px] lg:leading-[64px] text-[#0B1F3B] tracking-[-0.02em]">
-              Take orders. Run the kitchen. Get paid. See today&apos;s sales.
+      {/* 1. HERO (Exact Navy #0B1F3B + 8% cream spotlight + faint dot grid) */}
+      <section
+        className="relative bg-[#0B1F3B] lg:min-h-[calc(100vh-80px)] lg:max-h-[840px] flex items-center py-5 sm:py-8 lg:py-12 overflow-x-hidden"
+        style={{
+          backgroundImage:
+            "radial-gradient(circle at 72% 48%, rgba(255, 243, 224, 0.08), transparent 58%), radial-gradient(rgba(255, 243, 224, 0.08) 1px, transparent 1px)",
+          backgroundSize: "100% 100%, 24px 24px",
+        }}
+      >
+        <div className="relative z-10 mx-auto w-full max-w-[1280px] px-4 sm:px-8 grid grid-cols-1 lg:grid-cols-12 gap-5 lg:gap-10 items-center">
+          <div className="lg:col-span-5 space-y-3 lg:space-y-5 text-left">
+            <h1 className="font-display font-semibold text-[clamp(30px,3.6vw,48px)] leading-[1.1] text-white">
+              <span className="block whitespace-nowrap">Take orders.</span>
+              <span className="block whitespace-nowrap">Run the kitchen.</span>
+              <span className="block whitespace-nowrap">Get paid.</span>
+              <span className="block whitespace-nowrap">See today&apos;s sales.</span>
             </h1>
 
-            <p className="text-[18px] leading-[1.6] text-[#0B1F3B]/85 max-w-[70ch]">
-              One simple system built for fast service in English and Tamil.
+            <p className="text-[15px] sm:text-[17px] lg:text-[19px] leading-[1.45] lg:leading-[1.55] text-white/90 max-w-[33ch] lg:max-w-[40ch]">
+              One simple system for tea shops, cafes, restaurants and hotels. Works on a phone,
+              tablet or computer.
             </p>
 
-            <div className="flex flex-wrap items-center gap-4 pt-1">
+            <div className="flex flex-wrap items-center gap-2.5 lg:gap-3 pt-0.5">
               <a
-                href="#book-demo-band"
-                className="inline-flex items-center justify-center h-[52px] px-6 rounded-[12px] bg-[#FF6A00] text-[16px] font-semibold text-[#0B1F3B] hover:bg-[#e55f00] transition-colors"
+                href="#book-demo"
+                className="inline-flex items-center justify-center h-[48px] lg:h-[52px] px-5 sm:px-6 rounded-[12px] bg-[#FF6A00] text-[15px] sm:text-[16px] font-semibold text-[#0B1F3B] hover:-translate-y-0.5 transition-transform"
               >
                 Book a free demo
               </a>
               <a
                 href="#how-it-works"
-                className="inline-flex items-center justify-center h-[52px] px-6 rounded-[12px] border border-[#0B1F3B]/20 bg-white text-[16px] font-semibold text-[#0B1F3B] hover:bg-white/80 transition-colors"
+                className="inline-flex items-center justify-center h-[48px] lg:h-[52px] px-5 sm:px-6 rounded-[12px] border border-white/40 bg-transparent text-[15px] sm:text-[16px] font-semibold text-white hover:bg-white/10 transition-colors"
               >
                 See how it works
               </a>
             </div>
-
-            <p className="text-[15px] font-medium text-[#0B1F3B]/85">
-              Works on phone, tablet and computer. Tamil and English.
-            </p>
           </div>
 
-          <div className="lg:col-span-6 relative pt-5 pb-8 sm:pb-10">
-            {/* Tablet frame: Kitchen screen */}
-            <DeviceFrame
-              kind="tablet"
-              src="/shots/kitchen-kds.webp"
-              alt="Kitchen Display System on tablet"
-              eager
-              className="w-[90%] ml-auto"
-            />
-            {/* Phone frame overlapping bottom-left */}
-            <DeviceFrame
-              kind="phone"
-              src="/shots/waiter-phone.webp"
-              alt="Waiter taking an order on phone"
-              eager
-              className="w-[30%] min-w-[116px] max-w-[158px] absolute left-0 bottom-0 ring-4 ring-[#FFF3E0]"
-            />
-            {/* Stage 2 floating chip */}
-            <div className="inline-flex items-center gap-2 rounded-full border border-[#E6E1D8] bg-white px-4 py-2 text-[14px] font-semibold text-[#0B1F3B] shadow-md absolute right-3 top-0 animate-chip-slide">
-              <span className="h-2.5 w-2.5 rounded-full bg-[#FF6A00]" aria-hidden="true" />
-              <span>New order T4</span>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* 3. Order Journey (White #FFFFFF) */}
-      <section id="how-it-works" className="bg-white py-14 lg:py-24">
-        <div className="mx-auto max-w-[1120px] px-5 sm:px-6 space-y-10">
-          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
-            <div className="max-w-[70ch] space-y-3">
-              <div className="h-1 w-12 rounded-full bg-[#FF6A00]" aria-hidden="true" />
-              <h2 className="font-display font-semibold text-[30px] sm:text-[36px] leading-[1.2] text-[#0B1F3B]">
-                From order to sales in 5 steps
-              </h2>
+          <div ref={heroWrapRef} className="lg:col-span-7 space-y-3">
+            <div className="relative overflow-hidden rounded-[18px] border border-white/15 bg-[#0B1F3B] shadow-[0_24px_60px_-15px_rgba(0,0,0,0.6)] aspect-[1280/566]">
+              <img
+                src="/video/hero-demo.webp"
+                alt="ServeMyFood order, kitchen, dashboard and receipt printer walkthrough"
+                width={1280}
+                height={566}
+                className="absolute inset-0 h-full w-full object-cover"
+              />
+              {mounted && !reducedMotion && (
+                <video
+                  ref={videoRef}
+                  autoPlay
+                  muted
+                  playsInline
+                  loop
+                  preload="metadata"
+                  poster="/video/hero-demo.webp"
+                  className="relative h-full w-full object-cover"
+                >
+                  <source src="/video/hero-demo.webm" type="video/webm" />
+                  <source src="/video/hero-demo.mp4" type="video/mp4" />
+                </video>
+              )}
             </div>
 
-            {!reducedMotion && (
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <p className="text-[13px] sm:text-[14px] text-white/85">
+                Product preview · Customer QR ordering: Coming soon
+              </p>
+
               <button
                 type="button"
-                onClick={() => setPaused((p) => !p)}
-                aria-label={paused ? "Play order journey" : "Pause order journey"}
-                className="inline-flex items-center gap-2 h-[48px] px-4 rounded-[12px] border border-[#E6E1D8] bg-white text-[15px] font-semibold text-[#0B1F3B] hover:border-[#0B1F3B]/40 transition-colors self-start sm:self-auto"
+                aria-pressed={videoPaused}
+                onClick={() => setVideoPaused((p) => !p)}
+                className="inline-flex items-center justify-center gap-2 min-h-[48px] px-4 rounded-[12px] border border-white/30 bg-white/10 text-[14px] font-semibold text-white hover:bg-white/20 transition-colors"
               >
-                {paused ? <Play className="h-4 w-4" /> : <Pause className="h-4 w-4" />}
-                <span>{paused ? "Play" : "Pause"}</span>
+                {videoPaused ? <Play className="h-4 w-4" /> : <Pause className="h-4 w-4" />}
+                <span>{videoPaused ? "Play" : "Pause"}</span>
               </button>
-            )}
-          </div>
-
-          {/* 5 Numbered Nodes on a Horizontal Line */}
-          <div className="relative">
-            <div
-              className="absolute left-6 right-6 top-6 h-[2px] bg-[#E6E1D8]"
-              aria-hidden="true"
-            />
-            <div className="grid grid-cols-5 gap-1 sm:gap-3 relative z-10">
-              {JOURNEY_STEPS.map((st, idx) => {
-                const isActive = idx === activeStep;
-                return (
-                  <button
-                    key={st.id}
-                    type="button"
-                    onClick={() => {
-                      setActiveStep(idx);
-                      setPaused(true);
-                    }}
-                    className="flex flex-col items-center text-center gap-2 p-1 sm:p-2 rounded-[12px] min-h-[48px] focus-visible:outline-[#FF6A00]"
-                  >
-                    <span
-                      className={`inline-flex h-11 w-11 sm:h-12 sm:w-12 items-center justify-center rounded-full border text-[15px] sm:text-[16px] font-semibold transition-colors ${
-                        isActive
-                          ? "bg-[#FF6A00] border-[#FF6A00] text-[#0B1F3B] shadow-sm"
-                          : "bg-white border-[#E6E1D8] text-[#0B1F3B]"
-                      }`}
-                    >
-                      {idx + 1}
-                    </span>
-                    <span
-                      className={`text-[13px] sm:text-[16px] font-semibold ${
-                        isActive ? "text-[#0B1F3B]" : "text-[#0B1F3B]/75"
-                      }`}
-                    >
-                      {st.label}
-                    </span>
-                  </button>
-                );
-              })}
             </div>
-          </div>
-
-          {/* One Large Device Frame */}
-          <div className="max-w-[880px] mx-auto space-y-5 text-center">
-            <div key={currentStep.id} className="animate-step-in">
-              <DeviceFrame kind="laptop" src={currentStep.src} alt={currentStep.alt} />
-            </div>
-            <p className="text-[18px] leading-[1.6] font-medium text-[#0B1F3B] max-w-[70ch] mx-auto">
-              {currentStep.caption}
-            </p>
           </div>
         </div>
       </section>
 
-      {/* 4. Who it is for (Cream #FFF3E0) */}
-      <section id="who-it-is-for" className="bg-[#FFF3E0] py-14 lg:py-24 border-y border-[#E6E1D8]">
-        <div className="mx-auto max-w-[1120px] px-5 sm:px-6 space-y-10">
-          <div className="max-w-[70ch] space-y-3">
-            <div className="h-1 w-12 rounded-full bg-[#FF6A00]" aria-hidden="true" />
-            <h2 className="font-display font-semibold text-[30px] sm:text-[36px] leading-[1.2] text-[#0B1F3B]">
-              Who it is for
+      {/* 2. FROM ORDER TO SALES IN 5 STEPS (White #FFFFFF) */}
+      <section id="how-it-works" className="bg-white py-14 lg:py-24">
+        <div className="mx-auto max-w-[1280px] px-5 sm:px-8 space-y-8">
+          <div className="space-y-2 max-w-[65ch]">
+            <h2 className="font-display font-semibold text-[28px] leading-[1.2] lg:text-[36px] text-[#0B1F3B]">
+              From order to sales in 5 steps
             </h2>
+            <p className="text-[18px] leading-[1.6] text-[#0B1F3B]/80">
+              Tap any step to see the screen your staff uses.
+            </p>
+          </div>
+
+          <div
+            className="grid grid-cols-2 sm:grid-cols-5 gap-2.5"
+            role="tablist"
+            aria-label="Order journey steps"
+          >
+            {STEPS.map((step, idx) => {
+              const active = idx === activeStep;
+              return (
+                <button
+                  key={step.id}
+                  type="button"
+                  role="tab"
+                  aria-selected={active}
+                  onClick={() => setActiveStep(idx)}
+                  className={`min-h-[52px] px-3 rounded-[12px] text-[14px] font-semibold transition-colors ${
+                    active
+                      ? "bg-[#FF6A00] text-[#0B1F3B]"
+                      : "bg-[#FFF3E0]/60 border border-[#E6E1D8] text-[#0B1F3B] hover:border-[#0B1F3B]/40"
+                  }`}
+                >
+                  {step.label}
+                </button>
+              );
+            })}
+          </div>
+
+          <div className="rounded-[16px] border border-[#E6E1D8] bg-[#FFF3E0]/45 p-6 lg:p-10 grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+            <div className="lg:col-span-5 space-y-3">
+              <span className="inline-block text-[13px] font-semibold uppercase tracking-wide text-[#0B1F3B]/75">
+                {currentStep.label}
+              </span>
+              <h3 className="font-display font-semibold text-[24px] leading-[1.25] text-[#0B1F3B]">
+                {currentStep.title}
+              </h3>
+              <p className="text-[18px] leading-[1.6] text-[#0B1F3B]/80">{currentStep.desc}</p>
+            </div>
+
+            <div className="lg:col-span-7 flex justify-center">
+              <StepScreenPreview stepIndex={activeStep} />
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* 3. EVERYDAY PROBLEMS SOLVED (Cream #FFF3E0) */}
+      <section className="bg-[#FFF3E0] py-14 lg:py-24">
+        <div className="mx-auto max-w-[1280px] px-5 sm:px-8 space-y-8">
+          <div className="space-y-2 max-w-[65ch]">
+            <h2 className="font-display font-semibold text-[28px] leading-[1.2] lg:text-[36px] text-[#0B1F3B]">
+              Stop losing orders and money to paper slips
+            </h2>
+            <p className="text-[18px] leading-[1.6] text-[#0B1F3B]/80">
+              Three everyday headaches in small restaurants, fixed simply.
+            </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {WHO_IT_IS_FOR.map((card) => (
+            {PROBLEMS.map((item) => (
               <article
-                key={card.title}
-                className="rounded-[16px] border border-[#E6E1D8] bg-white p-6 flex flex-col gap-5 shadow-[0_10px_30px_-15px_rgba(11,31,59,0.12)]"
+                key={item.before}
+                className="rounded-[16px] border border-[#E6E1D8] bg-white p-6 space-y-3"
               >
-                <div className="overflow-hidden rounded-[12px] border border-[#E6E1D8] aspect-[16/10] bg-[#FFFBF7]">
-                  <img
-                    src={card.src}
-                    alt={card.alt}
-                    loading="lazy"
-                    decoding="async"
-                    className="h-full w-full object-cover object-top"
-                  />
+                <span className="inline-block rounded-full bg-[#FFF3E0] px-3 py-1 text-[12px] font-semibold text-[#0B1F3B]">
+                  Common problem
+                </span>
+                <h3 className="font-display font-semibold text-[20px] text-[#0B1F3B]">
+                  {item.before}
+                </h3>
+                <p className="text-[16px] leading-[1.6] text-[#0B1F3B]/80">{item.after}</p>
+              </article>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* 4. WHO IT IS FOR (White #FFFFFF) */}
+      <section id="who-it-is-for" className="bg-white py-14 lg:py-24">
+        <div className="mx-auto max-w-[1280px] px-5 sm:px-8 space-y-8">
+          <div className="space-y-2 max-w-[65ch]">
+            <h2 className="font-display font-semibold text-[28px] leading-[1.2] lg:text-[36px] text-[#0B1F3B]">
+              Built for small Indian restaurants
+            </h2>
+            <p className="text-[18px] leading-[1.6] text-[#0B1F3B]/80">
+              Start with what fits your counter or dining room today.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {VENUES.map((venue) => (
+              <article
+                key={venue.id}
+                className="rounded-[16px] border border-[#E6E1D8] bg-white p-6 space-y-5"
+              >
+                <VenueMiniPreview kind={venue.id} />
+
+                <div className="space-y-1.5">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <h3 className="font-display font-semibold text-[22px] text-[#0B1F3B]">
+                      {venue.title}
+                    </h3>
+                    {venue.badge && (
+                      <span className="inline-flex items-center rounded-full border border-[#E6E1D8] bg-[#FFF3E0] px-2.5 py-1 text-[12px] font-semibold text-[#0B1F3B]">
+                        {venue.badge}
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-[15px] text-[#0B1F3B]/75">{venue.subtitle}</p>
                 </div>
-                <div className="space-y-2">
-                  <span className="inline-block rounded-full bg-[#FFF3E0] px-3 py-1 text-[13px] font-semibold text-[#0B1F3B]">
-                    {card.tag}
-                  </span>
-                  <h3 className="font-display font-semibold text-[22px] leading-[1.3] text-[#0B1F3B]">
-                    {card.title}
-                  </h3>
-                </div>
-                <ul className="space-y-2.5 text-[18px] leading-[1.6] text-[#0B1F3B]/85">
-                  {card.outcomes.map((line) => (
-                    <li key={line} className="flex items-start gap-2.5">
-                      <Check
-                        className="mt-1.5 h-5 w-5 text-[#FF6A00] shrink-0"
-                        aria-hidden="true"
-                      />
+
+                <ul className="space-y-2.5">
+                  {venue.outcomes.map((line) => (
+                    <li key={line} className="flex items-start gap-2.5 text-[15px] text-[#0B1F3B]">
+                      <Check className="h-4 w-4 text-[#1D9E75] shrink-0 mt-1" aria-hidden="true" />
                       <span>{line}</span>
                     </li>
                   ))}
@@ -357,38 +399,100 @@ export const HomePage: React.FC<HomePageProps> = () => {
         </div>
       </section>
 
-      {/* 5. Features (White #FFFFFF) */}
-      <section className="bg-white py-14 lg:py-24">
-        <div className="mx-auto max-w-[1120px] px-5 sm:px-6 space-y-14">
-          <div className="max-w-[70ch] space-y-3">
-            <div className="h-1 w-12 rounded-full bg-[#FF6A00]" aria-hidden="true" />
-            <h2 className="font-display font-semibold text-[30px] sm:text-[36px] leading-[1.2] text-[#0B1F3B]">
-              Built for busy service hours
+      {/* 5. WORKS TODAY VS COMING SOON (Cream #FFF3E0) */}
+      <section className="bg-[#FFF3E0] py-14 lg:py-24">
+        <div className="mx-auto max-w-[1280px] px-5 sm:px-8 space-y-8">
+          <div className="space-y-2 max-w-[65ch]">
+            <h2 className="font-display font-semibold text-[28px] leading-[1.2] lg:text-[36px] text-[#0B1F3B]">
+              What works today and what&apos;s coming
             </h2>
+            <p className="text-[18px] leading-[1.6] text-[#0B1F3B]/80">
+              Only features live in the app today are listed on the left. Upcoming work is marked clearly.
+            </p>
           </div>
 
-          <div className="space-y-16 lg:space-y-20">
-            {FEATURE_ROWS.map((row, idx) => {
-              const imageFirst = idx % 2 === 1;
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            <div className="lg:col-span-7 rounded-[16px] border border-[#E6E1D8] bg-white p-6 lg:p-8 space-y-5">
+              <span className="inline-flex items-center rounded-full bg-[#1D9E75]/15 px-3 py-1 text-[13px] font-semibold text-[#0B1F3B]">
+                Works today
+              </span>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                {liveClaims.map((claim) => (
+                  <div key={claim.id} className="flex items-start gap-2.5">
+                    <Check className="h-5 w-5 text-[#1D9E75] shrink-0 mt-0.5" aria-hidden="true" />
+                    <div>
+                      <h3 className="font-semibold text-[15px] text-[#0B1F3B]">{claim.titleEn}</h3>
+                      <p className="text-[14px] leading-[1.5] text-[#0B1F3B]/75">{claim.descEn}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="lg:col-span-5 rounded-[16px] border border-[#E6E1D8] bg-white/80 p-6 lg:p-8 space-y-5">
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-[#E6E1D8] bg-[#FFF3E0] px-3 py-1 text-[13px] font-semibold text-[#0B1F3B]">
+                <Clock className="h-3.5 w-3.5" aria-hidden="true" />
+                Coming soon
+              </span>
+
+              <div className="space-y-4">
+                {soonClaims.map((claim) => (
+                  <div key={claim.id} className="space-y-1">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <h3 className="font-semibold text-[15px] text-[#0B1F3B]">{claim.titleEn}</h3>
+                      <span className="rounded-full border border-[#E6E1D8] bg-[#FFF3E0] px-2 py-0.5 text-[11px] font-semibold text-[#0B1F3B]">
+                        Coming soon
+                      </span>
+                    </div>
+                    <p className="text-[14px] leading-[1.5] text-[#0B1F3B]/75">{claim.descEn}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* 6. FAQ (White #FFFFFF) */}
+      <section id="faq" className="bg-white py-14 lg:py-24">
+        <div className="mx-auto max-w-[1280px] px-5 sm:px-8 space-y-8">
+          <div className="space-y-2 max-w-[65ch]">
+            <h2 className="font-display font-semibold text-[28px] leading-[1.2] lg:text-[36px] text-[#0B1F3B]">
+              Common questions
+            </h2>
+            <p className="text-[18px] leading-[1.6] text-[#0B1F3B]/80">
+              Straight answers before you try it in your restaurant.
+            </p>
+          </div>
+
+          <div className="space-y-3 max-w-[820px]">
+            {FAQ_ITEMS.map((item, idx) => {
+              const isOpen = openFaq === idx;
               return (
                 <div
-                  key={row.title}
-                  className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center"
+                  key={item.q}
+                  className="rounded-[16px] border border-[#E6E1D8] bg-white overflow-hidden"
                 >
-                  <div className={`lg:col-span-5 space-y-3 ${imageFirst ? "lg:order-2" : ""}`}>
-                    <span className="inline-block text-[14px] font-semibold text-[#0B1F3B]/75">
-                      {row.eyebrow}
-                    </span>
-                    <h3 className="font-display font-semibold text-[26px] leading-[1.25] text-[#0B1F3B]">
-                      {row.title}
-                    </h3>
-                    <p className="text-[18px] leading-[1.6] text-[#0B1F3B]/85 max-w-[70ch]">
-                      {row.body}
-                    </p>
-                  </div>
-                  <div className={`lg:col-span-7 ${imageFirst ? "lg:order-1" : ""}`}>
-                    <DeviceFrame kind="tablet" src={row.src} alt={row.alt} />
-                  </div>
+                  <button
+                    type="button"
+                    aria-expanded={isOpen}
+                    onClick={() => setOpenFaq(isOpen ? null : idx)}
+                    className="w-full min-h-[56px] px-6 py-4 flex items-center justify-between gap-4 text-left font-display font-semibold text-[17px] text-[#0B1F3B]"
+                  >
+                    <span>{item.q}</span>
+                    <ChevronDown
+                      className={`h-5 w-5 shrink-0 transition-transform ${
+                        isOpen ? "rotate-180" : ""
+                      }`}
+                      aria-hidden="true"
+                    />
+                  </button>
+                  {isOpen && (
+                    <div className="px-6 pb-5 text-[16px] leading-[1.6] text-[#0B1F3B]/80 max-w-[68ch]">
+                      {item.a}
+                    </div>
+                  )}
                 </div>
               );
             })}
@@ -396,71 +500,37 @@ export const HomePage: React.FC<HomePageProps> = () => {
         </div>
       </section>
 
-      {/* 6. Book a demo band (Navy #0B1F3B) */}
-      <section
-        id="book-demo-band"
-        className="bg-[radial-gradient(ellipse_at_top_right,_#183B6E_0%,_#0B1F3B_65%)] text-white py-14 lg:py-24"
-      >
-        <div className="mx-auto max-w-[1120px] px-5 sm:px-6 flex flex-col lg:flex-row lg:items-center justify-between gap-8">
-          <div className="space-y-3 max-w-[70ch]">
-            <h2 className="font-display font-semibold text-[30px] sm:text-[36px] leading-[1.2]">
-              See ServeMyFood with your own menu
+      {/* 7. BOOK A DEMO BAND (Navy #0B1F3B) */}
+      <section id="book-demo" className="bg-[#0B1F3B] py-14 lg:py-24 text-white">
+        <div className="mx-auto max-w-[1280px] px-5 sm:px-8 grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
+          <div className="lg:col-span-5 space-y-5">
+            <h2 className="font-display font-semibold text-[28px] leading-[1.2] lg:text-[36px] text-white">
+              See ServeMyFood in your own shop
             </h2>
-            <p className="text-[18px] leading-[1.6] text-white/85">
-              Book a short walkthrough in English or Tamil for your team.
+            <p className="text-[18px] leading-[1.6] text-white/85 max-w-[56ch]">
+              Tell us your shop name and phone number. We will show you the waiter, kitchen,
+              cashier and owner screens live.
             </p>
-          </div>
 
-          <div className="flex flex-wrap items-center gap-4 shrink-0">
-            <a
-              href={whatsappHref}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center justify-center h-[52px] px-6 rounded-[12px] bg-[#FF6A00] text-[16px] font-semibold text-[#0B1F3B] hover:bg-[#e55f00] transition-colors"
-            >
-              Book a free demo
-            </a>
-            <a
-              href={whatsappHref}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center justify-center h-[52px] px-5 rounded-[12px] border border-white/30 text-[16px] font-semibold text-white hover:bg-white/10 transition-colors"
-            >
-              Chat on WhatsApp
-            </a>
-          </div>
-        </div>
-      </section>
-
-      {/* 7. FAQ (Cream #FFF3E0) */}
-      <section id="faq" className="bg-[#FFF3E0] py-14 lg:py-24">
-        <div className="mx-auto max-w-[1120px] px-5 sm:px-6 grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
-          <div className="lg:col-span-4 space-y-3">
-            <div className="h-1 w-12 rounded-full bg-[#FF6A00]" aria-hidden="true" />
-            <h2 className="font-display font-semibold text-[30px] sm:text-[36px] leading-[1.2] text-[#0B1F3B]">
-              Common questions
-            </h2>
-            <p className="text-[18px] leading-[1.6] text-[#0B1F3B]/85 max-w-[70ch]">
-              Clear answers before you book a walkthrough.
-            </p>
-          </div>
-
-          <div className="lg:col-span-8 space-y-4">
-            {FAQS.map((item, idx) => (
-              <details
-                key={item.q}
-                open={idx === 0}
-                className="group rounded-[16px] border border-[#E6E1D8] bg-white px-6 py-4"
+            <div className="flex flex-wrap gap-3">
+              <a
+                href={whatsappHref}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center justify-center gap-2 h-[52px] px-6 rounded-[12px] bg-[#FF6A00] text-[16px] font-semibold text-[#0B1F3B] hover:-translate-y-0.5 transition-transform"
               >
-                <summary className="flex cursor-pointer list-none items-center justify-between gap-4 font-display font-semibold text-[18px] text-[#0B1F3B] min-h-[48px]">
-                  <span>{item.q}</span>
-                  <ChevronDown className="h-5 w-5 shrink-0 text-[#0B1F3B] transition-transform group-open:rotate-180" />
-                </summary>
-                <p className="mt-2 pb-1 text-[18px] leading-[1.6] text-[#0B1F3B]/85 max-w-[70ch]">
-                  {item.a}
-                </p>
-              </details>
-            ))}
+                <MessageCircle className="h-5 w-5" aria-hidden="true" />
+                <span>Chat on WhatsApp</span>
+              </a>
+            </div>
+
+            {!hasTodoValue(SITE_CONFIG.contactPhone) && (
+              <p className="text-[15px] text-white/80">Phone: {SITE_CONFIG.contactPhone}</p>
+            )}
+          </div>
+
+          <div className="lg:col-span-7">
+            <DemoForm lang="en" hideQuickLinks onNavigate={onNavigate} />
           </div>
         </div>
       </section>

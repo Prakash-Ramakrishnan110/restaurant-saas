@@ -1,10 +1,20 @@
 import React, { useState, useEffect, useCallback, useMemo } from "react";
-import { Bed, Plus, RefreshCw, Search, Sparkles, UtensilsCrossed, Utensils } from "lucide-react";
+import {
+  Bed,
+  Plus,
+  RefreshCw,
+  Search,
+  Sparkles,
+  Trash2,
+  UtensilsCrossed,
+  Utensils,
+} from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { apiClient } from "../../api/client";
 import { unwrapList, ListResponse } from "../../api/pagination";
 import { Button } from "../../components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../../components/ui/dialog";
+import { ConfirmDialog } from "../../components/ui/confirm-dialog";
 
 interface Section {
   id: string;
@@ -37,6 +47,8 @@ export const RoomsPage: React.FC = () => {
   const [newRoomCapacity, setNewRoomCapacity] = useState(2);
   const [newRoomSection, setNewRoomSection] = useState("");
   const [isSaving, setIsSaving] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<RoomTable | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const fetchData = useCallback(async () => {
     setIsLoading(true);
@@ -110,6 +122,22 @@ export const RoomsPage: React.FC = () => {
       setError("Failed to add new room.");
     } finally {
       setIsSaving(false);
+    }
+  };
+
+  const handleDeleteRoom = async () => {
+    if (!deleteTarget) return;
+    setIsDeleting(true);
+    setError(null);
+    try {
+      await apiClient.delete(`/tables/${deleteTarget.id}/`);
+      setDeleteTarget(null);
+      await fetchData();
+    } catch (err: any) {
+      setError(err?.response?.data?.detail || "Failed to delete room.");
+      setDeleteTarget(null);
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -350,6 +378,13 @@ export const RoomsPage: React.FC = () => {
                     >
                       <Sparkles className="w-3.5 h-3.5" />
                     </button>
+                    <button
+                      onClick={() => setDeleteTarget(room)}
+                      className="px-2 py-1 text-xs font-medium rounded bg-muted hover:bg-destructive/10 text-muted-foreground hover:text-destructive"
+                      title="Delete Room"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
                   </div>
 
                   <Button
@@ -436,6 +471,18 @@ export const RoomsPage: React.FC = () => {
           </form>
         </DialogContent>
       </Dialog>
+
+      {/* Delete Room Confirm Dialog */}
+      <ConfirmDialog
+        open={Boolean(deleteTarget)}
+        onOpenChange={(open) => !open && setDeleteTarget(null)}
+        title={`Delete ${deleteTarget?.label || "Room"}?`}
+        description="This will permanently delete this room and its QR code. Rooms with existing order history cannot be deleted."
+        confirmLabel="Delete Room"
+        variant="destructive"
+        isLoading={isDeleting}
+        onConfirm={handleDeleteRoom}
+      />
     </div>
   );
 };

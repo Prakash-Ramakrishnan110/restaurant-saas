@@ -6,6 +6,7 @@ import { getPagePath, type Lang } from "../routes";
 interface DemoFormProps {
   lang: Lang;
   onNavigate?: (path: string) => void;
+  hideQuickLinks?: boolean;
 }
 
 const BUSINESS_OPTIONS = [
@@ -18,7 +19,7 @@ const BUSINESS_OPTIONS = [
   { value: "FOOD_COURT", labelEn: "Food court", labelTa: "உணவு வளாகம்" },
 ] as const;
 
-export const DemoForm: React.FC<DemoFormProps> = ({ lang, onNavigate }) => {
+export const DemoForm: React.FC<DemoFormProps> = ({ lang, onNavigate, hideQuickLinks = false }) => {
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [businessType, setBusinessType] = useState("RESTAURANT");
@@ -246,7 +247,7 @@ export const DemoForm: React.FC<DemoFormProps> = ({ lang, onNavigate }) => {
                   onNavigate(privacyHref);
                 }
               }}
-              className="font-bold text-[#0B1F3B] underline"
+              className="inline-flex items-center min-h-[48px] px-1 font-bold text-[#0B1F3B] underline"
             >
               {lang === "ta" ? "தனியுரிமைக் கொள்கை" : "Privacy notice"}
             </a>
@@ -257,7 +258,7 @@ export const DemoForm: React.FC<DemoFormProps> = ({ lang, onNavigate }) => {
         <button
           type="submit"
           disabled={submitting}
-          className="w-full sm:w-auto rounded-xl bg-[#FF6A00] px-6 py-3 text-sm font-bold text-[#0B1F3B] hover:bg-[#e55f00] disabled:opacity-60"
+          className="w-full sm:w-auto min-h-[52px] rounded-[12px] bg-[#FF6A00] px-6 py-3 text-[15px] font-semibold text-[#0B1F3B] hover:bg-[#e55f00] disabled:opacity-60"
         >
           {submitting
             ? lang === "ta"
@@ -269,29 +270,31 @@ export const DemoForm: React.FC<DemoFormProps> = ({ lang, onNavigate }) => {
         </button>
       </form>
 
-      <div className="flex flex-wrap items-center gap-3">
-        <a
-          href={getWhatsAppHref(
-            lang === "ta"
-              ? "வணக்கம், ServeMyFood டெமோ பற்றி அறிய விரும்புகிறேன்."
-              : "Hello, I would like a demo of ServeMyFood."
-          )}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="inline-flex items-center gap-2 rounded-xl border border-[#0B1F3B]/25 bg-white px-4 py-2.5 text-xs font-bold text-[#0B1F3B] hover:bg-[#FFF3E0]"
-        >
-          <MessageCircle className="h-4 w-4 text-emerald-600" />
-          <span>{lang === "ta" ? "WhatsApp-இல் பேச" : "Chat on WhatsApp"}</span>
-        </a>
+      {!hideQuickLinks && (
+        <div className="flex flex-wrap items-center gap-3">
+          <a
+            href={getWhatsAppHref(
+              lang === "ta"
+                ? "வணக்கம், ServeMyFood டெமோ பற்றி அறிய விரும்புகிறேன்."
+                : "Hello, I would like a demo of ServeMyFood."
+            )}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 min-h-[48px] rounded-[12px] border border-[#0B1F3B]/25 bg-white px-4 py-2.5 text-xs font-bold text-[#0B1F3B] hover:bg-[#FFF3E0]"
+          >
+            <MessageCircle className="h-4 w-4 text-emerald-600" />
+            <span>{lang === "ta" ? "WhatsApp-இல் பேச" : "Chat on WhatsApp"}</span>
+          </a>
 
-        <a
-          href={`tel:${SITE_CONFIG.contactPhone.replace(/[^\d+]/g, "")}`}
-          className="inline-flex items-center gap-2 rounded-xl border border-[#0B1F3B]/25 bg-white px-4 py-2.5 text-xs font-bold text-[#0B1F3B] hover:bg-slate-100"
-        >
-          <Phone className="h-4 w-4 text-[#FF6A00]" />
-          <span>{SITE_CONFIG.contactPhone}</span>
-        </a>
-      </div>
+          <a
+            href={`tel:${SITE_CONFIG.contactPhone.replace(/[^\d+]/g, "")}`}
+            className="inline-flex items-center gap-2 min-h-[48px] rounded-[12px] border border-[#0B1F3B]/25 bg-white px-4 py-2.5 text-xs font-bold text-[#0B1F3B] hover:bg-slate-100"
+          >
+            <Phone className="h-4 w-4 text-[#FF6A00]" />
+            <span>{SITE_CONFIG.contactPhone}</span>
+          </a>
+        </div>
+      )}
     </div>
   );
 };

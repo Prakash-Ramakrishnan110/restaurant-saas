@@ -212,6 +212,11 @@ for (const route of routeList) {
         ? path.join(distDir, "404.html")
         : path.join(distDir, route.url.replace(/^\/|\/$/g, ""), "index.html");
 
+  if (/PHOTO NEEDED/i.test(html)) {
+    console.error(`PRODUCTION BUILD BLOCKED: Built HTML for ${route.url} contains "PHOTO NEEDED".`);
+    process.exit(1);
+  }
+
   fs.mkdirSync(path.dirname(outPath), { recursive: true });
   fs.writeFileSync(outPath, html, "utf-8");
 }

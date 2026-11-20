@@ -1,5 +1,6 @@
 import logging
 from datetime import timedelta
+from typing import Any
 
 from django.conf import settings
 from django.core.cache import cache
@@ -197,6 +198,71 @@ class TenantViewSet(ViewSet):
             after_state={"status": Tenant.Status.ACTIVE, "reason": reason},
         )
         return Response(TenantSerializer(updated_tenant).data)
+
+    def destroy(self, request: Request, pk: str | None = None) -> Response:
+        if not pk:
+            raise Http404("Tenant not found.")
+        try:
+            tenant = Tenant.objects.get(pk=pk)
+        except Tenant.DoesNotExist:
+            raise Http404("Tenant not found.") from None
+
+        from django.db import connection, transaction
+        from django.db.models.deletion import ProtectedError
+
+        from apps.audit.models import AuditLog
+        from apps.core.context import set_current_tenant
+
+        def _delete_with_protected(obj_or_qs) -> None:
+            for _ in range(12):
+                try:
+                    obj_or_qs.delete()
+                    return
+                except ProtectedError as exc:
+                    by_model: dict[Any, list[Any]] = {}
+                    for rel_obj in exc.protected_objects:
+                        by_model.setdefault(type(rel_obj), []).append(rel_obj.pk)
+                    deleted_any = False
+                    for model_cls, pks in by_model.items():
+                        mgr: Any = (
+                            getattr(model_cls, "all_objects", None) or model_cls._default_manager
+                        )
+                        try:
+                            mgr.filter(pk__in=pks).delete()
+                            deleted_any = True
+                        except ProtectedError:
+                            continue
+                    if not deleted_any:
+                        first_cls, first_pks = next(iter(by_model.items()))
+                        first_mgr: Any = (
+                            getattr(first_cls, "all_objects", None) or first_cls._default_manager
+                        )
+                        _delete_with_protected(first_mgr.filter(pk__in=first_pks))
+
+        tenant_id_str = str(tenant.id)
+        tenant_name = tenant.name
+        set_current_tenant(tenant)
+        try:
+            with transaction.atomic():
+                # Preserve immutable AuditLog records by detaching nullable tenant_id before deletion
+                with connection.cursor() as cursor:
+                    cursor.execute(
+                        f"UPDATE {AuditLog._meta.db_table} SET tenant_id = NULL WHERE tenant_id = %s",
+                        [tenant_id_str],
+                    )
+                _delete_with_protected(tenant)
+                AuditLog.objects.create(
+                    tenant=None,
+                    actor=request.user,
+                    action="tenant.delete",
+                    entity_type="Tenant",
+                    entity_id=tenant_id_str,
+                    before_state={"name": tenant_name},
+                )
+        finally:
+            set_current_tenant(None)
+
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
     @action(detail=True, methods=["post"], url_path="extend-trial")
     def extend_trial(self, request: Request, pk: str | None = None) -> Response:
@@ -475,6 +541,53 @@ class BranchViewSet(ViewSet):
             membership=getattr(request, "membership", None),
         )
 
+        if request.query_params.get("permanent", "").lower() in ("true", "1"):
+            from django.db.models.deletion import ProtectedError
+
+            if Branch.unscoped.filter(tenant=branch.tenant).count() <= 1:
+                return Response(
+                    {"detail": "Cannot delete your only branch."},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            branch_id = str(branch.id)
+            branch_name = branch.name
+            try:
+                from apps.venues.models import (
+                    BranchCapabilities,
+                    DiningTable,
+                    QRCode,
+                    Section,
+                    ServiceArea,
+                    TokenCounter,
+                )
+
+                QRCode.unscoped.filter(branch=branch).delete()
+                DiningTable.unscoped.filter(branch=branch).delete()
+                Section.unscoped.filter(branch=branch).delete()
+                TokenCounter.unscoped.filter(branch=branch).delete()
+                ServiceArea.unscoped.filter(branch=branch).delete()
+                BranchCapabilities.unscoped.filter(branch=branch).delete()
+                branch.delete()
+            except ProtectedError:
+                return Response(
+                    {
+                        "detail": "This branch has existing orders, bills, or staff records and cannot be permanently deleted. Deactivate it instead."
+                    },
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            from apps.audit.services import log_audit_event
+
+            log_audit_event(
+                action="branch.delete",
+                entity_type="Branch",
+                entity_id=branch_id,
+                actor=request.user,
+                tenant=tenant,
+                before_state={"name": branch_name},
+                request=request,
+            )
+            return Response(status=status.HTTP_204_NO_CONTENT)
+
         delete_branch(branch, actor=request.user, request=request)
         return Response({"message": "Branch deactivated successfully."}, status=status.HTTP_200_OK)
 
@@ -567,7 +680,43 @@ class BusinessProfileView(APIView):
             actor=request.user,
             request=request,
         )
-        return Response(BusinessProfileSerializer(updated_tenant).data, status=status.HTTP_200_OK)
+
+        # Automatically generate QR codes for all active tables that don't have one yet
+        from apps.venues.constants import QRTargetType
+        from apps.venues.models import DiningTable, QRCode
+        from apps.venues.services import generate_qr_code
+
+        existing_table_ids = set(
+            QRCode.objects.filter(
+                tenant=updated_tenant,
+                target_type=QRTargetType.TABLE,
+                is_active=True,
+                table__isnull=False,
+            ).values_list("table_id", flat=True)
+        )
+        tables_without_qr = (
+            DiningTable.objects.filter(
+                tenant=updated_tenant,
+                is_active=True,
+            )
+            .exclude(id__in=existing_table_ids)
+            .select_related("branch")
+        )
+
+        qr_created_count = 0
+        for tbl in tables_without_qr:
+            generate_qr_code(
+                branch=tbl.branch,
+                target_type=QRTargetType.TABLE,
+                table=tbl,
+                actor=request.user,
+                request=request,
+            )
+            qr_created_count += 1
+
+        response_data = dict(BusinessProfileSerializer(updated_tenant).data)
+        response_data["qr_codes_generated"] = qr_created_count
+        return Response(response_data, status=status.HTTP_200_OK)
 
 
 class BusinessLogoView(APIView):
@@ -661,10 +810,9 @@ class PlatformCustomerCreateView(APIView):
 
         from apps.audit.models import AuditLog
         from apps.subscriptions.models import Plan, Subscription, SubscriptionStatus
-        from apps.venues.constants import AreaType, SectionType, TableType
+        from apps.venues.constants import AreaType, SectionType
         from apps.venues.models import (
             BranchCapabilities,
-            DiningTable,
             Section,
             ServiceArea,
             TokenCounter,
@@ -826,7 +974,7 @@ class PlatformCustomerCreateView(APIView):
                 area_type=AreaType.DINING,
                 sort_order=1,
             )
-            sec1 = Section.objects.create(
+            Section.objects.create(
                 tenant=tenant,
                 branch=first_branch,
                 service_area=area1,
@@ -834,14 +982,6 @@ class PlatformCustomerCreateView(APIView):
                 section_type="INDOOR",
                 sort_order=1,
             )
-            for t_no in range(1, 6):
-                DiningTable.objects.create(
-                    tenant=tenant,
-                    branch=first_branch,
-                    section=sec1,
-                    label=f"T{t_no}",
-                    capacity=4,
-                )
             ServiceArea.objects.create(
                 tenant=tenant,
                 branch=first_branch,
@@ -863,7 +1003,7 @@ class PlatformCustomerCreateView(APIView):
                 area_type=AreaType.DINING,
                 sort_order=1,
             )
-            sec_huts = Section.objects.create(
+            Section.objects.create(
                 tenant=tenant,
                 branch=first_branch,
                 service_area=area,
@@ -871,16 +1011,7 @@ class PlatformCustomerCreateView(APIView):
                 section_type=SectionType.GARDEN_HUTS,
                 sort_order=1,
             )
-            for h_no in range(1, 5):
-                DiningTable.objects.create(
-                    tenant=tenant,
-                    branch=first_branch,
-                    section=sec_huts,
-                    label=f"Hut {h_no}",
-                    table_type=TableType.HUT,
-                    capacity=6,
-                )
-            sec_lawn = Section.objects.create(
+            Section.objects.create(
                 tenant=tenant,
                 branch=first_branch,
                 service_area=area,
@@ -888,15 +1019,6 @@ class PlatformCustomerCreateView(APIView):
                 section_type=SectionType.DHABA_LAWN,
                 sort_order=2,
             )
-            for t_no in range(1, 5):
-                DiningTable.objects.create(
-                    tenant=tenant,
-                    branch=first_branch,
-                    section=sec_lawn,
-                    label=f"Lawn {t_no}",
-                    table_type=TableType.TABLE,
-                    capacity=4,
-                )
         else:
             BranchCapabilities.objects.create(
                 tenant=tenant,
@@ -910,7 +1032,7 @@ class PlatformCustomerCreateView(APIView):
                 area_type=AreaType.DINING,
                 sort_order=1,
             )
-            sec = Section.objects.create(
+            Section.objects.create(
                 tenant=tenant,
                 branch=first_branch,
                 service_area=area,
@@ -918,14 +1040,6 @@ class PlatformCustomerCreateView(APIView):
                 section_type="INDOOR",
                 sort_order=1,
             )
-            for t_no in range(1, 6):
-                DiningTable.objects.create(
-                    tenant=tenant,
-                    branch=first_branch,
-                    section=sec,
-                    label=f"T{t_no}",
-                    capacity=4,
-                )
 
         # 5. Trial Subscription
         now = timezone.now()
@@ -1149,10 +1263,9 @@ class PublicDemoLeadView(APIView):
                 status=status.HTTP_403_FORBIDDEN,
             )
 
-        client_ip = (
-            request.META.get("HTTP_X_FORWARDED_FOR", "").split(",")[0].strip()
-            or request.META.get("REMOTE_ADDR", "unknown")
-        )
+        client_ip = request.META.get("HTTP_X_FORWARDED_FOR", "").split(",")[
+            0
+        ].strip() or request.META.get("REMOTE_ADDR", "unknown")
         if not self._check_rate_limit(f"lead:ip:{client_ip}", limit=5, window_seconds=600):
             return Response(
                 {
@@ -1168,7 +1281,9 @@ class PublicDemoLeadView(APIView):
         serializer.is_valid(raise_exception=True)
         normalized_phone = serializer.validated_data["phone"]
 
-        if not self._check_rate_limit(f"lead:phone:{normalized_phone}", limit=3, window_seconds=3600):
+        if not self._check_rate_limit(
+            f"lead:phone:{normalized_phone}", limit=3, window_seconds=3600
+        ):
             return Response(
                 {
                     "error": {

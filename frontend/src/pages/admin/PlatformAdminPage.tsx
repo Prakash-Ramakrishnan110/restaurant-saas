@@ -16,6 +16,7 @@ import {
   ExternalLink,
   Users,
   Clock,
+  PhoneCall,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { apiClient } from "../../api/client";
@@ -86,6 +87,16 @@ interface AuditRecord {
   actor_email: string;
 }
 
+interface DemoLeadPreview {
+  id: string;
+  name: string;
+  phone: string;
+  business_type: string;
+  city: string;
+  status: "NEW" | "CONTACTED" | "CLOSED";
+  created_at: string;
+}
+
 export const PlatformAdminPage: React.FC = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -95,6 +106,8 @@ export const PlatformAdminPage: React.FC = () => {
   const [healthInfo, setHealthInfo] = useState<HealthInfo | null>(null);
   const [recentAudits, setRecentAudits] = useState<AuditRecord[]>([]);
   const [openTicketsCount, setOpenTicketsCount] = useState<number>(0);
+  const [recentLeads, setRecentLeads] = useState<DemoLeadPreview[]>([]);
+  const [newLeadsCount, setNewLeadsCount] = useState<number>(0);
   const [refreshing, setRefreshing] = useState<boolean>(false);
   const [toastMsg, setToastMsg] = useState<string | null>(null);
 
@@ -102,13 +115,15 @@ export const PlatformAdminPage: React.FC = () => {
     if (isManualRefresh) setRefreshing(true);
 
     try {
-      const [tenantsRes, summaryRes, healthRes, auditRes, ticketsRes] = await Promise.allSettled([
-        apiClient.get<ListResponse<TenantItem> | TenantItem[]>("/tenants/"),
-        apiClient.get<PlatformSummary>("/platform/summary/"),
-        apiClient.get<HealthInfo>("/health/"),
-        apiClient.get<ListResponse<AuditRecord>>("/audit-logs/"),
-        apiClient.get<ListResponse<any>>("/support-tickets/"),
-      ]);
+      const [tenantsRes, summaryRes, healthRes, auditRes, ticketsRes, leadsRes] =
+        await Promise.allSettled([
+          apiClient.get<ListResponse<TenantItem> | TenantItem[]>("/tenants/"),
+          apiClient.get<PlatformSummary>("/platform/summary/"),
+          apiClient.get<HealthInfo>("/health/"),
+          apiClient.get<ListResponse<AuditRecord>>("/audit-logs/"),
+          apiClient.get<ListResponse<any>>("/support-tickets/"),
+          apiClient.get<ListResponse<DemoLeadPreview> | DemoLeadPreview[]>("/platform/leads/"),
+        ]);
 
       if (tenantsRes.status === "fulfilled") {
         setTenants(unwrapList<TenantItem>(tenantsRes.value.data));
@@ -128,6 +143,11 @@ export const PlatformAdminPage: React.FC = () => {
           (t: any) => t.status === "OPEN" || t.status === "IN_PROGRESS"
         ).length;
         setOpenTicketsCount(openCount);
+      }
+      if (leadsRes.status === "fulfilled") {
+        const lList = unwrapList<DemoLeadPreview>(leadsRes.value.data);
+        setRecentLeads(lList.slice(0, 5));
+        setNewLeadsCount(lList.filter((l) => l.status === "NEW").length);
       }
 
       if (isManualRefresh) {
@@ -214,6 +234,17 @@ export const PlatformAdminPage: React.FC = () => {
           ? "text-amber-600 dark:text-amber-400"
           : "text-teal-600 dark:text-teal-400",
       cta: "Open Helpdesk",
+    },
+    {
+      title: "Demo Requests",
+      description:
+        "View and follow up on every Book a Demo request submitted from the landing page.",
+      path: "/admin/leads",
+      icon: PhoneCall,
+      badge: newLeadsCount > 0 ? `${newLeadsCount} New` : `${recentLeads.length} Leads`,
+      color: "border-orange-200 dark:border-orange-900/40 bg-orange-50/40 dark:bg-orange-950/20",
+      iconColor: "text-[#FF6A00]",
+      cta: "View Demo Leads",
     },
   ];
 
@@ -675,6 +706,68 @@ export const PlatformAdminPage: React.FC = () => {
           </CardContent>
         </Card>
       </div>
+
+      {/* Recent Demo Requests from Landing Page */}
+      <Card>
+        <CardContent className="p-5 space-y-4">
+          <div className="flex items-center justify-between pb-3 border-b border-border">
+            <div>
+              <h3 className="font-bold text-sm text-foreground flex items-center gap-1.5">
+                <PhoneCall className="h-4 w-4 text-[#FF6A00]" /> Recent Demo Requests
+              </h3>
+              <p className="text-[11px] text-muted-foreground">
+                Leads submitted from the landing page Book a Demo form
+              </p>
+            </div>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => navigate("/admin/leads")}
+              className="text-xs text-[#FF6A00] hover:text-[#FF6A00]/80 h-7"
+            >
+              Manage All Leads
+            </Button>
+          </div>
+
+          <div className="space-y-2.5">
+            {recentLeads.length === 0 ? (
+              <p className="text-xs text-muted-foreground py-3 text-center">
+                No demo requests yet. Submissions from the landing page will appear here
+                automatically.
+              </p>
+            ) : (
+              recentLeads.map((lead) => (
+                <div
+                  key={lead.id}
+                  onClick={() => navigate("/admin/leads")}
+                  className="p-2.5 rounded-lg border border-border bg-muted/10 hover:bg-muted/30 transition-colors flex items-center justify-between text-xs cursor-pointer"
+                >
+                  <div className="min-w-0 pr-2">
+                    <span className="font-bold text-foreground block truncate">
+                      {lead.name} — {lead.phone}
+                    </span>
+                    <span className="text-[11px] text-muted-foreground">
+                      {lead.business_type} • {lead.city}
+                    </span>
+                  </div>
+                  <Badge
+                    variant="secondary"
+                    className={`text-[10px] font-bold ${
+                      lead.status === "NEW"
+                        ? "bg-orange-100 text-[#C2410C] dark:bg-orange-950 dark:text-orange-300"
+                        : lead.status === "CONTACTED"
+                          ? "bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-300"
+                          : "bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300"
+                    }`}
+                  >
+                    {lead.status}
+                  </Badge>
+                </div>
+              ))
+            )}
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 };

@@ -27,6 +27,7 @@ interface ItemEditorSheetProps {
     imageFile?: File | null,
     focusCoords?: { x: number; y: number }
   ) => Promise<void>;
+  onQuickCreateCategory?: (name: string) => Promise<string | null>;
   isLoading?: boolean;
 }
 
@@ -37,9 +38,13 @@ export const ItemEditorSheet: React.FC<ItemEditorSheetProps> = ({
   categories,
   optionGroups,
   onSave,
+  onQuickCreateCategory,
   isLoading = false,
 }) => {
   const [categoryId, setCategoryId] = useState("");
+  const [showQuickCat, setShowQuickCat] = useState(false);
+  const [quickCatName, setQuickCatName] = useState("");
+  const [creatingCat, setCreatingCat] = useState(false);
   const [name, setName] = useState("");
   const [nameTa, setNameTa] = useState("");
   const [description, setDescription] = useState("");
@@ -217,18 +222,77 @@ export const ItemEditorSheet: React.FC<ItemEditorSheetProps> = ({
         <form onSubmit={handleSubmit} className="p-6 space-y-6 flex-1">
           {/* Category */}
           <FormField label="Menu Category" required>
-            <select
-              value={categoryId}
-              onChange={(e) => setCategoryId(e.target.value)}
-              className="w-full h-10 px-3 rounded-md border border-input bg-background text-sm focus:outline-none focus:ring-2 focus:ring-[#FF6A00]"
-              required
-            >
-              {categories.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.name} {c.name_ta ? `(${c.name_ta})` : ""}
-                </option>
-              ))}
-            </select>
+            <div className="space-y-2">
+              {categories.length > 0 ? (
+                <div className="flex items-center gap-2">
+                  <select
+                    value={categoryId}
+                    onChange={(e) => setCategoryId(e.target.value)}
+                    className="w-full h-10 px-3 rounded-md border border-input bg-background text-sm focus:outline-none focus:ring-2 focus:ring-[#FF6A00]"
+                    required
+                  >
+                    <option value="" disabled>
+                      Select a category...
+                    </option>
+                    {categories.map((c) => (
+                      <option key={c.id} value={c.id}>
+                        {c.name} {c.name_ta ? `(${c.name_ta})` : ""}
+                      </option>
+                    ))}
+                  </select>
+                  {onQuickCreateCategory && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setShowQuickCat((prev) => !prev)}
+                      className="h-10 shrink-0 text-xs"
+                    >
+                      <Plus className="h-3.5 w-3.5 mr-1" />
+                      New
+                    </Button>
+                  )}
+                </div>
+              ) : (
+                <p className="text-xs text-amber-800 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 rounded-md px-3 py-2">
+                  No categories yet for this restaurant. Create your first category below:
+                </p>
+              )}
+
+              {onQuickCreateCategory && (categories.length === 0 || showQuickCat) && (
+                <div className="flex items-center gap-2">
+                  <Input
+                    value={quickCatName}
+                    onChange={(e) => setQuickCatName(e.target.value)}
+                    placeholder="e.g. Tiffins, Meals, Beverages"
+                    className="h-10 text-sm"
+                  />
+                  <Button
+                    type="button"
+                    variant="primary"
+                    size="sm"
+                    disabled={creatingCat || !quickCatName.trim()}
+                    onClick={async () => {
+                      if (!quickCatName.trim()) return;
+                      setCreatingCat(true);
+                      try {
+                        const newId = await onQuickCreateCategory(quickCatName.trim());
+                        if (newId) {
+                          setCategoryId(newId);
+                          setQuickCatName("");
+                          setShowQuickCat(false);
+                        }
+                      } finally {
+                        setCreatingCat(false);
+                      }
+                    }}
+                    className="h-10 shrink-0 px-4 text-xs font-bold"
+                  >
+                    {creatingCat ? "Adding..." : "Add Category"}
+                  </Button>
+                </div>
+              )}
+            </div>
           </FormField>
 
           {/* Names */}
@@ -272,8 +336,8 @@ export const ItemEditorSheet: React.FC<ItemEditorSheetProps> = ({
             </FormField>
           </div>
 
-          {/* Price, Food Type & Prep Time */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          {/* Price & Prep Time */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <FormField
               label="Base Price (₹)"
               required
@@ -294,27 +358,7 @@ export const ItemEditorSheet: React.FC<ItemEditorSheetProps> = ({
               />
             </FormField>
 
-            <FormField label="Food Type" required>
-              <div className="flex items-center gap-1.5 h-10">
-                {(["VEG", "NON_VEG", "EGG"] as FoodType[]).map((t) => (
-                  <button
-                    key={t}
-                    type="button"
-                    onClick={() => setFoodType(t)}
-                    className={`flex-1 h-9 rounded-md border text-xs font-medium flex items-center justify-center gap-1 transition-colors ${
-                      foodType === t
-                        ? "border-[#FF6A00] bg-[#FF6A00]/10 text-foreground"
-                        : "border-border hover:bg-muted text-muted-foreground"
-                    }`}
-                  >
-                    <FoodTypeBadge type={t} showLabel={false} />
-                    <span>{t === "VEG" ? "Veg" : t === "NON_VEG" ? "Non-Veg" : "Egg"}</span>
-                  </button>
-                ))}
-              </div>
-            </FormField>
-
-            <FormField label="Prep Time (mins)">
+            <FormField label="Prep Time (mins)" helperText="Estimated kitchen prep time">
               <Input
                 type="number"
                 min="1"
@@ -324,6 +368,52 @@ export const ItemEditorSheet: React.FC<ItemEditorSheetProps> = ({
               />
             </FormField>
           </div>
+
+          {/* Food Type (full-width 3-card selector) */}
+          <FormField label="Food Type" required>
+            <div className="grid grid-cols-3 gap-3">
+              {(
+                [
+                  {
+                    type: "VEG" as FoodType,
+                    label: "Veg",
+                    activeClass:
+                      "border-emerald-600 bg-emerald-50/80 text-emerald-950 ring-1 ring-emerald-600/30 dark:bg-emerald-950/40 dark:text-emerald-200",
+                  },
+                  {
+                    type: "NON_VEG" as FoodType,
+                    label: "Non-Veg",
+                    activeClass:
+                      "border-red-600 bg-red-50/80 text-red-950 ring-1 ring-red-600/30 dark:bg-red-950/40 dark:text-red-200",
+                  },
+                  {
+                    type: "EGG" as FoodType,
+                    label: "Egg",
+                    activeClass:
+                      "border-amber-600 bg-amber-50/80 text-amber-950 ring-1 ring-amber-600/30 dark:bg-amber-950/40 dark:text-amber-200",
+                  },
+                ] as const
+              ).map(({ type, label, activeClass }) => {
+                const selected = foodType === type;
+                return (
+                  <button
+                    key={type}
+                    type="button"
+                    aria-pressed={selected}
+                    onClick={() => setFoodType(type)}
+                    className={`h-11 px-3 rounded-xl border text-sm font-semibold whitespace-nowrap flex items-center justify-center gap-2 transition-all ${
+                      selected
+                        ? activeClass
+                        : "border-border bg-background hover:bg-muted/60 text-muted-foreground"
+                    }`}
+                  >
+                    <FoodTypeBadge type={type} showLabel={false} />
+                    <span>{label}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </FormField>
 
           {/* Photo & Focus Point */}
           <div className="border border-border rounded-xl p-4 bg-muted/20 space-y-3">

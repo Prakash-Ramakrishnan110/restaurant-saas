@@ -10,6 +10,7 @@ import {
   Power,
   PowerOff,
   KeyRound,
+  Trash2,
   X,
   CheckCircle2,
 } from "lucide-react";
@@ -87,8 +88,8 @@ export const TenantsDirectoryPage: React.FC = () => {
 
     setActionLoading(tenant.id);
     try {
-      await apiClient.post(`/tenants/${tenant.id}/toggle_status/`, {
-        status: nextStatus,
+      const actionPath = isSuspending ? "suspend" : "activate";
+      await apiClient.post(`/tenants/${tenant.id}/${actionPath}/`, {
         reason: isSuspending ? "Administrative suspension" : "Administrative reactivation",
       });
       setTenants((prev) =>
@@ -102,13 +103,33 @@ export const TenantsDirectoryPage: React.FC = () => {
     }
   };
 
+  const handleDeleteTenant = async (tenant: TenantItem) => {
+    if (
+      !window.confirm(
+        `Permanently DELETE "${tenant.name}" and all of its branches, menus, and orders? This cannot be undone.`
+      )
+    ) {
+      return;
+    }
+    setActionLoading(tenant.id);
+    try {
+      await apiClient.delete(`/tenants/${tenant.id}/`);
+      setTenants((prev) => prev.filter((t) => t.id !== tenant.id));
+      setToastMsg(`Customer "${tenant.name}" deleted.`);
+    } catch {
+      setToastMsg(`Failed to delete ${tenant.name}`);
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
   const handleResetPassword = async (tenant: TenantItem) => {
     if (!window.confirm(`Send password reset or reset credentials for ${tenant.name}?`)) {
       return;
     }
     setActionLoading(tenant.id);
     try {
-      await apiClient.post(`/tenants/${tenant.id}/reset_owner_password/`);
+      await apiClient.post(`/tenants/${tenant.id}/reset-owner-password/`);
       setToastMsg(`Password reset instructions triggered for ${tenant.owner_email || tenant.name}`);
     } catch {
       setToastMsg(`Failed to trigger reset for ${tenant.name}`);
@@ -489,17 +510,29 @@ export const TenantsDirectoryPage: React.FC = () => {
                             onClick={() => handleToggleStatus(tenant)}
                             disabled={isActionBusy}
                             title={
-                              tenant.status === "ACTIVE"
+                              tenant.status === "ACTIVE" || tenant.status === "TRIAL"
                                 ? "Suspend Brand Access"
                                 : "Activate Brand Access"
                             }
                             className="h-8 w-8 p-0"
                           >
-                            {tenant.status === "ACTIVE" ? (
+                            {tenant.status === "ACTIVE" || tenant.status === "TRIAL" ? (
                               <PowerOff className="h-4 w-4 text-destructive hover:text-destructive/80" />
                             ) : (
                               <Power className="h-4 w-4 text-emerald-600 hover:text-emerald-700" />
                             )}
+                          </Button>
+
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => handleDeleteTenant(tenant)}
+                            disabled={isActionBusy}
+                            title="Delete Customer"
+                            aria-label={`Delete ${tenant.name}`}
+                            className="h-8 w-8 p-0"
+                          >
+                            <Trash2 className="h-4 w-4 text-destructive hover:text-destructive/80" />
                           </Button>
                         </div>
                       </td>

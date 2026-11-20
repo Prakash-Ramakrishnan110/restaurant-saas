@@ -1,13 +1,9 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { CheckCircle2, Clock } from "lucide-react";
 import { HOME_COPY, VENUE_PAGE_COPY } from "../copy";
 import { getPagePath, type Lang } from "../routes";
-import { HeroStoryboard } from "../components/HeroStoryboard";
+import { DeviceFrame } from "../components/DeviceFrame";
 import { VideoSection } from "../components/VideoSection";
-
-const LazyHeroAnimation = React.lazy(() =>
-  import("../components/HeroAnimation").then((m) => ({ default: m.HeroAnimation }))
-);
 
 interface VenuePageProps {
   venue: "tea-shops" | "restaurants" | "hotels";
@@ -18,30 +14,12 @@ interface VenuePageProps {
 export const VenuePage: React.FC<VenuePageProps> = ({ venue, lang, onNavigate }) => {
   const data = VENUE_PAGE_COPY[venue][lang];
   const homeCopy = HOME_COPY[lang];
-  const [clientReady, setClientReady] = useState(false);
-
-  useEffect(() => {
-    setClientReady(true);
-  }, []);
-
-  const steps =
+  const shotSrc =
     venue === "tea-shops"
-      ? lang === "ta"
-        ? [
-            "1. வாடிக்கையாளர் 2 தேநீர், 1 சமோசா ஆர்டர் செய்கிறார்.",
-            "2. UPI அல்லது ரொக்கம் செலுத்துகிறார். டோக்கன் 12 வருகிறது.",
-            "3. சமையலறையில் தயாரானதும் ஒலி அறிவிப்பு.",
-            "4. வாடிக்கையாளர் டோக்கன் 12 பெற்றுக்கொள்கிறார்.",
-            "5. உரிமையாளர் இன்றைய விற்பனையைப் பார்க்கிறார்.",
-          ]
-        : [
-            "1. Tap 2 Chai and 1 Samosa at the counter.",
-            "2. Customer pays via UPI or Cash. Token 12 appears.",
-            "3. Kitchen marks it Ready with a sound alert.",
-            "4. Customer collects when Token 12 is called.",
-            "5. Owner sees today's sales rising.",
-          ]
-      : homeCopy.steps;
+      ? "/shots/tea-counters.webp"
+      : venue === "hotels"
+        ? "/shots/hotel-areas.webp"
+        : "/shots/waiter-order.webp";
 
   const demoPath = getPagePath("book-demo", lang);
   const handleLinkClick = (e: React.MouseEvent<HTMLAnchorElement>, path: string) => {
@@ -78,17 +56,7 @@ export const VenuePage: React.FC<VenuePageProps> = ({ venue, lang, onNavigate })
           </div>
 
           <div className="lg:col-span-6 min-w-0">
-            {clientReady ? (
-              <React.Suspense
-                fallback={
-                  <HeroStoryboard lang={lang} steps={steps} variant={data.storyType} />
-                }
-              >
-                <LazyHeroAnimation lang={lang} initialVariant={data.storyType} lockVariant />
-              </React.Suspense>
-            ) : (
-              <HeroStoryboard lang={lang} steps={steps} variant={data.storyType} />
-            )}
+            <DeviceFrame kind="laptop" src={shotSrc} alt={data.h1} eager />
           </div>
         </div>
       </section>

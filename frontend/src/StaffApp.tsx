@@ -30,7 +30,6 @@ const AreasPage = lazyNamed(() => import("./pages/venue/AreasPage"), "AreasPage"
 const TablesPage = lazyNamed(() => import("./pages/venue/TablesPage"), "TablesPage");
 const CountersPage = lazyNamed(() => import("./pages/venue/CountersPage"), "CountersPage");
 const FloorPlanPage = lazyNamed(() => import("./pages/venue/FloorPlanPage"), "FloorPlanPage");
-const QRCodesPage = lazyNamed(() => import("./pages/venue/QRCodesPage"), "QRCodesPage");
 const StaffPage = lazyNamed(() => import("./pages/staff/StaffPage"), "StaffPage");
 const MenuPage = lazyNamed(() => import("./pages/menu/MenuPage"), "MenuPage");
 const MenuAvailabilityPage = lazyNamed(
@@ -415,6 +414,8 @@ export const StaffApp: React.FC = () => {
                   </ProtectedRoute>
                 }
               />
+              <Route path="/reports" element={<Navigate to="/reports/sales" replace />} />
+              <Route path="/reports/today" element={<Navigate to="/reports/sales" replace />} />
               <Route
                 path="/reports/sales"
                 element={
@@ -715,7 +716,7 @@ export const StaffApp: React.FC = () => {
                 path="/qr"
                 element={
                   <ProtectedRoute>
-                    <QRCodesPage />
+                    <BrandingSettingsPage initialTab="qr" />
                   </ProtectedRoute>
                 }
               />

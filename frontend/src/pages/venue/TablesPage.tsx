@@ -8,6 +8,7 @@ import {
   QrCode,
   Search,
   Power,
+  Trash2,
   Armchair,
   Bed,
 } from "lucide-react";
@@ -83,6 +84,7 @@ export const TablesPage: React.FC = () => {
   const [isAddOpen, setIsAddOpen] = useState<boolean>(false);
   const [isJoinOpen, setIsJoinOpen] = useState<boolean>(false);
   const [deactivateTarget, setDeactivateTarget] = useState<DiningTableItem | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<DiningTableItem | null>(null);
   const [actionLoading, setActionLoading] = useState<boolean>(false);
 
   // Bulk form
@@ -268,6 +270,22 @@ export const TablesPage: React.FC = () => {
       await fetchData();
     } catch (err: any) {
       setErrorMessage(mapBackendErrorCode(err));
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleDeleteTable = async () => {
+    if (!deleteTarget) return;
+    setActionLoading(true);
+    setErrorMessage(null);
+    try {
+      await apiClient.delete(`/tables/${deleteTarget.id}/`);
+      setDeleteTarget(null);
+      await fetchData();
+    } catch (err: any) {
+      setErrorMessage(err?.response?.data?.detail || mapBackendErrorCode(err));
+      setDeleteTarget(null);
     } finally {
       setActionLoading(false);
     }
@@ -593,16 +611,28 @@ export const TablesPage: React.FC = () => {
                         <QrCode className="w-3.5 h-3.5" />
                       </Button>
 
-                      {/* Deactivate table */}
+                      {/* Deactivate / Delete table */}
                       {canManage && (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => setDeactivateTarget(table)}
-                          className="h-8 px-2 text-destructive hover:bg-destructive/10"
-                        >
-                          <Power className="w-3.5 h-3.5" />
-                        </Button>
+                        <>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => setDeactivateTarget(table)}
+                            className="h-8 px-2 text-amber-600 hover:bg-amber-50"
+                            title={table.is_active ? "Deactivate table" : "Activate table"}
+                          >
+                            <Power className="w-3.5 h-3.5" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => setDeleteTarget(table)}
+                            className="h-8 px-2 text-destructive hover:bg-destructive/10"
+                            title="Delete table"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </Button>
+                        </>
                       )}
                     </div>
                   </td>
@@ -1040,6 +1070,18 @@ export const TablesPage: React.FC = () => {
         variant="destructive"
         isLoading={actionLoading}
         onConfirm={handleDeactivate}
+      />
+
+      {/* Delete Confirm Dialog */}
+      <ConfirmDialog
+        open={Boolean(deleteTarget)}
+        onOpenChange={(open) => !open && setDeleteTarget(null)}
+        title={`Delete Table ${deleteTarget?.label || ""}?`}
+        description="This will permanently delete this table and its QR code. Tables with existing order history cannot be deleted."
+        confirmLabel="Delete Table"
+        variant="destructive"
+        isLoading={actionLoading}
+        onConfirm={handleDeleteTable}
       />
     </div>
   );

@@ -10,6 +10,7 @@ import {
   Users,
   Plus,
   Pencil,
+  Trash2,
   Tent,
   BellRing,
   Bed,
@@ -512,6 +513,29 @@ export const PlatformPlansPage: React.FC = () => {
                     >
                       <Pencil className="w-3 h-3" />
                       Edit
+                    </button>
+                    <button
+                      type="button"
+                      onClick={async (e) => {
+                        e.stopPropagation();
+                        if (!window.confirm(`Delete plan "${p.name}"? This cannot be undone.`)) {
+                          return;
+                        }
+                        try {
+                          await apiClient.delete(`/plans/${p.id}/`);
+                          setPlans((prev) => prev.filter((item) => item.id !== p.id));
+                        } catch (err: any) {
+                          const msg =
+                            err?.response?.data?.error?.message ||
+                            `Could not delete plan "${p.name}".`;
+                          window.alert(msg);
+                        }
+                      }}
+                      className="text-xs text-destructive hover:text-destructive/80 font-semibold flex items-center gap-1 px-1.5 py-0.5 rounded hover:bg-destructive/10 transition-colors"
+                      title="Delete Plan"
+                    >
+                      <Trash2 className="w-3 h-3" />
+                      Delete
                     </button>
                     <span className="text-[#FF6A00] font-bold text-[11px] group-hover:underline flex items-center gap-0.5">
                       Details <ArrowRight className="w-3 h-3" />

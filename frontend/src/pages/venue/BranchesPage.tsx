@@ -4,6 +4,7 @@ import {
   Plus,
   Edit2,
   Power,
+  Trash2,
   AlertTriangle,
   ArrowUpRight,
   Phone,
@@ -54,6 +55,7 @@ export const BranchesPage: React.FC = () => {
   const [isEditOpen, setIsEditOpen] = useState<boolean>(false);
   const [editTarget, setEditTarget] = useState<BranchItem | null>(null);
   const [deactivateTarget, setDeactivateTarget] = useState<BranchItem | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<BranchItem | null>(null);
   const [actionLoading, setActionLoading] = useState<boolean>(false);
 
   // Form states
@@ -163,6 +165,22 @@ export const BranchesPage: React.FC = () => {
       await fetchBranches();
     } catch (err: any) {
       setErrorMessage(mapBackendErrorCode(err));
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleDeleteBranch = async () => {
+    if (!deleteTarget) return;
+    setActionLoading(true);
+    setErrorMessage(null);
+    try {
+      await apiClient.delete(`/branches/${deleteTarget.id}/?permanent=true`);
+      setDeleteTarget(null);
+      await fetchBranches();
+    } catch (err: any) {
+      setErrorMessage(err?.response?.data?.detail || mapBackendErrorCode(err));
+      setDeleteTarget(null);
     } finally {
       setActionLoading(false);
     }
@@ -300,14 +318,23 @@ export const BranchesPage: React.FC = () => {
                     size="sm"
                     onClick={() => setDeactivateTarget(branch)}
                     className={`min-h-[44px] text-xs font-semibold ${
-                      branch.is_active
-                        ? "text-destructive hover:bg-destructive/10"
-                        : "text-emerald-600"
+                      branch.is_active ? "text-amber-600 hover:bg-amber-50" : "text-emerald-600"
                     }`}
                   >
                     <Power className="w-3.5 h-3.5 mr-1.5" />
                     {branch.is_active ? t("branches.deactivateBranch") : "Activate"}
                   </Button>
+                  {branches.length > 1 && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setDeleteTarget(branch)}
+                      className="min-h-[44px] text-xs font-semibold text-destructive hover:bg-destructive/10"
+                      title="Delete Branch"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </Button>
+                  )}
                 </div>
               )}
             </Card>
@@ -524,6 +551,18 @@ export const BranchesPage: React.FC = () => {
         variant="destructive"
         isLoading={actionLoading}
         onConfirm={handleDeactivate}
+      />
+
+      {/* Delete Branch Confirm Dialog */}
+      <ConfirmDialog
+        open={Boolean(deleteTarget)}
+        onOpenChange={(open) => !open && setDeleteTarget(null)}
+        title={`Delete Branch "${deleteTarget?.name || ""}"?`}
+        description="This will permanently delete this branch and its unused tables/QR codes. Branches with existing orders or bills cannot be deleted."
+        confirmLabel="Delete Branch"
+        variant="destructive"
+        isLoading={actionLoading}
+        onConfirm={handleDeleteBranch}
       />
     </div>
   );

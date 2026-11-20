@@ -301,6 +301,35 @@ class DiningTableViewSet(viewsets.ModelViewSet):
             request=self.request,
         )
 
+    def destroy(self, request: Request, *args: Any, **kwargs: Any) -> Response:
+        from django.db.models.deletion import ProtectedError
+
+        table = self.get_object()
+        tenant = getattr(request, "tenant", None) or get_current_tenant()
+        verify_tenant_and_branch_access(request.user, table.branch)
+        table_id = str(table.id)
+        table_label = table.label
+        try:
+            QRCode.objects.filter(table=table).delete()
+            table.delete()
+        except ProtectedError:
+            return Response(
+                {
+                    "detail": "This table has existing orders or bills and cannot be deleted. Deactivate it instead."
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        log_audit_event(
+            action="table.delete",
+            entity_type="DiningTable",
+            entity_id=table_id,
+            actor=request.user,
+            tenant=tenant,
+            before_state={"label": table_label},
+            request=request,
+        )
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
     @action(detail=True, methods=["post"], url_path="status")
     def status_transition(self, request: Request, pk: str | None = None) -> Response:
         table = self.get_object()

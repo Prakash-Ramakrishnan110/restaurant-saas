@@ -150,6 +150,46 @@ class PlanDetailView(APIView):
             status=status.HTTP_200_OK,
         )
 
+    def delete(self, request: Request, pk: str) -> Response:
+        if not getattr(request.user, "is_platform_admin", False):
+            return Response(
+                {
+                    "error": {
+                        "code": "FORBIDDEN",
+                        "message": "Only platform administrators can delete plans.",
+                    }
+                },
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        try:
+            plan = Plan.objects.get(id=pk)
+        except Plan.DoesNotExist:
+            return Response(
+                {"error": {"code": "NOT_FOUND", "message": "Plan not found."}},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        from apps.subscriptions.models import Subscription
+
+        assigned_count = Subscription.objects.filter(plan=plan).count()
+        if assigned_count > 0:
+            return Response(
+                {
+                    "error": {
+                        "code": "PLAN_IN_USE",
+                        "message": (
+                            f"Cannot delete '{plan.name}' because {assigned_count} customer(s) "
+                            "are currently assigned to it. Move them to another plan first."
+                        ),
+                    }
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        plan.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
 
 class EntitlementsView(APIView):
     """View current subscription plan, operational limits, feature flags, and active usage."""

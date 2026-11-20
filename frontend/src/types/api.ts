@@ -1337,7 +1337,8 @@ export interface paths {
         get?: never;
         put?: never;
         post?: never;
-        delete?: never;
+        /** @description View, update or toggle individual subscription plans. */
+        delete: operations["plans_destroy"];
         options?: never;
         head?: never;
         /** @description View, update or toggle individual subscription plans. */
@@ -1367,6 +1368,41 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/platform/leads/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description Platform-admin-only management of public demo leads. */
+        get: operations["platform_leads_list"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/platform/leads/{id}/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description Platform-admin-only management of public demo leads. */
+        get: operations["platform_leads_retrieve"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** @description Platform-admin-only management of public demo leads. */
+        patch: operations["platform_leads_partial_update"];
+        trace?: never;
+    };
     "/api/v1/platform/summary/": {
         parameters: {
             query?: never;
@@ -1378,6 +1414,23 @@ export interface paths {
         get: operations["platform_summary_retrieve"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/public/leads/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** @description Public demo request endpoint with Origin check, honeypot, and IP/phone throttling. */
+        post: operations["public_leads_create"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1953,7 +2006,8 @@ export interface paths {
         get?: never;
         put?: never;
         post?: never;
-        delete?: never;
+        /** @description View, update or toggle individual subscription plans. */
+        delete: operations["subscriptions_plans_destroy"];
         options?: never;
         head?: never;
         /** @description View, update or toggle individual subscription plans. */
@@ -2240,7 +2294,8 @@ export interface paths {
         get: operations["tenants_retrieve"];
         put?: never;
         post?: never;
-        delete?: never;
+        /** @description Platform administrator endpoints to manage tenants and provisioning. */
+        delete: operations["tenants_destroy"];
         options?: never;
         head?: never;
         patch?: never;
@@ -2630,6 +2685,17 @@ export interface components {
          */
         BusinessType: "TEA_SHOP" | "BAKERY" | "CAFE" | "RESTAURANT" | "DHABA" | "FINE_DINING" | "HOTEL" | "FOOD_COURT" | "CHAIN";
         /**
+         * @description * `TEA_SHOP` - Tea shop
+         *     * `BAKERY` - Bakery
+         *     * `CAFE` - Cafe
+         *     * `RESTAURANT` - Restaurant
+         *     * `FINE_DINING` - Fine dining
+         *     * `HOTEL` - Hotel restaurant
+         *     * `FOOD_COURT` - Food court
+         * @enum {string}
+         */
+        BusinessTypeA80Enum: "TEA_SHOP" | "BAKERY" | "CAFE" | "RESTAURANT" | "FINE_DINING" | "HOTEL" | "FOOD_COURT";
+        /**
          * @description * `DRY_GOODS` - Dry Goods & Grains
          *     * `DAIRY` - Dairy & Eggs
          *     * `MEAT` - Meat & Seafood
@@ -2691,6 +2757,30 @@ export interface components {
             /** Format: date-time */
             last_visit_at?: string;
         };
+        DemoLeadAdmin: {
+            /** Format: uuid */
+            readonly id: string;
+            readonly name: string;
+            readonly phone: string;
+            readonly business_type: components["schemas"]["BusinessTypeA80Enum"];
+            readonly city: string;
+            readonly message: string;
+            readonly language: string;
+            readonly consent: boolean;
+            status?: components["schemas"]["DemoLeadAdminStatusEnum"];
+            notes?: string;
+            /** Format: date-time */
+            readonly created_at: string;
+            /** Format: date-time */
+            readonly updated_at: string;
+        };
+        /**
+         * @description * `NEW` - New
+         *     * `CONTACTED` - Contacted
+         *     * `CLOSED` - Closed
+         * @enum {string}
+         */
+        DemoLeadAdminStatusEnum: "NEW" | "CONTACTED" | "CLOSED";
         /**
          * @description * `VEG` - Vegetarian
          *     * `NON_VEG` - Non-Vegetarian
@@ -3307,6 +3397,21 @@ export interface components {
             previous?: string | null;
             results: components["schemas"]["Customer"][];
         };
+        PaginatedDemoLeadAdminList: {
+            /** @example 123 */
+            count: number;
+            /**
+             * Format: uri
+             * @example http://api.example.org/accounts/?page=4
+             */
+            next?: string | null;
+            /**
+             * Format: uri
+             * @example http://api.example.org/accounts/?page=2
+             */
+            previous?: string | null;
+            results: components["schemas"]["DemoLeadAdmin"][];
+        };
         PaginatedDiningTableList: {
             /** @example 123 */
             count: number;
@@ -3727,6 +3832,10 @@ export interface components {
             /** Format: date-time */
             last_visit_at?: string;
         };
+        PatchedDemoLeadAdminRequest: {
+            status?: components["schemas"]["DemoLeadAdminStatusEnum"];
+            notes?: string;
+        };
         PatchedDiningTableRequest: {
             /** Format: uuid */
             branch?: string;
@@ -4008,6 +4117,17 @@ export interface components {
          * @enum {string}
          */
         PriorityEnum: "LOW" | "MEDIUM" | "HIGH" | "URGENT";
+        /** @description Validates public demo booking submissions with honeypot & consent guards. */
+        PublicDemoLeadCreateRequest: {
+            name: string;
+            phone: string;
+            business_type: components["schemas"]["BusinessTypeA80Enum"];
+            city: string;
+            message?: string;
+            language?: string;
+            consent: boolean;
+            website?: string;
+        };
         PublicQRDetail: {
             tenant_name: string;
             display_name: string;
@@ -8123,6 +8243,26 @@ export interface operations {
             };
         };
     };
+    plans_destroy: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No response body */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     plans_partial_update: {
         parameters: {
             query?: never;
@@ -8170,6 +8310,78 @@ export interface operations {
             };
         };
     };
+    platform_leads_list: {
+        parameters: {
+            query?: {
+                /** @description A page number within the paginated result set. */
+                page?: number;
+                /** @description Number of results to return per page. */
+                page_size?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaginatedDemoLeadAdminList"];
+                };
+            };
+        };
+    };
+    platform_leads_retrieve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DemoLeadAdmin"];
+                };
+            };
+        };
+    };
+    platform_leads_partial_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["PatchedDemoLeadAdminRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["PatchedDemoLeadAdminRequest"];
+                "multipart/form-data": components["schemas"]["PatchedDemoLeadAdminRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DemoLeadAdmin"];
+                };
+            };
+        };
+    };
     platform_summary_retrieve: {
         parameters: {
             query?: never;
@@ -8180,6 +8392,33 @@ export interface operations {
         requestBody?: never;
         responses: {
             200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+        };
+    };
+    public_leads_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PublicDemoLeadCreateRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["PublicDemoLeadCreateRequest"];
+                "multipart/form-data": components["schemas"]["PublicDemoLeadCreateRequest"];
+            };
+        };
+        responses: {
+            201: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -9204,6 +9443,26 @@ export interface operations {
             };
         };
     };
+    subscriptions_plans_destroy: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No response body */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     subscriptions_plans_partial_update: {
         parameters: {
             query?: never;
@@ -9789,6 +10048,26 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["Tenant"];
                 };
+            };
+        };
+    };
+    tenants_destroy: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No response body */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };

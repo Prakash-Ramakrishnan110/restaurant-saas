@@ -590,6 +590,37 @@ class StaffViewSet(ViewSet):
             else (user_membership.role if user_membership else "STAFF")
         )
 
+        if request.query_params.get("permanent", "").lower() in ("true", "1"):
+            if membership.user_id == request.user.id:
+                return Response(
+                    {"detail": "You cannot delete your own account."},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            if membership.role == "OWNER":
+                other_owners = Membership.objects.filter(
+                    tenant=tenant, role="OWNER", is_active=True
+                ).exclude(id=membership.id)
+                if not other_owners.exists():
+                    return Response(
+                        {"detail": "Cannot delete the only active owner of this business."},
+                        status=status.HTTP_400_BAD_REQUEST,
+                    )
+            membership_id = str(membership.id)
+            staff_email = membership.user.email
+            membership.delete()
+            from apps.audit.services import log_audit_event
+
+            log_audit_event(
+                action="staff.delete",
+                entity_type="Membership",
+                entity_id=membership_id,
+                actor=request.user,
+                tenant=tenant,
+                before_state={"email": staff_email},
+                request=request,
+            )
+            return Response(status=status.HTTP_204_NO_CONTENT)
+
         update_staff_member(
             membership=membership,
             actor=request.user,

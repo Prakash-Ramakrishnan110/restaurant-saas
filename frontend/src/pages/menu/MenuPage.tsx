@@ -64,6 +64,7 @@ export const MenuPage: React.FC = () => {
   // Delete Confirm Dialog
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [itemToDelete, setItemToDelete] = useState<any | null>(null);
+  const [categoryToDelete, setCategoryToDelete] = useState<any | null>(null);
 
   const canManage = can("menu.manage");
 
@@ -246,6 +247,30 @@ export const MenuPage: React.FC = () => {
       await fetchData();
     } catch (err: any) {
       setErrorMsg(err?.response?.data?.message || "Failed to delete item.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleDeleteCategory = async () => {
+    if (!categoryToDelete) return;
+    setIsLoading(true);
+    try {
+      await apiClient.delete(`/menu/categories/${categoryToDelete.id}/`);
+      setSuccessMsg(`Category "${categoryToDelete.name}" deleted.`);
+      if (selectedCategoryId === categoryToDelete.id) {
+        setSelectedCategoryId("ALL");
+      }
+      setCategoryToDelete(null);
+      await fetchData();
+    } catch (err: any) {
+      setErrorMsg(
+        err?.response?.data?.error?.message ||
+          err?.response?.data?.detail ||
+          err?.response?.data?.message ||
+          "Cannot delete category. Remove its menu items first."
+      );
+      setCategoryToDelete(null);
     } finally {
       setIsLoading(false);
     }
@@ -467,6 +492,20 @@ export const MenuPage: React.FC = () => {
                         >
                           <Edit2 className="w-3 h-3" />
                         </button>
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setCategoryToDelete(cat);
+                          }}
+                          className={`p-1 hover:text-destructive ${
+                            isSelected ? "text-[#0B1F3B]" : "text-muted-foreground"
+                          }`}
+                          title="Delete category"
+                          aria-label="Delete category"
+                        >
+                          <Trash2 className="w-3 h-3" />
+                        </button>
                       </div>
                     )}
                   </div>
@@ -686,6 +725,22 @@ export const MenuPage: React.FC = () => {
         categories={categories}
         optionGroups={optionGroups}
         onSave={handleSaveItem}
+        onQuickCreateCategory={async (newName: string) => {
+          try {
+            const res = await apiClient.post<any>("/menu/categories/", {
+              name: newName,
+              name_ta: "",
+              sort_order: categories.length + 1,
+            });
+            const created = res.data;
+            await fetchData();
+            setSuccessMsg(`Category "${newName}" created.`);
+            return created?.id || null;
+          } catch {
+            setErrorMsg(`Failed to create category "${newName}".`);
+            return null;
+          }
+        }}
         isLoading={isLoading}
       />
 
@@ -709,6 +764,18 @@ export const MenuPage: React.FC = () => {
         confirmLabel="Delete Item"
         variant="destructive"
         onConfirm={handleDeleteItem}
+        isLoading={isLoading}
+      />
+
+      {/* Delete Category Confirmation Dialog */}
+      <ConfirmDialog
+        open={Boolean(categoryToDelete)}
+        onOpenChange={(open) => !open && setCategoryToDelete(null)}
+        title={`Delete Category "${categoryToDelete?.name || ""}"?`}
+        description="Empty categories can be permanently deleted. If this category still contains items, delete or move those items first."
+        confirmLabel="Delete Category"
+        variant="destructive"
+        onConfirm={handleDeleteCategory}
         isLoading={isLoading}
       />
     </div>

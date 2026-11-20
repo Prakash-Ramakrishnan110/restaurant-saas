@@ -354,7 +354,7 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
       { label: "Home", path: "/dashboard", icon: LayoutDashboard },
       { label: "Orders", path: "/orders", icon: Activity },
       { label: "Menu", path: "/menu", icon: UtensilsCrossed },
-      { label: "Reports", path: "/reports/today", icon: BarChart2 },
+      { label: "Reports", path: "/reports/sales", icon: BarChart2 },
     ];
   }, [user?.is_platform_admin, activeTenant?.role, activeRole, usesTables]);
 

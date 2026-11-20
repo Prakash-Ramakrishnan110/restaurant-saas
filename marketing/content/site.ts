@@ -14,12 +14,12 @@ export const SITE_CONFIG: SiteConfig = {
   companyName: "Fusion Engine Technology",
   productName: "ServeMyFood",
   siteUrl: "TODO: https://servemyfood.in",
-  appUrl: "http://localhost:5173/login",
+  appUrl: "/login",
   apiBaseUrl: "http://localhost:8000",
-  whatsappNumber: "TODO: 919000000000",
-  contactPhone: "TODO: +91 90000 00000",
-  contactEmail: "TODO: hello@fusionengine.in",
-  address: "TODO: Chennai, Tamil Nadu, India",
+  whatsappNumber: "916369884331",
+  contactPhone: "+91 63698 84331",
+  contactEmail: "fusionenginetechnology@gmail.com",
+  address: "Dharmapuri, Tamil Nadu, India",
 };
 
 export function hasTodoValue(val: string): boolean {

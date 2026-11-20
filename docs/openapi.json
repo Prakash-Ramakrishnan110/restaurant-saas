@@ -3685,6 +3685,23 @@ paths:
       responses:
         '200':
           description: No response body
+    delete:
+      operationId: plans_destroy
+      description: View, update or toggle individual subscription plans.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - plans
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
   /api/v1/platform/customers/:
     post:
       operationId: platform_customers_create
@@ -3718,6 +3735,88 @@ paths:
                 type: object
                 additionalProperties: {}
           description: ''
+  /api/v1/platform/leads/:
+    get:
+      operationId: platform_leads_list
+      description: Platform-admin-only management of public demo leads.
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      tags:
+      - platform
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedDemoLeadAdminList'
+          description: ''
+  /api/v1/platform/leads/{id}/:
+    get:
+      operationId: platform_leads_retrieve
+      description: Platform-admin-only management of public demo leads.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - platform
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DemoLeadAdmin'
+          description: ''
+    patch:
+      operationId: platform_leads_partial_update
+      description: Platform-admin-only management of public demo leads.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - platform
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedDemoLeadAdminRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedDemoLeadAdminRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedDemoLeadAdminRequest'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DemoLeadAdmin'
+          description: ''
   /api/v1/platform/summary/:
     get:
       operationId: platform_summary_retrieve
@@ -3735,6 +3834,35 @@ paths:
                 type: object
                 additionalProperties: {}
                 description: Unspecified response body
+          description: ''
+  /api/v1/public/leads/:
+    post:
+      operationId: public_leads_create
+      description: Public demo request endpoint with Origin check, honeypot, and IP/phone
+        throttling.
+      tags:
+      - public
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PublicDemoLeadCreateRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PublicDemoLeadCreateRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PublicDemoLeadCreateRequest'
+        required: true
+      security:
+      - {}
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
           description: ''
   /api/v1/public/orders/{tracking_token}/:
     get:
@@ -4764,6 +4892,23 @@ paths:
       responses:
         '200':
           description: No response body
+    delete:
+      operationId: subscriptions_plans_destroy
+      description: View, update or toggle individual subscription plans.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - subscriptions
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
   /api/v1/support-tickets/:
     get:
       operationId: support_tickets_list
@@ -5366,6 +5511,23 @@ paths:
               schema:
                 $ref: '#/components/schemas/Tenant'
           description: ''
+    delete:
+      operationId: tenants_destroy
+      description: Platform administrator endpoints to manage tenants and provisioning.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - tenants
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
   /api/v1/tenants/{id}/activate/:
     post:
       operationId: tenants_activate_create
@@ -6175,6 +6337,24 @@ components:
         * `HOTEL` - Hotel
         * `FOOD_COURT` - Food Court
         * `CHAIN` - Chain
+    BusinessTypeA80Enum:
+      enum:
+      - TEA_SHOP
+      - BAKERY
+      - CAFE
+      - RESTAURANT
+      - FINE_DINING
+      - HOTEL
+      - FOOD_COURT
+      type: string
+      description: |-
+        * `TEA_SHOP` - Tea shop
+        * `BAKERY` - Bakery
+        * `CAFE` - Cafe
+        * `RESTAURANT` - Restaurant
+        * `FINE_DINING` - Fine dining
+        * `HOTEL` - Hotel restaurant
+        * `FOOD_COURT` - Food court
     CategoryEnum:
       enum:
       - DRY_GOODS
@@ -6311,6 +6491,68 @@ components:
       required:
       - name
       - phone
+    DemoLeadAdmin:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        name:
+          type: string
+          readOnly: true
+        phone:
+          type: string
+          readOnly: true
+        business_type:
+          allOf:
+          - $ref: '#/components/schemas/BusinessTypeA80Enum'
+          readOnly: true
+        city:
+          type: string
+          readOnly: true
+        message:
+          type: string
+          readOnly: true
+        language:
+          type: string
+          readOnly: true
+        consent:
+          type: boolean
+          readOnly: true
+        status:
+          $ref: '#/components/schemas/DemoLeadAdminStatusEnum'
+        notes:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - business_type
+      - city
+      - consent
+      - created_at
+      - id
+      - language
+      - message
+      - name
+      - phone
+      - updated_at
+    DemoLeadAdminStatusEnum:
+      enum:
+      - NEW
+      - CONTACTED
+      - CLOSED
+      type: string
+      description: |-
+        * `NEW` - New
+        * `CONTACTED` - Contacted
+        * `CLOSED` - Closed
     DietaryPreferenceEnum:
       enum:
       - VEG
@@ -7665,6 +7907,29 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/Customer'
+    PaginatedDemoLeadAdminList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/DemoLeadAdmin'
     PaginatedDiningTableList:
       type: object
       required:
@@ -8356,6 +8621,13 @@ components:
         last_visit_at:
           type: string
           format: date-time
+    PatchedDemoLeadAdminRequest:
+      type: object
+      properties:
+        status:
+          $ref: '#/components/schemas/DemoLeadAdminStatusEnum'
+        notes:
+          type: string
     PatchedDiningTableRequest:
       type: object
       properties:
@@ -8958,6 +9230,42 @@ components:
         * `MEDIUM` - Medium
         * `HIGH` - High
         * `URGENT` - Urgent
+    PublicDemoLeadCreateRequest:
+      type: object
+      description: Validates public demo booking submissions with honeypot & consent
+        guards.
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 120
+        phone:
+          type: string
+          minLength: 1
+          maxLength: 15
+        business_type:
+          $ref: '#/components/schemas/BusinessTypeA80Enum'
+        city:
+          type: string
+          minLength: 1
+          maxLength: 80
+        message:
+          type: string
+        language:
+          type: string
+          minLength: 1
+          maxLength: 8
+        consent:
+          type: boolean
+        website:
+          type: string
+          writeOnly: true
+      required:
+      - business_type
+      - city
+      - consent
+      - name
+      - phone
     PublicQRDetail:
       type: object
       properties:

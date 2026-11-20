@@ -177,7 +177,12 @@ export function getNavigationGroups(ctx: NavigationContext): NavGroup[] {
       icon: LayoutGrid,
       permission: "area.view",
     },
-    { label: "QR Codes", path: "/qr", icon: QrCode, permission: "qr.view" },
+    {
+      label: "QR Codes",
+      path: "/qr",
+      icon: QrCode,
+      permission: "qr.view",
+    },
   ];
 
   const settingsItems: NavItem[] = [

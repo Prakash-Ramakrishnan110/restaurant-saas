@@ -52,7 +52,7 @@ urlpatterns = [
     ),
     path(
         "tenants/<uuid:pk>/",
-        TenantViewSet.as_view({"get": "retrieve"}),
+        TenantViewSet.as_view({"get": "retrieve", "delete": "destroy"}),
         name="tenant-detail",
     ),
     path(
