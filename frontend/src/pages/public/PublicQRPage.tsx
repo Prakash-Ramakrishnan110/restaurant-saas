@@ -833,7 +833,7 @@ export const PublicQRPage: React.FC = () => {
                 <span>{copy.itemsInCart(totalCartCount)}</span>
               </span>
               <span>
-                {copy.estimate}: {formatRupees(cartEstimatePaise)} • {copy.viewCart}
+                {formatRupees(cartEstimatePaise)} • {copy.viewCart}
               </span>
             </button>
           </div>
@@ -991,7 +991,7 @@ export const PublicQRPage: React.FC = () => {
                 className="flex-1 min-h-[56px] px-4 rounded-xl font-bold text-base flex items-center justify-center"
                 style={{ backgroundColor: brandTheme.bg, color: brandTheme.text }}
               >
-                {copy.addToCart} • {copy.estimate} {formatRupees(sheetEstimatePaise)}
+                {copy.addToCart} • {formatRupees(sheetEstimatePaise)}
               </button>
             </div>
           </div>
@@ -1124,7 +1124,7 @@ export const PublicQRPage: React.FC = () => {
 
             <div className="p-4 border-t border-border space-y-3">
               <div className="flex items-center justify-between text-base font-extrabold">
-                <span>{copy.estimate}</span>
+                <span>{copy.totalLabel}</span>
                 <span>{formatRupees(cartEstimatePaise)}</span>
               </div>
               <button
