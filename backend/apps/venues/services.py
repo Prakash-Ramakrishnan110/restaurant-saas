@@ -1052,14 +1052,14 @@ def render_qr_image(
 
     if fmt == "svg":
         out_svg = io.BytesIO()
-        qr.save(out_svg, kind="svg", dark=clean_color, light="#FFFFFF", scale=scale, border=2)
+        qr.save(out_svg, kind="svg", dark=clean_color, light="#FFFFFF", scale=scale, border=4)
         image_bytes = out_svg.getvalue()
         cache.set(cache_key, image_bytes, timeout=3600)
         return image_bytes, content_type
 
     # PNG generation with optional branding overlay
     out_png = io.BytesIO()
-    qr.save(out_png, kind="png", scale=scale, dark=clean_color, light="#FFFFFF", border=2)
+    qr.save(out_png, kind="png", scale=scale, dark=clean_color, light="#FFFFFF", border=4)
     qr_img = Image.open(out_png).convert("RGBA")
 
     if size > 0 and (qr_img.width != size or qr_img.height != size):

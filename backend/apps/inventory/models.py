@@ -6,7 +6,7 @@ from django.db import models
 from django.db.models import F, Q
 from django.utils import timezone
 
-from apps.core.managers import TenantManager, TenantQuerySet, UnscopedTenantManager
+from apps.core.managers import TenantManager, TenantQuerySet
 from apps.core.models import BranchOwnedModel, TenantOwnedModel
 from apps.inventory.constants import (
     BaseUnit,
@@ -261,11 +261,6 @@ class StockMovementManager(TenantManager):
         return qs.filter(tenant=tenant)
 
 
-class UnscopedStockMovementManager(UnscopedTenantManager):
-    def get_queryset(self) -> models.QuerySet[Any]:
-        return StockMovementQuerySet(self.model, using=self._db)
-
-
 class StockMovement(BranchOwnedModel):
     """Strictly append-only stock movement record (never updated or deleted)."""
 
@@ -308,7 +303,7 @@ class StockMovement(BranchOwnedModel):
     sequence_number = models.PositiveBigIntegerField()
 
     objects: ClassVar[Any] = StockMovementManager()
-    unscoped: ClassVar[Any] = UnscopedStockMovementManager()
+    unscoped: ClassVar[Any] = StockMovementQuerySet.as_manager()
 
     class Meta:
         ordering = ["-sequence_number", "-created_at"]

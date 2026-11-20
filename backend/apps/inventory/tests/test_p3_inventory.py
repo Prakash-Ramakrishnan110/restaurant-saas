@@ -651,3 +651,166 @@ def test_static_scan_no_float_and_no_tax_words_in_inventory_app() -> None:
         content = py_file.read_text(encoding="utf-8")
         assert not float_pattern.search(content), f"Prohibited float usage in {py_file}"
         assert not tax_pattern.search(content), f"Prohibited tax word in {py_file}"
+
+
+@pytest.mark.django_db
+def test_stage_a_endpoints_reports_paste_and_transfers(inv_env: dict[str, Any]) -> None:
+    """Exercise Stage A inventory API endpoints, CSV reports, paste preview/apply, and transfers."""
+    owner = inv_env["clients"]["OWNER"]
+    kitchen = inv_env["clients"]["KITCHEN"]
+    branch = inv_env["branch"]
+
+    # 1. Locations, suppliers, and items CRUD
+    assert owner.get(f"/api/v1/inventory/locations/?branch_id={branch.id}").status_code == 200
+
+    sup_res = owner.post(
+        "/api/v1/inventory/suppliers/",
+        {"name": "Fresh Farms", "phone": "9876543210"},
+        format="json",
+    )
+    assert sup_res.status_code == 201
+    sup_id = sup_res.data["id"]
+
+    item_res = owner.post(
+        "/api/v1/inventory/items/",
+        {
+            "branch_id": str(branch.id),
+            "name": "Green Peas",
+            "name_ta": "பட்டாணி",
+            "base_unit": BaseUnit.GRAM,
+            "category": InventoryCategory.PRODUCE,
+            "reorder_level": "500.000",
+            "par_level": "2000.000",
+            "opening_quantity": "1000.000",
+            "opening_unit_cost_paise": 15,
+            "default_supplier": sup_id,
+        },
+        format="json",
+    )
+    assert item_res.status_code == 201
+    item_id = item_res.data["id"]
+
+    # Quick update + spreadsheet paste preview & apply
+    qu_res = owner.post(
+        f"/api/v1/inventory/items/{item_id}/quick-update/",
+        {"branch_id": str(branch.id), "delta_quantity": "250", "reason_code": "COUNT_ADJUST"},
+        format="json",
+    )
+    assert qu_res.status_code == 201
+
+    paste_preview = owner.post(
+        "/api/v1/inventory/items/paste-preview/",
+        {
+            "raw_text": (
+                "name\tqty\tunit\tcost\n"
+                "Red Chilli\t500\tg\t100\n"
+                "BadQty\tabc\tg\t10\n"
+                "BadUnit\t10\tbox\t10\n"
+                "BadCost\t10\tkg\t-5\n"
+                "ShortRow\t10\n"
+            )
+        },
+        format="json",
+    )
+    assert paste_preview.status_code == 200
+    assert len(paste_preview.data["rows"]) == 1
+    assert paste_preview.data["error_count"] == 4
+
+    paste_apply = owner.post(
+        "/api/v1/inventory/items/paste-apply/",
+        {
+            "branch_id": str(branch.id),
+            "raw_text": "Red Chilli\t500\tg\t100",
+        },
+        format="json",
+    )
+    assert paste_apply.status_code == 201
+
+    # 2. Goods Receipt, Wastage, Movements, PO, Settings, Alerts
+    grn_res = owner.post(
+        "/api/v1/inventory/receipts/",
+        {
+            "branch_id": str(branch.id),
+            "supplier": sup_id,
+            "reference_number": "INV-STAGEA-001",
+            "lines": [
+                {
+                    "item": item_id,
+                    "quantity": "1000",
+                    "unit_name": BaseUnit.GRAM,
+                    "unit_cost_paise": 20,
+                }
+            ],
+        },
+        format="json",
+    )
+    assert grn_res.status_code == 201
+    assert owner.get(f"/api/v1/inventory/receipts/?branch_id={branch.id}").status_code == 200
+
+    waste_res = owner.post(
+        "/api/v1/inventory/wastage/",
+        {
+            "branch_id": str(branch.id),
+            "item": item_id,
+            "quantity": "50",
+            "reason_code": "SPOILED",
+            "notes": "Damaged",
+        },
+        format="json",
+    )
+    assert waste_res.status_code == 201
+    assert owner.get(f"/api/v1/inventory/wastage/?branch_id={branch.id}").status_code == 200
+    assert (
+        owner.get(
+            f"/api/v1/inventory/movements/?branch_id={branch.id}&item_id={item_id}"
+        ).status_code
+        == 200
+    )
+
+    po_res = owner.post(
+        "/api/v1/inventory/purchase-orders/",
+        {
+            "branch": str(branch.id),
+            "order_number": "PO-STAGEA-001",
+            "supplier": sup_id,
+            "notes": "Weekly order",
+        },
+        format="json",
+    )
+    assert po_res.status_code == 201
+
+    assert owner.get(f"/api/v1/inventory/settings/?branch_id={branch.id}").status_code == 200
+    assert (
+        owner.patch(
+            f"/api/v1/inventory/settings/?branch_id={branch.id}",
+            {"auto_sold_out": True},
+            format="json",
+        ).status_code
+        == 200
+    )
+    assert owner.get(f"/api/v1/inventory/alerts/?branch_id={branch.id}").status_code == 200
+
+    # 3. All 5 reports (JSON + CSV, plus Kitchen without costs)
+    for rpt in ("stock-on-hand", "movements", "low-stock", "wastage", "usage"):
+        j_res = owner.get(f"/api/v1/inventory/reports/{rpt}/?branch_id={branch.id}")
+        assert j_res.status_code == 200
+        c_res = owner.get(f"/api/v1/inventory/reports/{rpt}/?branch_id={branch.id}&export=csv")
+        assert c_res.status_code == 200
+        k_res = kitchen.get(f"/api/v1/inventory/reports/{rpt}/?branch_id={branch.id}")
+        assert k_res.status_code == 200
+
+    assert owner.get(f"/api/v1/inventory/reports/unknown/?branch_id={branch.id}").status_code == 404
+
+    # 4. Celery tasks wrapper coverage
+    from apps.inventory.tasks import (
+        cancel_order_line_deduction_task,
+        deduct_order_line_stock_task,
+        deduct_takeaway_packaging_task,
+    )
+
+    assert deduct_order_line_stock_task(str(uuid.uuid4()), str(inv_env["tenant"].id)) == "SKIPPED"
+    assert deduct_takeaway_packaging_task(str(uuid.uuid4()), str(inv_env["tenant"].id)) == 0
+    assert (
+        cancel_order_line_deduction_task(str(uuid.uuid4()), False, str(inv_env["tenant"].id))
+        == "OK"
+    )

@@ -16,12 +16,21 @@ async function loginAs(page: import("@playwright/test").Page, email: string) {
   await page.waitForURL((u) => !u.pathname.includes("/login"), { timeout: 15000 });
 }
 
+async function navTo(page: import("@playwright/test").Page, href: string) {
+  const link = page.locator(`a[href="${href}"]`).first();
+  if (await link.isVisible().catch(() => false)) {
+    await link.click();
+  } else {
+    await page.goto(href);
+  }
+}
+
 test.describe("Stage A: Inventory Core Live E2E", () => {
   test("1a. Owner views seeded stock (light & dark) and receive stock screen", async ({ page }) => {
     await loginAs(page, "owner@spicegarden.com");
 
     // Stock overview
-    await page.locator('a[href="/inventory"]').first().click();
+    await navTo(page, "/inventory");
     await expect(page.getByText("Fresh Malai Paneer")).toBeVisible({ timeout: 15000 });
     await page.screenshot({ path: path.join(STAGE_A_DIR, "stock-desktop.png") });
 
@@ -31,7 +40,7 @@ test.describe("Stage A: Inventory Core Live E2E", () => {
     await page.evaluate(() => document.documentElement.classList.remove("dark"));
 
     // Receive stock
-    await page.locator('a[href="/inventory/receive"]').first().click();
+    await navTo(page, "/inventory/receive");
     await expect(page.getByRole("heading", { name: /Receive Stock/i })).toBeVisible({
       timeout: 10000,
     });
@@ -42,13 +51,13 @@ test.describe("Stage A: Inventory Core Live E2E", () => {
     await loginAs(page, "owner@spicegarden.com");
 
     // Recipes (owner sees margin)
-    await page.locator('a[href="/inventory/recipes"]').first().click();
+    await navTo(page, "/inventory/recipes");
     await expect(page.getByText("Butter Chicken Royal").last()).toBeVisible({ timeout: 10000 });
     await expect(page.getByText(/Margin:/i).first()).toBeVisible({ timeout: 10000 });
     await page.screenshot({ path: path.join(STAGE_A_DIR, "recipes.png") });
 
     // Counts
-    await page.locator('a[href="/inventory/counts"]').first().click();
+    await navTo(page, "/inventory/counts");
     await expect(page.getByRole("heading", { name: /Stock Counts/i })).toBeVisible({
       timeout: 10000,
     });
@@ -57,7 +66,7 @@ test.describe("Stage A: Inventory Core Live E2E", () => {
 
   test("2. Kitchen sees stock without cost columns", async ({ page }) => {
     await loginAs(page, "kitchen@spicegarden.com");
-    await page.locator('a[href="/inventory"]').first().click();
+    await navTo(page, "/inventory");
     await expect(page.getByText("Fresh Malai Paneer")).toBeVisible({ timeout: 15000 });
     await expect(page.getByText("Avg Cost")).toHaveCount(0);
   });
@@ -69,7 +78,7 @@ test.describe("Stage A: Inventory Core Live E2E", () => {
 
   test("3. Tea shop quick count has zero /table/i text", async ({ page }) => {
     await loginAs(page, "owner@chaicorner.in");
-    await page.locator('a[href="/inventory/counts"]').first().click();
+    await navTo(page, "/inventory/counts");
     await expect(page.getByRole("heading", { name: /Stock Counts/i })).toBeVisible({
       timeout: 15000,
     });

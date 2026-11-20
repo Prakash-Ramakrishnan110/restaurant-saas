@@ -104,7 +104,7 @@ def _resolve_branch(request: Request, branch_id: str | None = None) -> Branch:
             raise BusinessRuleError(
                 "INVALID_REFERENCE", "Invalid reference identifier.", status_code=400
             ) from None
-        branch = Branch.unscoped.filter(pk=raw_id, tenant=tenant).first()
+        branch = Branch.objects.filter(pk=raw_id, tenant=tenant).first()
         if branch is None:
             raise BusinessRuleError(
                 "INVALID_REFERENCE", "Invalid reference identifier.", status_code=400
@@ -120,7 +120,7 @@ def _resolve_branch(request: Request, branch_id: str | None = None) -> Branch:
         branch = membership.branches.filter(is_active=True).first()
         if branch is not None:
             return branch
-    branch = Branch.unscoped.filter(tenant=tenant, is_active=True).order_by("created_at").first()
+    branch = Branch.objects.filter(tenant=tenant, is_active=True).order_by("created_at").first()
     if branch is None:
         raise BusinessRuleError(
             "NO_BRANCH", "No active branch found for this business.", status_code=400
@@ -135,7 +135,7 @@ def _resolve_item_in_body(tenant: Any, raw_id: Any) -> InventoryItem:
         raise BusinessRuleError(
             "INVALID_REFERENCE", "Invalid reference identifier.", status_code=400
         ) from None
-    item = InventoryItem.unscoped.filter(pk=raw_id, tenant=tenant).first()
+    item = InventoryItem.objects.filter(pk=raw_id, tenant=tenant).first()
     if item is None:
         raise BusinessRuleError(
             "INVALID_REFERENCE", "Invalid reference identifier.", status_code=400
@@ -178,7 +178,7 @@ class SupplierViewSet(CostAwareModelViewSet):
         tenant = getattr(self.request, "tenant", None) or get_current_tenant()
         if not tenant:
             return Supplier.objects.none()
-        return Supplier.unscoped.filter(tenant=tenant)
+        return Supplier.objects.filter(tenant=tenant)
 
     def perform_create(self, serializer: Any) -> None:
         tenant = getattr(self.request, "tenant", None) or get_current_tenant()
@@ -225,7 +225,7 @@ class StockLocationViewSet(viewsets.ModelViewSet):
         tenant = getattr(self.request, "tenant", None) or get_current_tenant()
         if not tenant:
             return StockLocation.objects.none()
-        qs = StockLocation.unscoped.filter(tenant=tenant).select_related("branch")
+        qs = StockLocation.objects.filter(tenant=tenant).select_related("branch")
         branch_id = self.request.query_params.get("branch_id")
         if branch_id:
             qs = qs.filter(branch_id=branch_id)
@@ -267,7 +267,7 @@ class InventoryItemViewSet(CostAwareModelViewSet):
         )
 
         qs = (
-            InventoryItem.unscoped.filter(tenant=tenant)
+            InventoryItem.objects.filter(tenant=tenant)
             .prefetch_related("unit_conversions")
             .annotate(
                 annotated_quantity=Coalesce(
@@ -298,7 +298,7 @@ class InventoryItemViewSet(CostAwareModelViewSet):
                 "NO_TENANT_CONTEXT", "Active tenant context required.", status_code=400
             )
         _check_inventory_entitlement(tenant)
-        current_count = InventoryItem.unscoped.filter(tenant=tenant, is_active=True).count()
+        current_count = InventoryItem.objects.filter(tenant=tenant, is_active=True).count()
         enforce_limit(tenant, "max_inventory_items", current_count)
 
         default_supplier = serializer.validated_data.get("default_supplier")
@@ -417,7 +417,7 @@ class GoodsReceiptViewSet(CostAwareReadOnlyViewSet):
         if not tenant:
             return GoodsReceipt.objects.none()
         qs = (
-            GoodsReceipt.unscoped.filter(tenant=tenant)
+            GoodsReceipt.objects.filter(tenant=tenant)
             .select_related("supplier", "branch", "location")
             .prefetch_related("lines__item")
         )
@@ -439,7 +439,7 @@ class GoodsReceiptViewSet(CostAwareReadOnlyViewSet):
                 raise BusinessRuleError(
                     "INVALID_REFERENCE", "Invalid reference identifier.", status_code=400
                 ) from None
-            supplier = Supplier.unscoped.filter(pk=request.data["supplier"], tenant=tenant).first()
+            supplier = Supplier.objects.filter(pk=request.data["supplier"], tenant=tenant).first()
             if supplier is None:
                 raise BusinessRuleError(
                     "INVALID_REFERENCE", "Invalid reference identifier.", status_code=400
@@ -447,7 +447,7 @@ class GoodsReceiptViewSet(CostAwareReadOnlyViewSet):
 
         location = None
         if request.data.get("location"):
-            location = StockLocation.unscoped.filter(
+            location = StockLocation.objects.filter(
                 pk=request.data["location"], branch=branch
             ).first()
             if location is None:
@@ -498,7 +498,7 @@ class WastageViewSet(CostAwareReadOnlyViewSet):
         tenant = getattr(self.request, "tenant", None) or get_current_tenant()
         if not tenant:
             return StockMovement.objects.none()
-        qs = StockMovement.unscoped.filter(
+        qs = StockMovement.objects.filter(
             tenant=tenant, movement_type=StockMovementType.WASTE
         ).select_related("item", "location", "actor")
         branch_id = self.request.query_params.get("branch_id")
@@ -532,9 +532,7 @@ class StockMovementViewSet(CostAwareReadOnlyViewSet):
         tenant = getattr(self.request, "tenant", None) or get_current_tenant()
         if not tenant:
             return StockMovement.objects.none()
-        qs = StockMovement.unscoped.filter(tenant=tenant).select_related(
-            "item", "location", "actor"
-        )
+        qs = StockMovement.objects.filter(tenant=tenant).select_related("item", "location", "actor")
         branch_id = self.request.query_params.get("branch_id")
         item_id = self.request.query_params.get("item_id")
         if branch_id:
@@ -558,7 +556,7 @@ class StockCountViewSet(CostAwareReadOnlyViewSet):
         tenant = getattr(self.request, "tenant", None) or get_current_tenant()
         if not tenant:
             return StockCount.objects.none()
-        qs = StockCount.unscoped.filter(tenant=tenant).prefetch_related("lines__item")
+        qs = StockCount.objects.filter(tenant=tenant).prefetch_related("lines__item")
         branch_id = self.request.query_params.get("branch_id")
         if branch_id:
             qs = qs.filter(branch_id=branch_id)
@@ -609,7 +607,7 @@ class RecipeViewSet(CostAwareModelViewSet):
         if not tenant:
             return Recipe.objects.none()
         qs = (
-            Recipe.unscoped.filter(tenant=tenant)
+            Recipe.objects.filter(tenant=tenant)
             .select_related("menu_item", "variant", "output_item")
             .prefetch_related("lines__item")
         )
@@ -682,7 +680,7 @@ class RecipeViewSet(CostAwareModelViewSet):
             )
 
         yield_portions = Decimal(str(request.data.get("yield_portions", "1")))
-        recipe = Recipe.unscoped.create(
+        recipe = Recipe.objects.create(
             tenant=tenant,
             menu_item=menu_item,
             variant=variant,
@@ -691,7 +689,7 @@ class RecipeViewSet(CostAwareModelViewSet):
             preparation_instructions=str(request.data.get("preparation_instructions") or ""),
         )
         for ing, qty, waste_pct in resolved_lines:
-            RecipeLine.unscoped.create(
+            RecipeLine.objects.create(
                 tenant=tenant,
                 recipe=recipe,
                 item=ing,
@@ -734,7 +732,7 @@ class RecipeViewSet(CostAwareModelViewSet):
                 )
             recipe.lines.all().delete()
             for ing, qty, waste_pct in resolved_lines:
-                RecipeLine.unscoped.create(
+                RecipeLine.objects.create(
                     tenant=recipe.tenant,
                     recipe=recipe,
                     item=ing,
@@ -769,7 +767,7 @@ class PurchaseOrderViewSet(CostAwareModelViewSet):
         if not tenant:
             return PurchaseOrder.objects.none()
         return (
-            PurchaseOrder.unscoped.filter(tenant=tenant)
+            PurchaseOrder.objects.filter(tenant=tenant)
             .select_related("supplier")
             .prefetch_related("lines__item")
         )
@@ -847,7 +845,7 @@ class StockHealthView(APIView):
 
     def get(self, request: Request) -> Response:
         branch = _resolve_branch(request)
-        failed = OrderLineStockDeduction.unscoped.filter(
+        failed = OrderLineStockDeduction.objects.filter(
             branch=branch, status=DeductionStatus.FAILED
         ).select_related("order", "order_line")
         ser = OrderLineStockDeductionSerializer(failed, many=True)
@@ -866,7 +864,7 @@ class StockHealthView(APIView):
         deduction_id = request.data.get("deduction_id")
         if not deduction_id:
             raise Http404("Deduction record not found.")
-        deduction = OrderLineStockDeduction.unscoped.filter(
+        deduction = OrderLineStockDeduction.objects.filter(
             pk=str(deduction_id), branch=branch
         ).first()
         if deduction is None:
@@ -890,7 +888,7 @@ class InventoryReportsView(APIView):
 
         if report_type == "stock-on-hand":
             levels = (
-                StockLevel.unscoped.filter(branch=branch)
+                StockLevel.objects.filter(branch=branch)
                 .select_related("item", "location")
                 .order_by("item__name")
             )
@@ -934,7 +932,7 @@ class InventoryReportsView(APIView):
             return Response(payload)
 
         if report_type == "movements":
-            qs = StockMovement.unscoped.filter(branch=branch).select_related(
+            qs = StockMovement.objects.filter(branch=branch).select_related(
                 "item", "location", "actor"
             )
             if date_from:
@@ -989,7 +987,7 @@ class InventoryReportsView(APIView):
             return Response(alerts)
 
         if report_type == "wastage":
-            qs = StockMovement.unscoped.filter(branch=branch, movement_type=StockMovementType.WASTE)
+            qs = StockMovement.objects.filter(branch=branch, movement_type=StockMovementType.WASTE)
             if date_from:
                 qs = qs.filter(created_at__date__gte=date_from)
             if date_to:
@@ -1019,7 +1017,7 @@ class InventoryReportsView(APIView):
             return Response({"by_reason": by_reason_rows})
 
         if report_type == "usage":
-            qs = StockMovement.unscoped.filter(
+            qs = StockMovement.objects.filter(
                 branch=branch,
                 movement_type__in=[
                     StockMovementType.SALE_USAGE,

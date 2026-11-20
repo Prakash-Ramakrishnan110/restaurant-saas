@@ -49,7 +49,7 @@ def _ensure_item_with_opening(
     packaging_quantity: Decimal = Decimal("1.000"),
     conversions: list[tuple[str, Decimal]] | None = None,
 ) -> InventoryItem:
-    item, _ = InventoryItem.unscoped.get_or_create(
+    item, _ = InventoryItem.objects.get_or_create(
         tenant=tenant,
         name=name,
         defaults={
@@ -66,7 +66,7 @@ def _ensure_item_with_opening(
     )
     if conversions:
         for unit_name, factor in conversions:
-            UnitConversion.unscoped.get_or_create(
+            UnitConversion.objects.get_or_create(
                 tenant=tenant,
                 item=item,
                 unit_name=unit_name,
@@ -74,7 +74,7 @@ def _ensure_item_with_opening(
             )
     if (
         opening_qty > Decimal("0")
-        and not StockMovement.unscoped.filter(branch=branch, location=location, item=item).exists()
+        and not StockMovement.objects.filter(branch=branch, location=location, item=item).exists()
     ):
         post_stock_movement(
             branch=branch,
@@ -105,20 +105,18 @@ def seed_inventory_for_all_venues() -> None:
         tenant = Tenant.objects.filter(name=tenant_name).first()
         if tenant is None:
             continue
-        branch = (
-            Branch.unscoped.filter(tenant=tenant, is_active=True).order_by("created_at").first()
-        )
+        branch = Branch.objects.filter(tenant=tenant, is_active=True).order_by("created_at").first()
         if branch is None:
             continue
 
         set_current_tenant(tenant)
-        InventorySettings.unscoped.update_or_create(
+        InventorySettings.objects.update_or_create(
             branch=branch,
             defaults={"tenant": tenant, "mode": mode},
         )
         default_loc = get_or_create_default_location(branch)
 
-        supplier, _ = Supplier.unscoped.get_or_create(
+        supplier, _ = Supplier.objects.get_or_create(
             tenant=tenant,
             name=f"{tenant_name} Fresh Distributors",
             defaults={
@@ -450,20 +448,20 @@ def seed_inventory_for_all_venues() -> None:
             )
 
             # Prepared sub-recipe for Makhani Gravy Base
-            gb_recipe, created = Recipe.unscoped.get_or_create(
+            gb_recipe, created = Recipe.objects.get_or_create(
                 tenant=tenant,
                 output_item=gravy_base,
                 defaults={"yield_portions": Decimal("1000.000")},
             )
             if created:
-                RecipeLine.unscoped.create(
+                RecipeLine.objects.create(
                     tenant=tenant,
                     recipe=gb_recipe,
                     item=oil,
                     quantity_per_portion=Decimal("100.000"),
                     waste_percent=Decimal("2.00"),
                 )
-                RecipeLine.unscoped.create(
+                RecipeLine.objects.create(
                     tenant=tenant,
                     recipe=gb_recipe,
                     item=spices,
@@ -476,21 +474,21 @@ def seed_inventory_for_all_venues() -> None:
                 tenant=tenant, name="Butter Chicken Royal"
             ).first()
             if butter_chicken:
-                rec, created = Recipe.unscoped.get_or_create(
+                rec, created = Recipe.objects.get_or_create(
                     tenant=tenant,
                     menu_item=butter_chicken,
                     variant=None,
                     defaults={"yield_portions": Decimal("1.000")},
                 )
                 if created:
-                    RecipeLine.unscoped.create(
+                    RecipeLine.objects.create(
                         tenant=tenant,
                         recipe=rec,
                         item=chicken,
                         quantity_per_portion=Decimal("200.000"),
                         waste_percent=Decimal("5.00"),
                     )
-                    RecipeLine.unscoped.create(
+                    RecipeLine.objects.create(
                         tenant=tenant,
                         recipe=rec,
                         item=gravy_base,
@@ -502,21 +500,21 @@ def seed_inventory_for_all_venues() -> None:
                 tenant=tenant, name="Paneer Tikka Angare"
             ).first()
             if paneer_tikka:
-                rec, created = Recipe.unscoped.get_or_create(
+                rec, created = Recipe.objects.get_or_create(
                     tenant=tenant,
                     menu_item=paneer_tikka,
                     variant=None,
                     defaults={"yield_portions": Decimal("1.000")},
                 )
                 if created:
-                    RecipeLine.unscoped.create(
+                    RecipeLine.objects.create(
                         tenant=tenant,
                         recipe=rec,
                         item=paneer,
                         quantity_per_portion=Decimal("180.000"),
                         waste_percent=Decimal("5.00"),
                     )
-                    RecipeLine.unscoped.create(
+                    RecipeLine.objects.create(
                         tenant=tenant,
                         recipe=rec,
                         item=spices,
@@ -525,13 +523,13 @@ def seed_inventory_for_all_venues() -> None:
                     )
 
         elif tenant_name == "Grand Meridian":
-            kitchen_loc, _ = StockLocation.unscoped.get_or_create(
+            kitchen_loc, _ = StockLocation.objects.get_or_create(
                 tenant=tenant,
                 branch=branch,
                 name="Main Kitchen",
                 defaults={"location_type": StockLocationType.KITCHEN, "is_default": False},
             )
-            bar_loc, _ = StockLocation.unscoped.get_or_create(
+            bar_loc, _ = StockLocation.objects.get_or_create(
                 tenant=tenant,
                 branch=branch,
                 name="Lounge Bar",

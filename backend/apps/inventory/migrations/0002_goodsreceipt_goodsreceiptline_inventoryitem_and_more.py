@@ -300,7 +300,6 @@ class Migration(migrations.Migration):
             },
             managers=[
                 ('objects', django.db.models.manager.Manager()),
-                ('unscoped', apps.inventory.models.UnscopedStockMovementManager()),
             ],
         ),
         migrations.CreateModel(

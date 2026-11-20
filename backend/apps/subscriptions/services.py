@@ -144,7 +144,7 @@ def get_tenant_entitlements_summary(tenant: Any) -> dict[str, Any]:
     try:
         from apps.inventory.models import InventoryItem
 
-        inventory_item_count = InventoryItem.unscoped.filter(tenant=tenant, is_active=True).count()
+        inventory_item_count = InventoryItem.objects.filter(tenant=tenant, is_active=True).count()
     except Exception:
         inventory_item_count = 0
 

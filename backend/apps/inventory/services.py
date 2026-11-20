@@ -81,7 +81,7 @@ def sanitize_csv_cell(value: Any) -> str:
 
 def get_or_create_branch_settings(branch: Branch) -> InventorySettings:
     """Return branch InventorySettings, initializing default mode from business type."""
-    settings_obj = InventorySettings.unscoped.filter(branch=branch).first()
+    settings_obj = InventorySettings.objects.filter(branch=branch).first()
     if settings_obj is not None:
         return settings_obj
 
@@ -92,7 +92,7 @@ def get_or_create_branch_settings(branch: Branch) -> InventorySettings:
     ):
         default_mode = InventoryMode.STANDARD
 
-    settings_obj, _ = InventorySettings.unscoped.get_or_create(
+    settings_obj, _ = InventorySettings.objects.get_or_create(
         branch=branch,
         defaults={
             "tenant": branch.tenant,
@@ -104,10 +104,10 @@ def get_or_create_branch_settings(branch: Branch) -> InventorySettings:
 
 def get_or_create_default_location(branch: Branch) -> StockLocation:
     """Return the default StockLocation for a branch, creating one if absent."""
-    loc = StockLocation.unscoped.filter(branch=branch, is_default=True, is_active=True).first()
+    loc = StockLocation.objects.filter(branch=branch, is_default=True, is_active=True).first()
     if loc is not None:
         return loc
-    loc = StockLocation.unscoped.filter(branch=branch, is_active=True).first()
+    loc = StockLocation.objects.filter(branch=branch, is_active=True).first()
     if loc is not None:
         loc.is_default = True
         loc.save(update_fields=["is_default", "updated_at"])
@@ -120,7 +120,7 @@ def get_or_create_default_location(branch: Branch) -> StockLocation:
         else StockLocationType.STORE
     )
     name = "Main Counter" if loc_type == StockLocationType.COUNTER else "Main Store"
-    loc, _ = StockLocation.unscoped.get_or_create(
+    loc, _ = StockLocation.objects.get_or_create(
         branch=branch,
         name=name,
         defaults={
@@ -139,7 +139,7 @@ def to_base_quantity(item: InventoryItem, quantity: Decimal, unit_name: str | No
         return quantity.quantize(Decimal("0.001"), rounding=ROUND_HALF_UP)
 
     norm = unit_name.strip().lower()
-    conv = UnitConversion.unscoped.filter(item=item, unit_name__iexact=norm).first()
+    conv = UnitConversion.objects.filter(item=item, unit_name__iexact=norm).first()
     if conv is not None:
         return (quantity * conv.factor_to_base).quantize(Decimal("0.001"), rounding=ROUND_HALF_UP)
 
@@ -157,7 +157,7 @@ def to_base_quantity(item: InventoryItem, quantity: Decimal, unit_name: str | No
 def get_branch_item_wac(branch: Branch, item: InventoryItem) -> int:
     """Return weighted average cost per base unit in paise for (branch, item)."""
     lvl = (
-        StockLevel.unscoped.filter(branch=branch, item=item)
+        StockLevel.objects.filter(branch=branch, item=item)
         .order_by("-weighted_avg_cost_paise")
         .first()
     )
@@ -185,19 +185,19 @@ def post_stock_movement(
         raise ValidationError({"quantity": "Movement quantity cannot be zero."})
 
     # Lock branch row to serialize per-branch sequence_number allocation
-    Branch.unscoped.select_for_update().get(pk=branch.pk)
+    Branch.objects.select_for_update().get(pk=branch.pk)
 
     target_location = location or get_or_create_default_location(branch)
 
     # Lock or create StockLevel
     level = (
-        StockLevel.unscoped.select_for_update()
+        StockLevel.objects.select_for_update()
         .filter(branch=branch, location=target_location, item=item)
         .first()
     )
     if level is None:
         try:
-            level = StockLevel.unscoped.create(
+            level = StockLevel.objects.create(
                 tenant=branch.tenant,
                 branch=branch,
                 location=target_location,
@@ -206,12 +206,12 @@ def post_stock_movement(
                 weighted_avg_cost_paise=get_branch_item_wac(branch, item),
             )
         except IntegrityError:
-            level = StockLevel.unscoped.select_for_update().get(
+            level = StockLevel.objects.select_for_update().get(
                 branch=branch, location=target_location, item=item
             )
 
     current_branch_qty = (
-        StockLevel.unscoped.filter(branch=branch, item=item).aggregate(total=Sum("quantity"))[
+        StockLevel.objects.filter(branch=branch, item=item).aggregate(total=Sum("quantity"))[
             "total"
         ]
         or ZERO
@@ -234,20 +234,20 @@ def post_stock_movement(
             new_wac = round_paise(total_value / (current_branch_qty + quantity))
         else:
             new_wac = effective_unit_cost
-        StockLevel.unscoped.filter(branch=branch, item=item).update(weighted_avg_cost_paise=new_wac)
+        StockLevel.objects.filter(branch=branch, item=item).update(weighted_avg_cost_paise=new_wac)
         level.weighted_avg_cost_paise = new_wac
 
     level.quantity = (level.quantity + quantity).quantize(Decimal("0.001"), rounding=ROUND_HALF_UP)
     level.save(update_fields=["quantity", "weighted_avg_cost_paise", "updated_at"])
 
     max_seq = (
-        StockMovement.unscoped.filter(branch=branch).aggregate(m=Max("sequence_number"))["m"] or 0
+        StockMovement.objects.filter(branch=branch).aggregate(m=Max("sequence_number"))["m"] or 0
     )
     actor_user = (
         actor if (actor is not None and getattr(actor, "is_authenticated", False)) else None
     )
 
-    movement = StockMovement.unscoped.create(
+    movement = StockMovement.objects.create(
         tenant=branch.tenant,
         branch=branch,
         location=target_location,
@@ -273,8 +273,8 @@ def rebuild_and_compare_stock_levels(
     apply: bool = False,
 ) -> dict[str, Any]:
     """Recompute StockLevel totals from StockMovement and compare against cached StockLevel rows."""
-    mv_qs = StockMovement.unscoped.all()
-    lvl_qs = StockLevel.unscoped.all()
+    mv_qs = StockMovement.objects.all()
+    lvl_qs = StockLevel.objects.all()
     if tenant is not None:
         mv_qs = mv_qs.filter(tenant=tenant)
         lvl_qs = lvl_qs.filter(tenant=tenant)
@@ -310,8 +310,8 @@ def rebuild_and_compare_stock_levels(
                     lvl_obj.quantity = exp_qty
                     lvl_obj.save(update_fields=["quantity", "updated_at"])
                 else:
-                    branch = Branch.unscoped.get(pk=key[0])
-                    StockLevel.unscoped.create(
+                    branch = Branch.objects.get(pk=key[0])
+                    StockLevel.objects.create(
                         tenant=branch.tenant,
                         branch_id=key[0],
                         location_id=key[1],
@@ -347,7 +347,7 @@ def validate_recipe_no_cycles(
 
     # Build adjacency map: prepared_item_id -> set of ingredient_item_ids
     adj: dict[str, set[str]] = {}
-    for line in RecipeLine.unscoped.filter(tenant=tenant, recipe__output_item__isnull=False).values(
+    for line in RecipeLine.objects.filter(tenant=tenant, recipe__output_item__isnull=False).values(
         "recipe__output_item_id", "item_id"
     ):
         src = str(line["recipe__output_item_id"])
@@ -390,7 +390,7 @@ def create_goods_receipt(
 
     inv_num = supplier_invoice_number.strip()
     if supplier is not None and inv_num and not confirm_duplicate:
-        dup_exists = GoodsReceipt.unscoped.filter(
+        dup_exists = GoodsReceipt.objects.filter(
             tenant=branch.tenant,
             supplier=supplier,
             supplier_invoice_number__iexact=inv_num,
@@ -408,7 +408,7 @@ def create_goods_receipt(
         actor if (actor is not None and getattr(actor, "is_authenticated", False)) else None
     )
 
-    receipt = GoodsReceipt.unscoped.create(
+    receipt = GoodsReceipt.objects.create(
         tenant=branch.tenant,
         branch=branch,
         location=target_location,
@@ -449,7 +449,7 @@ def create_goods_receipt(
 
         batch_obj: StockBatch | None = None
         if batch_num or expiry_date or item.track_expiry:
-            batch_obj = StockBatch.unscoped.create(
+            batch_obj = StockBatch.objects.create(
                 tenant=branch.tenant,
                 branch=branch,
                 location=target_location,
@@ -460,7 +460,7 @@ def create_goods_receipt(
                 unit_cost_paise=base_unit_cost,
             )
 
-        GoodsReceiptLine.unscoped.create(
+        GoodsReceiptLine.objects.create(
             tenant=branch.tenant,
             receipt=receipt,
             item=item,
@@ -489,7 +489,7 @@ def create_goods_receipt(
         )
 
         if supplier is not None:
-            SupplierItem.unscoped.update_or_create(
+            SupplierItem.objects.update_or_create(
                 tenant=branch.tenant,
                 supplier=supplier,
                 item=item,
@@ -648,7 +648,7 @@ def preview_stock_paste(
     """Parse pasted spreadsheet rows (name, quantity, unit, cost_rupees) with row-level errors."""
     rows: list[dict[str, Any]] = []
     errors: list[dict[str, Any]] = []
-    existing_items = {it.name.lower(): it for it in InventoryItem.unscoped.filter(tenant=tenant)}
+    existing_items = {it.name.lower(): it for it in InventoryItem.objects.filter(tenant=tenant)}
 
     lines = [ln for ln in raw_text.splitlines() if ln.strip()]
     for idx, line in enumerate(lines, start=1):
@@ -752,7 +752,7 @@ def apply_stock_paste(
     movements_posted = 0
     for row in preview["rows"]:
         clean_name = row["name"].lstrip("'").strip()
-        item, created = InventoryItem.unscoped.get_or_create(
+        item, created = InventoryItem.objects.get_or_create(
             tenant=branch.tenant,
             name=clean_name,
             defaults={
@@ -814,7 +814,7 @@ def create_stock_count(
         actor if (actor is not None and getattr(actor, "is_authenticated", False)) else None
     )
 
-    sc = StockCount.unscoped.create(
+    sc = StockCount.objects.create(
         tenant=branch.tenant,
         branch=branch,
         location=target_loc,
@@ -826,13 +826,13 @@ def create_stock_count(
         created_by=actor_user,
     )
 
-    items_qs = InventoryItem.unscoped.filter(tenant=branch.tenant, is_active=True)
+    items_qs = InventoryItem.objects.filter(tenant=branch.tenant, is_active=True)
     if count_type == StockCountType.CATEGORY and category_filter:
         items_qs = items_qs.filter(category=category_filter)
 
     level_map = {
         lvl.item_id: lvl.quantity
-        for lvl in StockLevel.unscoped.filter(branch=branch, location=target_loc)
+        for lvl in StockLevel.objects.filter(branch=branch, location=target_loc)
     }
 
     lines_to_create = [
@@ -844,7 +844,7 @@ def create_stock_count(
         )
         for it in items_qs
     ]
-    StockCountLine.unscoped.bulk_create(lines_to_create)
+    StockCountLine.objects.bulk_create(lines_to_create)
     return sc
 
 
@@ -978,7 +978,7 @@ def _expand_recipe_ingredients(
 
         if line.item.item_type == InventoryItemType.PREPARED:
             sub_recipe = (
-                Recipe.unscoped.filter(tenant=tenant, output_item=line.item, is_active=True)
+                Recipe.objects.filter(tenant=tenant, output_item=line.item, is_active=True)
                 .prefetch_related("lines__item")
                 .first()
             )
@@ -1006,14 +1006,14 @@ def compute_recipe_cost_paise(recipe: Recipe, branch: Branch | None = None) -> i
     for item_id, qty in totals.items():
         if branch is not None:
             lvl = (
-                StockLevel.unscoped.filter(branch=branch, item_id=item_id)
+                StockLevel.objects.filter(branch=branch, item_id=item_id)
                 .order_by("-weighted_avg_cost_paise")
                 .first()
             )
             wac = lvl.weighted_avg_cost_paise if lvl else 0
         else:
             lvl = (
-                StockLevel.unscoped.filter(tenant=recipe.tenant, item_id=item_id)
+                StockLevel.objects.filter(tenant=recipe.tenant, item_id=item_id)
                 .order_by("-weighted_avg_cost_paise")
                 .first()
             )
@@ -1040,7 +1040,7 @@ def deduct_order_line(order_line_id: Any, *, actor: Any = None) -> OrderLineStoc
 
     # Lock or create idempotent deduction record
     with transaction.atomic():
-        deduction, _ = OrderLineStockDeduction.unscoped.select_for_update().get_or_create(
+        deduction, _ = OrderLineStockDeduction.objects.select_for_update().get_or_create(
             order_line=order_line,
             defaults={
                 "tenant": tenant,
@@ -1058,7 +1058,7 @@ def deduct_order_line(order_line_id: Any, *, actor: Any = None) -> OrderLineStoc
             recipe = None
             if order_line.variant_name:
                 recipe = (
-                    Recipe.unscoped.filter(
+                    Recipe.objects.filter(
                         tenant=tenant,
                         menu_item_id=order_line.menu_item_id,
                         variant__name__iexact=order_line.variant_name,
@@ -1069,7 +1069,7 @@ def deduct_order_line(order_line_id: Any, *, actor: Any = None) -> OrderLineStoc
                 )
             if recipe is None:
                 recipe = (
-                    Recipe.unscoped.filter(
+                    Recipe.objects.filter(
                         tenant=tenant,
                         menu_item_id=order_line.menu_item_id,
                         variant__isnull=True,
@@ -1102,7 +1102,7 @@ def deduct_order_line(order_line_id: Any, *, actor: Any = None) -> OrderLineStoc
                 portions=Decimal(order_line.quantity),
             )
             snapshot_lines: list[dict[str, Any]] = []
-            items_by_id = InventoryItem.unscoped.in_bulk(list(expanded.keys()))
+            items_by_id = InventoryItem.objects.in_bulk(list(expanded.keys()))
             settings_obj = get_or_create_branch_settings(branch)
 
             for item_id, req_qty in expanded.items():
@@ -1132,7 +1132,7 @@ def deduct_order_line(order_line_id: Any, *, actor: Any = None) -> OrderLineStoc
                 # Optional auto sold-out (off by default, audited when triggered)
                 if settings_obj.auto_sold_out:
                     total_left = (
-                        StockLevel.unscoped.filter(branch=branch, item=inv_item).aggregate(
+                        StockLevel.objects.filter(branch=branch, item=inv_item).aggregate(
                             t=Sum("quantity")
                         )["t"]
                         or ZERO
@@ -1199,7 +1199,7 @@ def cancel_order_line_deduction(
         return
 
     deduction = (
-        OrderLineStockDeduction.unscoped.select_for_update()
+        OrderLineStockDeduction.objects.select_for_update()
         .select_related("branch", "order")
         .filter(order_line_id=order_line_id)
         .first()
@@ -1209,7 +1209,7 @@ def cancel_order_line_deduction(
 
     snapshot_lines = (deduction.recipe_snapshot or {}).get("lines", [])
     for entry in snapshot_lines:
-        inv_item = InventoryItem.unscoped.filter(pk=entry["item_id"]).first()
+        inv_item = InventoryItem.objects.filter(pk=entry["item_id"]).first()
         if inv_item is None:
             continue
         qty = Decimal(str(entry["quantity"]))
@@ -1248,7 +1248,7 @@ def deduct_takeaway_packaging(order_id: Any, *, actor: Any = None) -> int:
         return 0
 
     # Idempotency check
-    already_posted = StockMovement.unscoped.filter(
+    already_posted = StockMovement.objects.filter(
         branch=order.branch,
         movement_type=StockMovementType.PACKAGING_USAGE,
         reference_type="OrderPackaging",
@@ -1257,7 +1257,7 @@ def deduct_takeaway_packaging(order_id: Any, *, actor: Any = None) -> int:
     if already_posted:
         return 0
 
-    packaging_items = InventoryItem.unscoped.filter(
+    packaging_items = InventoryItem.objects.filter(
         tenant=order.tenant,
         item_type=InventoryItemType.PACKAGING,
         is_active=True,
@@ -1296,11 +1296,11 @@ def compute_branch_alerts(branch: Branch, *, include_costs: bool = False) -> dic
     expiry_cutoff = today + timedelta(days=settings_obj.expiry_alert_days)
     fourteen_days_ago = timezone.now() - timedelta(days=14)
 
-    items = list(InventoryItem.unscoped.filter(tenant=branch.tenant, is_active=True))
+    items = list(InventoryItem.objects.filter(tenant=branch.tenant, is_active=True))
     level_totals: dict[Any, Decimal] = {}
     wac_map: dict[Any, int] = {}
     for row in (
-        StockLevel.unscoped.filter(branch=branch)
+        StockLevel.objects.filter(branch=branch)
         .values("item_id")
         .annotate(total_qty=Sum("quantity"), max_wac=Max("weighted_avg_cost_paise"))
     ):
@@ -1308,7 +1308,7 @@ def compute_branch_alerts(branch: Branch, *, include_costs: bool = False) -> dic
         wac_map[row["item_id"]] = row["max_wac"] or 0
 
     # Usage over last 14 days (days_left shown only when >= 7 distinct days of usage exist)
-    usage_movements = StockMovement.unscoped.filter(
+    usage_movements = StockMovement.objects.filter(
         branch=branch,
         movement_type__in=[
             StockMovementType.SALE_USAGE,
@@ -1366,7 +1366,7 @@ def compute_branch_alerts(branch: Branch, *, include_costs: bool = False) -> dic
             "quantity_remaining": str(b.quantity_remaining),
             "base_unit": b.item.base_unit,
         }
-        for b in StockBatch.unscoped.filter(
+        for b in StockBatch.objects.filter(
             branch=branch,
             quantity_remaining__gt=ZERO,
             expiry_date__isnull=False,
@@ -1385,7 +1385,7 @@ def compute_branch_alerts(branch: Branch, *, include_costs: bool = False) -> dic
             "error_message": d.error_message,
             "created_at": d.created_at.isoformat(),
         }
-        for d in OrderLineStockDeduction.unscoped.filter(
+        for d in OrderLineStockDeduction.objects.filter(
             branch=branch, status=DeductionStatus.FAILED
         ).select_related("order", "order_line")
     ]

@@ -49,6 +49,7 @@ def _schedule_order_stock_deduction(order: Order) -> None:
     """Enqueue idempotent post-commit stock & takeaway packaging deduction tasks."""
     line_ids = [str(lid) for lid in order.items.values_list("id", flat=True)]
     order_id = str(order.id)
+    tenant_id = str(order.tenant_id)
     is_takeaway = order.order_workflow == OrderWorkflow.COUNTER_TOKEN
 
     def _enqueue() -> None:
@@ -59,9 +60,9 @@ def _schedule_order_stock_deduction(order: Order) -> None:
             )
 
             for lid in line_ids:
-                deduct_order_line_stock_task.delay(lid)
+                deduct_order_line_stock_task.delay(lid, tenant_id)
             if is_takeaway:
-                deduct_takeaway_packaging_task.delay(order_id)
+                deduct_takeaway_packaging_task.delay(order_id, tenant_id)
         except Exception:
             pass
 
@@ -73,13 +74,14 @@ def _schedule_order_cancellation_waste(order: Order, *, was_preparing: bool) -> 
     if not was_preparing:
         return
     line_ids = [str(lid) for lid in order.items.values_list("id", flat=True)]
+    tenant_id = str(order.tenant_id)
 
     def _enqueue() -> None:
         try:
             from apps.inventory.tasks import cancel_order_line_deduction_task
 
             for lid in line_ids:
-                cancel_order_line_deduction_task.delay(lid, True)
+                cancel_order_line_deduction_task.delay(lid, True, tenant_id)
         except Exception:
             pass
 
