@@ -94,7 +94,7 @@ def test_platform_customer_provision_wizard_tea_shop(platform_env):
 
 @pytest.mark.django_db
 def test_platform_customer_provision_wizard_restaurant(platform_env):
-    """POST /api/v1/platform/customers/ provisions full restaurant with tables."""
+    """POST /api/v1/platform/customers/ provisions full restaurant with 0 default tables so owner creates their own."""
     client = platform_env["admin_client"]
     payload = {
         "name": "Kaveri Grand Fine Dine",
@@ -114,7 +114,7 @@ def test_platform_customer_provision_wizard_restaurant(platform_env):
     t = Tenant.objects.get(id=t_id)
     assert t.subscription.plan is not None
     assert t.subscription.plan.slug == "professional"
-    assert DiningTable.unscoped.filter(tenant=t).count() >= 5
+    assert DiningTable.unscoped.filter(tenant=t).count() == 0
 
 
 @pytest.mark.django_db
