@@ -254,8 +254,8 @@ export const LiveOrdersPage: React.FC = () => {
       </div>
 
       {/* Filters & Search */}
-      <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
-        <div className="flex items-center gap-1.5 overflow-x-auto pb-2 md:pb-0">
+      <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3">
+        <div className="flex items-center gap-1.5 overflow-x-auto lg:flex-wrap pb-2 lg:pb-0">
           {[
             "ALL",
             "PENDING_APPROVAL",
@@ -320,12 +320,12 @@ export const LiveOrdersPage: React.FC = () => {
                 className="hover:border-[#FF6A00]/50 transition-all cursor-pointer shadow-sm hover:shadow"
               >
                 <CardContent className="p-4 space-y-3">
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <div className="font-mono font-bold text-sm text-foreground flex items-center gap-1.5">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0">
+                      <div className="font-mono font-bold text-sm text-foreground flex items-center gap-1.5 whitespace-nowrap">
                         <span>{ord.order_number}</span>
                         {ord.source === "QR" && (
-                          <span className="px-1.5 py-0.5 text-[10px] font-extrabold rounded bg-[#FF6A00] text-[#0B1F3B]">
+                          <span className="px-1.5 py-0.5 text-[10px] font-extrabold rounded bg-[#FF6A00] text-[#0B1F3B] shrink-0">
                             QR
                           </span>
                         )}
@@ -342,16 +342,20 @@ export const LiveOrdersPage: React.FC = () => {
                         ) : (
                           <span>Takeaway</span>
                         )}
-                        <span>•</span>
-                        <span>{ord.order_type}</span>
+                        {ord.order_type && (
+                          <>
+                            <span>•</span>
+                            <span>{ord.order_type}</span>
+                          </>
+                        )}
                       </div>
                     </div>
                     <span
-                      className={`px-2.5 py-0.5 rounded-full text-[11px] font-bold border ${
+                      className={`px-2.5 py-0.5 rounded-full text-[11px] font-bold border whitespace-nowrap shrink-0 ${
                         STATUS_COLORS[ord.status] || "bg-muted"
                       }`}
                     >
-                      {ord.status}
+                      {STATUS_LABELS[ord.status] || ord.status}
                     </span>
                   </div>
 

@@ -422,11 +422,11 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
           <button
             type="button"
             onClick={() => setPaletteOpen(true)}
-            className="hidden sm:flex items-center gap-2 px-2.5 py-1 text-xs text-muted-foreground bg-muted/60 hover:bg-muted border border-border rounded-md min-h-[36px]"
+            className="hidden sm:flex items-center gap-2 px-2.5 py-1 text-xs text-muted-foreground bg-muted/60 hover:bg-muted border border-border rounded-md min-h-[36px] whitespace-nowrap shrink-0"
           >
-            <Search className="h-3.5 w-3.5" />
-            <span>Search or jump to...</span>
-            <kbd className="hidden lg:inline-flex items-center gap-0.5 px-1.5 py-0.5 text-[10px] font-mono bg-background border border-border rounded text-muted-foreground">
+            <Search className="h-3.5 w-3.5 shrink-0" />
+            <span className="whitespace-nowrap">Search or jump to...</span>
+            <kbd className="hidden lg:inline-flex items-center gap-0.5 px-1.5 py-0.5 text-[10px] font-mono bg-background border border-border rounded text-muted-foreground whitespace-nowrap shrink-0">
               Ctrl K
             </kbd>
           </button>
