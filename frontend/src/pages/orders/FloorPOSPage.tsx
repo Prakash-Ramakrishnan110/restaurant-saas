@@ -742,14 +742,45 @@ export const FloorPOSPage: React.FC = () => {
               </h3>
             </div>
             {usesTables && selectedSessionId && (
-              <Button
-                variant="outline"
-                size="sm"
-                className="text-xs gap-1.5"
-                onClick={() => navigate(`/billing?session_id=${selectedSessionId}`)}
-              >
-                <Receipt className="h-3.5 w-3.5 text-[#FF6A00]" /> Checkout
-              </Button>
+              <div className="flex items-center gap-1.5">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="text-xs gap-1 text-rose-600 border-rose-200 hover:bg-rose-50 dark:border-rose-900 dark:hover:bg-rose-950/40"
+                  disabled={submitting}
+                  onClick={async () => {
+                    try {
+                      setSubmitting(true);
+                      await apiClient.post(`/sessions/${selectedSessionId}/close/`);
+                      setSelectedSessionId(null);
+                      setSelectedTable(null);
+                      setCart([]);
+                      setSuccessToast("Table freed.");
+                      await fetchData();
+                    } catch (err: any) {
+                      setErrorToast(
+                        err?.response?.data?.error?.message ||
+                          err?.response?.data?.detail ||
+                          "Cannot free table with active orders."
+                      );
+                    } finally {
+                      setSubmitting(false);
+                    }
+                  }}
+                >
+                  Free Table
+                </Button>
+                {!isWaiter && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="text-xs gap-1.5"
+                    onClick={() => navigate(`/billing?session_id=${selectedSessionId}`)}
+                  >
+                    <Receipt className="h-3.5 w-3.5 text-[#FF6A00]" /> Checkout
+                  </Button>
+                )}
+              </div>
             )}
           </div>
 
