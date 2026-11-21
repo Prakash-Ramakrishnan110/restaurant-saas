@@ -64,12 +64,12 @@ export const RecipesPage: React.FC = () => {
       const iList = unwrapList(invRes.data);
       setMenuItems(mList);
       setInvItems(iList);
-      if (mList.length > 0 && !selectedMenuId) setSelectedMenuId(mList[0].id);
-      if (iList.length > 0 && !selectedIngId) setSelectedIngId(iList[0].id);
+      if (mList.length > 0) setSelectedMenuId((prev) => prev || mList[0].id);
+      if (iList.length > 0) setSelectedIngId((prev) => prev || iList[0].id);
     } catch {
       setError("Failed to load recipes.");
     }
-  }, [selectedMenuId, selectedIngId]);
+  }, []);
 
   useEffect(() => {
     fetchData();

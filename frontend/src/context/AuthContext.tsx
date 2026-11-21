@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
-import { apiClient, setAccessToken, setActiveTenantId } from "../api/client";
+import { apiClient, refreshAccessToken, setAccessToken, setActiveTenantId } from "../api/client";
 
 export interface UserProfile {
   id: string;
@@ -100,9 +100,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
 
       try {
-        const refreshRes = await apiClient.post<{ access: string }>("/auth/refresh/");
-        setAccessToken(refreshRes.data.access);
-        await fetchProfile();
+        const access = await refreshAccessToken();
+        if (access) {
+          await fetchProfile();
+        } else {
+          setAccessToken(null);
+          localStorage.removeItem("servemyfood_has_session");
+        }
       } catch {
         // Not logged in or expired refresh token
         setAccessToken(null);

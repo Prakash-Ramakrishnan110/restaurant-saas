@@ -65,6 +65,13 @@ def _schedule_order_stock_deduction(order: Order) -> None:
                 deduct_takeaway_packaging_task.delay(order_id, tenant_id)
         except Exception:
             pass
+        finally:
+            try:
+                from celery._state import _set_task_join_will_block
+
+                _set_task_join_will_block(False)
+            except Exception:
+                pass
 
     transaction.on_commit(_enqueue)
 
@@ -84,6 +91,13 @@ def _schedule_order_cancellation_waste(order: Order, *, was_preparing: bool) -> 
                 cancel_order_line_deduction_task.delay(lid, True, tenant_id)
         except Exception:
             pass
+        finally:
+            try:
+                from celery._state import _set_task_join_will_block
+
+                _set_task_join_will_block(False)
+            except Exception:
+                pass
 
     transaction.on_commit(_enqueue)
 

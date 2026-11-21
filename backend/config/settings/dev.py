@@ -19,3 +19,14 @@ CSRF_TRUSTED_ORIGINS = [
     "http://localhost:8000",
     "http://127.0.0.1:8000",
 ]
+
+REST_FRAMEWORK["DEFAULT_THROTTLE_RATES"] = {  # noqa: F405
+    "anon": "10000/minute",
+    "user": "10000/minute",
+    "login_ip": "10000/minute",
+    "login_email": "10000/minute",
+    "change_password": "10000/minute",
+    "public_qr_ip": "10000/minute",
+    "public_qr_token": "10000/minute",
+    "public_order_track": "10000/minute",
+}

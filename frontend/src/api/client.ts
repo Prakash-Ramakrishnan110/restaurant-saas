@@ -38,7 +38,7 @@ export const apiClient = axios.create({
 // Single-flight refresh mutex
 let refreshPromise: Promise<string | null> | null = null;
 
-const refreshAccessToken = async (): Promise<string | null> => {
+export const refreshAccessToken = async (): Promise<string | null> => {
   if (refreshPromise) {
     return refreshPromise;
   }

@@ -662,6 +662,12 @@ def test_stage_a_endpoints_reports_paste_and_transfers(inv_env: dict[str, Any]) 
 
     # 1. Locations, suppliers, and items CRUD
     assert owner.get(f"/api/v1/inventory/locations/?branch_id={branch.id}").status_code == 200
+    loc_create = owner.post(
+        "/api/v1/inventory/locations/",
+        {"branch": str(branch.id), "name": "Bar Store", "location_type": "BAR"},
+        format="json",
+    )
+    assert loc_create.status_code == 201
 
     sup_res = owner.post(
         "/api/v1/inventory/suppliers/",
@@ -670,6 +676,13 @@ def test_stage_a_endpoints_reports_paste_and_transfers(inv_env: dict[str, Any]) 
     )
     assert sup_res.status_code == 201
     sup_id = sup_res.data["id"]
+
+    sup_upd = owner.patch(
+        f"/api/v1/inventory/suppliers/{sup_id}/",
+        {"phone": "9999999999"},
+        format="json",
+    )
+    assert sup_upd.status_code == 200
 
     item_res = owner.post(
         "/api/v1/inventory/items/",
@@ -689,6 +702,21 @@ def test_stage_a_endpoints_reports_paste_and_transfers(inv_env: dict[str, Any]) 
     )
     assert item_res.status_code == 201
     item_id = item_res.data["id"]
+
+    assert (
+        owner.get(
+            f"/api/v1/inventory/items/?branch_id={branch.id}&category=PRODUCE&item_type=INGREDIENT&search=Peas"
+        ).status_code
+        == 200
+    )
+    assert (
+        owner.patch(
+            f"/api/v1/inventory/items/{item_id}/",
+            {"reorder_level": "600.000"},
+            format="json",
+        ).status_code
+        == 200
+    )
 
     # Quick update + conversions + spreadsheet paste preview & apply
     conv_res = owner.post(
@@ -849,6 +877,28 @@ def test_stage_a_endpoints_reports_paste_and_transfers(inv_env: dict[str, Any]) 
         assert kc_res.status_code == 200
 
     assert owner.get(f"/api/v1/inventory/reports/unknown/?branch_id={branch.id}").status_code == 404
+    assert owner.get(f"/api/v1/inventory/counts/?branch_id={branch.id}").status_code == 200
+    assert owner.get(f"/api/v1/inventory/recipes/?menu_item={uuid.uuid4()}").status_code == 200
+    assert (
+        owner.post(
+            "/api/v1/inventory/health/",
+            {"branch_id": str(branch.id)},
+            format="json",
+        ).status_code
+        == 404
+    )
+    assert (
+        owner.post(
+            "/api/v1/inventory/health/",
+            {"branch_id": str(branch.id), "deduction_id": str(uuid.uuid4())},
+            format="json",
+        ).status_code
+        == 404
+    )
+
+    from django.core.management import call_command
+
+    call_command("rebuild_stock_levels", "--apply")
 
     # 4. Celery tasks wrapper coverage
     from apps.inventory.tasks import (
