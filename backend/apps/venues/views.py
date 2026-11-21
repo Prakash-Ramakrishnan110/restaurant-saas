@@ -597,12 +597,15 @@ class StaffSectionAssignmentViewSet(
         qs = StaffSectionAssignment.objects.all().select_related("membership__user", "section")
         tenant = getattr(self.request, "tenant", None)
         user = self.request.user
-        if tenant and user.is_authenticated:
+        if (
+            tenant
+            and user.is_authenticated
+            and not HasTenantPermission(Permission.STAFF_VIEW)().has_permission(self.request, self)
+        ):
             from apps.accounts.models import Membership
-            from apps.accounts.permissions import has_permission
 
             membership = Membership.objects.filter(user=user, tenant=tenant, is_active=True).first()
-            if membership and not has_permission(membership.role, Permission.STAFF_VIEW):
+            if membership:
                 qs = qs.filter(membership=membership)
         return qs
 
