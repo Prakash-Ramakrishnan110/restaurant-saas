@@ -695,7 +695,7 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
         {/* Main Content View with Independent Scrolling & Overscroll Contain */}
         <main
           id="main-scroll"
-          className="flex-1 overflow-y-auto overscroll-contain p-4 sm:p-8 pb-24 md:pb-8 max-w-7xl mx-auto w-full"
+          className="flex-1 overflow-y-auto overscroll-contain p-4 sm:p-6 pb-24 md:pb-6 w-full"
         >
           {/* Active Platform Announcements Banner for Tenant Dashboards */}
           {activeAnnouncements.length > 0 && (

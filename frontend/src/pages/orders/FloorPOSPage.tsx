@@ -502,7 +502,7 @@ export const FloorPOSPage: React.FC = () => {
           </div>
 
           {usesTables ? (
-            <div className="flex-1 overflow-y-auto pt-3 grid grid-cols-2 gap-2.5 pr-1">
+            <div className="flex-1 overflow-y-auto pt-3 grid grid-cols-2 content-start auto-rows-max gap-2.5 pr-1">
               {tables.map((tbl) => {
                 const isSelected = selectedTable?.id === tbl.id;
                 const hasOpenSession = Boolean(
@@ -621,14 +621,14 @@ export const FloorPOSPage: React.FC = () => {
           </div>
 
           {/* Menu Items Grid */}
-          <div className="flex-1 overflow-y-auto pt-2 grid grid-cols-2 gap-2.5 pr-1">
+          <div className="flex-1 overflow-y-auto pt-2 grid grid-cols-2 content-start auto-rows-max gap-2.5 pr-1">
             {filteredMenuItems.map((item) => {
               const isAvail = availabilityMap[item.id] !== false && item.is_active;
               return (
                 <div
                   key={item.id}
                   onClick={() => isAvail && addToCart(item)}
-                  className={`p-3 rounded-xl border flex flex-col justify-between transition-all cursor-pointer ${
+                  className={`p-3 rounded-xl border flex flex-col justify-between min-h-[104px] transition-all cursor-pointer ${
                     !isAvail
                       ? "opacity-50 bg-muted/40 cursor-not-allowed border-dashed"
                       : "bg-card hover:border-[#FF6A00] hover:shadow-sm"
