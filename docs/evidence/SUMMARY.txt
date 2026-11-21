@@ -1,49 +1,49 @@
 ﻿==============================================================================
              SERVEMYFOOD - AUTOMATED CLOSE-OUT VERIFICATION SUMMARY           
 ==============================================================================
-Generated At:    2026-11-20 11:43:36 +05:30
+Generated At:    2026-11-21 07:29:08 +05:30
 Git Branch:      main
-Git Commit:      8c000e8b5134e1a2476448e06b1375b4b0283c9c
-Target Tag:      v0.9.0-33-g8c000e8
+Git Commit:      77a6d120db20c34936b356ad5657a51d52afc07b
+Target Tag:      v1.1.0-qr-ordering-6-g77a6d12
 Working Tree:    Clean (code)
-Overall Result:  PASS
+Overall Result:  FAIL
 ==============================================================================
 
 1. QUALITY GATE VERIFICATION TABLE
 -----------------------------------------------------------------------------------------------------------------
 #    | Gate Description                         | Evidence File             | Duration   | Status
 -----------------------------------------------------------------------------------------------------------------
-1    | Backend Pytest Suite with Coverage       | backend-pytest.txt        | 612.4s     | PASS  
-2    | Backend Coverage Gate Check              | backend-coverage-gate.txt | 6.2s       | PASS  
-3    | Backend Ruff Linting                     | backend-ruff.txt          | 0.8s       | PASS  
-4    | Backend Ruff Format Verification         | backend-ruff-format.txt   | 0.4s       | PASS  
-5    | Backend Mypy Type Checking               | backend-mypy.txt          | 95.2s      | PASS  
-6    | Backend Migrations Drift Check           | backend-migrations.txt    | 34.8s      | PASS  
-7    | Backend Pip Dependency Consistency       | backend-pip-check.txt     | 6.1s       | PASS  
-8    | Backend Pip Security Audit               | backend-pip-audit.txt     | 41.6s      | PASS  
-9    | OpenAPI Schema Validation & Drift Check  | openapi-drift.txt         | 12.2s      | PASS  
-10   | Frontend ESLint Linting                  | frontend-lint.txt         | 106.0s     | PASS  
-11   | Frontend Prettier Format Verification    | frontend-format.txt       | 36.2s      | PASS  
-12   | Frontend TypeScript Typecheck            | frontend-typecheck.txt    | 68.0s      | PASS  
-13   | Frontend Production Build                | frontend-build.txt        | 79.0s      | PASS  
-14   | Frontend Vitest Unit Suite               | frontend-vitest.txt       | 109.8s     | PASS  
-15   | Frontend API Types Drift Verification    | api-types-drift.txt       | 13.8s      | PASS  
-16   | Playwright Browser E2E Test Suite        | e2e-report.txt            | 444.6s     | PASS  
-17   | Tax Claim & GST Term Scan                | tax-scan.txt              | 0.5s       | PASS  
-18   | Image Processing & Safety Pytest         | image-safety-check.txt    | 40.5s      | PASS  
-19   | Waiter Availability Isolation Pytest     | waiter-isolation-check.txt | 64.8s      | PASS  
+1    | Backend Pytest Suite with Coverage       | backend-pytest.txt        | 473.4s     | PASS  
+2    | Backend Coverage Gate Check              | backend-coverage-gate.txt | 1.4s       | PASS  
+3    | Backend Ruff Linting                     | backend-ruff.txt          | 0.2s       | PASS  
+4    | Backend Ruff Format Verification         | backend-ruff-format.txt   | 0.1s       | PASS  
+5    | Backend Mypy Type Checking               | backend-mypy.txt          | 14.1s      | PASS  
+6    | Backend Migrations Drift Check           | backend-migrations.txt    | 9.9s       | PASS  
+7    | Backend Pip Dependency Consistency       | backend-pip-check.txt     | 6.8s       | PASS  
+8    | Backend Pip Security Audit               | backend-pip-audit.txt     | 38.3s      | PASS  
+9    | OpenAPI Schema Validation & Drift Check  | openapi-drift.txt         | 23.2s      | PASS  
+10   | Frontend ESLint Linting                  | frontend-lint.txt         | 94.0s      | PASS  
+11   | Frontend Prettier Format Verification    | frontend-format.txt       | 12.4s      | PASS  
+12   | Frontend TypeScript Typecheck            | frontend-typecheck.txt    | 43.1s      | PASS  
+13   | Frontend Production Build                | frontend-build.txt        | 58.1s      | PASS  
+14   | Frontend Vitest Unit Suite               | frontend-vitest.txt       | 171.8s     | PASS  
+15   | Frontend API Types Drift Verification    | api-types-drift.txt       | 18.7s      | PASS  
+16   | Playwright Browser E2E Test Suite        | e2e-report.txt            | 1149.2s    | FAIL  
+17   | Tax Claim & GST Term Scan                | tax-scan.txt              | 0.8s       | PASS  
+18   | Image Processing & Safety Pytest         | image-safety-check.txt    | 172.1s     | PASS  
+19   | Waiter Availability Isolation Pytest     | waiter-isolation-check.txt | 39.9s      | PASS  
 -----------------------------------------------------------------------------------------------------------------
 
 2. KEY VERIFIED METRICS
 -----------------------------------------------------------------------------------------------------------------
-Backend Pytest Tests:            581 passed, 0 failed
-Backend Total Code Coverage:     92.23% (Threshold >= 92.0%, apps/orders >= 90.0%)
-Frontend Vitest Tests:           133 passed, 0 failed (22 suites passed)
-Playwright E2E Tests:            128 passed, 0 failed, 0 skipped, 0 flaky
+Backend Pytest Tests:            584 passed, 0 failed
+Backend Total Code Coverage:     92.07% (Threshold >= 92.0%, apps/orders >= 90.0%)
+Frontend Vitest Tests:           132 passed, 0 failed (22 suites passed)
+Playwright E2E Tests:            130 passed, 6 failed, 0 skipped, 0 flaky
 Image Processing & Safety:       PASS (7 passed)
 Waiter Availability Isolation:   PASS (25 passed)
 Tax Claim Policy (ADR 0021):     PASS (0 prohibited tax/GST references in frontend/src and backend/apps.)
 -----------------------------------------------------------------------------------------------------------------
 
-FINAL CLOSE-OUT VERDICT: PASS
+FINAL CLOSE-OUT VERDICT: FAIL
 ==============================================================================
