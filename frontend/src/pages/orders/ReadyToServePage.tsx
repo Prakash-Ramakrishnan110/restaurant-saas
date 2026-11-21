@@ -1,30 +1,59 @@
-import React, { useState, useEffect } from "react";
-import { CheckCircle2, RefreshCw, Utensils, Zap, Clock } from "lucide-react";
-import { ordersApi, Order } from "../../api/orders";
+import React, { useState, useEffect, useRef } from "react";
+import { CheckCircle2, RefreshCw, Utensils, Zap, Clock, Bell, Check } from "lucide-react";
+import { ordersApi, Order, ServiceRequest } from "../../api/orders";
 import { apiClient } from "../../api/client";
 import { useAuth } from "../../context/AuthContext";
 import { unwrapList } from "../../api/pagination";
+import { playOrderAlert, playWaiterCallAlert } from "../../utils/soundAlerts";
 import { Button } from "../../components/ui/button";
 import { Card, CardContent } from "../../components/ui/card";
 
 export const ReadyToServePage: React.FC = () => {
   const { user } = useAuth();
   const [orders, setOrders] = useState<Order[]>([]);
+  const [serviceRequests, setServiceRequests] = useState<ServiceRequest[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [servingId, setServingId] = useState<string | null>(null);
   const [mySectionIds, setMySectionIds] = useState<string[]>([]);
   const [tableSectionMap, setTableSectionMap] = useState<Record<string, string>>({});
   const [sectionScope, setSectionScope] = useState<"MINE" | "ALL">("MINE");
+  const prevReadyIdsRef = useRef<Set<string> | null>(null);
+  const prevReqIdsRef = useRef<Set<string> | null>(null);
 
   const fetchReadyOrders = async () => {
     try {
       setLoading(true);
-      const [res, assignRes, tblRes] = await Promise.all([
+      const [res, reqRes, assignRes, tblRes] = await Promise.all([
         ordersApi.getOrders({ status: "READY" }),
+        ordersApi.getServiceRequests("PENDING").catch(() => ({ data: [] })),
         apiClient.get<any>("/staff-assignments/").catch(() => ({ data: [] })),
         apiClient.get<any>("/tables/").catch(() => ({ data: [] })),
       ]);
-      setOrders(unwrapList<Order>(res.data));
+      const nextOrders = unwrapList<Order>(res.data);
+      const nextReqs = unwrapList<ServiceRequest>(reqRes.data);
+
+      const nextReadyIds = new Set(nextOrders.map((o) => o.id));
+      if (prevReadyIdsRef.current !== null) {
+        const newlyReady = nextOrders.find((o) => !prevReadyIdsRef.current!.has(o.id));
+        if (newlyReady) {
+          playOrderAlert(
+            newlyReady.table_number ? `Table ${newlyReady.table_number}` : "Pickup"
+          );
+        }
+      }
+      prevReadyIdsRef.current = nextReadyIds;
+
+      const nextReqIds = new Set(nextReqs.map((r) => r.id));
+      if (prevReqIdsRef.current !== null) {
+        const newReq = nextReqs.find((r) => !prevReqIdsRef.current!.has(r.id));
+        if (newReq) {
+          playWaiterCallAlert(newReq.table_label ? `Table ${newReq.table_label}` : undefined);
+        }
+      }
+      prevReqIdsRef.current = nextReqIds;
+
+      setOrders(nextOrders);
+      setServiceRequests(nextReqs);
       const assigns = assignRes.data?.results || assignRes.data || [];
       const mine = Array.isArray(assigns)
         ? assigns
@@ -137,6 +166,48 @@ export const ReadyToServePage: React.FC = () => {
           </Button>
         </div>
       </div>
+
+      {/* Guest Service Requests (Call waiter, Water, Bill, Cutlery) */}
+      {serviceRequests.length > 0 && (
+        <div className="rounded-xl border border-amber-300 bg-amber-50/70 dark:bg-amber-950/30 p-4 space-y-2.5">
+          <div className="flex items-center gap-2 text-xs font-extrabold uppercase tracking-wider text-amber-900 dark:text-amber-200">
+            <Bell className="h-4 w-4 text-[#FF6A00]" />
+            <span>Guest Table Requests ({serviceRequests.length})</span>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            {serviceRequests
+              .filter((r) => {
+                if (!hasAssignments || sectionScope !== "MINE" || !r.table_label) return true;
+                const secId = tableSectionMap[r.table_label];
+                return !secId || mySectionIds.includes(secId);
+              })
+              .map((req) => (
+                <div
+                  key={req.id}
+                  className="flex items-center justify-between gap-2 rounded-lg border border-amber-200 bg-card p-3 text-xs"
+                >
+                  <div>
+                    <div className="font-bold text-foreground">
+                      Table {req.table_label || "—"} • {req.request_type.replace(/_/g, " ")}
+                    </div>
+                  </div>
+                  <Button
+                    type="button"
+                    size="sm"
+                    onClick={async () => {
+                      await ordersApi.acknowledgeServiceRequest(req.id);
+                      await fetchReadyOrders();
+                    }}
+                    className="h-8 px-3 bg-[#FF6A00] hover:bg-[#E55F00] text-[#0B1F3B] font-bold"
+                  >
+                    <Check className="h-3.5 w-3.5 mr-1" />
+                    Done
+                  </Button>
+                </div>
+              ))}
+          </div>
+        </div>
+      )}
 
       {/* Main Pickup Queue */}
       {loading && orderList.length === 0 ? (

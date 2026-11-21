@@ -29,12 +29,22 @@ const REFUND_REASONS = [
   { value: "CUSTOMER_CANCELLED", label: "Customer Cancelled Item" },
 ] as const;
 
+function getLocalDateString(offsetDays = 0): string {
+  const d = new Date();
+  d.setDate(d.getDate() + offsetDays);
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+}
+
 export const InvoicesHistoryPage: React.FC = () => {
   const { activeTenant } = useAuth();
   const [invoices, setInvoices] = useState<BillInvoice[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [methodFilter, setMethodFilter] = useState<string>("ALL");
+  const [selectedDate, setSelectedDate] = useState<string>(() => getLocalDateString(0));
   const [reprintInvoice, setReprintInvoice] = useState<BillInvoice | null>(null);
 
   // Stage B: Partial Refund & Bill Adjustment state
@@ -117,6 +127,11 @@ export const InvoicesHistoryPage: React.FC = () => {
 
   const invoiceList = Array.isArray(invoices) ? invoices : [];
   const filteredInvoices = invoiceList.filter((inv) => {
+    if (selectedDate && inv.created_at) {
+      const d = new Date(inv.created_at);
+      const localYmd = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+      if (localYmd !== selectedDate) return false;
+    }
     if (methodFilter !== "ALL" && inv.payment_method !== methodFilter) return false;
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase();
@@ -183,15 +198,44 @@ export const InvoicesHistoryPage: React.FC = () => {
           ))}
         </div>
 
-        <div className="relative min-w-[260px]">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="flex items-center gap-1 rounded-md border border-input bg-card p-1">
+            {[
+              { label: "Today", value: getLocalDateString(0) },
+              { label: "Yesterday", value: getLocalDateString(-1) },
+              { label: "All Dates", value: "" },
+            ].map((opt) => (
+              <button
+                key={opt.label}
+                type="button"
+                onClick={() => setSelectedDate(opt.value)}
+                className={`px-2.5 py-1 rounded text-xs font-semibold min-h-[32px] transition-colors ${
+                  selectedDate === opt.value
+                    ? "bg-[#FF6A00] text-[#0B1F3B]"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
           <input
-            type="text"
-            placeholder="Search invoice # or table..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-9 pr-3 py-2 text-xs bg-card border border-input rounded-md focus:ring-2 focus:ring-[#FF6A00] outline-none min-h-[40px]"
+            type="date"
+            aria-label="Filter bills by date"
+            value={selectedDate}
+            onChange={(e) => setSelectedDate(e.target.value)}
+            className="px-2.5 py-1.5 text-xs bg-card border border-input rounded-md focus:ring-2 focus:ring-[#FF6A00] outline-none min-h-[40px]"
           />
+          <div className="relative min-w-[220px] flex-1 sm:flex-initial">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <input
+              type="text"
+              placeholder="Search invoice # or table..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-9 pr-3 py-2 text-xs bg-card border border-input rounded-md focus:ring-2 focus:ring-[#FF6A00] outline-none min-h-[40px]"
+            />
+          </div>
         </div>
       </div>
 
