@@ -31,7 +31,8 @@ import { computeEqualSplitShares } from "../../utils/thermalPrint";
 
 interface TableSessionInfo {
   id: string;
-  table?: { label: string };
+  table?: { label: string } | string;
+  table_label?: string;
   session_code?: string;
   party_size?: number;
   orders_count?: number;
@@ -203,6 +204,8 @@ export const BillingPage: React.FC = () => {
 
       setSettledInvoice(res.data);
       setReceiptModalOpen(true);
+      setSelectedSessionId(null);
+      setBillData(null);
       await fetchSessions();
     } catch (err: unknown) {
       const axiosErr = err as {
@@ -368,7 +371,11 @@ export const BillingPage: React.FC = () => {
                     <div className="space-y-1">
                       <div className="flex items-center gap-2">
                         <span className="font-extrabold text-sm text-foreground">
-                          {sess.table ? `Table ${sess.table.label}` : "Direct Counter"}
+                          {sess.table_label
+                            ? `Table ${sess.table_label}`
+                            : typeof sess.table === "object" && sess.table?.label
+                              ? `Table ${sess.table.label}`
+                              : "Direct Counter"}
                         </span>
                         <Badge variant="outline" className="text-[10px] py-0 px-1.5 font-mono">
                           {sess.session_code}
@@ -862,7 +869,11 @@ export const BillingPage: React.FC = () => {
                       .filter((s) => s.id !== selectedSessionId)
                       .map((s) => (
                         <option key={s.id} value={s.id}>
-                          {s.table ? `Table ${s.table.label}` : s.session_code}
+                          {s.table_label
+                            ? `Table ${s.table_label}`
+                            : typeof s.table === "object" && s.table?.label
+                              ? `Table ${s.table.label}`
+                              : s.session_code}
                         </option>
                       ))}
                   </select>

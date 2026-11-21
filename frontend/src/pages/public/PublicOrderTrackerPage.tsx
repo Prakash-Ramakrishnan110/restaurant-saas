@@ -10,6 +10,7 @@ import {
   AlertCircle,
   Ban,
   Banknote,
+  Printer,
 } from "lucide-react";
 import { publicQrApi, PublicOrderTrackerResponse } from "../../api/publicQr";
 import { formatRupees } from "../../utils/currency";
@@ -281,9 +282,40 @@ export const PublicOrderTrackerPage: React.FC = () => {
               </div>
             )}
 
-            {/* Items Ordered */}
+            {/* Items Ordered / Printable Bill */}
             <div className="rounded-2xl border border-border bg-card p-5 space-y-3 shadow-sm">
-              <h2 className="text-sm font-bold text-foreground">{copy.itemsOrdered}</h2>
+              {order.display_name && (
+                <div className="flex items-center gap-3 pb-3 border-b border-border">
+                  {order.logo_url && (
+                    <img
+                      src={order.logo_url}
+                      alt={order.display_name}
+                      className="w-10 h-10 rounded-lg object-cover bg-white shrink-0"
+                    />
+                  )}
+                  <div className="min-w-0">
+                    <div className="font-extrabold text-sm text-foreground truncate">
+                      {order.display_name}
+                    </div>
+                    {order.branch_name && (
+                      <div className="text-xs text-muted-foreground truncate">
+                        {order.branch_name} • {order.order_number}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+              <div className="flex items-center justify-between">
+                <h2 className="text-sm font-bold text-foreground">{copy.itemsOrdered}</h2>
+                <button
+                  type="button"
+                  onClick={() => window.print()}
+                  className="print:hidden min-h-[36px] px-3 rounded-lg border border-border bg-background hover:bg-muted text-xs font-bold flex items-center gap-1.5"
+                >
+                  <Printer className="h-3.5 w-3.5" />
+                  <span>{lang === "ta" ? "பில் பதிவிறக்க" : "Save / Print Bill"}</span>
+                </button>
+              </div>
               <ul className="divide-y divide-border">
                 {order.items.map((it, idx) => (
                   <li key={idx} className="py-2.5 flex items-start justify-between gap-3 text-sm">

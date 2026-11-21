@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useMemo, useCallback, useRef } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, Link } from "react-router-dom";
 import {
   Search,
   UtensilsCrossed,
@@ -752,6 +752,15 @@ export const PublicQRPage: React.FC = () => {
                     setServiceBusy(true);
                     setServiceBanner(null);
                     try {
+                      if (
+                        menu.target_type === "TABLE" &&
+                        !menu.active_session_open &&
+                        !sessionToken &&
+                        menu.session_policy === "CUSTOMER_CAN_OPEN"
+                      ) {
+                        const sessRes = await publicQrApi.openSession(token, 1);
+                        setSessionToken(sessRes.data.session_token);
+                      }
                       await publicQrApi.submitServiceRequest(token, reqType);
                       setServiceBanner(
                         lang === "ta"
@@ -759,14 +768,16 @@ export const PublicQRPage: React.FC = () => {
                           : `Request sent: ${label}`
                       );
                     } catch (err: any) {
+                      const errMsg = err?.response?.data?.error?.message;
                       setServiceBanner(
                         err?.response?.status === 429
                           ? lang === "ta"
                             ? "சிறிது நேரம் கழித்து முயற்சிக்கவும்."
                             : "Please wait a few minutes before sending another request."
-                          : lang === "ta"
-                            ? "கோரிக்கை அனுப்ப முடியவில்லை."
-                            : "Could not send request right now."
+                          : errMsg ||
+                              (lang === "ta"
+                                ? "கோரிக்கை அனுப்ப முடியவில்லை."
+                                : "Could not send request right now.")
                       );
                     } finally {
                       setServiceBusy(false);
@@ -856,9 +867,16 @@ export const PublicQRPage: React.FC = () => {
                         {h.items.map((i) => `${i.quantity}x ${i.name}`).join(", ")}
                       </div>
                     </div>
-                    <button
-                      type="button"
-                      onClick={async () => {
+                    <div className="flex items-center gap-1.5 shrink-0">
+                      <Link
+                        to={`/q/${encodeURIComponent(token)}/o/${encodeURIComponent(h.tracking_token)}`}
+                        className="min-h-[36px] px-2.5 rounded-lg border border-border bg-background hover:bg-muted text-foreground font-bold flex items-center"
+                      >
+                        {lang === "ta" ? "பார்" : "View"}
+                      </Link>
+                      <button
+                        type="button"
+                        onClick={async () => {
                         try {
                           const res = await publicQrApi.reorderPreview(token, h.items);
                           if (res.data.available_items.length > 0) {
@@ -898,6 +916,7 @@ export const PublicQRPage: React.FC = () => {
                       <RotateCcw className="h-3.5 w-3.5" />
                       <span>{lang === "ta" ? "மீண்டும் ஆர்டர்" : "Reorder"}</span>
                     </button>
+                    </div>
                   </div>
                 ))}
                 {reorderNotice && (

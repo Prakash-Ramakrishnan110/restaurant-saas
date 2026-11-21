@@ -695,6 +695,14 @@ class PublicOrderTrackerView(APIView):
 
         capabilities = getattr(order.branch, "capabilities", None)
         payment_timing = capabilities.payment_timing if capabilities else PaymentTiming.PAY_LATER
+        tenant = order.branch.tenant
+        business_settings = getattr(tenant, "business_settings", None)
+        display_name = (
+            business_settings.legal_name
+            if business_settings and business_settings.legal_name
+            else tenant.name
+        )
+        logo_url = business_settings.logo_url if business_settings else ""
 
         target_label = ""
         if order.table_session and order.table_session.table:
@@ -704,6 +712,9 @@ class PublicOrderTrackerView(APIView):
 
         return Response(
             {
+                "display_name": display_name,
+                "logo_url": logo_url,
+                "branch_name": order.branch.name,
                 "order_number": order.order_number,
                 "status": order.status,
                 "status_key": _status_message_key(order, payment_timing),

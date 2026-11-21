@@ -117,6 +117,9 @@ export interface PublicOrderTrackerItem {
 }
 
 export interface PublicOrderTrackerResponse {
+  display_name?: string;
+  logo_url?: string;
+  branch_name?: string;
   order_number: string;
   status: string;
   status_key: string;
