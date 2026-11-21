@@ -445,12 +445,12 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
             to={user?.is_platform_admin ? "/admin" : "/dashboard"}
             className="flex items-center shrink-0"
           >
-            <span className="sm:hidden flex items-center">
-              <BrandLogo variant="icon" size={28} theme={theme === "dark" ? "dark" : "auto"} />
-            </span>
-            <span className="hidden sm:flex items-center">
-              <BrandLogo variant="full" size={28} theme={theme === "dark" ? "dark" : "auto"} />
-            </span>
+            <BrandLogo
+              variant="full"
+              size={24}
+              compact
+              theme={theme === "dark" ? "dark" : "auto"}
+            />
           </Link>
 
           {/* Quick Command Palette Button */}
@@ -542,7 +542,7 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
             variant="ghost"
             size="sm"
             onClick={handleToggleSound}
-            className={`min-h-[36px] min-w-[36px] p-2 ${soundOn ? "text-[#FF6A00]" : "text-muted-foreground"}`}
+            className={`min-h-[34px] min-w-[32px] sm:min-h-[36px] sm:min-w-[36px] p-1.5 sm:p-2 ${soundOn ? "text-[#FF6A00]" : "text-muted-foreground"}`}
             aria-label={soundOn ? "Mute order sound alerts" : "Enable order sound alerts"}
             title={
               soundOn
@@ -558,7 +558,7 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
             variant="ghost"
             size="sm"
             onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-            className="min-h-[36px] min-w-[36px] p-2"
+            className="min-h-[34px] min-w-[32px] sm:min-h-[36px] sm:min-w-[36px] p-1.5 sm:p-2"
             aria-label="Toggle theme"
           >
             {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}

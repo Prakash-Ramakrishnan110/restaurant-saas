@@ -5,6 +5,7 @@ export interface BrandLogoProps {
   theme?: "light" | "dark" | "mono" | "auto";
   className?: string;
   size?: number;
+  compact?: boolean;
 }
 
 export const BrandLogo: React.FC<BrandLogoProps> = ({
@@ -12,6 +13,7 @@ export const BrandLogo: React.FC<BrandLogoProps> = ({
   theme = "auto",
   className = "",
   size = 36,
+  compact = false,
 }) => {
   const isForcedDark = theme === "dark";
   const isForcedLight = theme === "light";
@@ -79,7 +81,9 @@ export const BrandLogo: React.FC<BrandLogoProps> = ({
       {iconElement}
       <div className="flex flex-col">
         <span
-          className="font-bold tracking-tight text-base sm:text-xl leading-none font-display font-['Poppins',sans-serif]"
+          className={`font-bold tracking-tight leading-none font-display font-['Poppins',sans-serif] ${
+            compact ? "text-sm sm:text-xl" : "text-base sm:text-xl"
+          }`}
           style={{ letterSpacing: "-0.03em" }}
         >
           <span
@@ -101,13 +105,13 @@ export const BrandLogo: React.FC<BrandLogoProps> = ({
           </span>
         </span>
         <span
-          className={
+          className={`${compact ? "hidden sm:block " : ""}text-[10px] uppercase font-sans font-semibold tracking-wider ${
             isMono
-              ? "text-[10px] uppercase font-sans font-semibold tracking-wider opacity-70 text-current"
+              ? "opacity-70 text-current"
               : isForcedDark
-                ? "text-[10px] uppercase font-sans font-semibold tracking-wider text-white/70"
-                : "text-[10px] uppercase font-sans font-semibold tracking-wider text-[#0B1F3B]/70 dark:text-white/70"
-          }
+                ? "text-white/70"
+                : "text-[#0B1F3B]/70 dark:text-white/70"
+          }`}
         >
           By Fusion Engine
         </span>
