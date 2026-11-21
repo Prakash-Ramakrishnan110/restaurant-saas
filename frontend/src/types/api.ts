@@ -800,7 +800,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** @description Authoritative Invoices directory and detail endpoint. */
+        /** @description Authoritative Invoices directory, detail, and append-only refund endpoints. */
         get: operations["invoices_list"];
         put?: never;
         post?: never;
@@ -817,10 +817,28 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** @description Authoritative Invoices directory and detail endpoint. */
+        /** @description Authoritative Invoices directory, detail, and append-only refund endpoints. */
         get: operations["invoices_retrieve"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/invoices/{id}/refunds/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description Authoritative Invoices directory, detail, and append-only refund endpoints. */
+        get: operations["invoices_refunds_retrieve"];
+        put?: never;
+        /** @description Authoritative Invoices directory, detail, and append-only refund endpoints. */
+        post: operations["invoices_refunds_create"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1298,6 +1316,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/orders/billing/session/{session_id}/merge/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** @description Cashier billing and table session checkout. */
+        post: operations["orders_billing_session_merge_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/orders/billing/session/{session_id}/move-items/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** @description Cashier billing and table session checkout. */
+        post: operations["orders_billing_session_move_items_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/orders/billing/session/{session_id}/settle/": {
         parameters: {
             query?: never;
@@ -1309,6 +1361,23 @@ export interface paths {
         put?: never;
         /** @description Cashier billing and table session checkout. */
         post: operations["orders_billing_session_settle_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/orders/billing/session/{session_id}/split-preview/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** @description Cashier billing and table session checkout. */
+        post: operations["orders_billing_session_split_preview_create"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1360,7 +1429,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** @description Authoritative Invoices directory and detail endpoint. */
+        /** @description Authoritative Invoices directory, detail, and append-only refund endpoints. */
         get: operations["orders_invoices_list"];
         put?: never;
         post?: never;
@@ -1377,10 +1446,28 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** @description Authoritative Invoices directory and detail endpoint. */
+        /** @description Authoritative Invoices directory, detail, and append-only refund endpoints. */
         get: operations["orders_invoices_retrieve"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/orders/invoices/{id}/refunds/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description Authoritative Invoices directory, detail, and append-only refund endpoints. */
+        get: operations["orders_invoices_refunds_retrieve"];
+        put?: never;
+        /** @description Authoritative Invoices directory, detail, and append-only refund endpoints. */
+        post: operations["orders_invoices_refunds_create"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1487,6 +1574,92 @@ export interface paths {
         put?: never;
         /** @description Customer Call Bell and service requests. */
         post: operations["orders_service_requests_acknowledge_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/orders/shifts/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description Blind cash drawer handover, mid-shift cash movements, and Z-Report closeout. */
+        get: operations["orders_shifts_list"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/orders/shifts/{id}/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description Blind cash drawer handover, mid-shift cash movements, and Z-Report closeout. */
+        get: operations["orders_shifts_retrieve"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/orders/shifts/{id}/cash-movements/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** @description Blind cash drawer handover, mid-shift cash movements, and Z-Report closeout. */
+        post: operations["orders_shifts_cash_movements_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/orders/shifts/{id}/close/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** @description Blind cash drawer handover, mid-shift cash movements, and Z-Report closeout. */
+        post: operations["orders_shifts_close_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/orders/shifts/current/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description Blind cash drawer handover, mid-shift cash movements, and Z-Report closeout. */
+        get: operations["orders_shifts_current_retrieve"];
+        put?: never;
+        /** @description Blind cash drawer handover, mid-shift cash movements, and Z-Report closeout. */
+        post: operations["orders_shifts_current_create"];
         delete?: never;
         options?: never;
         head?: never;
@@ -2035,6 +2208,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/sessions/{id}/transfer/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** @description Manage table dining sessions. */
+        post: operations["sessions_transfer_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/sessions/open/": {
         parameters: {
             query?: never;
@@ -2320,6 +2510,23 @@ export interface paths {
         put?: never;
         /** @description Manage table dining sessions. */
         post: operations["table_sessions_close_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/table-sessions/{id}/transfer/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** @description Manage table dining sessions. */
+        post: operations["table_sessions_transfer_create"];
         delete?: never;
         options?: never;
         head?: never;
@@ -2695,6 +2902,8 @@ export interface components {
             discount_paise?: number;
             /** Format: int64 */
             total_paise?: number;
+            readonly refunded_paise: number;
+            readonly net_total_paise: number;
             snapshot_lines?: unknown;
             payment_method?: components["schemas"]["PaymentMethodEnum"];
             /** Format: int64 */
@@ -2705,6 +2914,7 @@ export interface components {
             /** Format: date-time */
             settled_at?: string | null;
             notes?: string;
+            readonly refunds: components["schemas"]["InvoiceRefund"][];
         };
         BillInvoiceRequest: {
             invoice_number: string;
@@ -2725,6 +2935,8 @@ export interface components {
             settled_at?: string | null;
             notes?: string;
         };
+        /** @enum {unknown} */
+        BlankEnum: "";
         Branch: {
             /** Format: uuid */
             readonly id: string;
@@ -2892,6 +3104,111 @@ export interface components {
          * @enum {string}
          */
         BusinessTypeA80Enum: "TEA_SHOP" | "BAKERY" | "CAFE" | "RESTAURANT" | "FINE_DINING" | "HOTEL" | "FOOD_COURT";
+        CashMovement: {
+            /** Format: uuid */
+            readonly id: string;
+            /** Format: uuid */
+            readonly shift_id: string;
+            movement_type: components["schemas"]["CashMovementMovementTypeEnum"];
+            /**
+             * Format: int64
+             * @description Positive amount in paise
+             */
+            amount_paise: number;
+            reason: string;
+            readonly recorded_by_name: string;
+            /** Format: date-time */
+            readonly created_at: string;
+        };
+        /**
+         * @description * `FLOAT_IN` - Float In
+         *     * `CASH_DROP` - Safe Cash Drop
+         *     * `PETTY_CASH_OUT` - Petty Cash Out
+         *     * `REFUND_CASH_OUT` - Cash Refund Out
+         * @enum {string}
+         */
+        CashMovementMovementTypeEnum: "FLOAT_IN" | "CASH_DROP" | "PETTY_CASH_OUT" | "REFUND_CASH_OUT";
+        CashMovementRequest: {
+            movement_type: components["schemas"]["CashMovementMovementTypeEnum"];
+            /**
+             * Format: int64
+             * @description Positive amount in paise
+             */
+            amount_paise: number;
+            reason: string;
+        };
+        CashierShiftCloseout: {
+            /** Format: uuid */
+            readonly id: string;
+            /** Format: uuid */
+            readonly branch_id: string;
+            readonly cashier_name: string;
+            status?: components["schemas"]["SessionStatus"];
+            is_locked?: boolean;
+            /** Format: date-time */
+            opened_at?: string;
+            /** Format: date-time */
+            closed_at?: string | null;
+            /** Format: int64 */
+            opening_cash_paise?: number;
+            /** Format: int64 */
+            cash_sales_paise?: number;
+            /** Format: int64 */
+            cash_in_paise?: number;
+            /** Format: int64 */
+            cash_out_paise?: number;
+            /** Format: int64 */
+            cash_refunds_paise?: number;
+            readonly expected_cash_paise: number | null;
+            /** Format: int64 */
+            actual_cash_paise?: number;
+            readonly cash_variance_paise: number | null;
+            /** Format: int64 */
+            variance_threshold_paise?: number;
+            variance_reason_code?: components["schemas"]["VarianceReasonCodeEnum"] | components["schemas"]["BlankEnum"];
+            denominations_snapshot?: unknown;
+            /** Format: int64 */
+            upi_total_paise?: number;
+            /** Format: int64 */
+            card_total_paise?: number;
+            /** Format: int64 */
+            total_settled_paise?: number;
+            total_invoices_count?: number;
+            notes?: string;
+            readonly cash_movements: components["schemas"]["CashMovement"][];
+        };
+        CashierShiftCloseoutRequest: {
+            status?: components["schemas"]["SessionStatus"];
+            is_locked?: boolean;
+            /** Format: date-time */
+            opened_at?: string;
+            /** Format: date-time */
+            closed_at?: string | null;
+            /** Format: int64 */
+            opening_cash_paise?: number;
+            /** Format: int64 */
+            cash_sales_paise?: number;
+            /** Format: int64 */
+            cash_in_paise?: number;
+            /** Format: int64 */
+            cash_out_paise?: number;
+            /** Format: int64 */
+            cash_refunds_paise?: number;
+            /** Format: int64 */
+            actual_cash_paise?: number;
+            /** Format: int64 */
+            variance_threshold_paise?: number;
+            variance_reason_code?: components["schemas"]["VarianceReasonCodeEnum"] | components["schemas"]["BlankEnum"];
+            denominations_snapshot?: unknown;
+            /** Format: int64 */
+            upi_total_paise?: number;
+            /** Format: int64 */
+            card_total_paise?: number;
+            /** Format: int64 */
+            total_settled_paise?: number;
+            total_invoices_count?: number;
+            notes?: string;
+        };
         /**
          * @description * `PRODUCE` - Produce & Vegetables
          *     * `DAIRY` - Dairy & Milk
@@ -3204,6 +3521,43 @@ export interface components {
             /** Format: decimal */
             packaging_quantity?: string;
         };
+        InvoiceRefund: {
+            /** Format: uuid */
+            readonly id: string;
+            /** Format: uuid */
+            readonly branch_id: string;
+            /** Format: uuid */
+            readonly invoice_id: string;
+            readonly invoice_number: string;
+            refund_number: string;
+            /**
+             * Format: int64
+             * @description Refunded amount in paise (> 0)
+             */
+            amount_paise: number;
+            reason_code: components["schemas"]["ReasonCodeEnum"];
+            refund_method?: components["schemas"]["RefundMethodEnum"];
+            restock_action?: components["schemas"]["RestockActionEnum"];
+            refunded_lines?: unknown;
+            notes?: string;
+            readonly processed_by_name: string;
+            readonly approved_by_name: string | null;
+            /** Format: date-time */
+            readonly created_at: string;
+        };
+        InvoiceRefundRequest: {
+            refund_number: string;
+            /**
+             * Format: int64
+             * @description Refunded amount in paise (> 0)
+             */
+            amount_paise: number;
+            reason_code: components["schemas"]["ReasonCodeEnum"];
+            refund_method?: components["schemas"]["RefundMethodEnum"];
+            restock_action?: components["schemas"]["RestockActionEnum"];
+            refunded_lines?: unknown;
+            notes?: string;
+        };
         /**
          * @description * `INGREDIENT` - Ingredient
          *     * `PREPARED` - Prepared
@@ -3416,22 +3770,6 @@ export interface components {
             /** Format: double */
             image_focus_y?: number;
         };
-        /**
-         * @description * `OPENING` - Opening Balance
-         *     * `PURCHASE` - Purchase Receipt
-         *     * `SALE_USAGE` - Sale Usage
-         *     * `PRODUCTION_IN` - Production In
-         *     * `PRODUCTION_USAGE` - Production Usage
-         *     * `WASTE` - Waste
-         *     * `ADJUSTMENT` - Manual Adjustment
-         *     * `COUNT_VARIANCE` - Count Variance
-         *     * `TRANSFER_OUT` - Transfer Out
-         *     * `TRANSFER_IN` - Transfer In
-         *     * `SUPPLIER_RETURN` - Supplier Return
-         *     * `PACKAGING_USAGE` - Packaging Usage
-         * @enum {string}
-         */
-        MovementTypeEnum: "OPENING" | "PURCHASE" | "SALE_USAGE" | "PRODUCTION_IN" | "PRODUCTION_USAGE" | "WASTE" | "ADJUSTMENT" | "COUNT_VARIANCE" | "TRANSFER_OUT" | "TRANSFER_IN" | "SUPPLIER_RETURN" | "PACKAGING_USAGE";
         OnboardingStatus: {
             is_complete: boolean;
             next_step: string | null;
@@ -3706,6 +4044,21 @@ export interface components {
              */
             previous?: string | null;
             results: components["schemas"]["Branch"][];
+        };
+        PaginatedCashierShiftCloseoutList: {
+            /** @example 123 */
+            count: number;
+            /**
+             * Format: uri
+             * @example http://api.example.org/accounts/?page=4
+             */
+            next?: string | null;
+            /**
+             * Format: uri
+             * @example http://api.example.org/accounts/?page=2
+             */
+            previous?: string | null;
+            results: components["schemas"]["CashierShiftCloseout"][];
         };
         PaginatedCustomerList: {
             /** @example 123 */
@@ -4652,6 +5005,15 @@ export interface components {
          * @enum {string}
          */
         QrSessionPolicy: "CUSTOMER_CAN_OPEN" | "STAFF_ONLY";
+        /**
+         * @description * `ITEM_RETURNED` - Item Returned
+         *     * `QUALITY_ISSUE` - Quality Issue
+         *     * `WRONG_ITEM` - Wrong Item Served
+         *     * `OVERCHARGED` - Overcharged
+         *     * `CUSTOMER_CANCELLED` - Customer Cancelled
+         * @enum {string}
+         */
+        ReasonCodeEnum: "ITEM_RETURNED" | "QUALITY_ISSUE" | "WRONG_ITEM" | "OVERCHARGED" | "CUSTOMER_CANCELLED";
         /** @description Omits all cost/value/margin fields completely when caller lacks inventory.costs. */
         Recipe: {
             /** Format: uuid */
@@ -4717,6 +5079,14 @@ export interface components {
             is_active?: boolean;
         };
         /**
+         * @description * `CASH` - Cash
+         *     * `UPI` - UPI QR
+         *     * `CARD` - Debit / Credit Card
+         *     * `ROOM_FOLIO` - Room Folio Charge
+         * @enum {string}
+         */
+        RefundMethodEnum: "CASH" | "UPI" | "CARD" | "ROOM_FOLIO";
+        /**
          * @description * `WATER` - Water
          *     * `NAPKINS` - Extra Napkins
          *     * `CALL_WAITER` - Call Waiter
@@ -4724,6 +5094,13 @@ export interface components {
          * @enum {string}
          */
         RequestTypeEnum: "WATER" | "NAPKINS" | "CALL_WAITER" | "BILL";
+        /**
+         * @description * `NONE` - No Stock Action
+         *     * `RESTOCK` - Return to Stock
+         *     * `WASTE` - Record as Wastage
+         * @enum {string}
+         */
+        RestockActionEnum: "NONE" | "RESTOCK" | "WASTE";
         Section: {
             /** Format: uuid */
             readonly id: string;
@@ -5008,7 +5385,7 @@ export interface components {
             item: string;
             readonly item_name: string;
             readonly base_unit: string;
-            movement_type: components["schemas"]["MovementTypeEnum"];
+            movement_type: components["schemas"]["StockMovementMovementTypeEnum"];
             /** Format: decimal */
             quantity: string;
             /** Format: int64 */
@@ -5024,6 +5401,22 @@ export interface components {
             /** Format: date-time */
             readonly created_at: string;
         };
+        /**
+         * @description * `OPENING` - Opening Balance
+         *     * `PURCHASE` - Purchase Receipt
+         *     * `SALE_USAGE` - Sale Usage
+         *     * `PRODUCTION_IN` - Production In
+         *     * `PRODUCTION_USAGE` - Production Usage
+         *     * `WASTE` - Waste
+         *     * `ADJUSTMENT` - Manual Adjustment
+         *     * `COUNT_VARIANCE` - Count Variance
+         *     * `TRANSFER_OUT` - Transfer Out
+         *     * `TRANSFER_IN` - Transfer In
+         *     * `SUPPLIER_RETURN` - Supplier Return
+         *     * `PACKAGING_USAGE` - Packaging Usage
+         * @enum {string}
+         */
+        StockMovementMovementTypeEnum: "OPENING" | "PURCHASE" | "SALE_USAGE" | "PRODUCTION_IN" | "PRODUCTION_USAGE" | "WASTE" | "ADJUSTMENT" | "COUNT_VARIANCE" | "TRANSFER_OUT" | "TRANSFER_IN" | "SUPPLIER_RETURN" | "PACKAGING_USAGE";
         /** @description Omits all cost/value/margin fields completely when caller lacks inventory.costs. */
         StockMovementRequest: {
             /** Format: int64 */
@@ -5034,7 +5427,7 @@ export interface components {
             location: string;
             /** Format: uuid */
             item: string;
-            movement_type: components["schemas"]["MovementTypeEnum"];
+            movement_type: components["schemas"]["StockMovementMovementTypeEnum"];
             /** Format: decimal */
             quantity: string;
             /** Format: int64 */
@@ -5264,6 +5657,15 @@ export interface components {
             /** Format: date-time */
             readonly created_at: string;
         };
+        /**
+         * @description * `` - None
+         *     * `CHANGE_ERROR` - Change / Counting Error
+         *     * `FLOAT_ERROR` - Opening Float Discrepancy
+         *     * `DROP_MISSING` - Unrecorded Safe Drop
+         *     * `OTHER` - Other
+         * @enum {string}
+         */
+        VarianceReasonCodeEnum: "CHANGE_ERROR" | "FLOAT_ERROR" | "DROP_MISSING" | "OTHER";
         /**
          * @description * `QUICK_SERVICE` - Quick Service
          *     * `CAFE` - Café
@@ -7379,6 +7781,56 @@ export interface operations {
             };
         };
     };
+    invoices_refunds_retrieve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description A UUID string identifying this bill invoice. */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BillInvoice"];
+                };
+            };
+        };
+    };
+    invoices_refunds_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description A UUID string identifying this bill invoice. */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BillInvoiceRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["BillInvoiceRequest"];
+                "multipart/form-data": components["schemas"]["BillInvoiceRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BillInvoice"];
+                };
+            };
+        };
+    };
     layout_templates_list: {
         parameters: {
             query?: never;
@@ -8590,7 +9042,88 @@ export interface operations {
             };
         };
     };
+    orders_billing_session_merge_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                session_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BillInvoiceRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["BillInvoiceRequest"];
+                "multipart/form-data": components["schemas"]["BillInvoiceRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BillInvoice"];
+                };
+            };
+        };
+    };
+    orders_billing_session_move_items_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                session_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BillInvoiceRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["BillInvoiceRequest"];
+                "multipart/form-data": components["schemas"]["BillInvoiceRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BillInvoice"];
+                };
+            };
+        };
+    };
     orders_billing_session_settle_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                session_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BillInvoiceRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["BillInvoiceRequest"];
+                "multipart/form-data": components["schemas"]["BillInvoiceRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BillInvoice"];
+                };
+            };
+        };
+    };
+    orders_billing_session_split_preview_create: {
         parameters: {
             query?: never;
             header?: never;
@@ -8802,6 +9335,56 @@ export interface operations {
             cookie?: never;
         };
         requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BillInvoice"];
+                };
+            };
+        };
+    };
+    orders_invoices_refunds_retrieve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description A UUID string identifying this bill invoice. */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BillInvoice"];
+                };
+            };
+        };
+    };
+    orders_invoices_refunds_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description A UUID string identifying this bill invoice. */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BillInvoiceRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["BillInvoiceRequest"];
+                "multipart/form-data": components["schemas"]["BillInvoiceRequest"];
+            };
+        };
         responses: {
             200: {
                 headers: {
@@ -9059,6 +9642,152 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ServiceRequest"];
+                };
+            };
+        };
+    };
+    orders_shifts_list: {
+        parameters: {
+            query?: {
+                /** @description A page number within the paginated result set. */
+                page?: number;
+                /** @description Number of results to return per page. */
+                page_size?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaginatedCashierShiftCloseoutList"];
+                };
+            };
+        };
+    };
+    orders_shifts_retrieve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description A UUID string identifying this cashier shift closeout. */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CashierShiftCloseout"];
+                };
+            };
+        };
+    };
+    orders_shifts_cash_movements_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description A UUID string identifying this cashier shift closeout. */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["CashierShiftCloseoutRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["CashierShiftCloseoutRequest"];
+                "multipart/form-data": components["schemas"]["CashierShiftCloseoutRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CashierShiftCloseout"];
+                };
+            };
+        };
+    };
+    orders_shifts_close_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description A UUID string identifying this cashier shift closeout. */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["CashierShiftCloseoutRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["CashierShiftCloseoutRequest"];
+                "multipart/form-data": components["schemas"]["CashierShiftCloseoutRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CashierShiftCloseout"];
+                };
+            };
+        };
+    };
+    orders_shifts_current_retrieve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CashierShiftCloseout"];
+                };
+            };
+        };
+    };
+    orders_shifts_current_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["CashierShiftCloseoutRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["CashierShiftCloseoutRequest"];
+                "multipart/form-data": components["schemas"]["CashierShiftCloseoutRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CashierShiftCloseout"];
                 };
             };
         };
@@ -9991,6 +10720,28 @@ export interface operations {
             };
         };
     };
+    sessions_transfer_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description A UUID string identifying this table session. */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TableSession"];
+                };
+            };
+        };
+    };
     sessions_open_create: {
         parameters: {
             query?: never;
@@ -10552,6 +11303,28 @@ export interface operations {
         };
     };
     table_sessions_close_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description A UUID string identifying this table session. */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TableSession"];
+                };
+            };
+        };
+    };
+    table_sessions_transfer_create: {
         parameters: {
             query?: never;
             header?: never;

@@ -80,6 +80,8 @@ export interface KDSTicket extends Order {
 }
 
 export interface BillItemSummary {
+  id?: string;
+  order_id?: string;
   item_name: string;
   quantity: number;
   unit_price_paise: number;
@@ -97,6 +99,93 @@ export interface BillCalculation {
   total_paise: number;
 }
 
+export interface InvoiceRefundRecord {
+  id: string;
+  branch_id?: string;
+  invoice_id: string;
+  invoice_number?: string;
+  refund_number: string;
+  amount_paise: number;
+  reason_code:
+    "ITEM_RETURNED" | "QUALITY_ISSUE" | "WRONG_ITEM" | "OVERCHARGED" | "CUSTOMER_CANCELLED";
+  refund_method: "CASH" | "UPI" | "CARD" | "ROOM_FOLIO";
+  restock_action: "NONE" | "RESTOCK" | "WASTE";
+  refunded_lines?: Array<{
+    item_name: string;
+    quantity: number;
+    amount_paise: number;
+  }>;
+  notes?: string;
+  processed_by_name?: string;
+  approved_by_name?: string | null;
+  created_at: string;
+}
+
+export interface CreateInvoiceRefundPayload {
+  amount_paise: number;
+  reason_code:
+    "ITEM_RETURNED" | "QUALITY_ISSUE" | "WRONG_ITEM" | "OVERCHARGED" | "CUSTOMER_CANCELLED";
+  refund_method?: "CASH" | "UPI" | "CARD" | "ROOM_FOLIO";
+  restock_action?: "NONE" | "RESTOCK" | "WASTE";
+  refunded_lines?: Array<{
+    item_name: string;
+    quantity: number;
+    amount_paise: number;
+  }>;
+  notes?: string;
+}
+
+export interface CashMovementRecord {
+  id: string;
+  shift_id: string;
+  movement_type: "FLOAT_IN" | "CASH_DROP" | "PETTY_CASH_OUT" | "REFUND_CASH_OUT";
+  amount_paise: number;
+  reason: string;
+  recorded_by_name?: string;
+  created_at: string;
+}
+
+export interface ShiftCloseoutState {
+  id: string;
+  branch_id: string;
+  cashier_name: string;
+  status: "OPEN" | "CLOSED";
+  is_locked: boolean;
+  opened_at: string;
+  closed_at?: string | null;
+  opening_cash_paise: number;
+  cash_sales_paise: number;
+  cash_in_paise: number;
+  cash_out_paise: number;
+  cash_refunds_paise: number;
+  expected_cash_paise: number | null;
+  actual_cash_paise: number;
+  cash_variance_paise: number | null;
+  variance_threshold_paise: number;
+  variance_reason_code?: string;
+  denominations_snapshot?: Record<string, number>;
+  upi_total_paise: number;
+  card_total_paise: number;
+  total_settled_paise: number;
+  total_invoices_count: number;
+  notes?: string;
+  cash_movements?: CashMovementRecord[];
+}
+
+export interface SplitBillPreviewResponse {
+  mode: "EQUAL" | "ITEMS";
+  total_paise: number;
+  shares?: number;
+  selected_paise?: number;
+  remaining_paise?: number;
+  splits: Array<{
+    share_index: number;
+    label: string;
+    amount_paise: number;
+    items_count?: number;
+  }>;
+}
+
 export interface BillInvoice {
   id: string;
   branch_id?: string;
@@ -108,6 +197,9 @@ export interface BillInvoice {
   subtotal_paise: number;
   discount_paise?: number;
   total_paise: number;
+  refunded_paise?: number;
+  net_total_paise?: number;
+  refunds?: InvoiceRefundRecord[];
   payment_method: "CASH" | "UPI" | "CARD" | "ROOM_FOLIO";
   amount_tendered_paise?: number;
   change_due_paise?: number;
@@ -140,6 +232,9 @@ export interface RangeReportResponse {
   start_date: string;
   end_date: string;
   sales_paise: number;
+  gross_sales_paise?: number;
+  refunds_paise?: number;
+  net_sales_paise?: number;
   orders_count: number;
   settled_invoices_count: number;
   average_order_value_paise: number;
@@ -234,4 +329,57 @@ export const ordersApi = {
 
   acknowledgeServiceRequest: (id: string) =>
     apiClient.post<{ id: string; status: string }>(`/orders/service-requests/${id}/acknowledge/`),
+
+  // Stage B: Shift Cash Handover, Partial Refunds, Split & Merge
+  getCurrentShift: (branch_id?: string) =>
+    apiClient.get<ShiftCloseoutState>("/orders/shifts/current/", {
+      params: branch_id ? { branch_id } : undefined,
+    }),
+
+  recordCashMovement: (
+    shiftId: string,
+    data: {
+      movement_type: "FLOAT_IN" | "CASH_DROP" | "PETTY_CASH_OUT";
+      amount_paise: number;
+      reason: string;
+    }
+  ) => apiClient.post<CashMovementRecord>(`/orders/shifts/${shiftId}/cash-movements/`, data),
+
+  closeShift: (
+    shiftId: string,
+    data: {
+      actual_cash_paise: number;
+      opening_cash_paise?: number;
+      denominations_snapshot?: Record<string, number>;
+      variance_reason_code?: string;
+      notes?: string;
+    }
+  ) => apiClient.post<ShiftCloseoutState>(`/orders/shifts/${shiftId}/close/`, data),
+
+  getInvoiceRefunds: (invoiceId: string) =>
+    apiClient.get<InvoiceRefundRecord[]>(`/orders/invoices/${invoiceId}/refunds/`),
+
+  createInvoiceRefund: (invoiceId: string, data: CreateInvoiceRefundPayload) =>
+    apiClient.post<InvoiceRefundRecord>(`/orders/invoices/${invoiceId}/refunds/`, data),
+
+  previewSplitBill: (
+    sessionId: string,
+    data: { mode: "EQUAL" | "ITEMS"; shares?: number; item_ids?: string[] }
+  ) =>
+    apiClient.post<SplitBillPreviewResponse>(
+      `/orders/billing/session/${sessionId}/split-preview/`,
+      data
+    ),
+
+  moveSessionItems: (sessionId: string, data: { target_session_id: string; item_ids: string[] }) =>
+    apiClient.post<{ source_session_id: string; target_session_id: string; moved_count: number }>(
+      `/orders/billing/session/${sessionId}/move-items/`,
+      data
+    ),
+
+  mergeTableSessions: (sessionId: string, data: { target_session_id: string }) =>
+    apiClient.post<{ source_session_id: string; target_session_id: string; status: string }>(
+      `/orders/billing/session/${sessionId}/merge/`,
+      data
+    ),
 };

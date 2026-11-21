@@ -302,6 +302,48 @@ class BillInvoice(BranchOwnedModel):
     def __str__(self) -> str:
         return f"Invoice {self.invoice_number} ({self.total_paise} paise)"
 
+    @property
+    def refunded_paise(self) -> int:
+        return sum(r.amount_paise for r in self.refunds.all())
+
+    @property
+    def net_total_paise(self) -> int:
+        return max(0, self.total_paise - self.refunded_paise)
+
+
+class ShiftStatus(models.TextChoices):
+    OPEN = "OPEN", "Open"
+    CLOSED = "CLOSED", "Closed"
+
+
+class VarianceReasonCode(models.TextChoices):
+    NONE = "", "None"
+    CHANGE_ERROR = "CHANGE_ERROR", "Change / Counting Error"
+    FLOAT_ERROR = "FLOAT_ERROR", "Opening Float Discrepancy"
+    DROP_MISSING = "DROP_MISSING", "Unrecorded Safe Drop"
+    OTHER = "OTHER", "Other"
+
+
+class CashMovementType(models.TextChoices):
+    FLOAT_IN = "FLOAT_IN", "Float In"
+    CASH_DROP = "CASH_DROP", "Safe Cash Drop"
+    PETTY_CASH_OUT = "PETTY_CASH_OUT", "Petty Cash Out"
+    REFUND_CASH_OUT = "REFUND_CASH_OUT", "Cash Refund Out"
+
+
+class RefundReasonCode(models.TextChoices):
+    ITEM_RETURNED = "ITEM_RETURNED", "Item Returned"
+    QUALITY_ISSUE = "QUALITY_ISSUE", "Quality Issue"
+    WRONG_ITEM = "WRONG_ITEM", "Wrong Item Served"
+    OVERCHARGED = "OVERCHARGED", "Overcharged"
+    CUSTOMER_CANCELLED = "CUSTOMER_CANCELLED", "Customer Cancelled"
+
+
+class RefundRestockAction(models.TextChoices):
+    NONE = "NONE", "No Stock Action"
+    RESTOCK = "RESTOCK", "Return to Stock"
+    WASTE = "WASTE", "Record as Wastage"
+
 
 class CashierShiftCloseout(BranchOwnedModel):
     """End-of-shift register reconciliation (Z-Report) with blind cash count."""
@@ -311,12 +353,31 @@ class CashierShiftCloseout(BranchOwnedModel):
         on_delete=models.PROTECT,
         related_name="shift_closeouts",
     )
+    status = models.CharField(
+        max_length=16,
+        choices=ShiftStatus.choices,
+        default=ShiftStatus.OPEN,
+        db_index=True,
+    )
+    is_locked = models.BooleanField(default=False, db_index=True)
     opened_at = models.DateTimeField(default=timezone.now)
     closed_at = models.DateTimeField(null=True, blank=True)
     opening_cash_paise = models.BigIntegerField(default=0)
+    cash_sales_paise = models.BigIntegerField(default=0)
+    cash_in_paise = models.BigIntegerField(default=0)
+    cash_out_paise = models.BigIntegerField(default=0)
+    cash_refunds_paise = models.BigIntegerField(default=0)
     expected_cash_paise = models.BigIntegerField(default=0)
     actual_cash_paise = models.BigIntegerField(default=0)
     cash_variance_paise = models.BigIntegerField(default=0, help_text="actual - expected")
+    variance_threshold_paise = models.BigIntegerField(default=10000)
+    variance_reason_code = models.CharField(
+        max_length=32,
+        choices=VarianceReasonCode.choices,
+        blank=True,
+        default="",
+    )
+    denominations_snapshot = models.JSONField(default=dict, blank=True)
     upi_total_paise = models.BigIntegerField(default=0)
     card_total_paise = models.BigIntegerField(default=0)
     total_settled_paise = models.BigIntegerField(default=0)
@@ -330,6 +391,88 @@ class CashierShiftCloseout(BranchOwnedModel):
         return (
             f"Shift Closeout {self.cashier.user.full_name} ({self.opened_at.strftime('%Y-%m-%d')})"
         )
+
+
+class CashMovement(BranchOwnedModel):
+    """Append-only cash drawer movement (float in, safe drop, petty cash out, cash refund)."""
+
+    shift = models.ForeignKey(
+        CashierShiftCloseout,
+        on_delete=models.PROTECT,
+        related_name="cash_movements",
+    )
+    movement_type = models.CharField(
+        max_length=24,
+        choices=CashMovementType.choices,
+        db_index=True,
+    )
+    amount_paise = models.BigIntegerField(help_text="Positive amount in paise")
+    reason = models.CharField(max_length=255)
+    recorded_by = models.ForeignKey(
+        "accounts.Membership",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="recorded_cash_movements",
+    )
+
+    class Meta:
+        ordering = ["created_at"]
+
+    def __str__(self) -> str:
+        return f"{self.movement_type}: {self.amount_paise} paise"
+
+
+class InvoiceRefund(BranchOwnedModel):
+    """Append-only partial or full refund record against a settled BillInvoice."""
+
+    invoice = models.ForeignKey(
+        BillInvoice,
+        on_delete=models.PROTECT,
+        related_name="refunds",
+    )
+    refund_number = models.CharField(max_length=64, db_index=True)
+    amount_paise = models.BigIntegerField(help_text="Refunded amount in paise (> 0)")
+    reason_code = models.CharField(
+        max_length=32,
+        choices=RefundReasonCode.choices,
+        db_index=True,
+    )
+    refund_method = models.CharField(
+        max_length=20,
+        choices=PaymentMethod.choices,
+        default=PaymentMethod.CASH,
+    )
+    restock_action = models.CharField(
+        max_length=16,
+        choices=RefundRestockAction.choices,
+        default=RefundRestockAction.NONE,
+    )
+    refunded_lines = models.JSONField(default=list, blank=True)
+    notes = models.TextField(blank=True, default="")
+    processed_by = models.ForeignKey(
+        "accounts.Membership",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="processed_refunds",
+    )
+    approved_by = models.ForeignKey(
+        "accounts.Membership",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="approved_refunds",
+    )
+
+    class Meta:
+        ordering = ["-created_at"]
+        indexes = [
+            models.Index(fields=["tenant", "branch", "refund_number"]),
+        ]
+
+    def __str__(self) -> str:
+        return f"Refund {self.refund_number} on {self.invoice.invoice_number} ({self.amount_paise} paise)"
 
 
 class ServiceRequest(BranchOwnedModel):

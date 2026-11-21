@@ -551,6 +551,30 @@ class TableSessionViewSet(
         session = close_session(session=session, actor=request.user, request=request)
         return Response(TableSessionSerializer(session).data)
 
+    @action(detail=True, methods=["post"], url_path="transfer")
+    def transfer(self, request: Request, pk: str | None = None) -> Response:
+        from apps.orders.services import transfer_table_session
+
+        session = self.get_object()
+        new_table_id = request.data.get("new_table_id")
+        if not new_table_id:
+            raise ValidationError({"new_table_id": "new_table_id is required."})
+        try:
+            new_table = DiningTable.objects.get(id=new_table_id)
+        except (DiningTable.DoesNotExist, ValueError):
+            raise ValidationError(
+                {"new_table_id": ["Invalid reference - object does not exist."]},
+                code="INVALID_REFERENCE",
+            ) from None
+        verify_tenant_and_branch_access(request.user, new_table)
+        membership = getattr(request, "membership", None)
+        updated = transfer_table_session(
+            table_session=session,
+            new_table=new_table,
+            user_membership=membership,
+        )
+        return Response(TableSessionSerializer(updated).data)
+
 
 class StaffSectionAssignmentViewSet(
     mixins.ListModelMixin,

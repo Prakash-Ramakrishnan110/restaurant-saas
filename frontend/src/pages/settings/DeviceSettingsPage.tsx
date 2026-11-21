@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Printer, Wifi, CheckCircle2, Eye, Save } from "lucide-react";
+import { Printer, Wifi, CheckCircle2, Eye, Save, Volume2 } from "lucide-react";
 import { Button } from "../../components/ui/button";
 import {
   Card,
@@ -9,6 +9,8 @@ import {
   CardDescription,
 } from "../../components/ui/card";
 import { formatRupees } from "../../utils/currency";
+import { dispatchThermalPrint, ThermalPrintMode, ThermalSlipType } from "../../utils/thermalPrint";
+import { playOrderAlert } from "../../utils/soundAlerts";
 
 export const DeviceSettingsPage: React.FC = () => {
   const [printerName, setPrinterName] = useState(() => {
@@ -23,6 +25,10 @@ export const DeviceSettingsPage: React.FC = () => {
   const [paperWidth, setPaperWidth] = useState<"58" | "80">(() => {
     return (localStorage.getItem("smf_printer_width") as "58" | "80") || "80";
   });
+  const [printMode, setPrintMode] = useState<ThermalPrintMode>(() => {
+    return (localStorage.getItem("smf_printer_mode") as ThermalPrintMode) || "BROWSER";
+  });
+  const [previewSlipType, setPreviewSlipType] = useState<ThermalSlipType>("BILL");
   const [autoPrintKOT, setAutoPrintKOT] = useState(() => {
     return localStorage.getItem("smf_autoprint_kot") === "true";
   });
@@ -34,6 +40,7 @@ export const DeviceSettingsPage: React.FC = () => {
   });
 
   const [savedSuccess, setSavedSuccess] = useState(false);
+  const [testPrintNotice, setTestPrintNotice] = useState<string | null>(null);
   const [showTestSlip, setShowTestSlip] = useState(false);
 
   const handleSave = () => {
@@ -41,12 +48,29 @@ export const DeviceSettingsPage: React.FC = () => {
     localStorage.setItem("smf_printer_ip", ipAddress);
     localStorage.setItem("smf_printer_port", port);
     localStorage.setItem("smf_printer_width", paperWidth);
+    localStorage.setItem("smf_printer_mode", printMode);
     localStorage.setItem("smf_autoprint_kot", String(autoPrintKOT));
     localStorage.setItem("smf_autoprint_bill", String(autoPrintBill));
     localStorage.setItem("smf_kick_drawer", String(kickDrawer));
 
     setSavedSuccess(true);
     setTimeout(() => setSavedSuccess(false), 2500);
+  };
+
+  const handleTestPrint = async () => {
+    const res = await dispatchThermalPrint({
+      slipType: previewSlipType,
+      title: `TEST ${previewSlipType} (${paperWidth}mm)`,
+      lines: [
+        { left: "2x Filter Coffee", right: formatRupees(9000) },
+        { left: "1x Masala Dosa", right: formatRupees(8500) },
+      ],
+    });
+    setTestPrintNotice(
+      res.fallbackUsed
+        ? "Local ESC/POS bridge unreachable — fell back to browser print dialog."
+        : `Test ${previewSlipType} slip dispatched via ${res.method}.`
+    );
   };
 
   return (
@@ -70,6 +94,12 @@ export const DeviceSettingsPage: React.FC = () => {
         </div>
       )}
 
+      {testPrintNotice && (
+        <div className="p-3 bg-blue-500/10 border border-blue-500/30 text-blue-700 dark:text-blue-300 rounded-lg text-xs font-semibold">
+          {testPrintNotice}
+        </div>
+      )}
+
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="md:col-span-2 space-y-6">
           {/* Main Thermal Connection Card */}
@@ -80,21 +110,40 @@ export const DeviceSettingsPage: React.FC = () => {
                 Network Thermal ESC/POS Printer
               </CardTitle>
               <CardDescription className="text-xs">
-                Supports all standard Ethernet/Wi-Fi POS printers (Epson, TVS, NGX, Star, Hoin).
+                Supports all standard Ethernet/Wi-Fi POS printers (Epson, TVS, NGX, Star, Hoin) and
+                zero-driver browser printing.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div>
-                <label className="text-xs font-semibold text-foreground">
-                  Printer Device Label
-                </label>
-                <input
-                  type="text"
-                  value={printerName}
-                  onChange={(e) => setPrinterName(e.target.value)}
-                  className="w-full mt-1 px-3 py-2 text-xs border rounded-md bg-background focus:ring-1 focus:ring-primary"
-                  placeholder="e.g. Counter Billing Printer"
-                />
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="text-xs font-semibold text-foreground">
+                    Printer Device Label
+                  </label>
+                  <input
+                    type="text"
+                    value={printerName}
+                    onChange={(e) => setPrinterName(e.target.value)}
+                    className="w-full mt-1 px-3 py-2 text-xs border rounded-md bg-background focus:ring-1 focus:ring-primary"
+                    placeholder="e.g. Counter Billing Printer"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs font-semibold text-foreground">
+                    Print Dispatch Bridge Mode
+                  </label>
+                  <select
+                    aria-label="Print Dispatch Bridge Mode"
+                    value={printMode}
+                    onChange={(e) => setPrintMode(e.target.value as ThermalPrintMode)}
+                    className="w-full mt-1 px-3 py-2 text-xs border rounded-md bg-background"
+                  >
+                    <option value="BROWSER">Browser Print (80mm / 58mm CSS)</option>
+                    <option value="LOCAL_BRIDGE">
+                      Local ESC/POS Bridge (Auto-fallback to Browser)
+                    </option>
+                  </select>
+                </div>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
@@ -215,17 +264,36 @@ export const DeviceSettingsPage: React.FC = () => {
             </CardContent>
           </Card>
 
-          <div className="flex items-center justify-between">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                className="gap-2"
+                onClick={() => setShowTestSlip(!showTestSlip)}
+              >
+                <Eye className="w-4 h-4" />
+                {showTestSlip ? "Hide Receipt Preview" : "Preview Test Print Slip"}
+              </Button>
+              <Button variant="outline" size="sm" className="gap-2" onClick={handleTestPrint}>
+                <Printer className="w-4 h-4 text-[#FF6A00]" />
+                Send Test Print
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                className="gap-2"
+                onClick={() => playOrderAlert("Table T1")}
+              >
+                <Volume2 className="w-4 h-4 text-[#FF6A00]" />
+                Test Chime
+              </Button>
+            </div>
             <Button
-              variant="outline"
               size="sm"
-              className="gap-2"
-              onClick={() => setShowTestSlip(!showTestSlip)}
+              className="gap-2 bg-[#FF6A00] hover:bg-[#E55F00] text-[#0B1F3B] font-bold"
+              onClick={handleSave}
             >
-              <Eye className="w-4 h-4" />
-              {showTestSlip ? "Hide Receipt Preview" : "Preview Test Print Slip"}
-            </Button>
-            <Button size="sm" className="gap-2" onClick={handleSave}>
               <Save className="w-4 h-4" />
               Save Printer Settings
             </Button>
@@ -233,11 +301,36 @@ export const DeviceSettingsPage: React.FC = () => {
         </div>
 
         {/* Live Thermal Receipt Preview Column */}
-        <div>
+        <div className="space-y-3">
+          <div className="flex flex-wrap gap-1">
+            {(
+              [
+                { id: "BILL", label: "Bill" },
+                { id: "KOT", label: "KOT" },
+                { id: "TOKEN", label: "Token" },
+                { id: "Z_REPORT", label: "Z-Slip" },
+                { id: "REFUND", label: "Refund" },
+              ] as const
+            ).map((tab) => (
+              <button
+                key={tab.id}
+                type="button"
+                onClick={() => setPreviewSlipType(tab.id)}
+                className={`px-2 py-1 rounded text-[11px] font-bold border ${
+                  previewSlipType === tab.id
+                    ? "bg-[#0B1F3B] text-white border-[#0B1F3B]"
+                    : "bg-card text-muted-foreground border-border"
+                }`}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </div>
+
           <Card className="bg-muted/40">
             <CardHeader className="pb-2">
               <CardTitle className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                Thermal Print Output ({paperWidth}mm)
+                Thermal Print Output ({paperWidth}mm • {previewSlipType})
               </CardTitle>
             </CardHeader>
             <CardContent className="flex justify-center p-4">
@@ -254,39 +347,70 @@ export const DeviceSettingsPage: React.FC = () => {
                   </div>
                 </div>
 
-                <div className="text-[10px] mb-2 space-y-0.5 text-gray-700">
-                  <div>
-                    Date: {new Date().toLocaleDateString()} {new Date().toLocaleTimeString()}
+                {previewSlipType === "KOT" ? (
+                  <div className="space-y-2 text-[11px]">
+                    <div className="font-black text-center text-sm bg-black text-white py-1">
+                      KITCHEN TICKET • TABLE T-04
+                    </div>
+                    <div className="border-b border-dashed border-gray-400 py-2 space-y-1 font-bold">
+                      <div>2x Filter Coffee (No Sugar)</div>
+                      <div>1x Ghee Roast Masala Dosa</div>
+                    </div>
                   </div>
-                  <div>Bill: INV-DEMO-001</div>
-                  <div>Table: T-04 (AC Hall)</div>
-                </div>
+                ) : previewSlipType === "TOKEN" ? (
+                  <div className="space-y-2 text-center">
+                    <div className="text-[10px] uppercase font-bold">Counter Pickup Token</div>
+                    <div className="text-3xl font-black py-2 border-y border-dashed border-gray-400">
+                      #42
+                    </div>
+                    <div className="text-[11px] text-left space-y-1">
+                      <div>2x Filter Coffee</div>
+                      <div>1x Masala Dosa</div>
+                    </div>
+                  </div>
+                ) : (
+                  <>
+                    <div className="text-[10px] mb-2 space-y-0.5 text-gray-700">
+                      <div>
+                        Date: {new Date().toLocaleDateString()} {new Date().toLocaleTimeString()}
+                      </div>
+                      <div>
+                        {previewSlipType === "REFUND"
+                          ? "Refund: RFD-DEMO-001"
+                          : previewSlipType === "Z_REPORT"
+                            ? "Shift Z-Slip: #001"
+                            : "Bill: INV-DEMO-001"}
+                      </div>
+                      <div>Table: T-04 (AC Hall)</div>
+                    </div>
 
-                <div className="border-t border-b border-dashed border-gray-400 py-2 my-2 space-y-1 text-[11px]">
-                  <div className="flex justify-between">
-                    <span>2x Filter Coffee</span>
-                    <span className="font-semibold">{formatRupees(9000)}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>1x Masala Dosa</span>
-                    <span className="font-semibold">{formatRupees(8500)}</span>
-                  </div>
-                </div>
+                    <div className="border-t border-b border-dashed border-gray-400 py-2 my-2 space-y-1 text-[11px]">
+                      <div className="flex justify-between">
+                        <span>2x Filter Coffee</span>
+                        <span className="font-semibold">{formatRupees(9000)}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>1x Masala Dosa</span>
+                        <span className="font-semibold">{formatRupees(8500)}</span>
+                      </div>
+                    </div>
 
-                <div className="space-y-1 text-[11px] mb-3">
-                  <div className="flex justify-between font-bold text-xs pt-1 border-t border-gray-800">
-                    <span>TOTAL</span>
-                    <span>{formatRupees(17500)}</span>
-                  </div>
-                  <div className="flex justify-between text-[10px] text-gray-600">
-                    <span>Tender: CASH</span>
-                    <span>Paid: {formatRupees(20000)}</span>
-                  </div>
-                  <div className="flex justify-between text-[10px] text-gray-600">
-                    <span>Change Due:</span>
-                    <span>{formatRupees(2500)}</span>
-                  </div>
-                </div>
+                    <div className="space-y-1 text-[11px] mb-3">
+                      <div className="flex justify-between font-bold text-xs pt-1 border-t border-gray-800">
+                        <span>{previewSlipType === "REFUND" ? "REFUND TOTAL" : "TOTAL"}</span>
+                        <span>{formatRupees(17500)}</span>
+                      </div>
+                      <div className="flex justify-between text-[10px] text-gray-600">
+                        <span>Tender: CASH</span>
+                        <span>Paid: {formatRupees(20000)}</span>
+                      </div>
+                      <div className="flex justify-between text-[10px] text-gray-600">
+                        <span>Change Due:</span>
+                        <span>{formatRupees(2500)}</span>
+                      </div>
+                    </div>
+                  </>
+                )}
 
                 <div className="text-center text-[9px] text-gray-500 border-t border-dashed border-gray-400 pt-2 space-y-0.5">
                   <div>Thank you! Visit again.</div>

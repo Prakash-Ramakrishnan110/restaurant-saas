@@ -13,7 +13,11 @@ from apps.core.exceptions import BusinessRuleError
 from apps.menu.models import BranchItemAvailability, ItemOptionGroup, ItemVariant, MenuItem, Option
 from apps.orders.models import (
     BillInvoice,
+    CashierShiftCloseout,
+    CashMovement,
+    CashMovementType,
     CourseType,
+    InvoiceRefund,
     Order,
     OrderEvent,
     OrderEventType,
@@ -23,6 +27,10 @@ from apps.orders.models import (
     OrderStatus,
     OrderWorkflow,
     PaymentMethod,
+    RefundReasonCode,
+    RefundRestockAction,
+    ShiftStatus,
+    VarianceReasonCode,
 )
 from apps.tenants.models import Branch, Tenant
 from apps.venues.constants import PaymentTiming
@@ -428,6 +436,8 @@ def calculate_bill(table_session: TableSession) -> dict[str, Any]:
             for it in order.items.all():
                 items_summary.append(
                     {
+                        "id": str(it.id),
+                        "order_id": str(order.id),
                         "item_name": it.item_name,
                         "quantity": it.quantity,
                         "unit_price_paise": it.unit_price_paise,
@@ -764,9 +774,21 @@ def get_today_report(tenant: Tenant, branch: Branch | None = None) -> dict[str, 
             }
         )
 
+    refunds_qs = InvoiceRefund.objects.filter(
+        tenant=tenant,
+        created_at__date=today,
+    )
+    if branch:
+        refunds_qs = refunds_qs.filter(branch=branch)
+    refunds_paise = refunds_qs.aggregate(total=Sum("amount_paise"))["total"] or 0
+    net_sales_paise = max(0, total_sales_paise - refunds_paise)
+
     return {
         "date": today.isoformat(),
         "sales_paise": total_sales_paise,
+        "gross_sales_paise": total_sales_paise,
+        "refunds_paise": refunds_paise,
+        "net_sales_paise": net_sales_paise,
         "orders_count": orders_count,
         "settled_invoices_count": settled_invoices_count,
         "average_order_value_paise": average_order_value_paise,
@@ -863,10 +885,23 @@ def get_range_report(
         for it in top_categories_qs
     ]
 
+    refunds_qs = InvoiceRefund.objects.filter(
+        tenant=tenant,
+        created_at__date__gte=start_date,
+        created_at__date__lte=end_date,
+    )
+    if branch:
+        refunds_qs = refunds_qs.filter(branch=branch)
+    refunds_paise = refunds_qs.aggregate(total=Sum("amount_paise"))["total"] or 0
+    net_sales_paise = max(0, total_sales_paise - refunds_paise)
+
     return {
         "start_date": start_date.isoformat(),
         "end_date": end_date.isoformat(),
         "sales_paise": total_sales_paise,
+        "gross_sales_paise": total_sales_paise,
+        "refunds_paise": refunds_paise,
+        "net_sales_paise": net_sales_paise,
         "orders_count": orders_count,
         "settled_invoices_count": settled_invoices_count,
         "average_order_value_paise": average_order_value_paise,
@@ -1244,3 +1279,607 @@ def reject_qr_order(
         request=request,
     )
     return order
+
+
+# ---------------------------------------------------------------------------
+# Stage B: Operational Hardening (Shift Handover, Partial Refunds, Split/Merge)
+# ---------------------------------------------------------------------------
+
+MANAGER_REFUND_THRESHOLD_PAISE = 50000  # ₹500.00
+
+
+@transaction.atomic
+def get_or_open_shift(
+    branch: Branch,
+    cashier: Membership,
+    opening_cash_paise: int = 200000,
+) -> CashierShiftCloseout:
+    """Finds the active OPEN shift for a branch or opens a new one."""
+    if opening_cash_paise < 0:
+        raise ValidationError({"opening_cash_paise": "Opening cash cannot be negative."})
+
+    existing = (
+        CashierShiftCloseout.objects.filter(
+            tenant=branch.tenant,
+            branch=branch,
+            status=ShiftStatus.OPEN,
+            is_locked=False,
+        )
+        .order_by("-opened_at")
+        .first()
+    )
+    if existing:
+        return existing
+
+    return CashierShiftCloseout.objects.create(
+        tenant=branch.tenant,
+        branch=branch,
+        cashier=cashier,
+        status=ShiftStatus.OPEN,
+        is_locked=False,
+        opening_cash_paise=opening_cash_paise,
+    )
+
+
+@transaction.atomic
+def record_cash_movement(
+    shift: CashierShiftCloseout,
+    movement_type: str,
+    amount_paise: int,
+    reason: str,
+    actor: Membership | None = None,
+    request: Any = None,
+) -> CashMovement:
+    """Records an append-only cash movement on an open shift; rejects locked/closed shifts."""
+    if shift.is_locked or shift.status == ShiftStatus.CLOSED:
+        raise BusinessRuleError(
+            "SHIFT_LOCKED",
+            "Cannot record cash movements on a closed or locked shift.",
+            status_code=400,
+        )
+    if movement_type not in CashMovementType.values:
+        raise ValidationError({"movement_type": "Invalid cash movement type."})
+    if amount_paise <= 0:
+        raise ValidationError({"amount_paise": "Cash movement amount must be positive."})
+    clean_reason = (reason or "").strip()
+    if not clean_reason:
+        raise ValidationError({"reason": "A reason is required for cash drawer movements."})
+
+    movement = CashMovement.objects.create(
+        tenant=shift.tenant,
+        branch=shift.branch,
+        shift=shift,
+        movement_type=movement_type,
+        amount_paise=amount_paise,
+        reason=clean_reason,
+        recorded_by=actor,
+    )
+
+    if movement_type == CashMovementType.FLOAT_IN:
+        shift.cash_in_paise += amount_paise
+        shift.save(update_fields=["cash_in_paise", "updated_at"])
+    elif movement_type in (CashMovementType.CASH_DROP, CashMovementType.PETTY_CASH_OUT):
+        shift.cash_out_paise += amount_paise
+        shift.save(update_fields=["cash_out_paise", "updated_at"])
+    elif movement_type == CashMovementType.REFUND_CASH_OUT:
+        shift.cash_refunds_paise += amount_paise
+        shift.save(update_fields=["cash_refunds_paise", "updated_at"])
+
+    log_audit_event(
+        action="shift.cash_movement",
+        entity_type="CashMovement",
+        entity_id=str(movement.id),
+        actor=actor.user if actor else None,
+        tenant=shift.tenant,
+        after_state={
+            "shift_id": str(shift.id),
+            "movement_type": movement_type,
+            "amount_paise": amount_paise,
+            "reason": clean_reason,
+        },
+        request=request,
+    )
+    return movement
+
+
+@transaction.atomic
+def close_shift(
+    shift: CashierShiftCloseout,
+    actual_cash_paise: int,
+    opening_cash_paise: int | None = None,
+    denominations_snapshot: dict[str, int] | None = None,
+    variance_reason_code: str = "",
+    notes: str = "",
+    actor: Membership | None = None,
+    request: Any = None,
+) -> CashierShiftCloseout:
+    """Performs blind cash handover reconciliation, checks variance reason threshold, and locks shift."""
+    from django.db.models import Sum
+
+    if shift.is_locked or shift.status == ShiftStatus.CLOSED:
+        raise BusinessRuleError(
+            "SHIFT_LOCKED",
+            "This shift has already been closed and locked.",
+            status_code=400,
+        )
+    if actual_cash_paise < 0:
+        raise ValidationError({"actual_cash_paise": "Actual counted cash cannot be negative."})
+
+    if opening_cash_paise is not None and opening_cash_paise >= 0:
+        shift.opening_cash_paise = opening_cash_paise
+
+    # Aggregate settled invoices for this branch on the shift date / window
+    shift_date = shift.opened_at.date()
+    invoices_qs = BillInvoice.objects.filter(
+        tenant=shift.tenant,
+        branch=shift.branch,
+        is_settled=True,
+        settled_at__date__gte=shift_date,
+    )
+
+    cash_sales_paise = (
+        invoices_qs.filter(payment_method=PaymentMethod.CASH).aggregate(t=Sum("total_paise"))["t"]
+        or 0
+    )
+    upi_total_paise = (
+        invoices_qs.filter(payment_method=PaymentMethod.UPI).aggregate(t=Sum("total_paise"))["t"]
+        or 0
+    )
+    card_total_paise = (
+        invoices_qs.filter(payment_method=PaymentMethod.CARD).aggregate(t=Sum("total_paise"))["t"]
+        or 0
+    )
+    total_invoices_count = invoices_qs.count()
+
+    movements_qs = shift.cash_movements.all()
+    cash_in_paise = (
+        movements_qs.filter(movement_type=CashMovementType.FLOAT_IN).aggregate(
+            t=Sum("amount_paise")
+        )["t"]
+        or 0
+    )
+    cash_out_paise = (
+        movements_qs.filter(
+            movement_type__in=[CashMovementType.CASH_DROP, CashMovementType.PETTY_CASH_OUT]
+        ).aggregate(t=Sum("amount_paise"))["t"]
+        or 0
+    )
+    cash_refunds_paise = (
+        movements_qs.filter(movement_type=CashMovementType.REFUND_CASH_OUT).aggregate(
+            t=Sum("amount_paise")
+        )["t"]
+        or 0
+    )
+
+    expected_cash_paise = (
+        shift.opening_cash_paise
+        + cash_sales_paise
+        + cash_in_paise
+        - cash_out_paise
+        - cash_refunds_paise
+    )
+    cash_variance_paise = actual_cash_paise - expected_cash_paise
+
+    clean_reason_code = (variance_reason_code or "").strip()
+    if abs(cash_variance_paise) > shift.variance_threshold_paise and not clean_reason_code:
+        raise BusinessRuleError(
+            "VARIANCE_REASON_REQUIRED",
+            "A variance reason code is required when cash over/short exceeds the branch threshold.",
+            status_code=400,
+            details={
+                "variance_paise": cash_variance_paise,
+                "threshold_paise": shift.variance_threshold_paise,
+            },
+        )
+    if clean_reason_code and clean_reason_code not in VarianceReasonCode.values:
+        raise ValidationError({"variance_reason_code": "Invalid variance reason code."})
+
+    shift.cash_sales_paise = cash_sales_paise
+    shift.cash_in_paise = cash_in_paise
+    shift.cash_out_paise = cash_out_paise
+    shift.cash_refunds_paise = cash_refunds_paise
+    shift.expected_cash_paise = expected_cash_paise
+    shift.actual_cash_paise = actual_cash_paise
+    shift.cash_variance_paise = cash_variance_paise
+    shift.variance_reason_code = clean_reason_code
+    shift.denominations_snapshot = denominations_snapshot or {}
+    shift.upi_total_paise = upi_total_paise
+    shift.card_total_paise = card_total_paise
+    shift.total_settled_paise = cash_sales_paise + upi_total_paise + card_total_paise
+    shift.total_invoices_count = total_invoices_count
+    shift.notes = notes or shift.notes
+    shift.status = ShiftStatus.CLOSED
+    shift.is_locked = True
+    shift.closed_at = timezone.now()
+    shift.save()
+
+    log_audit_event(
+        action="shift.closeout",
+        entity_type="CashierShiftCloseout",
+        entity_id=str(shift.id),
+        actor=actor.user if actor else shift.cashier.user,
+        tenant=shift.tenant,
+        after_state={
+            "status": ShiftStatus.CLOSED,
+            "is_locked": True,
+            "expected_cash_paise": expected_cash_paise,
+            "actual_cash_paise": actual_cash_paise,
+            "cash_variance_paise": cash_variance_paise,
+            "variance_reason_code": clean_reason_code,
+        },
+        request=request,
+    )
+    return shift
+
+
+@transaction.atomic
+def create_invoice_refund(
+    invoice: BillInvoice,
+    amount_paise: int,
+    reason_code: str,
+    refund_method: str | None = None,
+    restock_action: str = RefundRestockAction.NONE,
+    refunded_lines: list[dict[str, Any]] | None = None,
+    notes: str = "",
+    actor_membership: Membership | None = None,
+    request: Any = None,
+) -> InvoiceRefund:
+    """Creates an append-only partial or full refund without mutating BillInvoice.total_paise."""
+    from django.db.models import Sum
+
+    locked_invoice = BillInvoice.objects.select_for_update().get(pk=invoice.pk)
+    if not locked_invoice.is_settled:
+        raise BusinessRuleError(
+            "INVOICE_NOT_SETTLED",
+            "Only settled invoices can be refunded.",
+            status_code=400,
+        )
+    if amount_paise <= 0:
+        raise ValidationError({"amount_paise": "Refund amount must be at least 1 paisa."})
+    if reason_code not in RefundReasonCode.values:
+        raise ValidationError({"reason_code": "A valid refund reason code is required."})
+    if restock_action not in RefundRestockAction.values:
+        raise ValidationError({"restock_action": "Invalid restock action."})
+
+    role = getattr(actor_membership, "role", "")
+    is_manager_or_owner = role in ("OWNER", "BRANCH_MANAGER")
+    if not is_manager_or_owner and amount_paise > MANAGER_REFUND_THRESHOLD_PAISE:
+        raise BusinessRuleError(
+            "MANAGER_APPROVAL_REQUIRED",
+            "Refunds above ₹500.00 require Owner or Branch Manager approval.",
+            status_code=403,
+            details={"threshold_paise": MANAGER_REFUND_THRESHOLD_PAISE},
+        )
+
+    already_refunded = (
+        InvoiceRefund.objects.filter(invoice=locked_invoice).aggregate(t=Sum("amount_paise"))["t"]
+        or 0
+    )
+    remaining_paise = locked_invoice.total_paise - already_refunded
+    if amount_paise > remaining_paise:
+        raise BusinessRuleError(
+            "REFUND_EXCEEDS_TOTAL",
+            f"Refund amount ({amount_paise} paise) exceeds remaining refundable amount ({remaining_paise} paise).",
+            status_code=400,
+            details={
+                "invoice_total_paise": locked_invoice.total_paise,
+                "already_refunded_paise": already_refunded,
+                "remaining_refundable_paise": remaining_paise,
+            },
+        )
+
+    Branch.objects.select_for_update().only("id").get(pk=locked_invoice.branch.pk)
+    today_str = timezone.now().strftime("%Y%m")
+    rfd_count = (
+        InvoiceRefund.objects.filter(
+            tenant=locked_invoice.tenant, branch=locked_invoice.branch
+        ).count()
+        + 1
+    )
+    refund_number = f"RFD-{today_str}-{rfd_count:04d}"
+    resolved_method = refund_method or locked_invoice.payment_method
+
+    refund = InvoiceRefund.objects.create(
+        tenant=locked_invoice.tenant,
+        branch=locked_invoice.branch,
+        invoice=locked_invoice,
+        refund_number=refund_number,
+        amount_paise=amount_paise,
+        reason_code=reason_code,
+        refund_method=resolved_method,
+        restock_action=restock_action,
+        refunded_lines=refunded_lines or [],
+        notes=notes or "",
+        processed_by=actor_membership,
+        approved_by=actor_membership if is_manager_or_owner else None,
+    )
+
+    if resolved_method == PaymentMethod.CASH:
+        open_shift = (
+            CashierShiftCloseout.objects.filter(
+                tenant=locked_invoice.tenant,
+                branch=locked_invoice.branch,
+                status=ShiftStatus.OPEN,
+                is_locked=False,
+            )
+            .order_by("-opened_at")
+            .first()
+        )
+        if open_shift is not None:
+            record_cash_movement(
+                shift=open_shift,
+                movement_type=CashMovementType.REFUND_CASH_OUT,
+                amount_paise=amount_paise,
+                reason=f"Refund {refund_number} for {locked_invoice.invoice_number}",
+                actor=actor_membership,
+                request=request,
+            )
+
+    log_audit_event(
+        action="invoice.refund",
+        entity_type="InvoiceRefund",
+        entity_id=str(refund.id),
+        actor=actor_membership.user if actor_membership else None,
+        tenant=locked_invoice.tenant,
+        after_state={
+            "invoice_id": str(locked_invoice.id),
+            "invoice_number": locked_invoice.invoice_number,
+            "refund_number": refund_number,
+            "amount_paise": amount_paise,
+            "reason_code": reason_code,
+            "restock_action": restock_action,
+        },
+        request=request,
+    )
+    return refund
+
+
+def preview_split_bill(
+    table_session: TableSession,
+    mode: str = "EQUAL",
+    shares: int = 2,
+    item_ids: list[str] | None = None,
+) -> dict[str, Any]:
+    """Computes exact integer-paise equal N-way or itemized split breakdown with zero rounding drift."""
+    bill = calculate_bill(table_session)
+    total_paise = int(bill["total_paise"])
+
+    clean_mode = (mode or "EQUAL").upper()
+    if clean_mode == "EQUAL":
+        if shares < 2 or shares > 20:
+            raise ValidationError({"shares": "Number of equal shares must be between 2 and 20."})
+        base_share = total_paise // shares
+        remainder = total_paise - (base_share * shares)
+        splits = [
+            {
+                "share_index": idx + 1,
+                "label": f"Share {idx + 1} of {shares}",
+                "amount_paise": base_share + (remainder if idx == 0 else 0),
+            }
+            for idx in range(shares)
+        ]
+        return {
+            "mode": "EQUAL",
+            "total_paise": total_paise,
+            "shares": shares,
+            "splits": splits,
+        }
+
+    if clean_mode == "ITEMS":
+        selected_set = {str(x) for x in (item_ids or [])}
+        if not selected_set:
+            raise ValidationError(
+                {"item_ids": "At least one item must be selected for item split."}
+            )
+        selected_items = [it for it in bill["items"] if str(it.get("id")) in selected_set]
+        if not selected_items:
+            raise ValidationError({"item_ids": "Selected items were not found on this session."})
+        selected_paise = sum(int(it["subtotal_paise"]) for it in selected_items)
+        remaining_paise = max(0, total_paise - selected_paise)
+        return {
+            "mode": "ITEMS",
+            "total_paise": total_paise,
+            "selected_paise": selected_paise,
+            "remaining_paise": remaining_paise,
+            "splits": [
+                {
+                    "share_index": 1,
+                    "label": "Split Bill A (Selected Items)",
+                    "amount_paise": selected_paise,
+                    "items_count": sum(int(it["quantity"]) for it in selected_items),
+                },
+                {
+                    "share_index": 2,
+                    "label": "Split Bill B (Remaining Items)",
+                    "amount_paise": remaining_paise,
+                    "items_count": bill["items_count"]
+                    - sum(int(it["quantity"]) for it in selected_items),
+                },
+            ],
+        }
+
+    raise ValidationError({"mode": "Split mode must be 'EQUAL' or 'ITEMS'."})
+
+
+@transaction.atomic
+def move_session_items(
+    source_session: TableSession,
+    target_session: TableSession,
+    item_ids: list[str],
+    user_membership: Membership | None = None,
+    request: Any = None,
+) -> dict[str, Any]:
+    """Moves selected OrderItem rows from one open table session to another open table session."""
+    if source_session.status != "OPEN" or target_session.status != "OPEN":
+        raise BusinessRuleError(
+            "SESSION_NOT_OPEN",
+            "Both source and target dining sessions must be OPEN to move items.",
+            status_code=400,
+        )
+    if (
+        source_session.tenant_id != target_session.tenant_id
+        or source_session.branch_id != target_session.branch_id
+    ):
+        raise ValidationError({"target_session_id": "Target session must be in the same branch."})
+    if source_session.id == target_session.id:
+        raise ValidationError(
+            {"target_session_id": "Source and target sessions must be different."}
+        )
+
+    active_statuses = [
+        OrderStatus.PLACED,
+        OrderStatus.PREPARING,
+        OrderStatus.READY,
+        OrderStatus.SERVED,
+    ]
+    source_orders = list(
+        Order.objects.filter(table_session=source_session, status__in=active_statuses)
+    )
+    items_to_move = list(
+        OrderItem.objects.filter(order__in=source_orders, id__in=item_ids).select_related("order")
+    )
+    if not items_to_move:
+        raise ValidationError({"item_ids": "No matching active items found on source session."})
+
+    target_order = (
+        Order.objects.filter(table_session=target_session, status__in=active_statuses)
+        .order_by("-placed_at")
+        .first()
+    )
+    if target_order is None:
+        Branch.objects.select_for_update().only("id").get(pk=target_session.branch.pk)
+        ord_count = Order.objects.filter(branch=target_session.branch).count() + 1
+        target_order = Order.objects.create(
+            tenant=target_session.tenant,
+            branch=target_session.branch,
+            table_session=target_session,
+            order_number=f"ORD-{timezone.now().strftime('%Y%m%d')}-{ord_count:04d}",
+            order_workflow=OrderWorkflow.TABLE_SERVICE,
+            status=OrderStatus.PLACED,
+            placed_by=user_membership,
+            notes=f"Moved items from Table {source_session.table.label if source_session.table else source_session.session_code}",
+        )
+
+    moved_names: list[str] = []
+    affected_orders: set[Order] = set()
+    for item in items_to_move:
+        affected_orders.add(item.order)
+        moved_names.append(f"{item.quantity}x {item.item_name}")
+        item.order = target_order
+        item.save(update_fields=["order", "updated_at"])
+
+    src_label = source_session.table.label if source_session.table else source_session.session_code
+    tgt_label = target_session.table.label if target_session.table else target_session.session_code
+
+    for src_ord in affected_orders:
+        if src_ord.items.count() == 0:
+            old_st = src_ord.status
+            src_ord.status = OrderStatus.CANCELLED
+            src_ord.cancelled_at = timezone.now()
+            src_ord.save(update_fields=["status", "cancelled_at"])
+            OrderEvent.objects.create(
+                tenant=src_ord.tenant,
+                branch=src_ord.branch,
+                order=src_ord,
+                event_type=OrderEventType.CANCELLED,
+                from_status=old_st,
+                to_status=OrderStatus.CANCELLED,
+                user=user_membership,
+                notes=f"All items moved to Table {tgt_label}",
+            )
+
+    OrderEvent.objects.create(
+        tenant=target_order.tenant,
+        branch=target_order.branch,
+        order=target_order,
+        event_type=OrderEventType.STATUS_CHANGED,
+        from_status=target_order.status,
+        to_status=target_order.status,
+        user=user_membership,
+        notes=f"Received moved items ({', '.join(moved_names)}) from Table {src_label}",
+    )
+
+    log_audit_event(
+        action="table_session.move_items",
+        entity_type="TableSession",
+        entity_id=str(source_session.id),
+        actor=user_membership.user if user_membership else None,
+        tenant=source_session.tenant,
+        after_state={
+            "source_session_id": str(source_session.id),
+            "target_session_id": str(target_session.id),
+            "moved_item_ids": [str(it.id) for it in items_to_move],
+        },
+        request=request,
+    )
+    return {
+        "source_session_id": str(source_session.id),
+        "target_session_id": str(target_session.id),
+        "moved_count": len(items_to_move),
+    }
+
+
+@transaction.atomic
+def merge_table_sessions(
+    source_session: TableSession,
+    target_session: TableSession,
+    user_membership: Membership | None = None,
+    request: Any = None,
+) -> TableSession:
+    """Merges all active orders from source_session into target_session and frees source table."""
+    if source_session.status != "OPEN" or target_session.status != "OPEN":
+        raise BusinessRuleError(
+            "SESSION_NOT_OPEN",
+            "Both source and target dining sessions must be OPEN to merge.",
+            status_code=400,
+        )
+    if (
+        source_session.tenant_id != target_session.tenant_id
+        or source_session.branch_id != target_session.branch_id
+    ):
+        raise ValidationError({"target_session_id": "Target session must be in the same branch."})
+    if source_session.id == target_session.id:
+        raise ValidationError({"target_session_id": "Cannot merge a table session into itself."})
+
+    src_label = source_session.table.label if source_session.table else source_session.session_code
+    tgt_label = target_session.table.label if target_session.table else target_session.session_code
+
+    orders_to_move = list(
+        Order.objects.filter(table_session=source_session).exclude(status=OrderStatus.CANCELLED)
+    )
+    for ord_obj in orders_to_move:
+        ord_obj.table_session = target_session
+        ord_obj.save(update_fields=["table_session", "updated_at"])
+        OrderEvent.objects.create(
+            tenant=ord_obj.tenant,
+            branch=ord_obj.branch,
+            order=ord_obj,
+            event_type=OrderEventType.STATUS_CHANGED,
+            from_status=ord_obj.status,
+            to_status=ord_obj.status,
+            user=user_membership,
+            notes=f"Merged from Table {src_label} into Table {tgt_label}",
+        )
+
+    source_session.status = "CLOSED"
+    source_session.closed_at = timezone.now()
+    source_session.save(update_fields=["status", "closed_at"])
+
+    if source_session.table:
+        source_session.table.status = TableStatus.AVAILABLE
+        source_session.table.save(update_fields=["status"])
+
+    log_audit_event(
+        action="table_session.merge",
+        entity_type="TableSession",
+        entity_id=str(target_session.id),
+        actor=user_membership.user if user_membership else None,
+        tenant=target_session.tenant,
+        before_state={"source_session_id": str(source_session.id)},
+        after_state={
+            "target_session_id": str(target_session.id),
+            "merged_orders_count": len(orders_to_move),
+        },
+        request=request,
+    )
+    return target_session

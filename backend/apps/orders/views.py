@@ -14,6 +14,7 @@ from rest_framework.views import APIView
 from apps.accounts.models import Membership
 from apps.orders.models import (
     BillInvoice,
+    CashierShiftCloseout,
     CourseType,
     Customer,
     Order,
@@ -26,8 +27,14 @@ from apps.orders.models import (
 )
 from apps.orders.serializers import (
     BillInvoiceSerializer,
+    CashierShiftCloseoutSerializer,
+    CashMovementSerializer,
+    CloseShiftInputSerializer,
+    CreateCashMovementSerializer,
+    CreateInvoiceRefundSerializer,
     CreateOrderSerializer,
     CustomerSerializer,
+    InvoiceRefundSerializer,
     KDSTicketSerializer,
     OrderSerializer,
     ServiceRequestSerializer,
@@ -36,13 +43,20 @@ from apps.orders.serializers import (
 from apps.orders.services import (
     approve_qr_order,
     calculate_bill,
+    close_shift,
+    create_invoice_refund,
     create_order,
     get_exceptions_report,
+    get_or_open_shift,
     get_orders_delay_report,
     get_outlets_report,
     get_range_report,
     get_staff_report,
     get_today_report,
+    merge_table_sessions,
+    move_session_items,
+    preview_split_bill,
+    record_cash_movement,
     reject_qr_order,
     settle_bill,
     settle_order_bill,
@@ -353,14 +367,114 @@ class BillingViewSet(viewsets.ViewSet):
         qs = (
             BillInvoice.objects.filter(tenant=tenant)
             .select_related("table_session__table", "branch")
+            .prefetch_related("refunds__processed_by__user", "refunds__approved_by__user")
             .order_by("-created_at")[:50]
         )
         serializer = BillInvoiceSerializer(qs, many=True)
         return Response(serializer.data)
 
+    @action(
+        detail=False,
+        methods=["post"],
+        url_path="session/(?P<session_id>[^/.]+)/split-preview",
+    )
+    def split_preview(self, request: Request, session_id: str | None = None) -> Response:
+        tenant = getattr(request, "tenant", None)
+        session = (
+            TableSession.objects.filter(tenant=tenant, id=session_id)
+            .select_related("table", "branch")
+            .first()
+        )
+        if not session:
+            raise NotFound("Table session not found.")
+        mode = str(request.data.get("mode", "EQUAL"))
+        shares = int(request.data.get("shares", 2))
+        item_ids = request.data.get("item_ids") or []
+        result = preview_split_bill(
+            table_session=session,
+            mode=mode,
+            shares=shares,
+            item_ids=[str(x) for x in item_ids],
+        )
+        return Response(result)
+
+    @action(
+        detail=False,
+        methods=["post"],
+        url_path="session/(?P<session_id>[^/.]+)/move-items",
+    )
+    def move_items(self, request: Request, session_id: str | None = None) -> Response:
+        tenant = getattr(request, "tenant", None)
+        source_session = (
+            TableSession.objects.filter(tenant=tenant, id=session_id)
+            .select_related("table", "branch")
+            .first()
+        )
+        if not source_session:
+            raise NotFound("Source table session not found.")
+        target_id = request.data.get("target_session_id")
+        target_session = (
+            TableSession.objects.filter(tenant=tenant, id=target_id)
+            .select_related("table", "branch")
+            .first()
+        )
+        if not target_session:
+            raise NotFound("Target table session not found.")
+        item_ids = [str(x) for x in (request.data.get("item_ids") or [])]
+        membership = Membership.objects.filter(
+            tenant=tenant, user_id=request.user.pk, is_active=True
+        ).first()
+        result = move_session_items(
+            source_session=source_session,
+            target_session=target_session,
+            item_ids=item_ids,
+            user_membership=membership,
+            request=request,
+        )
+        return Response(result)
+
+    @action(
+        detail=False,
+        methods=["post"],
+        url_path="session/(?P<session_id>[^/.]+)/merge",
+    )
+    def merge_sessions(self, request: Request, session_id: str | None = None) -> Response:
+        tenant = getattr(request, "tenant", None)
+        source_session = (
+            TableSession.objects.filter(tenant=tenant, id=session_id)
+            .select_related("table", "branch")
+            .first()
+        )
+        if not source_session:
+            raise NotFound("Source table session not found.")
+        target_id = request.data.get("target_session_id")
+        target_session = (
+            TableSession.objects.filter(tenant=tenant, id=target_id)
+            .select_related("table", "branch")
+            .first()
+        )
+        if not target_session:
+            raise NotFound("Target table session not found.")
+        membership = Membership.objects.filter(
+            tenant=tenant, user_id=request.user.pk, is_active=True
+        ).first()
+        merged = merge_table_sessions(
+            source_session=source_session,
+            target_session=target_session,
+            user_membership=membership,
+            request=request,
+        )
+        return Response(
+            {
+                "source_session_id": str(source_session.id),
+                "target_session_id": str(merged.id),
+                "status": "MERGED",
+            }
+        )
+
 
 class InvoiceViewSet(viewsets.ReadOnlyModelViewSet):
-    """Authoritative Invoices directory and detail endpoint."""
+    """Authoritative Invoices directory, detail, and append-only refund endpoints."""
 
     serializer_class = BillInvoiceSerializer
     permission_classes = [IsAuthenticated, HasTenantPermission(Permission.PRINTER_REPRINT)]
@@ -373,6 +487,7 @@ class InvoiceViewSet(viewsets.ReadOnlyModelViewSet):
         qs = (
             BillInvoice.objects.filter(tenant=tenant)
             .select_related("table_session__table", "branch", "settled_by__user")
+            .prefetch_related("refunds__processed_by__user", "refunds__approved_by__user")
             .order_by("-created_at")
         )
 
@@ -393,6 +508,131 @@ class InvoiceViewSet(viewsets.ReadOnlyModelViewSet):
             )
 
         return qs
+
+    @action(detail=True, methods=["get", "post"], url_path="refunds")
+    def refunds(self, request: Request, pk: str | None = None) -> Response:
+        invoice = self.get_object()
+        if request.method == "GET":
+            qs = invoice.refunds.select_related("processed_by__user", "approved_by__user").all()
+            return Response(InvoiceRefundSerializer(qs, many=True).data)
+
+        membership = Membership.objects.filter(
+            tenant=invoice.tenant, user_id=request.user.pk, is_active=True
+        ).first()
+        role = getattr(membership, "role", "")
+        if role not in ("OWNER", "BRANCH_MANAGER", "CASHIER"):
+            raise PermissionDenied(
+                "Only Owner, Branch Manager, or Cashier can process invoice refunds."
+            )
+
+        serializer = CreateInvoiceRefundSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        data = serializer.validated_data
+
+        refund = create_invoice_refund(
+            invoice=invoice,
+            amount_paise=data["amount_paise"],
+            reason_code=data["reason_code"],
+            refund_method=data.get("refund_method"),
+            restock_action=data.get("restock_action", "NONE"),
+            refunded_lines=data.get("refunded_lines", []),
+            notes=data.get("notes", ""),
+            actor_membership=membership,
+            request=request,
+        )
+        return Response(InvoiceRefundSerializer(refund).data, status=status.HTTP_201_CREATED)
+
+
+class ShiftCloseoutViewSet(viewsets.ReadOnlyModelViewSet):
+    """Blind cash drawer handover, mid-shift cash movements, and Z-Report closeout."""
+
+    serializer_class = CashierShiftCloseoutSerializer
+    permission_classes = [IsAuthenticated, HasTenantPermission(Permission.TABLE_SESSION_CLOSE)]
+
+    def get_queryset(self):
+        tenant = getattr(self.request, "tenant", None)
+        if not tenant:
+            return CashierShiftCloseout.objects.none()
+        qs = (
+            CashierShiftCloseout.objects.filter(tenant=tenant)
+            .select_related("cashier__user", "branch")
+            .prefetch_related("cash_movements__recorded_by__user")
+            .order_by("-opened_at")
+        )
+        branch_id = self.request.query_params.get("branch_id")
+        if branch_id:
+            qs = qs.filter(branch_id=branch_id)
+        return qs
+
+    def _resolve_branch_and_membership(self, request: Request) -> tuple[Branch, Membership]:
+        tenant = getattr(request, "tenant", None)
+        if not tenant:
+            raise ValidationError({"tenant": "Active tenant context required."})
+        branch_id = (
+            request.query_params.get("branch_id")
+            or request.data.get("branch_id")
+            or request.headers.get("X-Branch-ID")
+        )
+        branch = None
+        if branch_id:
+            branch = Branch.objects.filter(tenant=tenant, id=branch_id).first()
+        if not branch:
+            branch = Branch.objects.filter(tenant=tenant, is_active=True).first()
+        if not branch:
+            raise ValidationError({"branch": "No active branch found for tenant."})
+        membership = Membership.objects.filter(
+            tenant=tenant, user_id=request.user.pk, is_active=True
+        ).first()
+        if not membership:
+            raise PermissionDenied("Active tenant membership required.")
+        return branch, membership
+
+    @action(detail=False, methods=["get", "post"], url_path="current")
+    def current(self, request: Request) -> Response:
+        branch, membership = self._resolve_branch_and_membership(request)
+        opening_paise = int(request.data.get("opening_cash_paise", 200000))
+        shift = get_or_open_shift(
+            branch=branch,
+            cashier=membership,
+            opening_cash_paise=opening_paise,
+        )
+        return Response(CashierShiftCloseoutSerializer(shift).data)
+
+    @action(detail=True, methods=["post"], url_path="cash-movements")
+    def cash_movements(self, request: Request, pk: str | None = None) -> Response:
+        shift = self.get_object()
+        _branch, membership = self._resolve_branch_and_membership(request)
+        serializer = CreateCashMovementSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        data = serializer.validated_data
+        mv = record_cash_movement(
+            shift=shift,
+            movement_type=data["movement_type"],
+            amount_paise=data["amount_paise"],
+            reason=data["reason"],
+            actor=membership,
+            request=request,
+        )
+        return Response(CashMovementSerializer(mv).data, status=status.HTTP_201_CREATED)
+
+    @action(detail=True, methods=["post"], url_path="close")
+    def close(self, request: Request, pk: str | None = None) -> Response:
+        shift = self.get_object()
+        _branch, membership = self._resolve_branch_and_membership(request)
+        serializer = CloseShiftInputSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        data = serializer.validated_data
+        closed = close_shift(
+            shift=shift,
+            actual_cash_paise=data["actual_cash_paise"],
+            opening_cash_paise=data.get("opening_cash_paise"),
+            denominations_snapshot=data.get("denominations_snapshot", {}),
+            variance_reason_code=data.get("variance_reason_code", ""),
+            notes=data.get("notes", ""),
+            actor=membership,
+            request=request,
+        )
+        return Response(CashierShiftCloseoutSerializer(closed).data)
 
 
 class TodayReportView(APIView):

@@ -9,6 +9,8 @@ import {
   Printer,
   ChevronRight,
   ShieldCheck,
+  Split,
+  ArrowRightLeft,
 } from "lucide-react";
 import { apiClient } from "../../api/client";
 import { ordersApi, BillCalculation, BillInvoice, Order } from "../../api/orders";
@@ -25,6 +27,7 @@ import {
 } from "../../components/ui/dialog";
 import { formatRupees, parseRupees } from "../../utils/currency";
 import { unwrapList, ListResponse } from "../../api/pagination";
+import { computeEqualSplitShares } from "../../utils/thermalPrint";
 
 interface TableSessionInfo {
   id: string;
@@ -62,6 +65,14 @@ export const BillingPage: React.FC = () => {
   // Printable Receipt Modal
   const [receiptModalOpen, setReceiptModalOpen] = useState<boolean>(false);
   const [settledInvoice, setSettledInvoice] = useState<BillInvoice | null>(null);
+
+  // Stage B: Split Bill & Move/Merge Tables state
+  const [splitModalOpen, setSplitModalOpen] = useState<boolean>(false);
+  const [splitMode, setSplitMode] = useState<"EQUAL" | "ITEMS">("EQUAL");
+  const [splitShares, setSplitShares] = useState<number>(2);
+  const [selectedItemIndices, setSelectedItemIndices] = useState<number[]>([]);
+  const [mergeTargetSessionId, setMergeTargetSessionId] = useState<string>("");
+  const [opsNotice, setOpsNotice] = useState<string | null>(null);
 
   // Error / Success
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -364,10 +375,30 @@ export const BillingPage: React.FC = () => {
                         : "Counter Checkout"}
                     </h2>
                   </div>
-                  <div className="flex items-center gap-1.5 text-xs text-emerald-600 bg-emerald-500/10 px-2 py-1 rounded-md font-bold">
-                    <ShieldCheck className="h-3.5 w-3.5" /> Server Calculated
+                  <div className="flex items-center gap-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        setSelectedItemIndices([]);
+                        setSplitModalOpen(true);
+                      }}
+                      className="h-7 text-xs gap-1"
+                    >
+                      <Split className="h-3.5 w-3.5 text-[#FF6A00]" /> Split / Merge
+                    </Button>
+                    <div className="flex items-center gap-1.5 text-xs text-emerald-600 bg-emerald-500/10 px-2 py-1 rounded-md font-bold">
+                      <ShieldCheck className="h-3.5 w-3.5" /> Server Calculated
+                    </div>
                   </div>
                 </div>
+
+                {opsNotice && (
+                  <div className="p-2.5 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-700 dark:text-emerald-300 text-xs font-semibold">
+                    {opsNotice}
+                  </div>
+                )}
 
                 {/* Itemized Order Lines */}
                 <div className="space-y-2 max-h-52 overflow-y-auto pr-2">
@@ -547,6 +578,222 @@ export const BillingPage: React.FC = () => {
               onClick={() => window.print()}
             >
               <Printer className="h-4 w-4" /> Print 80mm Receipt
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Stage B: Split Bill (Equal N Shares / By Items) & Merge / Move Items Dialog */}
+      <Dialog open={splitModalOpen} onOpenChange={setSplitModalOpen}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="text-base font-extrabold flex items-center gap-2">
+              <Split className="h-4 w-4 text-[#FF6A00]" />
+              Split Bill & Table Merge —{" "}
+              {billData?.table_label && billData.table_label !== "N/A"
+                ? `Table ${billData.table_label}`
+                : "Session"}
+            </DialogTitle>
+          </DialogHeader>
+
+          <div className="space-y-4 text-xs">
+            {/* Mode Tabs */}
+            <div className="grid grid-cols-2 gap-2 p-1 bg-muted rounded-lg">
+              <button
+                type="button"
+                onClick={() => setSplitMode("EQUAL")}
+                className={`py-1.5 rounded-md font-bold transition-colors ${
+                  splitMode === "EQUAL"
+                    ? "bg-background text-foreground shadow-sm"
+                    : "text-muted-foreground"
+                }`}
+              >
+                Equal N Shares
+              </button>
+              <button
+                type="button"
+                onClick={() => setSplitMode("ITEMS")}
+                className={`py-1.5 rounded-md font-bold transition-colors ${
+                  splitMode === "ITEMS"
+                    ? "bg-background text-foreground shadow-sm"
+                    : "text-muted-foreground"
+                }`}
+              >
+                Split / Move by Items
+              </button>
+            </div>
+
+            {splitMode === "EQUAL" ? (
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <label className="font-semibold text-foreground">
+                    Number of Diners / Shares (2–20):
+                  </label>
+                  <Input
+                    type="number"
+                    min={2}
+                    max={20}
+                    value={splitShares}
+                    onChange={(e) =>
+                      setSplitShares(Math.max(2, Math.min(20, parseInt(e.target.value || "2", 10))))
+                    }
+                    className="w-24 h-8 font-mono font-bold text-right"
+                  />
+                </div>
+                <div className="p-3 rounded-lg border border-border bg-muted/30 space-y-1.5 max-h-48 overflow-y-auto">
+                  {computeEqualSplitShares(grandTotalPaise, splitShares).map((sh) => (
+                    <div
+                      key={sh.share_index}
+                      className="flex items-center justify-between py-1 border-b border-border/50 last:border-none"
+                    >
+                      <span className="font-semibold text-foreground">{sh.label}</span>
+                      <span className="font-mono font-extrabold text-[#FF6A00]">
+                        {sh.formatted}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+                <p className="text-[11px] text-muted-foreground">
+                  Integer paise remainder is assigned to Share 1 so shares sum to{" "}
+                  <strong className="text-foreground">{formatRupees(grandTotalPaise)}</strong> with
+                  zero rounding drift.
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                <div className="text-[11px] font-semibold text-muted-foreground">
+                  Select dishes to split into Sub-Bill A or move to another open table:
+                </div>
+                <div className="max-h-44 overflow-y-auto border border-border rounded-lg divide-y divide-border">
+                  {(billData?.items || []).map((it, idx) => {
+                    const checked = selectedItemIndices.includes(idx);
+                    return (
+                      <label
+                        key={idx}
+                        className="flex items-center justify-between p-2.5 cursor-pointer hover:bg-muted/30"
+                      >
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="checkbox"
+                            checked={checked}
+                            onChange={(e) => {
+                              if (e.target.checked) {
+                                setSelectedItemIndices((prev) => [...prev, idx]);
+                              } else {
+                                setSelectedItemIndices((prev) => prev.filter((i) => i !== idx));
+                              }
+                            }}
+                            className="accent-[#FF6A00]"
+                          />
+                          <span className="font-semibold">
+                            {it.quantity}× {it.item_name}
+                          </span>
+                        </div>
+                        <span className="font-mono font-bold">
+                          {formatRupees(it.subtotal_paise)}
+                        </span>
+                      </label>
+                    );
+                  })}
+                </div>
+                {(() => {
+                  const selectedPaise = (billData?.items || [])
+                    .filter((_, idx) => selectedItemIndices.includes(idx))
+                    .reduce((s, it) => s + it.subtotal_paise, 0);
+                  const remainingPaise = Math.max(0, grandTotalPaise - selectedPaise);
+                  return (
+                    <div className="p-3 rounded-lg bg-muted/30 border border-border space-y-1">
+                      <div className="flex justify-between font-bold">
+                        <span>Split Bill A (Selected):</span>
+                        <span className="font-mono text-[#FF6A00]">
+                          {formatRupees(selectedPaise)}
+                        </span>
+                      </div>
+                      <div className="flex justify-between font-bold">
+                        <span>Split Bill B (Remaining):</span>
+                        <span className="font-mono">{formatRupees(remainingPaise)}</span>
+                      </div>
+                    </div>
+                  );
+                })()}
+              </div>
+            )}
+
+            {/* Move Items or Merge into Another Open Table Session */}
+            {sessions.filter((s) => s.id !== selectedSessionId).length > 0 && (
+              <div className="pt-3 border-t border-border space-y-2">
+                <div className="font-bold text-foreground flex items-center gap-1.5">
+                  <ArrowRightLeft className="h-3.5 w-3.5 text-[#FF6A00]" />
+                  Combine or Move to Another Open Table
+                </div>
+                <div className="flex items-center gap-2">
+                  <select
+                    aria-label="Target Open Session"
+                    value={mergeTargetSessionId}
+                    onChange={(e) => setMergeTargetSessionId(e.target.value)}
+                    className="flex-1 h-9 px-2.5 text-xs rounded-md border border-input bg-background"
+                  >
+                    <option value="">Select target open table...</option>
+                    {sessions
+                      .filter((s) => s.id !== selectedSessionId)
+                      .map((s) => (
+                        <option key={s.id} value={s.id}>
+                          {s.table ? `Table ${s.table.label}` : s.session_code}
+                        </option>
+                      ))}
+                  </select>
+                  {splitMode === "ITEMS" && selectedItemIndices.length > 0 && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      disabled={!mergeTargetSessionId}
+                      onClick={async () => {
+                        if (!selectedSessionId || !mergeTargetSessionId) return;
+                        const ids = (billData?.items || [])
+                          .filter((_, idx) => selectedItemIndices.includes(idx))
+                          .map((it) => it.id)
+                          .filter(Boolean) as string[];
+                        if (ids.length === 0) return;
+                        await ordersApi.moveSessionItems(selectedSessionId, {
+                          target_session_id: mergeTargetSessionId,
+                          item_ids: ids,
+                        });
+                        setOpsNotice(`Moved ${ids.length} item(s) to target table.`);
+                        setSplitModalOpen(false);
+                        await fetchSessions();
+                      }}
+                      className="h-9 text-xs font-bold"
+                    >
+                      Move Selected Items
+                    </Button>
+                  )}
+                  <Button
+                    type="button"
+                    size="sm"
+                    disabled={!mergeTargetSessionId}
+                    onClick={async () => {
+                      if (!selectedSessionId || !mergeTargetSessionId) return;
+                      await ordersApi.mergeTableSessions(selectedSessionId, {
+                        target_session_id: mergeTargetSessionId,
+                      });
+                      setOpsNotice("Tables merged into target session.");
+                      setSplitModalOpen(false);
+                      setSelectedSessionId(mergeTargetSessionId);
+                      await fetchSessions();
+                    }}
+                    className="h-9 bg-[#FF6A00] hover:bg-[#E55F00] text-[#0B1F3B] text-xs font-bold"
+                  >
+                    Merge Full Table
+                  </Button>
+                </div>
+              </div>
+            )}
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setSplitModalOpen(false)} className="text-xs">
+              Close
             </Button>
           </DialogFooter>
         </DialogContent>

@@ -209,8 +209,14 @@ export const SalesReportsPage: React.FC = () => {
               )}
             </CardTitle>
           </CardHeader>
-          <CardContent className="text-xs text-muted-foreground">
-            Zero float arithmetic • {report?.settled_invoices_count || 0} settled bills
+          <CardContent className="text-xs text-muted-foreground space-y-1">
+            <div>Zero float arithmetic • {report?.settled_invoices_count || 0} settled bills</div>
+            {(report?.refunds_paise || 0) > 0 && (
+              <div className="font-mono text-[11px] text-amber-600 font-semibold">
+                Refunds: -{formatRupees(report?.refunds_paise || 0)} • Net Collected:{" "}
+                {formatRupees(report?.net_sales_paise || 0)}
+              </div>
+            )}
           </CardContent>
         </Card>
 

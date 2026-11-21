@@ -8,6 +8,7 @@ from apps.orders.views import (
     KDSViewSet,
     OrderViewSet,
     ServiceRequestViewSet,
+    ShiftCloseoutViewSet,
 )
 
 router = DefaultRouter()
@@ -16,6 +17,7 @@ router.register(r"service-requests", ServiceRequestViewSet, basename="service-re
 router.register(r"customers", CustomerViewSet, basename="customers")
 router.register(r"billing", BillingViewSet, basename="billing")
 router.register(r"invoices", InvoiceViewSet, basename="invoices")
+router.register(r"shifts", ShiftCloseoutViewSet, basename="shifts")
 router.register(r"", OrderViewSet, basename="orders")
 
 urlpatterns = [

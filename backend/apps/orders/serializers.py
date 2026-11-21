@@ -3,14 +3,22 @@ from rest_framework import serializers
 
 from apps.orders.models import (
     BillInvoice,
+    CashierShiftCloseout,
+    CashMovement,
+    CashMovementType,
     CourseType,
     Customer,
+    InvoiceRefund,
     Order,
     OrderEvent,
     OrderItem,
     OrderWorkflow,
     PaymentMethod,
+    RefundReasonCode,
+    RefundRestockAction,
     ServiceRequest,
+    ShiftStatus,
+    VarianceReasonCode,
 )
 
 
@@ -152,8 +160,152 @@ class KDSTicketSerializer(serializers.ModelSerializer[Order]):
         return int(diff.total_seconds() // 60)
 
 
+class InvoiceRefundSerializer(serializers.ModelSerializer[InvoiceRefund]):
+    processed_by_name = serializers.SerializerMethodField()
+    approved_by_name = serializers.SerializerMethodField()
+    invoice_number = serializers.CharField(source="invoice.invoice_number", read_only=True)
+
+    class Meta:
+        model = InvoiceRefund
+        fields = [
+            "id",
+            "branch_id",
+            "invoice_id",
+            "invoice_number",
+            "refund_number",
+            "amount_paise",
+            "reason_code",
+            "refund_method",
+            "restock_action",
+            "refunded_lines",
+            "notes",
+            "processed_by_name",
+            "approved_by_name",
+            "created_at",
+        ]
+
+    def get_processed_by_name(self, obj: InvoiceRefund) -> str:
+        if obj.processed_by and getattr(obj.processed_by, "user", None):
+            return obj.processed_by.user.full_name
+        return "Staff"
+
+    def get_approved_by_name(self, obj: InvoiceRefund) -> str | None:
+        if obj.approved_by and getattr(obj.approved_by, "user", None):
+            return obj.approved_by.user.full_name
+        return None
+
+
+class CreateInvoiceRefundSerializer(serializers.Serializer):
+    amount_paise = serializers.IntegerField(min_value=1)
+    reason_code = serializers.ChoiceField(choices=RefundReasonCode.choices)
+    refund_method = serializers.ChoiceField(
+        choices=PaymentMethod.choices, required=False, allow_null=True
+    )
+    restock_action = serializers.ChoiceField(
+        choices=RefundRestockAction.choices, default=RefundRestockAction.NONE
+    )
+    refunded_lines = serializers.ListField(
+        child=serializers.DictField(), required=False, default=list
+    )
+    notes = serializers.CharField(required=False, allow_blank=True, default="")
+
+
+class CashMovementSerializer(serializers.ModelSerializer[CashMovement]):
+    recorded_by_name = serializers.SerializerMethodField()
+
+    class Meta:
+        model = CashMovement
+        fields = [
+            "id",
+            "shift_id",
+            "movement_type",
+            "amount_paise",
+            "reason",
+            "recorded_by_name",
+            "created_at",
+        ]
+
+    def get_recorded_by_name(self, obj: CashMovement) -> str:
+        if obj.recorded_by and getattr(obj.recorded_by, "user", None):
+            return obj.recorded_by.user.full_name
+        return "Staff"
+
+
+class CreateCashMovementSerializer(serializers.Serializer):
+    movement_type = serializers.ChoiceField(choices=CashMovementType.choices)
+    amount_paise = serializers.IntegerField(min_value=1)
+    reason = serializers.CharField(max_length=255)
+
+
+class CashierShiftCloseoutSerializer(serializers.ModelSerializer[CashierShiftCloseout]):
+    cashier_name = serializers.SerializerMethodField()
+    cash_movements = CashMovementSerializer(many=True, read_only=True)
+    expected_cash_paise = serializers.SerializerMethodField()
+    cash_variance_paise = serializers.SerializerMethodField()
+
+    class Meta:
+        model = CashierShiftCloseout
+        fields = [
+            "id",
+            "branch_id",
+            "cashier_name",
+            "status",
+            "is_locked",
+            "opened_at",
+            "closed_at",
+            "opening_cash_paise",
+            "cash_sales_paise",
+            "cash_in_paise",
+            "cash_out_paise",
+            "cash_refunds_paise",
+            "expected_cash_paise",
+            "actual_cash_paise",
+            "cash_variance_paise",
+            "variance_threshold_paise",
+            "variance_reason_code",
+            "denominations_snapshot",
+            "upi_total_paise",
+            "card_total_paise",
+            "total_settled_paise",
+            "total_invoices_count",
+            "notes",
+            "cash_movements",
+        ]
+
+    def get_cashier_name(self, obj: CashierShiftCloseout) -> str:
+        if obj.cashier and getattr(obj.cashier, "user", None):
+            return obj.cashier.user.full_name
+        return "Cashier"
+
+    def get_expected_cash_paise(self, obj: CashierShiftCloseout) -> int | None:
+        # Enforce blind count: do not reveal expected cash while shift is OPEN
+        if obj.status == ShiftStatus.OPEN and not obj.is_locked:
+            return None
+        return obj.expected_cash_paise
+
+    def get_cash_variance_paise(self, obj: CashierShiftCloseout) -> int | None:
+        if obj.status == ShiftStatus.OPEN and not obj.is_locked:
+            return None
+        return obj.cash_variance_paise
+
+
+class CloseShiftInputSerializer(serializers.Serializer):
+    actual_cash_paise = serializers.IntegerField(min_value=0)
+    opening_cash_paise = serializers.IntegerField(min_value=0, required=False)
+    denominations_snapshot = serializers.DictField(
+        child=serializers.IntegerField(min_value=0), required=False, default=dict
+    )
+    variance_reason_code = serializers.ChoiceField(
+        choices=VarianceReasonCode.choices, required=False, allow_blank=True, default=""
+    )
+    notes = serializers.CharField(required=False, allow_blank=True, default="")
+
+
 class BillInvoiceSerializer(serializers.ModelSerializer[BillInvoice]):
     table_label = serializers.SerializerMethodField()
+    refunded_paise = serializers.ReadOnlyField()
+    net_total_paise = serializers.ReadOnlyField()
+    refunds = InvoiceRefundSerializer(many=True, read_only=True)
 
     class Meta:
         model = BillInvoice
@@ -166,6 +318,8 @@ class BillInvoiceSerializer(serializers.ModelSerializer[BillInvoice]):
             "subtotal_paise",
             "discount_paise",
             "total_paise",
+            "refunded_paise",
+            "net_total_paise",
             "snapshot_lines",
             "payment_method",
             "amount_tendered_paise",
@@ -173,6 +327,7 @@ class BillInvoiceSerializer(serializers.ModelSerializer[BillInvoice]):
             "is_settled",
             "settled_at",
             "notes",
+            "refunds",
         ]
 
     def get_table_label(self, obj: BillInvoice) -> str:
