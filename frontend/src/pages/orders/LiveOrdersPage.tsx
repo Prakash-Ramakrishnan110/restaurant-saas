@@ -55,11 +55,21 @@ const STATUS_LABELS: Record<string, string> = {
   AWAITING_PAYMENT: "Awaiting payment",
 };
 
+function getLocalDateString(offsetDays = 0): string {
+  const d = new Date();
+  d.setDate(d.getDate() + offsetDays);
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+}
+
 export const LiveOrdersPage: React.FC = () => {
   const navigate = useNavigate();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [filterStatus, setFilterStatus] = useState<string>("ALL");
+  const [selectedDate, setSelectedDate] = useState<string>(() => getLocalDateString(0));
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [drawerOpen, setDrawerOpen] = useState<boolean>(false);
@@ -76,7 +86,7 @@ export const LiveOrdersPage: React.FC = () => {
   const fetchOrders = async () => {
     try {
       setLoading(true);
-      const res = await ordersApi.getOrders();
+      const res = await ordersApi.getOrders(selectedDate ? { date: selectedDate } : undefined);
       const fetched = unwrapList<Order>(res.data);
       const pendingApprovals = fetched.filter((o) => o.status === "PENDING_APPROVAL");
       const currentIds = new Set(pendingApprovals.map((o) => o.id));
@@ -105,7 +115,8 @@ export const LiveOrdersPage: React.FC = () => {
     fetchOrders();
     const interval = setInterval(fetchOrders, 15000);
     return () => clearInterval(interval);
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedDate]);
 
   const openOrderDetail = async (order: Order) => {
     setSelectedOrder(order);
@@ -286,15 +297,44 @@ export const LiveOrdersPage: React.FC = () => {
           ))}
         </div>
 
-        <div className="relative min-w-[240px]">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="flex items-center gap-1 rounded-md border border-input bg-card p-1">
+            {[
+              { label: "Today", value: getLocalDateString(0) },
+              { label: "Yesterday", value: getLocalDateString(-1) },
+              { label: "All Dates", value: "" },
+            ].map((opt) => (
+              <button
+                key={opt.label}
+                type="button"
+                onClick={() => setSelectedDate(opt.value)}
+                className={`px-2.5 py-1 rounded text-xs font-semibold min-h-[32px] transition-colors ${
+                  selectedDate === opt.value
+                    ? "bg-[#FF6A00] text-[#0B1F3B]"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
           <input
-            type="text"
-            placeholder="Search by order #, table or token..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-9 pr-3 py-2 text-xs bg-card border border-input rounded-md focus:ring-2 focus:ring-[#FF6A00] outline-none min-h-[40px]"
+            type="date"
+            aria-label="Filter orders by date"
+            value={selectedDate}
+            onChange={(e) => setSelectedDate(e.target.value)}
+            className="px-2.5 py-1.5 text-xs bg-card border border-input rounded-md focus:ring-2 focus:ring-[#FF6A00] outline-none min-h-[40px]"
           />
+          <div className="relative min-w-[220px] flex-1 sm:flex-initial">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <input
+              type="text"
+              placeholder="Search by order #, table or token..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-9 pr-3 py-2 text-xs bg-card border border-input rounded-md focus:ring-2 focus:ring-[#FF6A00] outline-none min-h-[40px]"
+            />
+          </div>
         </div>
       </div>
 
