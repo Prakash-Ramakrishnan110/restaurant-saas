@@ -16,6 +16,7 @@ import {
   Ban,
 } from "lucide-react";
 import { ordersApi, Order } from "../../api/orders";
+import { useAuth } from "../../context/AuthContext";
 import { unwrapList } from "../../api/pagination";
 import { formatRupees } from "../../utils/currency";
 import { playOrderAlert } from "../../utils/soundAlerts";
@@ -66,6 +67,8 @@ function getLocalDateString(offsetDays = 0): string {
 
 export const LiveOrdersPage: React.FC = () => {
   const navigate = useNavigate();
+  const { activeRole } = useAuth();
+  const isWaiter = activeRole === "WAITER";
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [filterStatus, setFilterStatus] = useState<string>("ALL");
@@ -422,9 +425,11 @@ export const LiveOrdersPage: React.FC = () => {
                           : "—"}
                       </span>
                     </div>
-                    <div className="font-bold text-sm text-foreground">
-                      {formatRupees(ord.total_paise || 0)}
-                    </div>
+                    {!isWaiter && (
+                      <div className="font-bold text-sm text-foreground">
+                        {formatRupees(ord.total_paise || 0)}
+                      </div>
+                    )}
                   </div>
                   {ord.status === "PENDING_APPROVAL" && (
                     <div
@@ -522,9 +527,11 @@ export const LiveOrdersPage: React.FC = () => {
                           </div>
                         )}
                       </div>
-                      <div className="font-bold text-foreground">
-                        {formatRupees(it.subtotal_paise || it.unit_price_paise * it.quantity)}
-                      </div>
+                      {!isWaiter && (
+                        <div className="font-bold text-foreground">
+                          {formatRupees(it.subtotal_paise || it.unit_price_paise * it.quantity)}
+                        </div>
+                      )}
                     </div>
                   ))}
                 </div>
@@ -532,12 +539,14 @@ export const LiveOrdersPage: React.FC = () => {
 
               {/* Order Summary */}
               <div className="bg-muted/30 p-4 rounded-lg space-y-2 text-xs">
-                <div className="flex justify-between text-muted-foreground">
-                  <span>Server Computed Total</span>
-                  <span className="font-bold text-foreground text-sm">
-                    {formatRupees(selectedOrder.total_paise || 0)}
-                  </span>
-                </div>
+                {!isWaiter && (
+                  <div className="flex justify-between text-muted-foreground">
+                    <span>Server Computed Total</span>
+                    <span className="font-bold text-foreground text-sm">
+                      {formatRupees(selectedOrder.total_paise || 0)}
+                    </span>
+                  </div>
+                )}
                 <div className="text-[11px] text-muted-foreground">
                   Order placed at{" "}
                   {selectedOrder.created_at || selectedOrder.placed_at

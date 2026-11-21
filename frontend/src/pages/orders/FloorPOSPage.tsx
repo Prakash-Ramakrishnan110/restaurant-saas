@@ -66,7 +66,8 @@ interface CartItem extends OrderItemPayload {
 export const FloorPOSPage: React.FC = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { activeTenant, user } = useAuth();
+  const { activeTenant, user, activeRole } = useAuth();
+  const isWaiter = activeRole === "WAITER";
 
   const usesTables = useMemo(() => {
     const tenant = activeTenant as
@@ -446,7 +447,7 @@ export const FloorPOSPage: React.FC = () => {
   }, [menuItems, selectedCategory, selectedFoodType, searchQuery]);
 
   return (
-    <div className="flex flex-col h-[calc(100vh-4rem)] overflow-hidden font-sans">
+    <div className="flex flex-col md:h-[calc(100vh-4rem)] md:overflow-hidden pb-20 md:pb-0 font-sans">
       {/* Toast notifications */}
       {successToast && (
         <div className="fixed top-16 right-6 z-50 bg-emerald-700 text-white px-4 py-2.5 rounded-lg shadow-lg flex items-center gap-2 animate-in slide-in-from-top">
@@ -489,9 +490,9 @@ export const FloorPOSPage: React.FC = () => {
       )}
 
       {/* Main 3-Column Split Screen */}
-      <div className="flex-1 grid grid-cols-12 gap-0 overflow-hidden">
+      <div className="flex-1 grid grid-cols-12 gap-0 md:overflow-hidden">
         {/* COLUMN 1: Tables or Counter Selector (3 of 12 cols) */}
-        <div className="col-span-12 md:col-span-3 border-r border-border bg-card/60 p-4 flex flex-col h-full overflow-hidden">
+        <div className="col-span-12 md:col-span-3 md:border-r border-b md:border-b-0 border-border bg-card/60 p-4 flex flex-col md:h-full md:overflow-hidden">
           <div className="flex items-center justify-between pb-3 border-b border-border">
             <h2 className="text-sm font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
               {usesTables ? (
@@ -612,7 +613,7 @@ export const FloorPOSPage: React.FC = () => {
         </div>
 
         {/* COLUMN 2: Menu Catalog Picker (5 of 12 cols) */}
-        <div className="col-span-12 md:col-span-5 border-r border-border p-4 flex flex-col h-full overflow-hidden bg-background">
+        <div className="col-span-12 md:col-span-5 md:border-r border-b md:border-b-0 border-border p-4 flex flex-col md:h-full md:overflow-hidden bg-background">
           {/* Search & Food Type Filter */}
           <div className="flex gap-2 pb-3">
             <div className="relative flex-1">
@@ -702,9 +703,13 @@ export const FloorPOSPage: React.FC = () => {
                     )}
                   </div>
                   <div className="flex items-center justify-between mt-3 pt-2 border-t border-border">
-                    <span className="font-extrabold text-sm text-[#FF6A00]">
-                      {formatRupees(item.base_price_paise)}
-                    </span>
+                    {!isWaiter ? (
+                      <span className="font-extrabold text-sm text-[#FF6A00]">
+                        {formatRupees(item.base_price_paise)}
+                      </span>
+                    ) : (
+                      <span className="text-[11px] font-semibold text-muted-foreground">Tap to add</span>
+                    )}
                     <Button
                       size="sm"
                       variant="ghost"
@@ -721,7 +726,7 @@ export const FloorPOSPage: React.FC = () => {
         </div>
 
         {/* COLUMN 3: Cart, Ticket Pacing & Dispatch (4 of 12 cols) */}
-        <div className="col-span-12 md:col-span-4 bg-card/40 p-4 flex flex-col h-full overflow-hidden">
+        <div className="col-span-12 md:col-span-4 bg-card/40 p-4 flex flex-col md:h-full md:overflow-hidden">
           {/* Header Anchor */}
           <div className="pb-3 border-b border-border flex items-center justify-between">
             <div>
@@ -768,9 +773,11 @@ export const FloorPOSPage: React.FC = () => {
                     <span className="font-bold text-xs text-foreground line-clamp-1">
                       {line.name}
                     </span>
-                    <span className="font-extrabold text-xs text-[#FF6A00]">
-                      {formatRupees(line.unit_price_paise * line.quantity)}
-                    </span>
+                    {!isWaiter && (
+                      <span className="font-extrabold text-xs text-[#FF6A00]">
+                        {formatRupees(line.unit_price_paise * line.quantity)}
+                      </span>
+                    )}
                   </div>
                   <div className="flex items-center justify-between text-xs">
                     <div className="flex items-center gap-1.5">
@@ -848,15 +855,19 @@ export const FloorPOSPage: React.FC = () => {
           <div className="pt-3 border-t border-border space-y-3">
             <div className="flex items-center justify-between text-xs text-muted-foreground">
               <span>{cart.length} item(s) in cart</span>
-              <span className="text-[11px] font-medium">Server calculates final bill</span>
+              {!isWaiter && (
+                <span className="text-[11px] font-medium">Server calculates final bill</span>
+              )}
             </div>
 
-            <div className="flex items-center justify-between text-sm">
-              <span className="font-semibold text-muted-foreground">Estimated Total:</span>
-              <span className="font-extrabold text-lg text-foreground font-heading">
-                {formatRupees(cartTotalPaise)}
-              </span>
-            </div>
+            {!isWaiter && (
+              <div className="flex items-center justify-between text-sm">
+                <span className="font-semibold text-muted-foreground">Estimated Total:</span>
+                <span className="font-extrabold text-lg text-foreground font-heading">
+                  {formatRupees(cartTotalPaise)}
+                </span>
+              </div>
+            )}
 
             <Button
               className="w-full min-h-[48px] text-sm font-bold bg-[#FF6A00] hover:bg-[#FF6A00]/90 text-[#0B1F3B] gap-2 shadow-sm"

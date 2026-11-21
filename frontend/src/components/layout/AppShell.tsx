@@ -494,8 +494,9 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
           <button
             type="button"
             data-testid="connection-status-pill"
+            aria-label={isOnline ? "Network Online" : "Network Offline"}
             onClick={() => setQueueDrawerOpen(true)}
-            className={`inline-flex items-center gap-1.5 px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-full text-[11px] sm:text-xs font-semibold border transition-colors whitespace-nowrap shrink-0 ${
+            className={`inline-flex items-center gap-1.5 px-2 py-1 sm:px-2.5 sm:py-1 rounded-full text-[11px] sm:text-xs font-semibold border transition-colors whitespace-nowrap shrink-0 ${
               offlineQueue.some((q) => q.status === "CONFLICT")
                 ? "bg-rose-50 text-rose-800 border-rose-300 dark:bg-rose-950/40 dark:text-rose-300 dark:border-rose-800"
                 : !isOnline || offlineQueue.length > 0 || isSyncingQueue
@@ -504,13 +505,13 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
             }`}
           >
             {isSyncingQueue ? (
-              <RefreshCw className="h-3 w-3 shrink-0 animate-spin" />
+              <RefreshCw className="h-3.5 w-3.5 shrink-0 animate-spin" />
             ) : isOnline ? (
-              <Wifi className="h-3 w-3 shrink-0" />
+              <Wifi className="h-3.5 w-3.5 shrink-0" />
             ) : (
-              <WifiOff className="h-3 w-3 shrink-0" />
+              <WifiOff className="h-3.5 w-3.5 shrink-0" />
             )}
-            <span>
+            <span className="hidden sm:inline">
               {offlineQueue.some((q) => q.status === "CONFLICT")
                 ? `Conflict (${offlineQueue.filter((q) => q.status === "CONFLICT").length})`
                 : isSyncingQueue
