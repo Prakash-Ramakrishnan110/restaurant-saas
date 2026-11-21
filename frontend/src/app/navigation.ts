@@ -250,6 +250,11 @@ export function getNavigationGroups(ctx: NavigationContext): NavGroup[] {
           },
         ]
       : []),
+    {
+      label: "Help Center",
+      path: "/help",
+      icon: LifeBuoy,
+    },
   ];
 
   const isSimpleVenue =

@@ -43,6 +43,24 @@ export const DeviceSettingsPage: React.FC = () => {
   const [testPrintNotice, setTestPrintNotice] = useState<string | null>(null);
   const [showTestSlip, setShowTestSlip] = useState(false);
 
+  // Stage C1: Guided Printer Setup Wizard checkboxes (persisted per device)
+  const [wizardStepsDone, setWizardStepsDone] = useState<Record<string, boolean>>(() => {
+    try {
+      const raw = localStorage.getItem("smf_printer_wizard_steps");
+      return raw ? JSON.parse(raw) : {};
+    } catch {
+      return {};
+    }
+  });
+
+  const toggleWizardStep = (stepId: string) => {
+    setWizardStepsDone((prev) => {
+      const next = { ...prev, [stepId]: !prev[stepId] };
+      localStorage.setItem("smf_printer_wizard_steps", JSON.stringify(next));
+      return next;
+    });
+  };
+
   const handleSave = () => {
     localStorage.setItem("smf_printer_name", printerName);
     localStorage.setItem("smf_printer_ip", ipAddress);
@@ -122,6 +140,7 @@ export const DeviceSettingsPage: React.FC = () => {
                   </label>
                   <input
                     type="text"
+                    aria-label="Printer Device Label"
                     value={printerName}
                     onChange={(e) => setPrinterName(e.target.value)}
                     className="w-full mt-1 px-3 py-2 text-xs border rounded-md bg-background focus:ring-1 focus:ring-primary"
@@ -151,6 +170,7 @@ export const DeviceSettingsPage: React.FC = () => {
                   <label className="text-xs font-semibold text-foreground">IP Address</label>
                   <input
                     type="text"
+                    aria-label="IP Address"
                     value={ipAddress}
                     onChange={(e) => setIpAddress(e.target.value)}
                     className="w-full mt-1 px-3 py-2 text-xs border rounded-md bg-background font-mono focus:ring-1 focus:ring-primary"
@@ -164,6 +184,7 @@ export const DeviceSettingsPage: React.FC = () => {
                   <label className="text-xs font-semibold text-foreground">Port</label>
                   <input
                     type="text"
+                    aria-label="Port"
                     value={port}
                     onChange={(e) => setPort(e.target.value)}
                     className="w-full mt-1 px-3 py-2 text-xs border rounded-md bg-background font-mono focus:ring-1 focus:ring-primary"
@@ -222,6 +243,7 @@ export const DeviceSettingsPage: React.FC = () => {
                 </div>
                 <input
                   type="checkbox"
+                  aria-label="Auto-print Bill on Checkout"
                   checked={autoPrintBill}
                   onChange={(e) => setAutoPrintBill(e.target.checked)}
                   className="w-4 h-4 accent-primary rounded cursor-pointer"
@@ -239,6 +261,7 @@ export const DeviceSettingsPage: React.FC = () => {
                 </div>
                 <input
                   type="checkbox"
+                  aria-label="Auto-print Kitchen KOT Slip"
                   checked={autoPrintKOT}
                   onChange={(e) => setAutoPrintKOT(e.target.checked)}
                   className="w-4 h-4 accent-primary rounded cursor-pointer"
@@ -256,6 +279,7 @@ export const DeviceSettingsPage: React.FC = () => {
                 </div>
                 <input
                   type="checkbox"
+                  aria-label="Kick Cash Drawer on Cash Payment"
                   checked={kickDrawer}
                   onChange={(e) => setKickDrawer(e.target.checked)}
                   className="w-4 h-4 accent-primary rounded cursor-pointer"
@@ -421,6 +445,84 @@ export const DeviceSettingsPage: React.FC = () => {
           </Card>
         </div>
       </div>
+
+      {/* Stage C1: Guided 5-Step Printer Setup Wizard & Troubleshooting */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base font-bold">Guided Thermal Printer Setup Wizard</CardTitle>
+          <CardDescription className="text-xs">
+            Follow these 5 steps on this device. Auto-print and browser print settings are stored
+            locally per device.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4 text-xs">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            {[
+              {
+                id: "connect",
+                title: "1. Connect the printer",
+                desc: "Plug in USB or connect your 58mm/80mm printer to the same local Wi-Fi / LAN.",
+              },
+              {
+                id: "driver",
+                title: "2. Install OS driver",
+                desc: "Install the manufacturer driver so the printer appears in your OS Print dialog.",
+              },
+              {
+                id: "paper",
+                title: "3. Set paper size (58mm or 80mm)",
+                desc: "Match the paper width above and in your OS printer preferences.",
+              },
+              {
+                id: "chrome",
+                title: "4. Configure Chrome print settings",
+                desc: "Set Margins: None, Headers and footers: Off, Scale: 100%. For kiosk silent printing, launch Chrome with --kiosk-printing (test on your real printer first).",
+              },
+              {
+                id: "verify",
+                title: "5. Print & inspect the test receipt",
+                desc: "Click Print Test Slip above and verify no text is clipped and Tamil glyphs render cleanly.",
+              },
+            ].map((step) => (
+              <label
+                key={step.id}
+                className="p-3 rounded-lg border border-border bg-muted/20 flex items-start gap-2.5 cursor-pointer hover:bg-muted/40"
+              >
+                <input
+                  type="checkbox"
+                  checked={Boolean(wizardStepsDone[step.id])}
+                  onChange={() => toggleWizardStep(step.id)}
+                  className="mt-0.5 rounded border-border text-[#FF6A00] focus:ring-[#FF6A00]"
+                />
+                <div>
+                  <div className="font-bold text-foreground">
+                    {step.title} {wizardStepsDone[step.id] ? "— I did this ✓" : ""}
+                  </div>
+                  <div className="text-[11px] text-muted-foreground mt-0.5">{step.desc}</div>
+                </div>
+              </label>
+            ))}
+          </div>
+
+          <div className="border-t border-border pt-3 space-y-1.5">
+            <div className="font-bold text-foreground">Troubleshooting Quick Guide</div>
+            <ul className="list-disc pl-5 text-[11px] text-muted-foreground space-y-1">
+              <li>
+                <strong>Nothing prints / Printer offline:</strong> Check USB/LAN cable, power LED,
+                and confirm the printer is online in Windows/macOS Printers.
+              </li>
+              <li>
+                <strong>Text cut off / Blank extra page:</strong> Set Chrome Margins to{" "}
+                <em>None</em>, disable <em>Headers and footers</em>, and match 58mm vs 80mm width.
+              </li>
+              <li>
+                <strong>Tamil letters missing:</strong> Use Browser Print Mode so the browser
+                renders Unicode Tamil fonts cleanly instead of raw ESC/POS codepages.
+              </li>
+            </ul>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 };

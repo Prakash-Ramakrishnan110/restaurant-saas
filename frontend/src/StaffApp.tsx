@@ -123,6 +123,7 @@ const DeviceSettingsPage = lazyNamed(
   () => import("./pages/settings/DeviceSettingsPage"),
   "DeviceSettingsPage"
 );
+const HelpCenterPage = lazyNamed(() => import("./pages/help/HelpCenterPage"), "HelpCenterPage");
 const PlatformPlansPage = lazyNamed(
   () => import("./pages/admin/PlatformPlansPage"),
   "PlatformPlansPage"
@@ -573,6 +574,14 @@ export const StaffApp: React.FC = () => {
                 element={
                   <ProtectedRoute>
                     <DeviceSettingsPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/help"
+                element={
+                  <ProtectedRoute>
+                    <HelpCenterPage />
                   </ProtectedRoute>
                 }
               />
