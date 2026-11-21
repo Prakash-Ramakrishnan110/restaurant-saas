@@ -164,6 +164,7 @@ export const PublicQRPage: React.FC = () => {
 
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [activeCategoryId, setActiveCategoryId] = useState<string>("ALL");
+  const [dietFilter, setDietFilter] = useState<"ALL" | "VEG" | "NON_VEG" | "EGG">("ALL");
   const [isOffline, setIsOffline] = useState<boolean>(
     typeof navigator !== "undefined" ? !navigator.onLine : false
   );
@@ -317,19 +318,20 @@ export const PublicQRPage: React.FC = () => {
     const q = searchQuery.trim().toLowerCase();
     return menu.categories
       .map((cat) => {
-        const items = q
-          ? cat.items.filter(
-              (it) =>
-                it.name.toLowerCase().includes(q) ||
-                (it.name_ta && it.name_ta.toLowerCase().includes(q)) ||
-                (it.description && it.description.toLowerCase().includes(q)) ||
-                (it.description_ta && it.description_ta.toLowerCase().includes(q))
-            )
-          : cat.items;
+        const items = cat.items.filter((it) => {
+          if (dietFilter !== "ALL" && it.food_type !== dietFilter) return false;
+          if (!q) return true;
+          return (
+            it.name.toLowerCase().includes(q) ||
+            (it.name_ta && it.name_ta.toLowerCase().includes(q)) ||
+            (it.description && it.description.toLowerCase().includes(q)) ||
+            (it.description_ta && it.description_ta.toLowerCase().includes(q))
+          );
+        });
         return { ...cat, items };
       })
       .filter((cat) => cat.items.length > 0);
-  }, [menu, searchQuery]);
+  }, [menu, searchQuery, dietFilter]);
 
   const displayedCategories = useMemo(() => {
     if (activeCategoryId === "ALL") return visibleCategories;
@@ -944,6 +946,33 @@ export const PublicQRPage: React.FC = () => {
               aria-label={copy.searchPlaceholder}
               className="w-full min-h-[48px] pl-10 pr-4 rounded-xl border border-input bg-card text-sm focus:outline-none focus:ring-2 focus:ring-[#FF6A00]"
             />
+          </div>
+
+          <div className="flex items-center gap-2 overflow-x-auto no-scrollbar">
+            {(
+              [
+                ["ALL", lang === "ta" ? "அனைத்தும்" : "All Diets"],
+                ["VEG", copy.veg],
+                ["NON_VEG", copy.nonVeg],
+                ["EGG", copy.egg],
+              ] as const
+            ).map(([val, label]) => {
+              const selected = dietFilter === val;
+              return (
+                <button
+                  key={val}
+                  type="button"
+                  onClick={() => setDietFilter(val)}
+                  className={`h-8 px-3 rounded-full text-xs font-bold whitespace-nowrap border ${
+                    selected
+                      ? "bg-[#0B1F3B] text-white border-[#0B1F3B] dark:bg-[#FF6A00] dark:text-[#0B1F3B] dark:border-[#FF6A00]"
+                      : "bg-card text-foreground/80 border-border hover:text-foreground"
+                  }`}
+                >
+                  {label}
+                </button>
+              );
+            })}
           </div>
 
           {visibleCategories.length > 0 && (
