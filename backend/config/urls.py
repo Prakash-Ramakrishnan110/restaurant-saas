@@ -15,6 +15,7 @@ from apps.core.views import HealthCheckView
 from apps.orders.views import (
     CustomerViewSet,
     ExceptionsReportView,
+    ExportMyDataView,
     InvoiceViewSet,
     OrdersDelayReportView,
     OutletComparisonReportView,
@@ -51,6 +52,7 @@ api_v1_patterns: list[Any] = [
     path("reports/staff/", StaffReportView.as_view(), name="reports-staff"),
     path("reports/outlets/", OutletComparisonReportView.as_view(), name="reports-outlets"),
     path("reports/orders-delay/", OrdersDelayReportView.as_view(), name="reports-orders-delay"),
+    path("settings/export-my-data/", ExportMyDataView.as_view(), name="settings-export-my-data"),
     path("customers/", include(customer_router.urls)),
     path("invoices/", include(invoice_router.urls)),
     path("audit-logs/", include("apps.audit.urls")),

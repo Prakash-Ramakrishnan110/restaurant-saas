@@ -1,7 +1,17 @@
 import React, { useState, useEffect } from "react";
-import { User, Mail, Phone, Sparkles, Building, CheckCircle2, AlertCircle } from "lucide-react";
+import {
+  User,
+  Mail,
+  Phone,
+  Sparkles,
+  Building,
+  CheckCircle2,
+  AlertCircle,
+  Download,
+} from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import { apiClient } from "../../api/client";
+import { ordersApi } from "../../api/orders";
 import { Button } from "../../components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent } from "../../components/ui/card";
 import { useTranslation } from "react-i18next";
@@ -13,8 +23,32 @@ export const AccountPage: React.FC = () => {
   const [fullName, setFullName] = useState<string>(user?.full_name || "");
   const [phoneNumber, setPhoneNumber] = useState<string>(user?.phone_number || "");
   const [saving, setSaving] = useState<boolean>(false);
+  const [exportingData, setExportingData] = useState<boolean>(false);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+
+  const handleExportMyData = async () => {
+    setExportingData(true);
+    setSuccessMsg(null);
+    setErrorMsg(null);
+    try {
+      const res = await ordersApi.exportMyData();
+      const blob = new Blob([res.data], { type: "application/zip" });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "servemyfood-data-export.zip";
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
+      setSuccessMsg("Restaurant data archive downloaded (servemyfood-data-export.zip).");
+    } catch (err: any) {
+      setErrorMsg(err?.response?.data?.detail || "Failed to export restaurant data archive.");
+    } finally {
+      setExportingData(false);
+    }
+  };
 
   useEffect(() => {
     if (user) {
@@ -230,6 +264,32 @@ export const AccountPage: React.FC = () => {
                   )}
                 </div>
               ))}
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base flex items-center gap-2">
+                <Download className="h-4 w-4 text-[#FF6A00]" />
+                Data Portability & Backup Export
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3 text-xs">
+              <p className="text-muted-foreground">
+                Download a complete, tenant-isolated ZIP archive of your restaurant branches, menu
+                items, orders, invoices, refunds, inventory stock, movements, and customers in CSV
+                format with a SHA-256 manifest.
+              </p>
+              <Button
+                type="button"
+                data-testid="export-my-data-btn"
+                disabled={exportingData}
+                onClick={() => void handleExportMyData()}
+                className="w-full min-h-[40px] text-xs font-bold bg-[#FF6A00] hover:bg-[#E55F00] text-[#0B1F3B] gap-2"
+              >
+                <Download className="h-4 w-4" />
+                {exportingData ? "Preparing ZIP Archive..." : "Export Restaurant Data (ZIP)"}
+              </Button>
             </CardContent>
           </Card>
         </div>

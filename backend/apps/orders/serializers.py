@@ -120,6 +120,9 @@ class CreateOrderSerializer(serializers.Serializer):
     order_workflow = serializers.ChoiceField(
         choices=OrderWorkflow.choices, default=OrderWorkflow.TABLE_SERVICE
     )
+    idempotency_key = serializers.CharField(
+        required=False, allow_blank=True, default="", max_length=128
+    )
     notes = serializers.CharField(required=False, allow_blank=True, default="")
     items = CreateOrderItemInputSerializer(many=True)
 

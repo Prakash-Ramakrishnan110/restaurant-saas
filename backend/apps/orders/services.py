@@ -170,6 +170,22 @@ def transition_order_status(
         user=user_membership,
         notes=reason if new_status == OrderStatus.CANCELLED else f"Status changed to {new_status}",
     )
+    try:
+        from apps.orders.consumers import broadcast_branch_event
+
+        broadcast_branch_event(
+            order.tenant_id,
+            order.branch_id,
+            "order.status_changed",
+            {
+                "order_id": str(order.id),
+                "order_number": order.order_number,
+                "from_status": from_status,
+                "status": new_status,
+            },
+        )
+    except Exception:
+        pass
     return order
 
 
@@ -404,6 +420,22 @@ def create_order(
             if table_session.table and table_session.table.status != TableStatus.OCCUPIED:
                 table_session.table.status = TableStatus.OCCUPIED
                 table_session.table.save(update_fields=["status"])
+
+        try:
+            from apps.orders.consumers import broadcast_branch_event
+
+            broadcast_branch_event(
+                branch.tenant_id,
+                branch.id,
+                "order.created",
+                {
+                    "order_id": str(order.id),
+                    "order_number": order.order_number,
+                    "status": order.status,
+                },
+            )
+        except Exception:
+            pass
 
         return order
     finally:

@@ -29,6 +29,12 @@ import {
   DialogFooter,
 } from "../../components/ui/dialog";
 import { formatRupees } from "../../utils/currency";
+import {
+  generateClientOrderId,
+  saveFloorReadCache,
+  loadFloorReadCache,
+  enqueueOfflineOrder,
+} from "../../utils/offlineQueue";
 
 interface DiningTableItem {
   id: string;
@@ -172,12 +178,22 @@ export const FloorPOSPage: React.FC = () => {
           )
           .map((o: any) => String(o.table_number))
       );
+      const catList = catRes.data?.results || catRes.data || [];
+      const itemList = itemRes.data?.results || itemRes.data || [];
       setQrTableLabels(qrLabels);
       setTables(tblData);
-      setCategories(catRes.data?.results || catRes.data || []);
-      setMenuItems(itemRes.data?.results || itemRes.data || []);
+      setCategories(catList);
+      setMenuItems(itemList);
       setActiveSessions(sessData);
       setServiceRequests(srvRes.data || []);
+
+      saveFloorReadCache(activeTenant.tenant_id, {
+        tables: tblData,
+        categories: catList,
+        menuItems: itemList,
+        activeSessions: sessData,
+        cachedAt: new Date().toISOString(),
+      });
 
       const availList = availRes.data?.results || availRes.data || [];
       const aMap: Record<string, boolean> = {};
@@ -195,7 +211,15 @@ export const FloorPOSPage: React.FC = () => {
         if (found) handleSelectTable(found, sessData);
       }
     } catch {
-      setErrorToast("Failed to load live floor operations.");
+      const cached = loadFloorReadCache(activeTenant.tenant_id);
+      if (cached) {
+        setTables(cached.tables || []);
+        setCategories(cached.categories || []);
+        setMenuItems(cached.menuItems || []);
+        setActiveSessions(cached.activeSessions || []);
+      } else {
+        setErrorToast("Failed to load live floor operations.");
+      }
     }
   };
 
@@ -324,23 +348,42 @@ export const FloorPOSPage: React.FC = () => {
     }
 
     setSubmitting(true);
-    try {
-      const itemsPayload = cart.map((i) => ({
-        menu_item_id: i.menu_item_id,
-        quantity: i.quantity,
-        course: i.course,
-        seat_number: i.seat_number || null,
-        is_fired: !(holdMains && i.course === "MAIN"),
-        notes: i.notes,
-      }));
+    const clientOrderId = generateClientOrderId();
+    const itemsPayload = cart.map((i) => ({
+      menu_item_id: i.menu_item_id,
+      quantity: i.quantity,
+      course: i.course,
+      seat_number: i.seat_number || null,
+      is_fired: !(holdMains && i.course === "MAIN"),
+      notes: i.notes,
+    }));
+    const orderPayload = {
+      table_session_id: usesTables ? selectedSessionId : null,
+      token_number: !usesTables ? counterToken : null,
+      order_workflow: (usesTables ? "TABLE_SERVICE" : "COUNTER_TOKEN") as
+        "TABLE_SERVICE" | "COUNTER_TOKEN",
+      notes: orderNotes,
+      idempotency_key: clientOrderId,
+      items: itemsPayload,
+    };
 
-      await ordersApi.createOrder({
-        table_session_id: usesTables ? selectedSessionId : null,
-        token_number: !usesTables ? counterToken : null,
-        order_workflow: usesTables ? "TABLE_SERVICE" : "COUNTER_TOKEN",
-        notes: orderNotes,
-        items: itemsPayload,
+    if (typeof navigator !== "undefined" && !navigator.onLine) {
+      enqueueOfflineOrder({
+        client_order_id: clientOrderId,
+        tenant_id: activeTenant?.tenant_id || "default",
+        table_label: usesTables ? selectedTable?.label : `Token #${counterToken}`,
+        payload: orderPayload,
       });
+      setSuccessToast("Offline: Order queued and will sync automatically when online.");
+      setCart([]);
+      setOrderNotes("");
+      if (!usesTables) setCounterToken((prev) => prev + 1);
+      setSubmitting(false);
+      return;
+    }
+
+    try {
+      await ordersApi.createOrder(orderPayload);
 
       setSuccessToast(
         usesTables
@@ -352,7 +395,24 @@ export const FloorPOSPage: React.FC = () => {
       if (!usesTables) setCounterToken((prev) => prev + 1);
       await fetchData();
     } catch (err: any) {
-      setErrorToast(err?.response?.data?.items || "Failed to dispatch order.");
+      if (!err?.response) {
+        enqueueOfflineOrder({
+          client_order_id: clientOrderId,
+          tenant_id: activeTenant?.tenant_id || "default",
+          table_label: usesTables ? selectedTable?.label : `Token #${counterToken}`,
+          payload: orderPayload,
+        });
+        setSuccessToast("Offline: Order queued and will sync automatically when online.");
+        setCart([]);
+        setOrderNotes("");
+        if (!usesTables) setCounterToken((prev) => prev + 1);
+      } else {
+        setErrorToast(
+          err?.response?.data?.error?.message ||
+            err?.response?.data?.items ||
+            "Failed to dispatch order."
+        );
+      }
     } finally {
       setSubmitting(false);
     }

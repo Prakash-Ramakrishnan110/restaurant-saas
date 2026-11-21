@@ -155,6 +155,16 @@ class OrderViewSet(viewsets.ModelViewSet):
             tenant=tenant, user_id=request.user.pk, is_active=True
         ).first()
 
+        idem_key = (
+            request.headers.get("Idempotency-Key") or data.get("idempotency_key") or ""
+        ).strip()[:128]
+        if idem_key:
+            existing_order = Order.objects.filter(
+                tenant=tenant, branch=branch, idempotency_key=idem_key
+            ).first()
+            if existing_order is not None:
+                return Response(OrderSerializer(existing_order).data, status=status.HTTP_200_OK)
+
         order = create_order(
             branch=branch,
             items_data=data["items"],
@@ -163,6 +173,7 @@ class OrderViewSet(viewsets.ModelViewSet):
             token_number=data.get("token_number"),
             order_workflow=data.get("order_workflow", OrderWorkflow.TABLE_SERVICE),
             notes=data.get("notes", ""),
+            idempotency_key=idem_key,
         )
 
         out_serializer = OrderSerializer(order)
@@ -873,3 +884,282 @@ class CustomerViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer: serializers.BaseSerializer[Customer]) -> None:
         tenant = getattr(self.request, "tenant", None)
         serializer.save(tenant=tenant)
+
+
+class ExportMyDataView(APIView):
+    """Owner self-service ZIP data export (CSVs + manifest, zero secrets or password hashes)."""
+
+    permission_classes = [IsAuthenticated, HasTenantPermission(Permission.BUSINESS_MANAGE)]
+
+    @extend_schema(responses={200: serializers.FileField()})
+    def get(self, request: Request) -> Any:
+        import csv
+        import hashlib
+        import io
+        import json
+        import zipfile
+
+        from django.http import HttpResponse
+
+        from apps.audit.services import log_audit_event
+        from apps.inventory.models import InventoryItem, StockMovement
+        from apps.menu.models import MenuItem
+        from apps.orders.models import InvoiceRefund
+
+        tenant = getattr(request, "tenant", None)
+        if not tenant:
+            raise ValidationError({"tenant": "Active tenant context required."})
+
+        def _csv_bytes(headers: list[str], rows: list[list[Any]]) -> bytes:
+            buf = io.StringIO()
+            writer = csv.writer(buf)
+            writer.writerow(headers)
+            for r in rows:
+                writer.writerow(r)
+            return buf.getvalue().encode("utf-8")
+
+        branches_rows = [
+            [
+                str(b.id),
+                b.name,
+                getattr(b, "city", getattr(b, "address", "")),
+                getattr(b, "venue_profile", ""),
+                str(b.is_active),
+            ]
+            for b in Branch.objects.filter(tenant=tenant).order_by("created_at")
+        ]
+        menu_rows = [
+            [
+                str(m.id),
+                m.name,
+                m.name_ta,
+                m.category.name if m.category else "",
+                m.food_type,
+                str(m.base_price_paise),
+                str(m.is_active),
+            ]
+            for m in MenuItem.objects.filter(tenant=tenant)
+            .select_related("category")
+            .order_by("name")
+        ]
+        order_rows = [
+            [
+                str(o.id),
+                o.order_number,
+                str(o.branch_id),
+                o.order_workflow,
+                o.source,
+                o.status,
+                o.payment_status,
+                o.placed_at.isoformat() if o.placed_at else "",
+            ]
+            for o in Order.objects.filter(tenant=tenant).order_by("-placed_at")[:5000]
+        ]
+        invoice_rows = [
+            [
+                str(inv.id),
+                inv.invoice_number,
+                str(inv.branch_id),
+                str(inv.subtotal_paise),
+                str(inv.discount_paise),
+                str(inv.total_paise),
+                inv.payment_method,
+                inv.settled_at.isoformat() if inv.settled_at else "",
+            ]
+            for inv in BillInvoice.objects.filter(tenant=tenant).order_by("-created_at")[:5000]
+        ]
+        refund_rows = [
+            [
+                str(r.id),
+                r.refund_number,
+                r.invoice.invoice_number,
+                str(r.amount_paise),
+                r.reason_code,
+                r.refund_method,
+                r.restock_action,
+                r.created_at.isoformat(),
+            ]
+            for r in InvoiceRefund.objects.filter(tenant=tenant)
+            .select_related("invoice")
+            .order_by("-created_at")[:5000]
+        ]
+        inv_item_rows = [
+            [
+                str(it.id),
+                it.name,
+                it.name_ta,
+                it.item_type,
+                it.base_unit,
+                it.category,
+                str(it.reorder_level),
+                str(it.par_level),
+            ]
+            for it in InventoryItem.objects.filter(tenant=tenant).order_by("name")
+        ]
+        movement_rows = [
+            [
+                str(mv.sequence_number),
+                str(mv.branch_id),
+                mv.item.name,
+                mv.movement_type,
+                str(mv.quantity),
+                str(mv.unit_cost_paise),
+                str(mv.value_paise),
+                mv.reason_code,
+                mv.created_at.isoformat(),
+            ]
+            for mv in StockMovement.objects.filter(tenant=tenant)
+            .select_related("item")
+            .order_by("-sequence_number")[:10000]
+        ]
+        customer_rows = [
+            [
+                str(c.id),
+                c.name,
+                c.phone,
+                c.email,
+                c.dietary_preference,
+                str(c.visit_count),
+                str(c.total_spend_paise),
+            ]
+            for c in Customer.objects.filter(tenant=tenant).order_by("-last_visit_at")
+        ]
+
+        csv_files: dict[str, bytes] = {
+            "branches.csv": _csv_bytes(
+                ["id", "name", "city", "venue_profile", "is_active"], branches_rows
+            ),
+            "menu_items.csv": _csv_bytes(
+                [
+                    "id",
+                    "name",
+                    "name_ta",
+                    "category",
+                    "food_type",
+                    "base_price_paise",
+                    "is_active",
+                ],
+                menu_rows,
+            ),
+            "orders.csv": _csv_bytes(
+                [
+                    "id",
+                    "order_number",
+                    "branch_id",
+                    "workflow",
+                    "source",
+                    "status",
+                    "payment_status",
+                    "placed_at",
+                ],
+                order_rows,
+            ),
+            "invoices.csv": _csv_bytes(
+                [
+                    "id",
+                    "invoice_number",
+                    "branch_id",
+                    "subtotal_paise",
+                    "discount_paise",
+                    "total_paise",
+                    "payment_method",
+                    "settled_at",
+                ],
+                invoice_rows,
+            ),
+            "refunds.csv": _csv_bytes(
+                [
+                    "id",
+                    "refund_number",
+                    "invoice_number",
+                    "amount_paise",
+                    "reason_code",
+                    "refund_method",
+                    "restock_action",
+                    "created_at",
+                ],
+                refund_rows,
+            ),
+            "inventory_items.csv": _csv_bytes(
+                [
+                    "id",
+                    "name",
+                    "name_ta",
+                    "item_type",
+                    "base_unit",
+                    "category",
+                    "reorder_level",
+                    "par_level",
+                ],
+                inv_item_rows,
+            ),
+            "stock_movements.csv": _csv_bytes(
+                [
+                    "sequence_number",
+                    "branch_id",
+                    "item_name",
+                    "movement_type",
+                    "quantity",
+                    "unit_cost_paise",
+                    "value_paise",
+                    "reason_code",
+                    "created_at",
+                ],
+                movement_rows,
+            ),
+            "customers.csv": _csv_bytes(
+                [
+                    "id",
+                    "name",
+                    "phone",
+                    "email",
+                    "dietary_preference",
+                    "visit_count",
+                    "total_spend_paise",
+                ],
+                customer_rows,
+            ),
+        }
+
+        zip_buf = io.BytesIO()
+        with zipfile.ZipFile(zip_buf, mode="w", compression=zipfile.ZIP_DEFLATED) as zf:
+            files_manifest: dict[str, dict[str, Any]] = {}
+            for fname, raw_bytes in csv_files.items():
+                zf.writestr(fname, raw_bytes)
+                files_manifest[fname] = {
+                    "sha256": hashlib.sha256(raw_bytes).hexdigest(),
+                    "bytes": len(raw_bytes),
+                }
+
+            manifest = {
+                "tenant_id": str(tenant.id),
+                "tenant_slug": tenant.slug,
+                "tenant_name": tenant.name,
+                "exported_at": timezone.now().isoformat(),
+                "counts": {
+                    "branches": len(branches_rows),
+                    "menu_items": len(menu_rows),
+                    "orders": len(order_rows),
+                    "invoices": len(invoice_rows),
+                    "refunds": len(refund_rows),
+                    "inventory_items": len(inv_item_rows),
+                    "stock_movements": len(movement_rows),
+                    "customers": len(customer_rows),
+                },
+                "files": files_manifest,
+            }
+            zf.writestr("manifest.json", json.dumps(manifest, indent=2).encode("utf-8"))
+
+        log_audit_event(
+            action="tenant.export_data",
+            entity_type="Tenant",
+            entity_id=str(tenant.id),
+            actor=request.user,
+            tenant=tenant,
+            after_state={"counts": manifest["counts"]},
+            request=request,
+        )
+
+        resp = HttpResponse(zip_buf.getvalue(), content_type="application/zip")
+        resp["Content-Disposition"] = f'attachment; filename="servemyfood-export-{tenant.slug}.zip"'
+        return resp

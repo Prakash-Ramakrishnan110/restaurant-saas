@@ -41,6 +41,13 @@ import { ordersApi, Order } from "../../api/orders";
 import { unwrapList, ListResponse } from "../../api/pagination";
 import { getNavigationGroups, NavItem } from "../../app/navigation";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../ui/dialog";
+import {
+  getOfflineOrderQueue,
+  replayOfflineOrders,
+  removeOfflineOrder,
+  removeConflictItemsAndRetry,
+  OfflineOrderQueueEntry,
+} from "../../utils/offlineQueue";
 
 declare const __APP_VERSION__: string;
 declare const __GIT_HASH__: string;
@@ -75,19 +82,42 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
   const [activeOrdersCount, setActiveOrdersCount] = useState<number>(0);
   const [readyOrdersCount, setReadyOrdersCount] = useState<number>(0);
   const [pendingApprovalsCount, setPendingApprovalsCount] = useState<number>(0);
+  const [offlineQueue, setOfflineQueue] = useState<OfflineOrderQueueEntry[]>(() =>
+    getOfflineOrderQueue()
+  );
+  const [queueDrawerOpen, setQueueDrawerOpen] = useState<boolean>(false);
+  const [isSyncingQueue, setIsSyncingQueue] = useState<boolean>(false);
+
+  const handleSyncOfflineQueue = useCallback(async () => {
+    setIsSyncingQueue(true);
+    try {
+      await replayOfflineOrders();
+      setOfflineQueue(getOfflineOrderQueue());
+    } finally {
+      setIsSyncingQueue(false);
+    }
+  }, []);
 
   useEffect(() => {
-    const handleOnline = () => setIsOnline(true);
+    const refreshQueue = () => setOfflineQueue(getOfflineOrderQueue());
+    const handleOnline = () => {
+      setIsOnline(true);
+      if (getOfflineOrderQueue().some((q) => q.status === "QUEUED")) {
+        void handleSyncOfflineQueue();
+      }
+    };
     const handleOffline = () => setIsOnline(false);
 
     window.addEventListener("online", handleOnline);
     window.addEventListener("offline", handleOffline);
+    window.addEventListener("smf-offline-queue-updated", refreshQueue);
 
     return () => {
       window.removeEventListener("online", handleOnline);
       window.removeEventListener("offline", handleOffline);
+      window.removeEventListener("smf-offline-queue-updated", refreshQueue);
     };
-  }, []);
+  }, [handleSyncOfflineQueue]);
 
   const [venueProfile, setVenueProfile] = useState<string>(
     () => (activeTenant as any)?.venue_profile || ""
@@ -455,17 +485,40 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
 
         {/* Status Pills & Controls */}
         <div className="flex items-center gap-0.5 sm:gap-3 shrink-0">
-          {/* Connection Status Indicator */}
-          <div
-            className={`hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold border ${
-              isOnline
-                ? "bg-emerald-50 text-emerald-800 border-emerald-300 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800"
-                : "bg-amber-50 text-amber-800 border-amber-300 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-800 animate-pulse"
+          {/* Connection Status & Offline Queue Indicator */}
+          <button
+            type="button"
+            data-testid="connection-status-pill"
+            onClick={() => setQueueDrawerOpen(true)}
+            className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold border transition-colors ${
+              offlineQueue.some((q) => q.status === "CONFLICT")
+                ? "bg-rose-50 text-rose-800 border-rose-300 dark:bg-rose-950/40 dark:text-rose-300 dark:border-rose-800"
+                : !isOnline || offlineQueue.length > 0 || isSyncingQueue
+                  ? "bg-amber-50 text-amber-800 border-amber-300 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-800 animate-pulse"
+                  : "bg-emerald-50 text-emerald-800 border-emerald-300 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800"
             }`}
           >
-            {isOnline ? <Wifi className="h-3 w-3" /> : <WifiOff className="h-3 w-3" />}
-            <span>{isOnline ? "Online" : "Offline"}</span>
-          </div>
+            {isSyncingQueue ? (
+              <RefreshCw className="h-3 w-3 animate-spin" />
+            ) : isOnline ? (
+              <Wifi className="h-3 w-3" />
+            ) : (
+              <WifiOff className="h-3 w-3" />
+            )}
+            <span>
+              {offlineQueue.some((q) => q.status === "CONFLICT")
+                ? `Conflict (${offlineQueue.filter((q) => q.status === "CONFLICT").length})`
+                : isSyncingQueue
+                  ? "Syncing..."
+                  : !isOnline
+                    ? offlineQueue.length > 0
+                      ? `Offline — ${offlineQueue.length} queued`
+                      : "Offline"
+                    : offlineQueue.length > 0
+                      ? `Online (${offlineQueue.length} queued)`
+                      : "Online"}
+            </span>
+          </button>
 
           {/* Language Switcher */}
           <Button
@@ -1008,6 +1061,120 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
               </div>
             </form>
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Stage C: Offline Order Queue & Conflict Resolution Drawer */}
+      <Dialog open={queueDrawerOpen} onOpenChange={setQueueDrawerOpen}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="flex items-center justify-between text-base">
+              <span className="flex items-center gap-2">
+                {isOnline ? (
+                  <Wifi className="h-4 w-4 text-emerald-600" />
+                ) : (
+                  <WifiOff className="h-4 w-4 text-amber-600" />
+                )}
+                Offline Order Queue & Sync Status
+              </span>
+              <Badge variant={isOnline ? "default" : "secondary"} className="text-[11px]">
+                {isOnline ? "Network Online" : "Network Offline"}
+              </Badge>
+            </DialogTitle>
+          </DialogHeader>
+
+          <div className="space-y-3 text-xs">
+            <div className="flex items-center justify-between bg-muted/40 p-2.5 rounded-md border border-border">
+              <div>
+                <div className="font-semibold text-foreground">
+                  {offlineQueue.length} Queued Order{offlineQueue.length === 1 ? "" : "s"}
+                </div>
+                <div className="text-[11px] text-muted-foreground">
+                  FIFO replay with Idempotency-Key protection
+                </div>
+              </div>
+              <Button
+                type="button"
+                size="sm"
+                data-testid="offline-queue-sync-now"
+                disabled={isSyncingQueue || offlineQueue.length === 0}
+                onClick={() => void handleSyncOfflineQueue()}
+                className="bg-[#FF6A00] hover:bg-[#E55F00] text-[#0B1F3B] font-bold text-xs min-h-[34px] gap-1.5"
+              >
+                <RefreshCw className={`h-3.5 w-3.5 ${isSyncingQueue ? "animate-spin" : ""}`} />
+                {isSyncingQueue ? "Syncing..." : "Sync Now"}
+              </Button>
+            </div>
+
+            {offlineQueue.length === 0 ? (
+              <div className="py-8 text-center text-muted-foreground border border-dashed border-border rounded-md">
+                All orders are synchronized with the kitchen server.
+              </div>
+            ) : (
+              <div className="space-y-2.5 max-h-[320px] overflow-y-auto pr-1">
+                {offlineQueue.map((entry) => (
+                  <div
+                    key={entry.client_order_id}
+                    data-testid={`offline-queue-item-${entry.client_order_id}`}
+                    className={`p-3 rounded-md border ${
+                      entry.status === "CONFLICT"
+                        ? "border-rose-300 bg-rose-50/60 dark:border-rose-800 dark:bg-rose-950/30"
+                        : "border-border bg-card"
+                    }`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="font-bold text-foreground">
+                        {entry.table_label || entry.payload.order_workflow || "Floor Order"} •{" "}
+                        {entry.payload.items.reduce((acc, i) => acc + i.quantity, 0)} item(s)
+                      </span>
+                      <span
+                        className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${
+                          entry.status === "CONFLICT"
+                            ? "bg-rose-200 text-rose-900 dark:bg-rose-900 dark:text-rose-100"
+                            : "bg-amber-100 text-amber-900 dark:bg-amber-900 dark:text-amber-100"
+                        }`}
+                      >
+                        {entry.status}
+                      </span>
+                    </div>
+                    <div className="text-[11px] font-mono text-muted-foreground mt-0.5">
+                      Idempotency-Key: {entry.client_order_id}
+                    </div>
+                    {entry.status === "CONFLICT" && entry.conflict_reason && (
+                      <div className="mt-2 text-[11px] text-rose-700 dark:text-rose-300 font-semibold">
+                        Conflict: {entry.conflict_reason}
+                      </div>
+                    )}
+                    <div className="mt-2.5 flex items-center justify-end gap-2">
+                      {entry.status === "CONFLICT" &&
+                        entry.conflict_item_ids &&
+                        entry.conflict_item_ids.length > 0 && (
+                          <Button
+                            type="button"
+                            size="sm"
+                            data-testid="conflict-retry-btn"
+                            onClick={() => void removeConflictItemsAndRetry(entry.client_order_id)}
+                            className="bg-[#FF6A00] hover:bg-[#E55F00] text-[#0B1F3B] font-bold text-[11px] h-7"
+                          >
+                            Remove Unavailable Items & Retry
+                          </Button>
+                        )}
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        data-testid="offline-discard-btn"
+                        onClick={() => removeOfflineOrder(entry.client_order_id)}
+                        className="text-[11px] h-7"
+                      >
+                        Discard
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         </DialogContent>
       </Dialog>
 

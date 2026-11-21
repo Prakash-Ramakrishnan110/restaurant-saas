@@ -8870,6 +8870,34 @@
                 }
             }
         },
+        "/api/v1/settings/export-my-data/": {
+            "get": {
+                "operationId": "settings_export_my_data_retrieve",
+                "description": "Owner self-service ZIP data export (CSVs + manifest, zero secrets or password hashes).",
+                "tags": [
+                    "settings"
+                ],
+                "security": [
+                    {
+                        "jwtAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "additionalProperties": {},
+                                    "description": "Unspecified response body"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
         "/api/v1/staff/": {
             "get": {
                 "operationId": "staff_list",

@@ -15,6 +15,7 @@ export interface CreateOrderPayload {
   token_number?: number | null;
   order_workflow?: "TABLE_SERVICE" | "COUNTER_TOKEN" | "ROOM_SERVICE" | "BAR_TAB";
   notes?: string;
+  idempotency_key?: string;
   items: OrderItemPayload[];
 }
 
@@ -278,7 +279,17 @@ export const ordersApi = {
 
   getOrder: (orderId: string) => apiClient.get<Order>(`/orders/${orderId}/`),
 
-  createOrder: (data: CreateOrderPayload) => apiClient.post<Order>("/orders/", data),
+  createOrder: (data: CreateOrderPayload) =>
+    apiClient.post<Order>(
+      "/orders/",
+      data,
+      data.idempotency_key ? { headers: { "Idempotency-Key": data.idempotency_key } } : undefined
+    ),
+
+  exportMyData: () =>
+    apiClient.get<Blob>("/settings/export-my-data/", {
+      responseType: "blob",
+    }),
 
   cancelOrder: (orderId: string, reason?: string) =>
     apiClient.post<{ status: string; order_id: string }>(`/orders/${orderId}/cancel/`, { reason }),
