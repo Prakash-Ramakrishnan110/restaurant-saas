@@ -445,7 +445,12 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
             to={user?.is_platform_admin ? "/admin" : "/dashboard"}
             className="flex items-center shrink-0"
           >
-            <BrandLogo size={28} theme={theme === "dark" ? "dark" : "auto"} />
+            <span className="sm:hidden flex items-center">
+              <BrandLogo variant="icon" size={28} theme={theme === "dark" ? "dark" : "auto"} />
+            </span>
+            <span className="hidden sm:flex items-center">
+              <BrandLogo variant="full" size={28} theme={theme === "dark" ? "dark" : "auto"} />
+            </span>
           </Link>
 
           {/* Quick Command Palette Button */}
