@@ -30,6 +30,17 @@ import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { mapBackendErrorCode } from "../../lib/errorMapper";
 
+function extractTableError(err: any): string {
+  const details = err?.response?.data?.error?.details;
+  if (details && typeof details === "object") {
+    for (const val of Object.values(details)) {
+      if (Array.isArray(val) && typeof val[0] === "string") return val[0];
+      if (typeof val === "string") return val;
+    }
+  }
+  return mapBackendErrorCode(err);
+}
+
 export interface DiningTableItem {
   id: string;
   label: string;
@@ -180,7 +191,7 @@ export const TablesPage: React.FC = () => {
       setIsBulkOpen(false);
       await fetchData();
     } catch (err: any) {
-      setErrorMessage(mapBackendErrorCode(err));
+      setErrorMessage(extractTableError(err));
     } finally {
       setActionLoading(false);
     }
@@ -202,7 +213,7 @@ export const TablesPage: React.FC = () => {
       setIsAddOpen(false);
       await fetchData();
     } catch (err: any) {
-      setErrorMessage(mapBackendErrorCode(err));
+      setErrorMessage(extractTableError(err));
     } finally {
       setActionLoading(false);
     }
@@ -344,9 +355,10 @@ export const TablesPage: React.FC = () => {
                 <Button
                   variant="outline"
                   onClick={() => {
+                    const active = sections.filter((s) => s.is_active !== false);
                     setBulkForm({
                       ...bulkForm,
-                      section_id: sections[0]?.id || "",
+                      section_id: active[0]?.id || sections[0]?.id || "",
                     });
                     setIsBulkOpen(true);
                   }}
@@ -358,9 +370,10 @@ export const TablesPage: React.FC = () => {
                 </Button>
                 <Button
                   onClick={() => {
+                    const active = sections.filter((s) => s.is_active !== false);
                     setSingleForm({
                       ...singleForm,
-                      section_id: sections[0]?.id || "",
+                      section_id: active[0]?.id || sections[0]?.id || "",
                     });
                     setIsAddOpen(true);
                   }}
@@ -662,8 +675,9 @@ export const TablesPage: React.FC = () => {
                   className="w-full rounded-md border border-input bg-card p-2.5 min-h-[44px]"
                 >
                   {sections.map((s) => (
-                    <option key={s.id} value={s.id}>
+                    <option key={s.id} value={s.id} disabled={s.is_active === false}>
                       {s.name}
+                      {s.is_active === false ? " (Inactive)" : ""}
                     </option>
                   ))}
                 </select>
@@ -847,8 +861,9 @@ export const TablesPage: React.FC = () => {
                   className="w-full rounded-md border border-input bg-card p-2.5 min-h-[44px]"
                 >
                   {sections.map((s) => (
-                    <option key={s.id} value={s.id}>
+                    <option key={s.id} value={s.id} disabled={s.is_active === false}>
                       {s.name}
+                      {s.is_active === false ? " (Inactive)" : ""}
                     </option>
                   ))}
                 </select>
