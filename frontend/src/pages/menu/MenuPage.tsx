@@ -15,6 +15,7 @@ import { ConfirmDialog } from "../../components/ui/confirm-dialog";
 import { FoodTypeBadge } from "../../components/menu/FoodTypeBadge";
 import { ItemEditorSheet } from "../../components/menu/ItemEditorSheet";
 import { QuickAddDialog } from "../../components/menu/QuickAddDialog";
+import { BulkPhotoUploadModal } from "../../components/menu/BulkPhotoUploadModal";
 import { formatPaise } from "../../lib/money";
 import {
   UtensilsCrossed,
@@ -60,6 +61,9 @@ export const MenuPage: React.FC = () => {
 
   // Quick Add Dialog
   const [quickAddOpen, setQuickAddOpen] = useState(false);
+
+  // Bulk Photo Upload Modal (Stage B1)
+  const [bulkPhotosOpen, setBulkPhotosOpen] = useState(false);
 
   // Delete Confirm Dialog
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
@@ -335,6 +339,16 @@ export const MenuPage: React.FC = () => {
 
           {canManage && (
             <>
+              <Button
+                variant="outline"
+                size="sm"
+                data-testid="upload-photos-btn"
+                onClick={() => setBulkPhotosOpen(true)}
+                className="gap-1.5 text-xs font-semibold"
+              >
+                <Layers className="w-4 h-4 text-[#FF6A00]" />
+                Upload photos
+              </Button>
               <Button
                 variant="outline"
                 size="sm"
@@ -753,6 +767,14 @@ export const MenuPage: React.FC = () => {
         existingCategories={categories}
         currentItemCount={currentItemCount}
         totalItemLimit={totalItemLimit}
+      />
+
+      {/* Bulk Photo Upload & Dish Matching Modal (Stage B1) */}
+      <BulkPhotoUploadModal
+        open={bulkPhotosOpen}
+        onOpenChange={setBulkPhotosOpen}
+        menuItems={items.map((it: any) => ({ id: it.id, name: it.name }))}
+        onComplete={fetchData}
       />
 
       {/* Delete Item Confirmation Dialog */}

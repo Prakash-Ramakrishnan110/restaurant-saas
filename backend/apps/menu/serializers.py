@@ -2,11 +2,14 @@ from rest_framework import serializers
 
 from apps.menu.models import (
     BranchItemAvailability,
+    ItemImage,
     ItemVariant,
     MenuCategory,
     MenuItem,
+    MenuTranslation,
     Option,
     OptionGroup,
+    UnassignedPhoto,
 )
 
 
@@ -97,9 +100,70 @@ class OptionGroupSerializer(serializers.ModelSerializer):
         return instance
 
 
+class ItemImageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ItemImage
+        fields = [
+            "id",
+            "position",
+            "is_primary",
+            "image_original",
+            "image_card",
+            "image_thumb",
+            "image_bytes",
+            "focus_x",
+            "focus_y",
+            "created_at",
+        ]
+        read_only_fields = ["id", "created_at"]
+
+
+class UnassignedPhotoSerializer(serializers.ModelSerializer):
+    proposed_item_name = serializers.CharField(
+        source="proposed_item.name", read_only=True, default=""
+    )
+
+    class Meta:
+        model = UnassignedPhoto
+        fields = [
+            "id",
+            "original_filename",
+            "image_original",
+            "image_card",
+            "image_thumb",
+            "image_bytes",
+            "proposed_item",
+            "proposed_item_name",
+            "match_score",
+            "match_tier",
+            "expires_at",
+            "created_at",
+        ]
+        read_only_fields = fields
+
+
+class MenuTranslationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = MenuTranslation
+        fields = [
+            "id",
+            "entity_type",
+            "entity_id",
+            "language",
+            "field",
+            "text",
+            "status",
+            "source",
+            "reviewed_at",
+            "updated_at",
+        ]
+        read_only_fields = ["id", "reviewed_at", "updated_at"]
+
+
 class MenuItemSerializer(serializers.ModelSerializer):
     category_name = serializers.CharField(source="category.name", read_only=True)
     variants = ItemVariantSerializer(many=True, read_only=True)
+    gallery = ItemImageSerializer(source="gallery_images", many=True, read_only=True)
     option_groups = serializers.SerializerMethodField()
     is_available = serializers.SerializerMethodField()
 
@@ -113,6 +177,8 @@ class MenuItemSerializer(serializers.ModelSerializer):
             "name_ta",
             "description",
             "description_ta",
+            "ingredients_note",
+            "allergen_note",
             "base_price_paise",
             "food_type",
             "prep_minutes",
@@ -125,6 +191,7 @@ class MenuItemSerializer(serializers.ModelSerializer):
             "image_bytes",
             "image_focus_x",
             "image_focus_y",
+            "gallery",
             "variants",
             "option_groups",
             "is_available",
@@ -137,6 +204,7 @@ class MenuItemSerializer(serializers.ModelSerializer):
             "image_card",
             "image_thumb",
             "image_bytes",
+            "gallery",
             "created_at",
             "updated_at",
             "category_name",

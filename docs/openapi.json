@@ -5087,6 +5087,216 @@
                 }
             }
         },
+        "/api/v1/menu/items/{item_id}/images/{image_id}/": {
+            "post": {
+                "operationId": "menu_items_images_create",
+                "description": "Manage up to 5 gallery images on a MenuItem (reorder, set primary, delete).",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "image_id",
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        },
+                        "required": true
+                    },
+                    {
+                        "in": "path",
+                        "name": "item_id",
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        },
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "menu"
+                ],
+                "security": [
+                    {
+                        "jwtAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "No response body"
+                    }
+                }
+            },
+            "delete": {
+                "operationId": "menu_items_images_destroy",
+                "description": "Manage up to 5 gallery images on a MenuItem (reorder, set primary, delete).",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "image_id",
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        },
+                        "required": true
+                    },
+                    {
+                        "in": "path",
+                        "name": "item_id",
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        },
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "menu"
+                ],
+                "security": [
+                    {
+                        "jwtAuth": []
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No response body"
+                    }
+                }
+            }
+        },
+        "/api/v1/menu/items/{item_id}/images/{image_id}/set-primary/": {
+            "post": {
+                "operationId": "menu_items_images_set_primary_create",
+                "description": "Manage up to 5 gallery images on a MenuItem (reorder, set primary, delete).",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "image_id",
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        },
+                        "required": true
+                    },
+                    {
+                        "in": "path",
+                        "name": "item_id",
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        },
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "menu"
+                ],
+                "security": [
+                    {
+                        "jwtAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "No response body"
+                    }
+                }
+            },
+            "delete": {
+                "operationId": "menu_items_images_set_primary_destroy",
+                "description": "Manage up to 5 gallery images on a MenuItem (reorder, set primary, delete).",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "image_id",
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        },
+                        "required": true
+                    },
+                    {
+                        "in": "path",
+                        "name": "item_id",
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        },
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "menu"
+                ],
+                "security": [
+                    {
+                        "jwtAuth": []
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No response body"
+                    }
+                }
+            }
+        },
+        "/api/v1/menu/items/{item_id}/images/reorder/": {
+            "post": {
+                "operationId": "menu_items_images_reorder_create",
+                "description": "Manage up to 5 gallery images on a MenuItem (reorder, set primary, delete).",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "item_id",
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        },
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "menu"
+                ],
+                "security": [
+                    {
+                        "jwtAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "No response body"
+                    }
+                }
+            },
+            "delete": {
+                "operationId": "menu_items_images_reorder_destroy",
+                "description": "Manage up to 5 gallery images on a MenuItem (reorder, set primary, delete).",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "item_id",
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        },
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "menu"
+                ],
+                "security": [
+                    {
+                        "jwtAuth": []
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No response body"
+                    }
+                }
+            }
+        },
         "/api/v1/menu/items/{id}/": {
             "get": {
                 "operationId": "menu_items_retrieve",
@@ -5762,6 +5972,393 @@
                 ],
                 "responses": {
                     "204": {
+                        "description": "No response body"
+                    }
+                }
+            }
+        },
+        "/api/v1/menu/photos/bulk-upload/": {
+            "post": {
+                "operationId": "menu_photos_bulk_upload_create",
+                "description": "POST /api/v1/menu/photos/bulk-upload/ — uploads up to 50 files into Unassigned tray with proposed item matches.",
+                "tags": [
+                    "menu"
+                ],
+                "security": [
+                    {
+                        "jwtAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "No response body"
+                    }
+                }
+            }
+        },
+        "/api/v1/menu/photos/unassigned/": {
+            "get": {
+                "operationId": "menu_photos_unassigned_retrieve",
+                "description": "GET /api/v1/menu/photos/unassigned/ & POST /apply-likely/.",
+                "tags": [
+                    "menu"
+                ],
+                "security": [
+                    {
+                        "jwtAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "No response body"
+                    }
+                }
+            },
+            "post": {
+                "operationId": "menu_photos_unassigned_create",
+                "description": "GET /api/v1/menu/photos/unassigned/ & POST /apply-likely/.",
+                "tags": [
+                    "menu"
+                ],
+                "security": [
+                    {
+                        "jwtAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "No response body"
+                    }
+                }
+            }
+        },
+        "/api/v1/menu/photos/unassigned/{photo_id}/": {
+            "post": {
+                "operationId": "menu_photos_unassigned_create_2",
+                "description": "Attach or delete a specific UnassignedPhoto.",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "photo_id",
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        },
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "menu"
+                ],
+                "security": [
+                    {
+                        "jwtAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "No response body"
+                    }
+                }
+            },
+            "delete": {
+                "operationId": "menu_photos_unassigned_destroy",
+                "description": "Attach or delete a specific UnassignedPhoto.",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "photo_id",
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        },
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "menu"
+                ],
+                "security": [
+                    {
+                        "jwtAuth": []
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No response body"
+                    }
+                }
+            }
+        },
+        "/api/v1/menu/photos/unassigned/{photo_id}/attach/": {
+            "post": {
+                "operationId": "menu_photos_unassigned_attach_create",
+                "description": "Attach or delete a specific UnassignedPhoto.",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "photo_id",
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        },
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "menu"
+                ],
+                "security": [
+                    {
+                        "jwtAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "No response body"
+                    }
+                }
+            },
+            "delete": {
+                "operationId": "menu_photos_unassigned_attach_destroy",
+                "description": "Attach or delete a specific UnassignedPhoto.",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "photo_id",
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        },
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "menu"
+                ],
+                "security": [
+                    {
+                        "jwtAuth": []
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No response body"
+                    }
+                }
+            }
+        },
+        "/api/v1/menu/photos/unassigned/apply-likely/": {
+            "get": {
+                "operationId": "menu_photos_unassigned_apply_likely_retrieve",
+                "description": "GET /api/v1/menu/photos/unassigned/ & POST /apply-likely/.",
+                "tags": [
+                    "menu"
+                ],
+                "security": [
+                    {
+                        "jwtAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "No response body"
+                    }
+                }
+            },
+            "post": {
+                "operationId": "menu_photos_unassigned_apply_likely_create",
+                "description": "GET /api/v1/menu/photos/unassigned/ & POST /apply-likely/.",
+                "tags": [
+                    "menu"
+                ],
+                "security": [
+                    {
+                        "jwtAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "No response body"
+                    }
+                }
+            }
+        },
+        "/api/v1/menu/translations/": {
+            "get": {
+                "operationId": "menu_translations_retrieve",
+                "description": "Stage B2: Language registry & OWNER/BRANCH_MANAGER translation workflow.",
+                "tags": [
+                    "menu"
+                ],
+                "security": [
+                    {
+                        "jwtAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "No response body"
+                    }
+                }
+            },
+            "post": {
+                "operationId": "menu_translations_create",
+                "description": "Stage B2: Language registry & OWNER/BRANCH_MANAGER translation workflow.",
+                "tags": [
+                    "menu"
+                ],
+                "security": [
+                    {
+                        "jwtAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "No response body"
+                    }
+                }
+            }
+        },
+        "/api/v1/menu/translations/publish/": {
+            "get": {
+                "operationId": "menu_translations_publish_retrieve",
+                "description": "Stage B2: Language registry & OWNER/BRANCH_MANAGER translation workflow.",
+                "tags": [
+                    "menu"
+                ],
+                "security": [
+                    {
+                        "jwtAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "No response body"
+                    }
+                }
+            },
+            "post": {
+                "operationId": "menu_translations_publish_create",
+                "description": "Stage B2: Language registry & OWNER/BRANCH_MANAGER translation workflow.",
+                "tags": [
+                    "menu"
+                ],
+                "security": [
+                    {
+                        "jwtAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "No response body"
+                    }
+                }
+            }
+        },
+        "/api/v1/menu/translations/review/": {
+            "get": {
+                "operationId": "menu_translations_review_retrieve",
+                "description": "Stage B2: Language registry & OWNER/BRANCH_MANAGER translation workflow.",
+                "tags": [
+                    "menu"
+                ],
+                "security": [
+                    {
+                        "jwtAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "No response body"
+                    }
+                }
+            },
+            "post": {
+                "operationId": "menu_translations_review_create",
+                "description": "Stage B2: Language registry & OWNER/BRANCH_MANAGER translation workflow.",
+                "tags": [
+                    "menu"
+                ],
+                "security": [
+                    {
+                        "jwtAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "No response body"
+                    }
+                }
+            }
+        },
+        "/api/v1/menu/translations/suggest/": {
+            "get": {
+                "operationId": "menu_translations_suggest_retrieve",
+                "description": "Stage B2: Language registry & OWNER/BRANCH_MANAGER translation workflow.",
+                "tags": [
+                    "menu"
+                ],
+                "security": [
+                    {
+                        "jwtAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "No response body"
+                    }
+                }
+            },
+            "post": {
+                "operationId": "menu_translations_suggest_create",
+                "description": "Stage B2: Language registry & OWNER/BRANCH_MANAGER translation workflow.",
+                "tags": [
+                    "menu"
+                ],
+                "security": [
+                    {
+                        "jwtAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "No response body"
+                    }
+                }
+            }
+        },
+        "/api/v1/menu/translations/upsert/": {
+            "get": {
+                "operationId": "menu_translations_upsert_retrieve",
+                "description": "Stage B2: Language registry & OWNER/BRANCH_MANAGER translation workflow.",
+                "tags": [
+                    "menu"
+                ],
+                "security": [
+                    {
+                        "jwtAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "No response body"
+                    }
+                }
+            },
+            "post": {
+                "operationId": "menu_translations_upsert_create",
+                "description": "Stage B2: Language registry & OWNER/BRANCH_MANAGER translation workflow.",
+                "tags": [
+                    "menu"
+                ],
+                "security": [
+                    {
+                        "jwtAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
                         "description": "No response body"
                     }
                 }
@@ -13654,6 +14251,107 @@
                     "refund_number"
                 ]
             },
+            "ItemImage": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "format": "uuid",
+                        "readOnly": true
+                    },
+                    "position": {
+                        "type": "integer",
+                        "maximum": 2147483647,
+                        "minimum": 0
+                    },
+                    "is_primary": {
+                        "type": "boolean"
+                    },
+                    "image_original": {
+                        "type": "string",
+                        "maxLength": 500
+                    },
+                    "image_card": {
+                        "type": "string",
+                        "maxLength": 500
+                    },
+                    "image_thumb": {
+                        "type": "string",
+                        "maxLength": 500
+                    },
+                    "image_bytes": {
+                        "type": "integer",
+                        "maximum": 2147483647,
+                        "minimum": 0
+                    },
+                    "focus_x": {
+                        "type": "number",
+                        "format": "double"
+                    },
+                    "focus_y": {
+                        "type": "number",
+                        "format": "double"
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "readOnly": true
+                    }
+                },
+                "required": [
+                    "created_at",
+                    "id",
+                    "image_card",
+                    "image_original",
+                    "image_thumb"
+                ]
+            },
+            "ItemImageRequest": {
+                "type": "object",
+                "properties": {
+                    "position": {
+                        "type": "integer",
+                        "maximum": 2147483647,
+                        "minimum": 0
+                    },
+                    "is_primary": {
+                        "type": "boolean"
+                    },
+                    "image_original": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 500
+                    },
+                    "image_card": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 500
+                    },
+                    "image_thumb": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 500
+                    },
+                    "image_bytes": {
+                        "type": "integer",
+                        "maximum": 2147483647,
+                        "minimum": 0
+                    },
+                    "focus_x": {
+                        "type": "number",
+                        "format": "double"
+                    },
+                    "focus_y": {
+                        "type": "number",
+                        "format": "double"
+                    }
+                },
+                "required": [
+                    "image_card",
+                    "image_original",
+                    "image_thumb"
+                ]
+            },
             "ItemTypeEnum": {
                 "enum": [
                     "INGREDIENT",
@@ -14180,6 +14878,12 @@
                     "description_ta": {
                         "type": "string"
                     },
+                    "ingredients_note": {
+                        "type": "string"
+                    },
+                    "allergen_note": {
+                        "type": "string"
+                    },
                     "base_price_paise": {
                         "type": "integer",
                         "maximum": 2147483647,
@@ -14229,6 +14933,13 @@
                         "type": "number",
                         "format": "double"
                     },
+                    "gallery": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/ItemImage"
+                        },
+                        "readOnly": true
+                    },
                     "variants": {
                         "type": "array",
                         "items": {
@@ -14263,6 +14974,7 @@
                     "category",
                     "category_name",
                     "created_at",
+                    "gallery",
                     "id",
                     "image_bytes",
                     "image_card",
@@ -14295,6 +15007,12 @@
                         "type": "string"
                     },
                     "description_ta": {
+                        "type": "string"
+                    },
+                    "ingredients_note": {
+                        "type": "string"
+                    },
+                    "allergen_note": {
                         "type": "string"
                     },
                     "base_price_paise": {
@@ -16384,6 +17102,12 @@
                         "type": "string"
                     },
                     "description_ta": {
+                        "type": "string"
+                    },
+                    "ingredients_note": {
+                        "type": "string"
+                    },
+                    "allergen_note": {
                         "type": "string"
                     },
                     "base_price_paise": {

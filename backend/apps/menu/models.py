@@ -50,6 +50,8 @@ class MenuItem(models.Model):
     name_ta = models.CharField(max_length=150, blank=True, default="")
     description = models.TextField(blank=True, default="")
     description_ta = models.TextField(blank=True, default="")
+    ingredients_note = models.TextField(blank=True, default="")
+    allergen_note = models.TextField(blank=True, default="")
     base_price_paise = models.PositiveIntegerField(default=0)
     food_type = models.CharField(
         max_length=20,
@@ -224,3 +226,149 @@ class BranchItemAvailability(models.Model):
 
     def __str__(self) -> str:
         return f"{self.branch.name} - {self.item.name} ({'Available' if self.is_available else 'Sold Out'})"
+
+
+class ItemImage(models.Model):
+    """Gallery image for a MenuItem (up to 5 per item; position 0 / is_primary syncs to MenuItem)."""
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    tenant = models.ForeignKey(
+        "tenants.Tenant",
+        on_delete=models.CASCADE,
+        related_name="menu_item_images",
+    )
+    item = models.ForeignKey(
+        MenuItem,
+        on_delete=models.CASCADE,
+        related_name="gallery_images",
+    )
+    position = models.PositiveIntegerField(default=0)
+    is_primary = models.BooleanField(default=False)
+    image_original = models.CharField(max_length=500)
+    image_card = models.CharField(max_length=500)
+    image_thumb = models.CharField(max_length=500)
+    image_bytes = models.PositiveIntegerField(default=0)
+    focus_x = models.FloatField(default=0.5)
+    focus_y = models.FloatField(default=0.5)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = "menu_item_images"
+        ordering = ["-is_primary", "position", "created_at"]
+
+    def __str__(self) -> str:
+        return f"{self.item.name} image #{self.position}"
+
+
+class UnassignedPhoto(models.Model):
+    """Uploaded photo awaiting owner match confirmation (30-day retention tray)."""
+
+    class MatchTier(models.TextChoices):
+        LIKELY = "LIKELY", "Likely"
+        CHECK = "CHECK", "Check"
+        NO_MATCH = "NO_MATCH", "No match"
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    tenant = models.ForeignKey(
+        "tenants.Tenant",
+        on_delete=models.CASCADE,
+        related_name="unassigned_menu_photos",
+    )
+    original_filename = models.CharField(max_length=255)
+    file_sha256 = models.CharField(max_length=64, db_index=True)
+    image_original = models.CharField(max_length=500)
+    image_card = models.CharField(max_length=500)
+    image_thumb = models.CharField(max_length=500)
+    image_bytes = models.PositiveIntegerField(default=0)
+    proposed_item = models.ForeignKey(
+        MenuItem,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="proposed_photos",
+    )
+    match_score = models.FloatField(default=0.0)
+    match_tier = models.CharField(
+        max_length=20,
+        choices=MatchTier.choices,
+        default=MatchTier.NO_MATCH,
+    )
+    expires_at = models.DateTimeField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = "menu_unassigned_photos"
+        ordering = ["-created_at"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["tenant", "file_sha256"],
+                name="unique_tenant_unassigned_photo_sha256",
+            )
+        ]
+
+
+class MenuTranslation(models.Model):
+    """Workflow-controlled translation entry for menu entities (never shown to guests until PUBLISHED)."""
+
+    class EntityType(models.TextChoices):
+        CATEGORY = "CATEGORY", "Category"
+        ITEM = "ITEM", "Menu Item"
+        VARIANT = "VARIANT", "Variant"
+        OPTION_GROUP = "OPTION_GROUP", "Option Group"
+        OPTION = "OPTION", "Option"
+
+    class Status(models.TextChoices):
+        MISSING = "MISSING", "Missing"
+        DRAFT = "DRAFT", "Draft"
+        OUTDATED = "OUTDATED", "Outdated"
+        REVIEWED = "REVIEWED", "Reviewed"
+        PUBLISHED = "PUBLISHED", "Published"
+
+    class Source(models.TextChoices):
+        MANUAL = "MANUAL", "Manual"
+        MACHINE = "MACHINE", "Machine"
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    tenant = models.ForeignKey(
+        "tenants.Tenant",
+        on_delete=models.CASCADE,
+        related_name="menu_translations",
+    )
+    entity_type = models.CharField(max_length=20, choices=EntityType.choices, db_index=True)
+    entity_id = models.UUIDField(db_index=True)
+    language = models.CharField(max_length=16, db_index=True)
+    field = models.CharField(max_length=32)
+    text = models.TextField(blank=True, default="")
+    status = models.CharField(
+        max_length=20,
+        choices=Status.choices,
+        default=Status.DRAFT,
+        db_index=True,
+    )
+    source = models.CharField(
+        max_length=20,
+        choices=Source.choices,
+        default=Source.MANUAL,
+    )
+    source_hash = models.CharField(max_length=64, blank=True, default="")
+    reviewed_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="reviewed_menu_translations",
+    )
+    reviewed_at = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = "menu_translations"
+        ordering = ["entity_type", "field"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["tenant", "entity_type", "entity_id", "language", "field"],
+                name="unique_menu_translation_key",
+            )
+        ]

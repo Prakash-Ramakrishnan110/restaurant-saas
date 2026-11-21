@@ -30,6 +30,7 @@ import {
   BarChart3,
   Settings2,
   Building2,
+  Globe,
 } from "lucide-react";
 
 export interface NavItem {
@@ -187,6 +188,12 @@ export function getNavigationGroups(ctx: NavigationContext): NavGroup[] {
     { label: "Bills", path: "/billing/bills", icon: FileText, permission: "order.create" },
     { label: "Shift Close", path: "/billing/closeout", icon: Clock, permission: "order.create" },
     { label: "Menu", path: "/menu", icon: UtensilsCrossed, permission: "menu.view" },
+    {
+      label: "Translations",
+      path: "/menu/translations",
+      icon: Globe,
+      permission: "menu.manage",
+    },
     {
       label: "Today's Availability",
       path: "/menu/availability",

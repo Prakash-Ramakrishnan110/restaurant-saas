@@ -170,6 +170,15 @@ class PublicQRMenuView(APIView):
                     ).values_list("item_id", flat=True)
                 )
 
+                from apps.menu.translation_service import (
+                    LANGUAGE_MAP,
+                    get_published_translations_map,
+                )
+
+                requested_lang = str(request.query_params.get("lang") or "ta")
+                _ = LANGUAGE_MAP.get(requested_lang)
+                published_map = get_published_translations_map(tenant, requested_lang)
+
                 categories = list(
                     MenuCategory.objects.filter(tenant=tenant, is_active=True).order_by(
                         "sort_order", "name"
@@ -180,6 +189,7 @@ class PublicQRMenuView(APIView):
                     .select_related("category")
                     .prefetch_related(
                         "variants",
+                        "gallery_images",
                         Prefetch(
                             "item_option_groups",
                             queryset=ItemOptionGroup.objects.filter(group__is_active=True)
@@ -197,7 +207,7 @@ class PublicQRMenuView(APIView):
                         {
                             "id": str(v.id),
                             "name": v.name,
-                            "name_ta": v.name_ta,
+                            "name_ta": published_map.get(("VARIANT", str(v.id), "name"), v.name_ta),
                             "price_paise": v.price_paise,
                             "is_default": v.is_default,
                         }
@@ -213,7 +223,9 @@ class PublicQRMenuView(APIView):
                             {
                                 "id": str(opt.id),
                                 "name": opt.name,
-                                "name_ta": opt.name_ta,
+                                "name_ta": published_map.get(
+                                    ("OPTION", str(opt.id), "name"), opt.name_ta
+                                ),
                                 "price_delta_paise": opt.price_delta_paise,
                                 "is_default": opt.is_default,
                             }
@@ -227,25 +239,48 @@ class PublicQRMenuView(APIView):
                                 {
                                     "id": str(grp.id),
                                     "name": grp.name,
-                                    "name_ta": grp.name_ta,
+                                    "name_ta": published_map.get(
+                                        ("OPTION_GROUP", str(grp.id), "name"), grp.name_ta
+                                    ),
                                     "min_select": grp.min_select,
                                     "max_select": grp.max_select,
                                     "options": active_opts,
                                 }
                             )
 
+                    gallery_list = [
+                        {
+                            "id": str(g.id),
+                            "image_card": g.image_card,
+                            "image_thumb": g.image_thumb,
+                            "is_primary": g.is_primary,
+                        }
+                        for g in item.gallery_images.all()
+                    ]
+
                     items_by_cat.setdefault(str(item.category_id), []).append(
                         {
                             "id": str(item.id),
                             "name": item.name,
-                            "name_ta": item.name_ta,
+                            "name_ta": published_map.get(
+                                ("ITEM", str(item.id), "name"), item.name_ta
+                            ),
                             "description": item.description,
-                            "description_ta": item.description_ta,
+                            "description_ta": published_map.get(
+                                ("ITEM", str(item.id), "description"), item.description_ta
+                            ),
+                            "ingredients_note": published_map.get(
+                                ("ITEM", str(item.id), "ingredients_note"), item.ingredients_note
+                            ),
+                            "allergen_note": published_map.get(
+                                ("ITEM", str(item.id), "allergen_note"), item.allergen_note
+                            ),
                             "price_paise": item.base_price_paise,
                             "food_type": item.food_type,
                             "is_bestseller": item.is_bestseller,
                             "image_card": item.image_card,
                             "image_thumb": item.image_thumb,
+                            "gallery": gallery_list,
                             "is_available": item.id not in unavailable_ids,
                             "variants": variants_list,
                             "option_groups": option_groups_list,
@@ -259,7 +294,9 @@ class PublicQRMenuView(APIView):
                             {
                                 "id": str(cat.id),
                                 "name": cat.name,
-                                "name_ta": cat.name_ta,
+                                "name_ta": published_map.get(
+                                    ("CATEGORY", str(cat.id), "name"), cat.name_ta
+                                ),
                                 "items": cat_items,
                             }
                         )

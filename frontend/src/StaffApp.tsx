@@ -32,6 +32,10 @@ const CountersPage = lazyNamed(() => import("./pages/venue/CountersPage"), "Coun
 const FloorPlanPage = lazyNamed(() => import("./pages/venue/FloorPlanPage"), "FloorPlanPage");
 const StaffPage = lazyNamed(() => import("./pages/staff/StaffPage"), "StaffPage");
 const MenuPage = lazyNamed(() => import("./pages/menu/MenuPage"), "MenuPage");
+const MenuTranslationsPage = lazyNamed(
+  () => import("./pages/menu/MenuTranslationsPage"),
+  "MenuTranslationsPage"
+);
 const MenuAvailabilityPage = lazyNamed(
   () => import("./pages/menu/MenuAvailabilityPage"),
   "MenuAvailabilityPage"
@@ -785,6 +789,14 @@ export const StaffApp: React.FC = () => {
                 element={
                   <ProtectedRoute>
                     <MenuPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/menu/translations"
+                element={
+                  <ProtectedRoute>
+                    <MenuTranslationsPage />
                   </ProtectedRoute>
                 }
               />

@@ -918,6 +918,27 @@ export const PublicQRPage: React.FC = () => {
             </div>
 
             <div className="flex-1 overflow-y-auto p-4 space-y-5">
+              {/* Ingredients & Allergen Note (Restaurant-entered with mandatory disclaimer) */}
+              {((sheetItem as any).ingredients_note || (sheetItem as any).allergen_note) && (
+                <div className="p-3 rounded-xl border border-amber-300 bg-amber-50/60 dark:bg-amber-950/30 dark:border-amber-800 space-y-1 text-xs">
+                  {(sheetItem as any).ingredients_note && (
+                    <div>
+                      <span className="font-bold">Ingredients: </span>
+                      <span>{(sheetItem as any).ingredients_note}</span>
+                    </div>
+                  )}
+                  {(sheetItem as any).allergen_note && (
+                    <div>
+                      <span className="font-bold">Allergens: </span>
+                      <span>{(sheetItem as any).allergen_note}</span>
+                    </div>
+                  )}
+                  <p className="text-[11px] text-amber-900 dark:text-amber-200 font-semibold pt-1">
+                    Information entered by the restaurant. Please confirm allergies with our staff.
+                  </p>
+                </div>
+              )}
+
               {/* Variants */}
               {sheetItem.variants.length > 0 && (
                 <div className="space-y-2">

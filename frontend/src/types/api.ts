@@ -1139,6 +1139,60 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/menu/items/{item_id}/images/{image_id}/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** @description Manage up to 5 gallery images on a MenuItem (reorder, set primary, delete). */
+        post: operations["menu_items_images_create"];
+        /** @description Manage up to 5 gallery images on a MenuItem (reorder, set primary, delete). */
+        delete: operations["menu_items_images_destroy"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/menu/items/{item_id}/images/{image_id}/set-primary/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** @description Manage up to 5 gallery images on a MenuItem (reorder, set primary, delete). */
+        post: operations["menu_items_images_set_primary_create"];
+        /** @description Manage up to 5 gallery images on a MenuItem (reorder, set primary, delete). */
+        delete: operations["menu_items_images_set_primary_destroy"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/menu/items/{item_id}/images/reorder/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** @description Manage up to 5 gallery images on a MenuItem (reorder, set primary, delete). */
+        post: operations["menu_items_images_reorder_create"];
+        /** @description Manage up to 5 gallery images on a MenuItem (reorder, set primary, delete). */
+        delete: operations["menu_items_images_reorder_destroy"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/menu/items/{id}/": {
         parameters: {
             query?: never;
@@ -1249,6 +1303,185 @@ export interface paths {
         options?: never;
         head?: never;
         patch: operations["menu_option_groups_partial_update"];
+        trace?: never;
+    };
+    "/api/v1/menu/photos/bulk-upload/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** @description POST /api/v1/menu/photos/bulk-upload/ — uploads up to 50 files into Unassigned tray with proposed item matches. */
+        post: operations["menu_photos_bulk_upload_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/menu/photos/unassigned/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description GET /api/v1/menu/photos/unassigned/ & POST /apply-likely/. */
+        get: operations["menu_photos_unassigned_retrieve"];
+        put?: never;
+        /** @description GET /api/v1/menu/photos/unassigned/ & POST /apply-likely/. */
+        post: operations["menu_photos_unassigned_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/menu/photos/unassigned/{photo_id}/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** @description Attach or delete a specific UnassignedPhoto. */
+        post: operations["menu_photos_unassigned_create_2"];
+        /** @description Attach or delete a specific UnassignedPhoto. */
+        delete: operations["menu_photos_unassigned_destroy"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/menu/photos/unassigned/{photo_id}/attach/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** @description Attach or delete a specific UnassignedPhoto. */
+        post: operations["menu_photos_unassigned_attach_create"];
+        /** @description Attach or delete a specific UnassignedPhoto. */
+        delete: operations["menu_photos_unassigned_attach_destroy"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/menu/photos/unassigned/apply-likely/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description GET /api/v1/menu/photos/unassigned/ & POST /apply-likely/. */
+        get: operations["menu_photos_unassigned_apply_likely_retrieve"];
+        put?: never;
+        /** @description GET /api/v1/menu/photos/unassigned/ & POST /apply-likely/. */
+        post: operations["menu_photos_unassigned_apply_likely_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/menu/translations/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description Stage B2: Language registry & OWNER/BRANCH_MANAGER translation workflow. */
+        get: operations["menu_translations_retrieve"];
+        put?: never;
+        /** @description Stage B2: Language registry & OWNER/BRANCH_MANAGER translation workflow. */
+        post: operations["menu_translations_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/menu/translations/publish/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description Stage B2: Language registry & OWNER/BRANCH_MANAGER translation workflow. */
+        get: operations["menu_translations_publish_retrieve"];
+        put?: never;
+        /** @description Stage B2: Language registry & OWNER/BRANCH_MANAGER translation workflow. */
+        post: operations["menu_translations_publish_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/menu/translations/review/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description Stage B2: Language registry & OWNER/BRANCH_MANAGER translation workflow. */
+        get: operations["menu_translations_review_retrieve"];
+        put?: never;
+        /** @description Stage B2: Language registry & OWNER/BRANCH_MANAGER translation workflow. */
+        post: operations["menu_translations_review_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/menu/translations/suggest/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description Stage B2: Language registry & OWNER/BRANCH_MANAGER translation workflow. */
+        get: operations["menu_translations_suggest_retrieve"];
+        put?: never;
+        /** @description Stage B2: Language registry & OWNER/BRANCH_MANAGER translation workflow. */
+        post: operations["menu_translations_suggest_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/menu/translations/upsert/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description Stage B2: Language registry & OWNER/BRANCH_MANAGER translation workflow. */
+        get: operations["menu_translations_upsert_retrieve"];
+        put?: never;
+        /** @description Stage B2: Language registry & OWNER/BRANCH_MANAGER translation workflow. */
+        post: operations["menu_translations_upsert_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
         trace?: never;
     };
     "/api/v1/onboarding/status/": {
@@ -3727,6 +3960,34 @@ export interface components {
             refunded_lines?: unknown;
             notes?: string;
         };
+        ItemImage: {
+            /** Format: uuid */
+            readonly id: string;
+            position?: number;
+            is_primary?: boolean;
+            image_original: string;
+            image_card: string;
+            image_thumb: string;
+            image_bytes?: number;
+            /** Format: double */
+            focus_x?: number;
+            /** Format: double */
+            focus_y?: number;
+            /** Format: date-time */
+            readonly created_at: string;
+        };
+        ItemImageRequest: {
+            position?: number;
+            is_primary?: boolean;
+            image_original: string;
+            image_card: string;
+            image_thumb: string;
+            image_bytes?: number;
+            /** Format: double */
+            focus_x?: number;
+            /** Format: double */
+            focus_y?: number;
+        };
         /**
          * @description * `INGREDIENT` - Ingredient
          *     * `PREPARED` - Prepared
@@ -3897,6 +4158,8 @@ export interface components {
             name_ta?: string;
             description?: string;
             description_ta?: string;
+            ingredients_note?: string;
+            allergen_note?: string;
             base_price_paise?: number;
             food_type?: components["schemas"]["FoodTypeEnum"];
             prep_minutes?: number | null;
@@ -3911,6 +4174,7 @@ export interface components {
             image_focus_x?: number;
             /** Format: double */
             image_focus_y?: number;
+            readonly gallery: components["schemas"]["ItemImage"][];
             readonly variants: components["schemas"]["ItemVariant"][];
             readonly option_groups: {
                 [key: string]: unknown;
@@ -3928,6 +4192,8 @@ export interface components {
             name_ta?: string;
             description?: string;
             description_ta?: string;
+            ingredients_note?: string;
+            allergen_note?: string;
             base_price_paise?: number;
             food_type?: components["schemas"]["FoodTypeEnum"];
             prep_minutes?: number | null;
@@ -4788,6 +5054,8 @@ export interface components {
             name_ta?: string;
             description?: string;
             description_ta?: string;
+            ingredients_note?: string;
+            allergen_note?: string;
             base_price_paise?: number;
             food_type?: components["schemas"]["FoodTypeEnum"];
             prep_minutes?: number | null;
@@ -8859,6 +9127,130 @@ export interface operations {
             };
         };
     };
+    menu_items_images_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                image_id: string;
+                item_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No response body */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    menu_items_images_destroy: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                image_id: string;
+                item_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No response body */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    menu_items_images_set_primary_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                image_id: string;
+                item_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No response body */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    menu_items_images_set_primary_destroy: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                image_id: string;
+                item_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No response body */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    menu_items_images_reorder_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                item_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No response body */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    menu_items_images_reorder_destroy: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                item_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No response body */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     menu_items_retrieve: {
         parameters: {
             query?: never;
@@ -9233,6 +9625,356 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["OptionGroup"];
                 };
+            };
+        };
+    };
+    menu_photos_bulk_upload_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No response body */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    menu_photos_unassigned_retrieve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No response body */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    menu_photos_unassigned_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No response body */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    menu_photos_unassigned_create_2: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                photo_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No response body */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    menu_photos_unassigned_destroy: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                photo_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No response body */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    menu_photos_unassigned_attach_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                photo_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No response body */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    menu_photos_unassigned_attach_destroy: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                photo_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No response body */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    menu_photos_unassigned_apply_likely_retrieve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No response body */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    menu_photos_unassigned_apply_likely_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No response body */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    menu_translations_retrieve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No response body */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    menu_translations_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No response body */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    menu_translations_publish_retrieve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No response body */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    menu_translations_publish_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No response body */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    menu_translations_review_retrieve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No response body */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    menu_translations_review_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No response body */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    menu_translations_suggest_retrieve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No response body */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    menu_translations_suggest_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No response body */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    menu_translations_upsert_retrieve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No response body */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    menu_translations_upsert_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No response body */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };

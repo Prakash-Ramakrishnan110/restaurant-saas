@@ -3,6 +3,7 @@ import uuid
 from typing import Any
 
 from django.db.models import Q
+from django.utils import timezone
 from drf_spectacular.utils import extend_schema
 from rest_framework import serializers, status, viewsets
 from rest_framework.decorators import action
@@ -15,27 +16,45 @@ from apps.audit.services import log_audit_event
 from apps.core.exceptions import BusinessRuleError
 from apps.menu.models import (
     BranchItemAvailability,
+    ItemImage,
     ItemOptionGroup,
     ItemVariant,
     MenuCategory,
     MenuItem,
+    MenuTranslation,
     OptionGroup,
+    UnassignedPhoto,
 )
 from apps.menu.serializers import (
     BranchItemAvailabilitySerializer,
+    ItemImageSerializer,
     ItemVariantSerializer,
     MenuCategorySerializer,
     MenuItemSerializer,
+    MenuTranslationSerializer,
     OptionGroupSerializer,
+    UnassignedPhotoSerializer,
 )
 from apps.menu.services import (
+    attach_unassigned_photo_to_item,
     bulk_create_menu_items,
     delete_menu_image,
     process_and_store_menu_image,
     sync_item_base_price,
+    sync_primary_item_image_fields,
+    upload_unassigned_photo,
+)
+from apps.menu.translation_service import (
+    LANGUAGE_MAP,
+    LANGUAGE_REGISTRY,
+    compute_source_hash,
+    get_translation_provider,
+    list_translatable_entries,
+    mark_translations_outdated,
+    suggest_translations_batch,
 )
 from apps.rbac.constants import Permission
-from apps.rbac.permissions import ActionPermission
+from apps.rbac.permissions import ActionPermission, HasTenantPermission
 from apps.subscriptions.services import enforce_limit
 
 
@@ -72,7 +91,13 @@ class MenuCategoryViewSet(viewsets.ModelViewSet):
 
     def perform_update(self, serializer):
         tenant = self.request.tenant
+        instance = self.get_object()
+        old_name = instance.name
         cat = serializer.save()
+        if cat.name != old_name:
+            mark_translations_outdated(
+                tenant, MenuTranslation.EntityType.CATEGORY, cat.id, "name", cat.name
+            )
         log_audit_event(
             action="menu.category.update",
             entity_type="MenuCategory",
@@ -218,8 +243,20 @@ class MenuItemViewSet(viewsets.ModelViewSet):
 
         old_item = self.get_object()
         old_price = old_item.base_price_paise
+        old_texts = {
+            "name": old_item.name,
+            "description": old_item.description,
+            "ingredients_note": old_item.ingredients_note,
+            "allergen_note": old_item.allergen_note,
+        }
 
         item = serializer.save()
+        for fld, prev_val in old_texts.items():
+            cur_val = getattr(item, fld, "")
+            if cur_val != prev_val:
+                mark_translations_outdated(
+                    tenant, MenuTranslation.EntityType.ITEM, item.id, fld, cur_val
+                )
         details: dict[str, Any] = {"name": item.name, "is_active": item.is_active}
         if old_price != item.base_price_paise:
             details["old_price_paise"] = old_price
@@ -639,3 +676,279 @@ class FullMenuView(APIView):
         ]
 
         return Response({"categories": data})
+
+
+class MenuItemGalleryView(APIView):
+    """Manage up to 5 gallery images on a MenuItem (reorder, set primary, delete)."""
+
+    permission_classes = [IsAuthenticated, HasTenantPermission(Permission.MENU_MANAGE)]
+
+    def post(self, request, item_id, image_id=None, action_name=None):
+        tenant = request.tenant
+        item = MenuItem.objects.filter(tenant=tenant, id=item_id).first()
+        if not item:
+            raise BusinessRuleError("NOT_FOUND", "Menu item not found.", status_code=404)
+
+        if action_name == "reorder":
+            order_ids = request.data.get("image_ids", [])
+            for idx, img_id in enumerate(order_ids):
+                ItemImage.objects.filter(item=item, id=img_id).update(position=idx)
+            sync_primary_item_image_fields(item)
+            return Response(ItemImageSerializer(item.gallery_images.all(), many=True).data)
+
+        if action_name == "set_primary":
+            img = ItemImage.objects.filter(item=item, id=image_id).first()
+            if not img:
+                raise BusinessRuleError("NOT_FOUND", "Image not found.", status_code=404)
+            ItemImage.objects.filter(item=item).update(is_primary=False)
+            img.is_primary = True
+            img.position = 0
+            img.save(update_fields=["is_primary", "position", "updated_at"])
+            sync_primary_item_image_fields(item)
+            return Response(ItemImageSerializer(item.gallery_images.all(), many=True).data)
+
+        raise BusinessRuleError("INVALID_ACTION", "Unsupported gallery action.", status_code=400)
+
+    def delete(self, request, item_id, image_id):
+        tenant = request.tenant
+        item = MenuItem.objects.filter(tenant=tenant, id=item_id).first()
+        if not item:
+            raise BusinessRuleError("NOT_FOUND", "Menu item not found.", status_code=404)
+        img = ItemImage.objects.filter(item=item, id=image_id).first()
+        if not img:
+            raise BusinessRuleError("NOT_FOUND", "Image not found.", status_code=404)
+        img.delete()
+        if not item.gallery_images.filter(is_primary=True).exists():
+            first = item.gallery_images.order_by("position", "created_at").first()
+            if first:
+                first.is_primary = True
+                first.save(update_fields=["is_primary", "updated_at"])
+        sync_primary_item_image_fields(item)
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class BulkPhotoUploadView(APIView):
+    """POST /api/v1/menu/photos/bulk-upload/ — uploads up to 50 files into Unassigned tray with proposed item matches."""
+
+    permission_classes = [IsAuthenticated, HasTenantPermission(Permission.MENU_MANAGE)]
+    parser_classes = [MultiPartParser, FormParser]
+
+    def post(self, request):
+        files = request.FILES.getlist("files") or request.FILES.getlist("file")
+        if not files:
+            raise BusinessRuleError("NO_FILES", "No image files provided.", status_code=400)
+        if len(files) > 50:
+            raise BusinessRuleError(
+                "BATCH_LIMIT_EXCEEDED",
+                "Maximum 50 files per bulk upload batch.",
+                status_code=400,
+            )
+
+        tenant = request.tenant
+        results = []
+        errors = []
+        for f in files:
+            try:
+                photo = upload_unassigned_photo(tenant=tenant, file_obj=f, user=request.user)
+                results.append(UnassignedPhotoSerializer(photo).data)
+            except BusinessRuleError as exc:
+                errors.append(
+                    {
+                        "filename": getattr(f, "name", "unknown"),
+                        "code": exc.error_code,
+                        "message": str(exc.detail),
+                    }
+                )
+            except Exception as exc:
+                errors.append(
+                    {
+                        "filename": getattr(f, "name", "unknown"),
+                        "code": "UPLOAD_FAILED",
+                        "message": str(exc),
+                    }
+                )
+
+        return Response(
+            {"uploaded": results, "errors": errors},
+            status=status.HTTP_201_CREATED if results else status.HTTP_400_BAD_REQUEST,
+        )
+
+
+class UnassignedPhotoListView(APIView):
+    """GET /api/v1/menu/photos/unassigned/ & POST /apply-likely/."""
+
+    permission_classes = [IsAuthenticated, HasTenantPermission(Permission.MENU_MANAGE)]
+
+    def get(self, request):
+        photos = UnassignedPhoto.objects.filter(tenant=request.tenant).select_related(
+            "proposed_item"
+        )
+        return Response(UnassignedPhotoSerializer(photos, many=True).data)
+
+    def post(self, request):
+        photo_ids = request.data.get("photo_ids") or []
+        qs = UnassignedPhoto.objects.filter(
+            tenant=request.tenant,
+            match_tier=UnassignedPhoto.MatchTier.LIKELY,
+            proposed_item__isnull=False,
+        ).select_related("proposed_item")
+        if photo_ids:
+            qs = qs.filter(id__in=photo_ids)
+
+        attached = 0
+        skipped = []
+        for photo in qs:
+            try:
+                if photo.proposed_item:
+                    attach_unassigned_photo_to_item(
+                        photo=photo, item=photo.proposed_item, user=request.user
+                    )
+                    attached += 1
+            except BusinessRuleError as exc:
+                skipped.append({"photo_id": str(photo.id), "message": str(exc.detail)})
+        return Response({"attached_count": attached, "skipped": skipped})
+
+
+class UnassignedPhotoDetailView(APIView):
+    """Attach or delete a specific UnassignedPhoto."""
+
+    permission_classes = [IsAuthenticated, HasTenantPermission(Permission.MENU_MANAGE)]
+
+    def post(self, request, photo_id):
+        photo = UnassignedPhoto.objects.filter(tenant=request.tenant, id=photo_id).first()
+        if not photo:
+            raise BusinessRuleError("NOT_FOUND", "Unassigned photo not found.", status_code=404)
+
+        item_id = request.data.get("item_id")
+        try:
+            uuid.UUID(str(item_id))
+        except (ValueError, TypeError):
+            raise BusinessRuleError(
+                "INVALID_REFERENCE", "Invalid menu item reference.", status_code=400
+            ) from None
+
+        item = MenuItem.objects.filter(tenant=request.tenant, id=item_id).first()
+        if not item:
+            raise BusinessRuleError(
+                "INVALID_REFERENCE", "Invalid menu item reference.", status_code=400
+            )
+
+        img = attach_unassigned_photo_to_item(photo=photo, item=item, user=request.user)
+        return Response(ItemImageSerializer(img).data, status=status.HTTP_201_CREATED)
+
+    def delete(self, request, photo_id):
+        photo = UnassignedPhoto.objects.filter(tenant=request.tenant, id=photo_id).first()
+        if not photo:
+            raise BusinessRuleError("NOT_FOUND", "Unassigned photo not found.", status_code=404)
+        photo.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class MenuTranslationView(APIView):
+    """Stage B2: Language registry & OWNER/BRANCH_MANAGER translation workflow."""
+
+    permission_classes = [IsAuthenticated]
+
+    def _require_owner_or_manager(self, request):
+        from apps.accounts.models import Membership
+
+        m = Membership.objects.filter(
+            tenant=request.tenant, user_id=request.user.pk, is_active=True
+        ).first()
+        if not m or m.role not in ("OWNER", "BRANCH_MANAGER"):
+            raise BusinessRuleError(
+                "PERMISSION_DENIED",
+                "Only Owners and Branch Managers can manage menu translations.",
+                status_code=403,
+            )
+
+    def get(self, request):
+        self._require_owner_or_manager(request)
+        language = str(request.query_params.get("language") or "ta")
+        status_filter = str(request.query_params.get("status") or "")
+        if language not in LANGUAGE_MAP:
+            raise BusinessRuleError(
+                "INVALID_LANGUAGE", f"Unsupported language '{language}'.", status_code=400
+            )
+
+        entries = list_translatable_entries(request.tenant, language, status_filter=status_filter)
+        provider = get_translation_provider()
+        return Response(
+            {
+                "language": language,
+                "provider_available": provider.is_automated,
+                "languages": [
+                    {
+                        "code": lang.code,
+                        "english_name": lang.english_name,
+                        "native_name": lang.native_name,
+                        "direction": lang.direction,
+                        "chrome_ready": lang.chrome_ready,
+                    }
+                    for lang in LANGUAGE_REGISTRY
+                ],
+                "entries": entries,
+            }
+        )
+
+    def post(self, request, action_name="upsert"):
+        self._require_owner_or_manager(request)
+        tenant = request.tenant
+
+        if action_name == "suggest":
+            language = str(request.data.get("language") or "ta")
+            if language not in LANGUAGE_MAP:
+                raise BusinessRuleError(
+                    "INVALID_LANGUAGE", "Unsupported language.", status_code=400
+                )
+            result = suggest_translations_batch(tenant=tenant, language=language)
+            return Response(result)
+
+        entity_type = str(request.data.get("entity_type") or "")
+        entity_id = request.data.get("entity_id")
+        language = str(request.data.get("language") or "ta")
+        field = str(request.data.get("field") or "")
+        text = str(request.data.get("text") or "")
+        original_text = str(request.data.get("original_text") or "")
+
+        if language not in LANGUAGE_MAP:
+            raise BusinessRuleError("INVALID_LANGUAGE", "Unsupported language.", status_code=400)
+
+        if action_name == "publish" and field in ("ingredients_note", "allergen_note"):
+            if not bool(request.data.get("allergen_confirmed", False)):
+                raise BusinessRuleError(
+                    "ALLERGEN_CONFIRMATION_REQUIRED",
+                    "Please confirm 'I checked this information' before publishing ingredients or allergen notes.",
+                    status_code=400,
+                )
+
+        next_status = MenuTranslation.Status.DRAFT
+        if action_name == "review":
+            next_status = MenuTranslation.Status.REVIEWED
+        elif action_name == "publish":
+            next_status = MenuTranslation.Status.PUBLISHED
+
+        tr, _created = MenuTranslation.objects.update_or_create(
+            tenant=tenant,
+            entity_type=entity_type,
+            entity_id=entity_id,
+            language=language,
+            field=field,
+            defaults={
+                "text": text,
+                "status": next_status,
+                "source": MenuTranslation.Source.MANUAL,
+                "source_hash": compute_source_hash(original_text),
+                "reviewed_by": request.user if action_name in ("review", "publish") else None,
+                "reviewed_at": timezone.now() if action_name in ("review", "publish") else None,
+            },
+        )
+        log_audit_event(
+            action=f"menu.translation.{action_name}",
+            entity_type="MenuTranslation",
+            entity_id=str(tr.id),
+            actor=request.user,
+            tenant=tenant,
+            after_state={"language": language, "field": field, "status": next_status},
+        )
+        return Response(MenuTranslationSerializer(tr).data)

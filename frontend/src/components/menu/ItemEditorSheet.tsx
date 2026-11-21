@@ -49,6 +49,8 @@ export const ItemEditorSheet: React.FC<ItemEditorSheetProps> = ({
   const [nameTa, setNameTa] = useState("");
   const [description, setDescription] = useState("");
   const [descriptionTa, setDescriptionTa] = useState("");
+  const [ingredientsNote, setIngredientsNote] = useState("");
+  const [allergenNote, setAllergenNote] = useState("");
   const [priceRupees, setPriceRupees] = useState("");
   const [foodType, setFoodType] = useState<FoodType>("VEG");
   const [prepMinutes, setPrepMinutes] = useState("");
@@ -75,6 +77,8 @@ export const ItemEditorSheet: React.FC<ItemEditorSheetProps> = ({
       setNameTa(item.name_ta || "");
       setDescription(item.description || "");
       setDescriptionTa(item.description_ta || "");
+      setIngredientsNote(item.ingredients_note || "");
+      setAllergenNote(item.allergen_note || "");
       setPriceRupees(item.base_price_paise ? String(Math.trunc(item.base_price_paise / 100)) : "");
       setFoodType(item.food_type || "VEG");
       setPrepMinutes(item.prep_minutes ? String(item.prep_minutes) : "");
@@ -189,6 +193,8 @@ export const ItemEditorSheet: React.FC<ItemEditorSheetProps> = ({
       name_ta: nameTa.trim(),
       description: description.trim(),
       description_ta: descriptionTa.trim(),
+      ingredients_note: ingredientsNote.trim(),
+      allergen_note: allergenNote.trim(),
       base_price_paise: basePaise,
       food_type: foodType,
       prep_minutes: prepMinutes ? parseInt(prepMinutes, 10) : null,
@@ -332,6 +338,24 @@ export const ItemEditorSheet: React.FC<ItemEditorSheetProps> = ({
                 placeholder="உருளைக்கிழங்கு மசாலாவுடன் கூடிய மொறுமொறுப்பான தோசை"
                 rows={2}
                 className="w-full p-2.5 rounded-md border border-input bg-background text-xs focus:outline-none focus:ring-2 focus:ring-[#FF6A00]"
+              />
+            </FormField>
+          </div>
+
+          {/* Ingredients & Allergen Notes */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <FormField label="Ingredients Note (Optional)">
+              <Input
+                value={ingredientsNote}
+                onChange={(e) => setIngredientsNote(e.target.value)}
+                placeholder="e.g. Rice, urad dal, potato, mustard seeds"
+              />
+            </FormField>
+            <FormField label="Allergen Note (Optional)">
+              <Input
+                value={allergenNote}
+                onChange={(e) => setAllergenNote(e.target.value)}
+                placeholder="e.g. Contains dairy / ghee"
               />
             </FormField>
           </div>
