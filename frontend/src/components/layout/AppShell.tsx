@@ -490,7 +490,7 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
             type="button"
             data-testid="connection-status-pill"
             onClick={() => setQueueDrawerOpen(true)}
-            className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold border transition-colors ${
+            className={`inline-flex items-center gap-1.5 px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-full text-[11px] sm:text-xs font-semibold border transition-colors whitespace-nowrap shrink-0 ${
               offlineQueue.some((q) => q.status === "CONFLICT")
                 ? "bg-rose-50 text-rose-800 border-rose-300 dark:bg-rose-950/40 dark:text-rose-300 dark:border-rose-800"
                 : !isOnline || offlineQueue.length > 0 || isSyncingQueue
@@ -499,11 +499,11 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
             }`}
           >
             {isSyncingQueue ? (
-              <RefreshCw className="h-3 w-3 animate-spin" />
+              <RefreshCw className="h-3 w-3 shrink-0 animate-spin" />
             ) : isOnline ? (
-              <Wifi className="h-3 w-3" />
+              <Wifi className="h-3 w-3 shrink-0" />
             ) : (
-              <WifiOff className="h-3 w-3" />
+              <WifiOff className="h-3 w-3 shrink-0" />
             )}
             <span>
               {offlineQueue.some((q) => q.status === "CONFLICT")
@@ -1067,24 +1067,35 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
       {/* Stage C: Offline Order Queue & Conflict Resolution Drawer */}
       <Dialog open={queueDrawerOpen} onOpenChange={setQueueDrawerOpen}>
         <DialogContent className="sm:max-w-lg">
-          <DialogHeader>
-            <DialogTitle className="flex items-center justify-between text-base">
+          <DialogHeader className="pr-7 text-left">
+            <DialogTitle className="flex flex-wrap items-center justify-between gap-2 text-sm sm:text-base font-bold text-left">
               <span className="flex items-center gap-2">
                 {isOnline ? (
-                  <Wifi className="h-4 w-4 text-emerald-600" />
+                  <Wifi className="h-4 w-4 shrink-0 text-emerald-600" />
                 ) : (
-                  <WifiOff className="h-4 w-4 text-amber-600" />
+                  <WifiOff className="h-4 w-4 shrink-0 text-amber-600" />
                 )}
-                Offline Order Queue & Sync Status
+                <span>Offline Order Queue & Sync Status</span>
               </span>
-              <Badge variant={isOnline ? "default" : "secondary"} className="text-[11px]">
+              <span
+                className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold whitespace-nowrap shrink-0 border ${
+                  isOnline
+                    ? "bg-emerald-50 text-emerald-800 border-emerald-300 dark:bg-emerald-950/50 dark:text-emerald-300 dark:border-emerald-800"
+                    : "bg-amber-50 text-amber-800 border-amber-300 dark:bg-amber-950/50 dark:text-amber-300 dark:border-amber-800"
+                }`}
+              >
+                <span
+                  className={`h-1.5 w-1.5 rounded-full ${
+                    isOnline ? "bg-emerald-500" : "bg-amber-500"
+                  }`}
+                />
                 {isOnline ? "Network Online" : "Network Offline"}
-              </Badge>
+              </span>
             </DialogTitle>
           </DialogHeader>
 
           <div className="space-y-3 text-xs">
-            <div className="flex items-center justify-between bg-muted/40 p-2.5 rounded-md border border-border">
+            <div className="flex items-center justify-between gap-3 bg-muted/40 p-2.5 rounded-md border border-border">
               <div>
                 <div className="font-semibold text-foreground">
                   {offlineQueue.length} Queued Order{offlineQueue.length === 1 ? "" : "s"}
@@ -1099,9 +1110,11 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
                 data-testid="offline-queue-sync-now"
                 disabled={isSyncingQueue || offlineQueue.length === 0}
                 onClick={() => void handleSyncOfflineQueue()}
-                className="bg-[#FF6A00] hover:bg-[#E55F00] text-[#0B1F3B] font-bold text-xs min-h-[34px] gap-1.5"
+                className="bg-[#FF6A00] hover:bg-[#E55F00] text-[#0B1F3B] font-bold text-xs min-h-[34px] gap-1.5 whitespace-nowrap shrink-0"
               >
-                <RefreshCw className={`h-3.5 w-3.5 ${isSyncingQueue ? "animate-spin" : ""}`} />
+                <RefreshCw
+                  className={`h-3.5 w-3.5 shrink-0 ${isSyncingQueue ? "animate-spin" : ""}`}
+                />
                 {isSyncingQueue ? "Syncing..." : "Sync Now"}
               </Button>
             </div>
