@@ -77,6 +77,7 @@ export interface PublicQRMenuResponse {
   payment_timing: PaymentTiming;
   session_policy: "CUSTOMER_CAN_OPEN" | "STAFF_ONLY" | string;
   active_session_open: boolean;
+  allows_service_requests?: boolean;
   categories: PublicMenuCategory[];
 }
 
@@ -91,6 +92,7 @@ export interface PublicOrderCreateItem {
 export interface PublicOrderCreatePayload {
   items: PublicOrderCreateItem[];
   notes?: string;
+  guest_label?: string;
   session_token?: string;
 }
 
@@ -156,5 +158,43 @@ export const publicQrApi = {
   trackOrder: (trackingToken: string) =>
     publicHttp.get<PublicOrderTrackerResponse>(
       `/public/orders/${encodeURIComponent(trackingToken)}/`
+    ),
+
+  reorderPreview: (
+    token: string,
+    items: Array<{ menu_item_id: string; variant_id?: string | null; quantity: number }>
+  ) =>
+    publicHttp.post<{
+      available_items: Array<{
+        menu_item_id: string;
+        variant_id: string | null;
+        name: string;
+        quantity: number;
+        unit_price_paise: number;
+      }>;
+      unavailable_items: Array<{ menu_item_id: string; name: string; reason: string }>;
+    }>(`/public/qr/${encodeURIComponent(token)}/reorder-preview/`, { items }),
+
+  submitServiceRequest: (
+    token: string,
+    requestType: "CALL_WAITER" | "WATER" | "REQUEST_BILL" | "CUTLERY"
+  ) =>
+    publicHttp.post<{ id: string; request_type: string; status: string }>(
+      `/public/qr/${encodeURIComponent(token)}/service-requests/`,
+      { request_type: requestType }
+    ),
+
+  submitFeedback: (
+    trackingToken: string,
+    payload: {
+      food_rating: number;
+      service_rating: number;
+      suggestion_type?: "TASTE" | "PORTION" | "SPEED" | "SERVICE" | "OTHER" | "";
+      comment?: string;
+    }
+  ) =>
+    publicHttp.post<{ id: string; food_rating: number; service_rating: number }>(
+      `/public/orders/${encodeURIComponent(trackingToken)}/feedback/`,
+      payload
     ),
 };

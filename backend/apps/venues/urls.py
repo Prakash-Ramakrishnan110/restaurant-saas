@@ -2,9 +2,12 @@ from django.urls import include, path
 from rest_framework.routers import DefaultRouter
 
 from apps.orders.public_views import (
+    PublicOrderFeedbackView,
     PublicOrderTrackerView,
     PublicQRMenuView,
     PublicQROrderCreateView,
+    PublicQRReorderPreviewView,
+    PublicQRServiceRequestView,
 )
 from apps.venues.views import (
     BranchCapabilitiesView,
@@ -13,6 +16,7 @@ from apps.venues.views import (
     LayoutTemplateListView,
     PublicQRDetailView,
     PublicQROpenSessionView,
+    QRCodeAnalyticsView,
     QRCodeSheetDataView,
     QRCodeViewSet,
     SectionViewSet,
@@ -42,6 +46,7 @@ urlpatterns = [
         name="layout-template-apply",
     ),
     path("qr-codes/sheet-data/", QRCodeSheetDataView.as_view(), name="qr-sheet-data"),
+    path("qr-codes/analytics/", QRCodeAnalyticsView.as_view(), name="qr-analytics"),
     path(
         "branches/<uuid:branch_id>/capabilities/",
         BranchCapabilitiesView.as_view(),
@@ -68,9 +73,24 @@ urlpatterns = [
         name="public-qr-orders",
     ),
     path(
+        "public/qr/<str:token>/reorder-preview/",
+        PublicQRReorderPreviewView.as_view(),
+        name="public-qr-reorder-preview",
+    ),
+    path(
+        "public/qr/<str:token>/service-requests/",
+        PublicQRServiceRequestView.as_view(),
+        name="public-qr-service-requests",
+    ),
+    path(
         "public/orders/<str:tracking_token>/",
         PublicOrderTrackerView.as_view(),
         name="public-order-tracker",
+    ),
+    path(
+        "public/orders/<str:tracking_token>/feedback/",
+        PublicOrderFeedbackView.as_view(),
+        name="public-order-feedback",
     ),
     path("", include(router.urls)),
 ]

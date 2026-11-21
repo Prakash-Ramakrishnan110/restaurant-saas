@@ -51,6 +51,7 @@ class ServiceRequestType(models.TextChoices):
     NAPKINS = "NAPKINS", "Extra Napkins"
     CALL_WAITER = "CALL_WAITER", "Call Waiter"
     BILL = "BILL", "Request Bill"
+    CUTLERY = "CUTLERY", "Cutlery"
 
 
 class ServiceRequestStatus(models.TextChoices):
@@ -132,6 +133,7 @@ class Order(BranchOwnedModel):
     placed_at = models.DateTimeField(default=timezone.now, db_index=True)
     ready_at = models.DateTimeField(null=True, blank=True)
     served_at = models.DateTimeField(null=True, blank=True)
+    guest_label = models.CharField(max_length=20, blank=True, default="")
     notes = models.TextField(blank=True, default="")
 
     class Meta:
@@ -572,3 +574,36 @@ class Customer(TenantOwnedModel):
 
     def __str__(self) -> str:
         return f"{self.name} ({self.phone})"
+
+
+class FeedbackSuggestionType(models.TextChoices):
+    FOOD = "FOOD", "Food"
+    SERVICE = "SERVICE", "Service"
+    CLEANLINESS = "CLEANLINESS", "Cleanliness"
+    PRICE = "PRICE", "Price"
+    OTHER = "OTHER", "Other"
+
+
+class OrderFeedback(BranchOwnedModel):
+    """Verified-order guest feedback (private to OWNER and BRANCH_MANAGER, never public)."""
+
+    order = models.OneToOneField(
+        Order,
+        on_delete=models.CASCADE,
+        related_name="feedback",
+    )
+    food_rating = models.PositiveSmallIntegerField()
+    service_rating = models.PositiveSmallIntegerField()
+    item_ratings = models.JSONField(default=dict, blank=True)
+    comment = models.TextField(blank=True, default="")
+    suggestion_type = models.CharField(
+        max_length=20,
+        choices=FeedbackSuggestionType.choices,
+        default=FeedbackSuggestionType.OTHER,
+    )
+    is_hidden = models.BooleanField(default=False)
+    is_resolved = models.BooleanField(default=False)
+    owner_note = models.TextField(blank=True, default="")
+
+    class Meta:
+        ordering = ["-created_at"]

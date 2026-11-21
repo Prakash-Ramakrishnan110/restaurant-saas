@@ -19,6 +19,7 @@ from apps.orders.models import (
     CourseType,
     Customer,
     Order,
+    OrderFeedback,
     OrderStatus,
     OrderWorkflow,
     PaymentMethod,
@@ -37,6 +38,7 @@ from apps.orders.serializers import (
     CustomerSerializer,
     InvoiceRefundSerializer,
     KDSTicketSerializer,
+    OrderFeedbackSerializer,
     OrderSerializer,
     ServiceRequestSerializer,
     SettleBillSerializer,
@@ -1206,4 +1208,91 @@ class ExportMyDataView(APIView):
 
         resp = HttpResponse(zip_buf.getvalue(), content_type="application/zip")
         resp["Content-Disposition"] = f'attachment; filename="servemyfood-export-{tenant.slug}.zip"'
+        return resp
+
+
+class OrderFeedbackViewSet(viewsets.ReadOnlyModelViewSet):
+    """Stage D3: Owner & Branch Manager private feedback inbox, moderation, and CSV export."""
+
+    serializer_class = OrderFeedbackSerializer
+    permission_classes = [IsAuthenticated]
+
+    def _require_owner_or_manager(self, request: Request) -> None:
+        m = Membership.objects.filter(
+            tenant=getattr(request, "tenant", None),
+            user_id=request.user.pk,
+            is_active=True,
+        ).first()
+        if not m or m.role not in ("OWNER", "BRANCH_MANAGER"):
+            raise PermissionDenied("Only Owners and Branch Managers can access guest feedback.")
+
+    def get_queryset(self):
+        self._require_owner_or_manager(self.request)
+        tenant = getattr(self.request, "tenant", None)
+        if not tenant:
+            return OrderFeedback.objects.none()
+        qs = OrderFeedback.objects.filter(tenant=tenant).select_related("order", "branch")
+        min_rating = self.request.query_params.get("rating")
+        if min_rating:
+            qs = qs.filter(food_rating=int(min_rating))
+        if self.request.query_params.get("unanswered") == "true":
+            qs = qs.filter(is_resolved=False)
+        return qs
+
+    @action(detail=True, methods=["post"], url_path="moderate")
+    def moderate(self, request: Request, pk: str | None = None) -> Response:
+        self._require_owner_or_manager(request)
+        fb = self.get_object()
+        if "is_hidden" in request.data:
+            fb.is_hidden = bool(request.data["is_hidden"])
+        if "is_resolved" in request.data:
+            fb.is_resolved = bool(request.data["is_resolved"])
+        if "owner_note" in request.data:
+            fb.owner_note = str(request.data["owner_note"] or "")[:500]
+        fb.save()
+        return Response(OrderFeedbackSerializer(fb).data)
+
+    @action(detail=False, methods=["get"], url_path="export-csv")
+    def export_csv(self, request: Request) -> Any:
+        import csv
+        import io
+
+        from django.http import HttpResponse
+
+        self._require_owner_or_manager(request)
+        qs = self.get_queryset()
+
+        def _safe(val: Any) -> str:
+            s = str(val or "")
+            return f"'{s}" if s[:1] in ("=", "+", "-", "@") else s
+
+        buf = io.StringIO()
+        writer = csv.writer(buf)
+        writer.writerow(
+            [
+                "Order",
+                "Branch",
+                "Food Rating",
+                "Service Rating",
+                "Type",
+                "Comment",
+                "Resolved",
+                "Created At",
+            ]
+        )
+        for fb in qs:
+            writer.writerow(
+                [
+                    _safe(fb.order.order_number),
+                    _safe(fb.branch.name),
+                    fb.food_rating,
+                    fb.service_rating,
+                    _safe(fb.suggestion_type),
+                    _safe(fb.comment),
+                    fb.is_resolved,
+                    fb.created_at.isoformat(),
+                ]
+            )
+        resp = HttpResponse(buf.getvalue(), content_type="text/csv")
+        resp["Content-Disposition"] = 'attachment; filename="guest-feedback.csv"'
         return resp

@@ -44,6 +44,16 @@ export const PublicOrderTrackerPage: React.FC = () => {
   const [error, setError] = useState<boolean>(false);
   const timerRef = useRef<number | null>(null);
 
+  const [foodRating, setFoodRating] = useState<number>(5);
+  const [serviceRating, setServiceRating] = useState<number>(5);
+  const [suggestionType, setSuggestionType] = useState<
+    "" | "TASTE" | "PORTION" | "SPEED" | "SERVICE" | "OTHER"
+  >("");
+  const [feedbackComment, setFeedbackComment] = useState<string>("");
+  const [feedbackSubmitting, setFeedbackSubmitting] = useState<boolean>(false);
+  const [feedbackSubmitted, setFeedbackSubmitted] = useState<boolean>(false);
+  const [feedbackError, setFeedbackError] = useState<string | null>(null);
+
   const copy = PUBLIC_QR_COPY[lang];
 
   // Set no-referrer and noindex meta tags for tracking privacy
@@ -302,6 +312,138 @@ export const PublicOrderTrackerPage: React.FC = () => {
                 <span>{formatRupees(order.total_paise)}</span>
               </div>
             </div>
+
+            {/* Verified Order Feedback */}
+            {(order.status === "SERVED" || order.status === "COMPLETED") && trackingToken && (
+              <div className="rounded-2xl border border-border bg-card p-5 space-y-3 shadow-sm">
+                <h2 className="text-sm font-bold text-foreground">
+                  {lang === "ta" ? "உங்கள் ஆர்டரை மதிப்பிடுங்கள்" : "Rate your order"}
+                </h2>
+                {feedbackSubmitted ? (
+                  <div className="text-sm font-semibold text-emerald-700 dark:text-emerald-300">
+                    {lang === "ta" ? "உங்கள் கருத்துக்கு நன்றி!" : "Thank you for your feedback!"}
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-xs font-semibold">
+                        {lang === "ta" ? "உணவு தரம்" : "Food rating"}
+                      </span>
+                      <div className="flex gap-1">
+                        {[1, 2, 3, 4, 5].map((n) => (
+                          <button
+                            key={n}
+                            type="button"
+                            onClick={() => setFoodRating(n)}
+                            aria-label={`Food rating ${n}`}
+                            className={`w-9 h-9 rounded-lg text-xs font-bold border ${
+                              foodRating === n
+                                ? "bg-[#FF6A00] border-[#FF6A00] text-[#0B1F3B]"
+                                : "bg-background border-border text-foreground"
+                            }`}
+                          >
+                            {n}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-xs font-semibold">
+                        {lang === "ta" ? "சேவை தரம்" : "Service rating"}
+                      </span>
+                      <div className="flex gap-1">
+                        {[1, 2, 3, 4, 5].map((n) => (
+                          <button
+                            key={n}
+                            type="button"
+                            onClick={() => setServiceRating(n)}
+                            aria-label={`Service rating ${n}`}
+                            className={`w-9 h-9 rounded-lg text-xs font-bold border ${
+                              serviceRating === n
+                                ? "bg-[#FF6A00] border-[#FF6A00] text-[#0B1F3B]"
+                                : "bg-background border-border text-foreground"
+                            }`}
+                          >
+                            {n}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                    <div>
+                      <label
+                        htmlFor="feedback-suggestion"
+                        className="block text-xs font-semibold mb-1"
+                      >
+                        {lang === "ta" ? "ஆலோசனை வகை (விருப்பம்)" : "Suggestion topic (optional)"}
+                      </label>
+                      <select
+                        id="feedback-suggestion"
+                        value={suggestionType}
+                        onChange={(e) => setSuggestionType(e.target.value as any)}
+                        className="w-full min-h-[42px] px-3 rounded-xl border border-input bg-background text-xs"
+                      >
+                        <option value="">{lang === "ta" ? "தேர்வு செய்க..." : "Select..."}</option>
+                        <option value="TASTE">{lang === "ta" ? "சுவை" : "Taste"}</option>
+                        <option value="PORTION">{lang === "ta" ? "அளவு" : "Portion"}</option>
+                        <option value="SPEED">{lang === "ta" ? "வேகம்" : "Speed"}</option>
+                        <option value="SERVICE">{lang === "ta" ? "சேவை" : "Service"}</option>
+                        <option value="OTHER">{lang === "ta" ? "மற்றவை" : "Other"}</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label
+                        htmlFor="feedback-comment"
+                        className="block text-xs font-semibold mb-1"
+                      >
+                        {lang === "ta" ? "கருத்து (விருப்பம்)" : "Comment (optional)"}
+                      </label>
+                      <textarea
+                        id="feedback-comment"
+                        rows={2}
+                        maxLength={300}
+                        value={feedbackComment}
+                        onChange={(e) => setFeedbackComment(e.target.value)}
+                        className="w-full p-2.5 rounded-xl border border-input bg-background text-xs"
+                      />
+                    </div>
+                    {feedbackError && (
+                      <div role="alert" className="text-xs font-semibold text-destructive">
+                        {feedbackError}
+                      </div>
+                    )}
+                    <button
+                      type="button"
+                      disabled={feedbackSubmitting}
+                      onClick={async () => {
+                        setFeedbackSubmitting(true);
+                        setFeedbackError(null);
+                        try {
+                          await publicQrApi.submitFeedback(trackingToken, {
+                            food_rating: foodRating,
+                            service_rating: serviceRating,
+                            suggestion_type: suggestionType,
+                            comment: feedbackComment.trim(),
+                          });
+                          setFeedbackSubmitted(true);
+                        } catch (err: any) {
+                          setFeedbackError(
+                            err?.response?.data?.detail ||
+                              (lang === "ta"
+                                ? "கருத்து அனுப்ப முடியவில்லை."
+                                : "Could not submit feedback.")
+                          );
+                        } finally {
+                          setFeedbackSubmitting(false);
+                        }
+                      }}
+                      className="w-full min-h-[48px] rounded-xl bg-[#FF6A00] hover:bg-[#E55F00] text-[#0B1F3B] font-bold text-sm disabled:opacity-50"
+                    >
+                      {lang === "ta" ? "கருத்தை அனுப்பு" : "Submit feedback"}
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
 
             {/* Actions */}
             <div className="space-y-3">

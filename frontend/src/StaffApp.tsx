@@ -155,6 +155,7 @@ const OutletComparisonPage = lazyNamed(
   "OutletComparisonPage"
 );
 const CustomersPage = lazyNamed(() => import("./pages/customers/CustomersPage"), "CustomersPage");
+const FeedbackPage = lazyNamed(() => import("./pages/customers/FeedbackPage"), "FeedbackPage");
 const RolesGuidePage = lazyNamed(() => import("./pages/team/RolesGuidePage"), "RolesGuidePage");
 const PlatformSupportPage = lazyNamed(
   () => import("./pages/admin/PlatformSupportPage"),
@@ -782,6 +783,14 @@ export const StaffApp: React.FC = () => {
                 element={
                   <ProtectedRoute>
                     <CustomersPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/customers/feedback"
+                element={
+                  <ProtectedRoute>
+                    <FeedbackPage />
                   </ProtectedRoute>
                 }
               />

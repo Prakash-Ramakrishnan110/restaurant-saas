@@ -12,6 +12,9 @@ import {
   Lock,
   Sparkles,
   Trash2,
+  Bell,
+  History,
+  RotateCcw,
 } from "lucide-react";
 import { publicQrApi, PublicQRMenuResponse, PublicMenuItem, FoodType } from "../../api/publicQr";
 import { formatRupees } from "../../utils/currency";
@@ -64,6 +67,47 @@ function readCartFromSession(token: string): StoredCart {
 function writeCartToSession(token: string, cart: StoredCart): void {
   try {
     sessionStorage.setItem(getCartStorageKey(token), JSON.stringify(cart));
+  } catch {
+    // Ignore storage quota errors
+  }
+}
+
+interface StoredOrderHistoryEntry {
+  order_number: string;
+  tracking_token: string;
+  created_at: string;
+  items: Array<{ menu_item_id: string; variant_id: string | null; quantity: number; name: string }>;
+}
+
+const HISTORY_OPTIN_KEY = "smf_qr_history_optin";
+const THIRTY_DAYS_MS = 30 * 24 * 60 * 60 * 1000;
+
+function readHistoryOptIn(): boolean {
+  try {
+    return localStorage.getItem(HISTORY_OPTIN_KEY) === "true";
+  } catch {
+    return false;
+  }
+}
+
+function readOrderHistory(token: string): StoredOrderHistoryEntry[] {
+  try {
+    const raw = localStorage.getItem(`smf_qr_history_${token}`);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return [];
+    const cutoff = Date.now() - THIRTY_DAYS_MS;
+    return parsed
+      .filter((e: any) => e && e.tracking_token && new Date(e.created_at).getTime() >= cutoff)
+      .slice(0, 10);
+  } catch {
+    return [];
+  }
+}
+
+function writeOrderHistory(token: string, entries: StoredOrderHistoryEntry[]): void {
+  try {
+    localStorage.setItem(`smf_qr_history_${token}`, JSON.stringify(entries.slice(0, 10)));
   } catch {
     // Ignore storage quota errors
   }
@@ -139,10 +183,21 @@ export const PublicQRPage: React.FC = () => {
 
   // Cart sheet & submission state
   const [cartOpen, setCartOpen] = useState<boolean>(false);
+  const [guestLabel, setGuestLabel] = useState<string>("");
   const [submitting, setSubmitting] = useState<boolean>(false);
   const [orderError, setOrderError] = useState<string | null>(null);
   const [staffRequiredBanner, setStaffRequiredBanner] = useState<boolean>(false);
   const idempotencyKeyRef = useRef<string>(generateIdempotencyKey());
+
+  // Phone-only order history (opt-in, off by default) & service requests
+  const [historyOptIn, setHistoryOptIn] = useState<boolean>(() => readHistoryOptIn());
+  const [orderHistory, setOrderHistory] = useState<StoredOrderHistoryEntry[]>(() =>
+    readOrderHistory(token)
+  );
+  const [historyOpen, setHistoryOpen] = useState<boolean>(false);
+  const [reorderNotice, setReorderNotice] = useState<string | null>(null);
+  const [serviceBanner, setServiceBanner] = useState<string | null>(null);
+  const [serviceBusy, setServiceBusy] = useState<boolean>(false);
 
   const copy = PUBLIC_QR_COPY[lang];
 
@@ -445,10 +500,28 @@ export const PublicQRPage: React.FC = () => {
         {
           items: cart.items,
           notes: cart.notes.trim().slice(0, 300),
+          ...(guestLabel.trim() ? { guest_label: guestLabel.trim().slice(0, 20) } : {}),
           ...(activeToken ? { session_token: activeToken } : {}),
         },
         idempotencyKeyRef.current
       );
+
+      if (historyOptIn) {
+        const entry: StoredOrderHistoryEntry = {
+          order_number: res.data.order_number,
+          tracking_token: res.data.tracking_token,
+          created_at: new Date().toISOString(),
+          items: cart.items.map((ci) => ({
+            menu_item_id: ci.menu_item_id,
+            variant_id: ci.variant_id,
+            quantity: ci.quantity,
+            name: itemLookup.get(ci.menu_item_id)?.name || ci.menu_item_id,
+          })),
+        };
+        const updated = [entry, ...orderHistory].slice(0, 10);
+        setOrderHistory(updated);
+        writeOrderHistory(token, updated);
+      }
 
       // Clear cart from sessionStorage and navigate to tracker
       setCart({ items: [], notes: "" });
@@ -652,6 +725,188 @@ export const PublicQRPage: React.FC = () => {
           >
             <div className="font-bold text-foreground">{copy.staffRequiredTitle}</div>
             <div className="text-muted-foreground">{copy.staffRequiredBody}</div>
+          </div>
+        )}
+
+        {/* Quick Service Requests */}
+        {menu.allows_service_requests !== false && (
+          <div className="rounded-xl border border-border bg-card p-3 space-y-2">
+            <div className="flex items-center gap-1.5 text-xs font-bold text-foreground">
+              <Bell className="h-3.5 w-3.5 text-[#FF6A00]" />
+              <span>{lang === "ta" ? "சேவை தேவைகள்" : "Need anything at your seat?"}</span>
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+              {(
+                [
+                  ["CALL_WAITER", lang === "ta" ? "பணியாளரை அழை" : "Call waiter"],
+                  ["WATER", lang === "ta" ? "தண்ணீர்" : "Water"],
+                  ["REQUEST_BILL", lang === "ta" ? "பில்" : "Request bill"],
+                  ["CUTLERY", lang === "ta" ? "கரண்டி / முட்கரண்டி" : "Cutlery"],
+                ] as const
+              ).map(([reqType, label]) => (
+                <button
+                  key={reqType}
+                  type="button"
+                  disabled={serviceBusy || isOffline}
+                  onClick={async () => {
+                    setServiceBusy(true);
+                    setServiceBanner(null);
+                    try {
+                      await publicQrApi.submitServiceRequest(token, reqType);
+                      setServiceBanner(
+                        lang === "ta"
+                          ? `கோரிக்கை அனுப்பப்பட்டது: ${label}`
+                          : `Request sent: ${label}`
+                      );
+                    } catch (err: any) {
+                      setServiceBanner(
+                        err?.response?.status === 429
+                          ? lang === "ta"
+                            ? "சிறிது நேரம் கழித்து முயற்சிக்கவும்."
+                            : "Please wait a few minutes before sending another request."
+                          : lang === "ta"
+                            ? "கோரிக்கை அனுப்ப முடியவில்லை."
+                            : "Could not send request right now."
+                      );
+                    } finally {
+                      setServiceBusy(false);
+                    }
+                  }}
+                  className="min-h-[44px] px-2.5 rounded-lg border border-border bg-background hover:bg-muted text-xs font-semibold text-foreground"
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+            {serviceBanner && (
+              <div
+                role="status"
+                className="text-xs font-semibold text-[#0B1F3B] dark:text-amber-300"
+              >
+                {serviceBanner}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Phone-only Order History */}
+        {!historyOptIn ? (
+          <div className="rounded-xl border border-border bg-card px-3.5 py-2.5 flex items-center justify-between gap-3">
+            <span className="text-xs text-muted-foreground">
+              {lang === "ta"
+                ? "இந்த தொலைபேசியில் என் ஆர்டர்களை நினைவில் வைக்கவும்"
+                : "Remember my orders on this phone (saved on this device only)"}
+            </span>
+            <button
+              type="button"
+              onClick={() => {
+                try {
+                  localStorage.setItem(HISTORY_OPTIN_KEY, "true");
+                } catch {
+                  // Ignore
+                }
+                setHistoryOptIn(true);
+              }}
+              className="min-h-[40px] px-3 rounded-lg bg-[#FF6A00] text-[#0B1F3B] text-xs font-bold shrink-0"
+            >
+              {lang === "ta" ? "நினைவில் வை" : "Enable"}
+            </button>
+          </div>
+        ) : (
+          <div className="rounded-xl border border-border bg-card px-3.5 py-2.5 space-y-2">
+            <div className="flex items-center justify-between gap-2">
+              <button
+                type="button"
+                onClick={() => setHistoryOpen((p) => !p)}
+                className="flex items-center gap-1.5 text-xs font-bold text-foreground min-h-[36px]"
+              >
+                <History className="h-4 w-4 text-[#FF6A00]" />
+                <span>
+                  {lang === "ta" ? "என் ஆர்டர்கள்" : "My orders"} ({orderHistory.length})
+                </span>
+              </button>
+              {orderHistory.length > 0 && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    try {
+                      localStorage.removeItem(`smf_qr_history_${token}`);
+                    } catch {
+                      // Ignore
+                    }
+                    setOrderHistory([]);
+                    setHistoryOpen(false);
+                  }}
+                  className="text-xs font-semibold text-destructive hover:underline min-h-[36px] px-2"
+                >
+                  {lang === "ta" ? "வரலாற்றை அழி" : "Clear history"}
+                </button>
+              )}
+            </div>
+            {historyOpen && orderHistory.length > 0 && (
+              <div className="space-y-2 pt-1 border-t border-border">
+                {orderHistory.map((h) => (
+                  <div
+                    key={h.tracking_token}
+                    className="flex items-center justify-between gap-2 text-xs py-1"
+                  >
+                    <div className="min-w-0">
+                      <div className="font-bold truncate">{h.order_number}</div>
+                      <div className="text-muted-foreground truncate">
+                        {h.items.map((i) => `${i.quantity}x ${i.name}`).join(", ")}
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={async () => {
+                        try {
+                          const res = await publicQrApi.reorderPreview(token, h.items);
+                          if (res.data.available_items.length > 0) {
+                            resetIdempotencyKey();
+                            setCart((prev) => ({
+                              ...prev,
+                              items: [
+                                ...prev.items,
+                                ...res.data.available_items.map((av) => ({
+                                  menu_item_id: av.menu_item_id,
+                                  variant_id: av.variant_id,
+                                  option_ids: [],
+                                  quantity: av.quantity,
+                                  notes: "",
+                                })),
+                              ],
+                            }));
+                            setCartOpen(true);
+                          }
+                          if (res.data.unavailable_items.length > 0) {
+                            setReorderNotice(
+                              lang === "ta"
+                                ? "சில உணவுகள் இப்போது கிடைக்கவில்லை."
+                                : `${res.data.unavailable_items.length} item(s) currently unavailable.`
+                            );
+                          }
+                        } catch {
+                          setReorderNotice(
+                            lang === "ta"
+                              ? "மீண்டும் ஆர்டர் செய்ய முடியவில்லை."
+                              : "Could not check reorder items."
+                          );
+                        }
+                      }}
+                      className="min-h-[36px] px-3 rounded-lg bg-[#FF6A00] text-[#0B1F3B] font-bold flex items-center gap-1 shrink-0"
+                    >
+                      <RotateCcw className="h-3.5 w-3.5" />
+                      <span>{lang === "ta" ? "மீண்டும் ஆர்டர்" : "Reorder"}</span>
+                    </button>
+                  </div>
+                ))}
+                {reorderNotice && (
+                  <div className="text-xs font-semibold text-amber-700 dark:text-amber-300">
+                    {reorderNotice}
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         )}
       </div>
@@ -1165,6 +1420,24 @@ export const PublicQRPage: React.FC = () => {
                   </div>
                 );
               })}
+
+              <div className="space-y-1.5 pt-2">
+                <label className="block text-sm font-bold" htmlFor="guest-label">
+                  {lang === "ta" ? "உங்கள் பெயர் (விருப்பம்)" : "Your name (optional)"}
+                </label>
+                <input
+                  id="guest-label"
+                  type="text"
+                  maxLength={20}
+                  value={guestLabel}
+                  onChange={(e) => {
+                    resetIdempotencyKey();
+                    setGuestLabel(e.target.value);
+                  }}
+                  placeholder={lang === "ta" ? "உ.ம். அருண்" : "e.g. Arun"}
+                  className="w-full min-h-[44px] px-3 rounded-xl border border-input bg-background text-sm"
+                />
+              </div>
 
               <div className="space-y-1.5 pt-2">
                 <label className="block text-sm font-bold" htmlFor="order-note">

@@ -1025,3 +1025,50 @@ class PublicQROpenSessionView(APIView):
         return Response(
             PublicQROpenSessionResponseSerializer(response_data).data, status=http_status
         )
+
+
+class QRCodeAnalyticsView(APIView):
+    """Stage D5: Privacy-safe daily QR scan counts, orders, and conversion by table and day."""
+
+    permission_classes = [IsAuthenticated, HasTenantPermission(Permission.QR_VIEW)]
+
+    def get(self, request: Request) -> Response:
+        from apps.orders.models import Order, OrderSource
+        from apps.venues.models import QRDailyScan
+
+        tenant = getattr(request, "tenant", None)
+        if not tenant:
+            return Response({"rows": []})
+
+        scans = (
+            QRDailyScan.objects.filter(tenant=tenant)
+            .select_related("qr_code", "qr_code__table", "branch")
+            .order_by("-scan_date")[:200]
+        )
+        rows = []
+        for s in scans:
+            table_label = (
+                s.qr_code.table.label
+                if s.qr_code.table
+                else (s.qr_code.service_area.name if s.qr_code.service_area else "Counter")
+            )
+            orders_count = Order.objects.filter(
+                tenant=tenant,
+                branch=s.branch,
+                source=OrderSource.QR,
+                placed_at__date=s.scan_date,
+            ).count()
+            conversion_pct = (
+                round((orders_count * 100.0) / s.scan_count, 1) if s.scan_count > 0 else 0.0
+            )
+            rows.append(
+                {
+                    "scan_date": s.scan_date.isoformat(),
+                    "branch_name": s.branch.name,
+                    "table_label": table_label,
+                    "scan_count": s.scan_count,
+                    "orders_count": orders_count,
+                    "conversion_percent": conversion_pct,
+                }
+            )
+        return Response({"rows": rows})

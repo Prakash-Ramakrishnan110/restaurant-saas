@@ -19,13 +19,25 @@ from rest_framework.views import APIView
 
 from apps.core.context import reset_current_tenant, set_current_tenant
 from apps.core.exceptions import BusinessRuleError
-from apps.menu.models import BranchItemAvailability, ItemOptionGroup, MenuCategory, MenuItem
+from apps.menu.models import (
+    BranchItemAvailability,
+    ItemOptionGroup,
+    ItemVariant,
+    MenuCategory,
+    MenuItem,
+    Option,
+)
 from apps.orders.models import (
+    FeedbackSuggestionType,
     Order,
+    OrderFeedback,
     OrderPaymentStatus,
     OrderSource,
     OrderStatus,
     OrderWorkflow,
+    ServiceRequest,
+    ServiceRequestStatus,
+    ServiceRequestType,
 )
 from apps.orders.services import create_order
 from apps.subscriptions.services import is_tenant_allowed
@@ -39,7 +51,7 @@ from apps.venues.constants import (
     SessionStatus,
     TableType,
 )
-from apps.venues.models import TableSession
+from apps.venues.models import QRDailyScan, TableSession
 from apps.venues.services import next_token, open_session
 
 DEFAULT_QR_LIMITS: dict[str, int] = {
@@ -155,6 +167,20 @@ class PublicQRMenuView(APIView):
             logo_url = business_settings.logo_url if business_settings else ""
             brand_color = business_settings.brand_primary_color if business_settings else "#FF6A00"
             target_type, target_label = _build_target_label(qr)
+
+            # Stage D5: Privacy-safe daily scan count (zero cookies, zero IP storage, zero PII)
+            from django.db.models import F
+
+            today = timezone.localdate()
+            scan_row, created_scan = QRDailyScan.objects.get_or_create(
+                tenant=tenant,
+                branch=qr.branch,
+                qr_code=qr,
+                scan_date=today,
+                defaults={"scan_count": 1},
+            )
+            if not created_scan:
+                QRDailyScan.objects.filter(pk=scan_row.pk).update(scan_count=F("scan_count") + 1)
 
             active_session = (
                 TableSession.objects.filter(table=qr.table, status=SessionStatus.OPEN).first()
@@ -581,6 +607,7 @@ class PublicQROrderCreateView(APIView):
                 initial_status = OrderStatus.PLACED
 
             tracking_token = secrets.token_urlsafe(16)
+            guest_label = str(request.data.get("guest_label") or "").strip()[:20]
 
             try:
                 with transaction.atomic():
@@ -597,6 +624,7 @@ class PublicQROrderCreateView(APIView):
                         payment_status=OrderPaymentStatus.UNPAID,
                         tracking_token=tracking_token,
                         idempotency_key=idem_key,
+                        guest_label=guest_label,
                     )
                     if order.total_paise > limits["MAX_ORDER_TOTAL_PAISE"]:
                         raise BusinessRuleError(
@@ -705,3 +733,304 @@ class PublicOrderTrackerView(APIView):
             },
             status=status.HTTP_200_OK,
         )
+
+
+class PublicQRReorderPreviewView(APIView):
+    """Stage D2: Revalidates guest phone-only order history items against current server prices & availability."""
+
+    permission_classes = [AllowAny]
+    throttle_classes = [PublicQRIPThrottle, PublicQRTokenThrottle]
+
+    def post(self, request: Request, token: str) -> Response:
+        qr = _resolve_active_qr(token)
+        tenant = qr.branch.tenant
+        ctx_token = set_current_tenant(tenant)
+        try:
+            raw_items = request.data.get("items") or []
+            if not isinstance(raw_items, list) or not raw_items:
+                raise BusinessRuleError(
+                    "EMPTY_ITEMS", "No items provided for reorder preview.", status_code=400
+                )
+
+            unavailable_ids = set(
+                BranchItemAvailability.objects.filter(
+                    branch=qr.branch, is_available=False
+                ).values_list("item_id", flat=True)
+            )
+
+            preview_lines: list[dict[str, Any]] = []
+            has_changes = False
+
+            for entry in raw_items[:20]:
+                mid = str(entry.get("menu_item_id") or "")
+                qty = max(1, min(10, int(entry.get("quantity") or 1)))
+                vid = entry.get("variant_id")
+                opt_ids = [str(o) for o in (entry.get("option_ids") or [])]
+
+                item = MenuItem.objects.filter(tenant=tenant, id=mid, is_active=True).first()
+                if not item or item.id in unavailable_ids:
+                    has_changes = True
+                    preview_lines.append(
+                        {
+                            "menu_item_id": mid,
+                            "item_name": item.name if item else "Removed Dish",
+                            "quantity": qty,
+                            "is_available": False,
+                            "reason": "SOLD_OUT_OR_REMOVED",
+                            "current_unit_price_paise": 0,
+                        }
+                    )
+                    continue
+
+                unit_price = item.base_price_paise
+                if vid:
+                    var = ItemVariant.objects.filter(item=item, id=str(vid)).first()
+                    if not var:
+                        has_changes = True
+                        preview_lines.append(
+                            {
+                                "menu_item_id": mid,
+                                "item_name": item.name,
+                                "quantity": qty,
+                                "is_available": False,
+                                "reason": "VARIANT_UNAVAILABLE",
+                                "current_unit_price_paise": 0,
+                            }
+                        )
+                        continue
+                    unit_price = var.price_paise
+
+                opts_extra = 0
+                if opt_ids:
+                    valid_opts = list(Option.objects.filter(id__in=opt_ids, is_active=True))
+                    if len(valid_opts) != len(set(opt_ids)):
+                        has_changes = True
+                    opts_extra = sum(o.price_delta_paise for o in valid_opts)
+
+                current_unit = unit_price + opts_extra
+                prev_unit = entry.get("previous_unit_price_paise")
+                price_changed = prev_unit is not None and int(prev_unit) != current_unit
+                if price_changed:
+                    has_changes = True
+
+                preview_lines.append(
+                    {
+                        "menu_item_id": str(item.id),
+                        "item_name": item.name,
+                        "variant_id": str(vid) if vid else None,
+                        "option_ids": opt_ids,
+                        "quantity": qty,
+                        "is_available": True,
+                        "price_changed": price_changed,
+                        "current_unit_price_paise": current_unit,
+                        "current_subtotal_paise": current_unit * qty,
+                    }
+                )
+
+            return Response({"has_changes": has_changes, "items": preview_lines})
+        finally:
+            reset_current_tenant(ctx_token)
+
+
+class PublicOrderFeedbackView(APIView):
+    """Stage D3: Verified-order guest feedback (private to OWNER/BRANCH_MANAGER, never public)."""
+
+    permission_classes = [AllowAny]
+    throttle_classes = [PublicOrderTrackThrottle]
+
+    def post(self, request: Request, tracking_token: str) -> Response:
+        import re
+
+        # Honeypot check
+        if request.data.get("website") or request.data.get("hp_field"):
+            raise BusinessRuleError("SPAM_DETECTED", "Invalid submission.", status_code=400)
+
+        order = (
+            Order.unscoped.select_related("branch", "tenant")
+            .filter(tracking_token=tracking_token)
+            .first()
+        )
+        if not order:
+            raise Http404("Order not found.")
+
+        if order.status not in (OrderStatus.SERVED, OrderStatus.COMPLETED):
+            raise BusinessRuleError(
+                "FEEDBACK_NOT_ELIGIBLE",
+                "Feedback can only be submitted after your order is served or completed.",
+                status_code=400,
+            )
+
+        ref_time = order.completed_at or order.served_at or order.updated_at
+        if ref_time and (timezone.now() - ref_time) > timedelta(hours=24):
+            raise BusinessRuleError(
+                "FEEDBACK_WINDOW_EXPIRED",
+                "The 24-hour feedback window for this order has closed.",
+                status_code=400,
+            )
+
+        if OrderFeedback.unscoped.filter(order=order).exists():
+            raise BusinessRuleError(
+                "FEEDBACK_ALREADY_SUBMITTED",
+                "Feedback has already been submitted for this order.",
+                status_code=400,
+            )
+
+        food_rating = int(request.data.get("food_rating", 0))
+        service_rating = int(request.data.get("service_rating", 0))
+        if not (1 <= food_rating <= 5 and 1 <= service_rating <= 5):
+            raise BusinessRuleError(
+                "INVALID_RATING",
+                "Ratings must be between 1 and 5.",
+                status_code=400,
+            )
+
+        raw_comment = str(request.data.get("comment") or "")
+        # Reject URLs/links and strip control characters
+        if re.search(r"(https?://|www\.|[a-z0-9-]+\.[a-z]{2,}/)", raw_comment, re.IGNORECASE):
+            raise BusinessRuleError(
+                "LINKS_NOT_ALLOWED",
+                "Links and URLs are not permitted in feedback comments.",
+                status_code=400,
+            )
+        clean_comment = re.sub(r"[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]", "", raw_comment).strip()[:500]
+        suggestion_type = str(request.data.get("suggestion_type") or FeedbackSuggestionType.OTHER)
+        if suggestion_type not in FeedbackSuggestionType.values:
+            suggestion_type = FeedbackSuggestionType.OTHER
+
+        ctx_token = set_current_tenant(order.tenant)
+        try:
+            fb = OrderFeedback.objects.create(
+                tenant=order.tenant,
+                branch=order.branch,
+                order=order,
+                food_rating=food_rating,
+                service_rating=service_rating,
+                item_ratings=request.data.get("item_ratings") or {},
+                comment=clean_comment,
+                suggestion_type=suggestion_type,
+            )
+            return Response(
+                {"id": str(fb.id), "status": "RECEIVED"},
+                status=status.HTTP_201_CREATED,
+            )
+        finally:
+            reset_current_tenant(ctx_token)
+
+
+class PublicQRServiceRequestView(APIView):
+    """Stage D4: Guest table service requests (Call waiter, Water, Bill, Cutlery) with anti-spam limits."""
+
+    permission_classes = [AllowAny]
+    throttle_classes = [PublicQRIPThrottle, PublicQRTokenThrottle]
+
+    def get(self, request: Request, token: str) -> Response:
+        qr = _resolve_active_qr(token)
+        if not qr.table:
+            return Response([])
+        ctx_token = set_current_tenant(qr.branch.tenant)
+        try:
+            session = TableSession.objects.filter(table=qr.table, status=SessionStatus.OPEN).first()
+            if not session:
+                return Response([])
+            reqs = ServiceRequest.objects.filter(table_session=session).order_by("-created_at")[:10]
+            status_map = {
+                ServiceRequestStatus.PENDING: "Sent",
+                ServiceRequestStatus.ACKNOWLEDGED: "On the way",
+                ServiceRequestStatus.RESOLVED: "Done",
+            }
+            return Response(
+                [
+                    {
+                        "id": str(r.id),
+                        "request_type": r.request_type,
+                        "status": r.status,
+                        "guest_status_label": status_map.get(r.status, "Sent"),
+                        "created_at": r.created_at.isoformat(),
+                    }
+                    for r in reqs
+                ]
+            )
+        finally:
+            reset_current_tenant(ctx_token)
+
+    def post(self, request: Request, token: str) -> Response:
+        qr = _resolve_active_qr(token)
+        tenant = qr.branch.tenant
+        ctx_token = set_current_tenant(tenant)
+        try:
+            capabilities = getattr(qr.branch, "capabilities", None)
+            if capabilities and (
+                not capabilities.allows_service_requests
+                or capabilities.qr_ordering_mode
+                in (QROrderingMode.DISABLED, QROrderingMode.BROWSE_ONLY)
+            ):
+                raise BusinessRuleError(
+                    "SERVICE_REQUESTS_DISABLED",
+                    "Service requests are disabled for this table.",
+                    status_code=403,
+                )
+
+            if not qr.table:
+                raise BusinessRuleError(
+                    "TABLE_REQUIRED",
+                    "Service requests are only available for table QR codes.",
+                    status_code=400,
+                )
+
+            session = TableSession.objects.filter(table=qr.table, status=SessionStatus.OPEN).first()
+            if not session:
+                raise BusinessRuleError(
+                    "SESSION_NOT_OPEN",
+                    "Table session is not open.",
+                    status_code=400,
+                )
+
+            req_type = str(request.data.get("request_type") or "")
+            if req_type not in ServiceRequestType.values:
+                raise BusinessRuleError(
+                    "INVALID_REQUEST_TYPE", "Invalid service request type.", status_code=400
+                )
+
+            # One open request per type per table
+            if ServiceRequest.objects.filter(
+                table=qr.table,
+                request_type=req_type,
+                status__in=[ServiceRequestStatus.PENDING, ServiceRequestStatus.ACKNOWLEDGED],
+            ).exists():
+                raise BusinessRuleError(
+                    "REQUEST_ALREADY_OPEN",
+                    f"A '{req_type}' request is already open for this table.",
+                    status_code=400,
+                )
+
+            # Max 3 requests per 10 minutes per table session
+            ten_mins_ago = timezone.now() - timedelta(minutes=10)
+            recent_count = ServiceRequest.objects.filter(
+                table_session=session, created_at__gte=ten_mins_ago
+            ).count()
+            if recent_count >= 3:
+                raise BusinessRuleError(
+                    "SERVICE_REQUEST_RATE_LIMIT",
+                    "Maximum 3 service requests per 10 minutes per table session.",
+                    status_code=429,
+                )
+
+            srv = ServiceRequest.objects.create(
+                tenant=tenant,
+                branch=qr.branch,
+                table=qr.table,
+                table_session=session,
+                request_type=req_type,
+                status=ServiceRequestStatus.PENDING,
+            )
+            return Response(
+                {
+                    "id": str(srv.id),
+                    "request_type": srv.request_type,
+                    "status": srv.status,
+                    "guest_status_label": "Sent",
+                },
+                status=status.HTTP_201_CREATED,
+            )
+        finally:
+            reset_current_tenant(ctx_token)

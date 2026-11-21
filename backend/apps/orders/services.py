@@ -204,6 +204,7 @@ def create_order(
     payment_status: str = OrderPaymentStatus.UNPAID,
     tracking_token: str | None = None,
     idempotency_key: str = "",
+    guest_label: str = "",
 ) -> Order:
     """Creates a production kitchen order ticket with authoritative server-side pricing."""
     if not items_data:
@@ -294,6 +295,7 @@ def create_order(
             idempotency_key=idempotency_key,
             token_number=token_number,
             placed_by=user_membership,
+            guest_label=(guest_label or "").strip()[:20],
             notes=notes or "",
         )
 

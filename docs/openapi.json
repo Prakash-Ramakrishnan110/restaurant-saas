@@ -7619,6 +7619,170 @@
                 }
             }
         },
+        "/api/v1/orders/feedback/": {
+            "get": {
+                "operationId": "orders_feedback_list",
+                "description": "Stage D3: Owner & Branch Manager private feedback inbox, moderation, and CSV export.",
+                "parameters": [
+                    {
+                        "name": "page",
+                        "required": false,
+                        "in": "query",
+                        "description": "A page number within the paginated result set.",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "page_size",
+                        "required": false,
+                        "in": "query",
+                        "description": "Number of results to return per page.",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "tags": [
+                    "orders"
+                ],
+                "security": [
+                    {
+                        "jwtAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/PaginatedOrderFeedbackList"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/v1/orders/feedback/{id}/": {
+            "get": {
+                "operationId": "orders_feedback_retrieve",
+                "description": "Stage D3: Owner & Branch Manager private feedback inbox, moderation, and CSV export.",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "orders"
+                ],
+                "security": [
+                    {
+                        "jwtAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/OrderFeedback"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/v1/orders/feedback/{id}/moderate/": {
+            "post": {
+                "operationId": "orders_feedback_moderate_create",
+                "description": "Stage D3: Owner & Branch Manager private feedback inbox, moderation, and CSV export.",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "orders"
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/OrderFeedbackRequest"
+                            }
+                        },
+                        "application/x-www-form-urlencoded": {
+                            "schema": {
+                                "$ref": "#/components/schemas/OrderFeedbackRequest"
+                            }
+                        },
+                        "multipart/form-data": {
+                            "schema": {
+                                "$ref": "#/components/schemas/OrderFeedbackRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "security": [
+                    {
+                        "jwtAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/OrderFeedback"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/v1/orders/feedback/export-csv/": {
+            "get": {
+                "operationId": "orders_feedback_export_csv_retrieve",
+                "description": "Stage D3: Owner & Branch Manager private feedback inbox, moderation, and CSV export.",
+                "tags": [
+                    "orders"
+                ],
+                "security": [
+                    {
+                        "jwtAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/OrderFeedback"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
         "/api/v1/orders/invoices/": {
             "get": {
                 "operationId": "orders_invoices_list",
@@ -8926,6 +9090,36 @@
                 }
             }
         },
+        "/api/v1/public/orders/{tracking_token}/feedback/": {
+            "post": {
+                "operationId": "public_orders_feedback_create",
+                "description": "Stage D3: Verified-order guest feedback (private to OWNER/BRANCH_MANAGER, never public).",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "tracking_token",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "public"
+                ],
+                "security": [
+                    {
+                        "jwtAuth": []
+                    },
+                    {}
+                ],
+                "responses": {
+                    "200": {
+                        "description": "No response body"
+                    }
+                }
+            }
+        },
         "/api/v1/public/qr/{token}/": {
             "get": {
                 "operationId": "public_qr_retrieve",
@@ -8997,6 +9191,94 @@
             "post": {
                 "operationId": "public_qr_orders_create",
                 "description": "Public unauthenticated endpoint to place a server-priced QR order.",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "token",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "public"
+                ],
+                "security": [
+                    {
+                        "jwtAuth": []
+                    },
+                    {}
+                ],
+                "responses": {
+                    "200": {
+                        "description": "No response body"
+                    }
+                }
+            }
+        },
+        "/api/v1/public/qr/{token}/reorder-preview/": {
+            "post": {
+                "operationId": "public_qr_reorder_preview_create",
+                "description": "Stage D2: Revalidates guest phone-only order history items against current server prices & availability.",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "token",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "public"
+                ],
+                "security": [
+                    {
+                        "jwtAuth": []
+                    },
+                    {}
+                ],
+                "responses": {
+                    "200": {
+                        "description": "No response body"
+                    }
+                }
+            }
+        },
+        "/api/v1/public/qr/{token}/service-requests/": {
+            "get": {
+                "operationId": "public_qr_service_requests_retrieve",
+                "description": "Stage D4: Guest table service requests (Call waiter, Water, Bill, Cutlery) with anti-spam limits.",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "token",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "public"
+                ],
+                "security": [
+                    {
+                        "jwtAuth": []
+                    },
+                    {}
+                ],
+                "responses": {
+                    "200": {
+                        "description": "No response body"
+                    }
+                }
+            },
+            "post": {
+                "operationId": "public_qr_service_requests_create",
+                "description": "Stage D4: Guest table service requests (Call waiter, Water, Bill, Cutlery) with anti-spam limits.",
                 "parameters": [
                     {
                         "in": "path",
@@ -9290,6 +9572,25 @@
                             }
                         },
                         "description": ""
+                    }
+                }
+            }
+        },
+        "/api/v1/qr-codes/analytics/": {
+            "get": {
+                "operationId": "qr_codes_analytics_retrieve",
+                "description": "Stage D5: Privacy-safe daily QR scan counts, orders, and conversion by table and day.",
+                "tags": [
+                    "qr-codes"
+                ],
+                "security": [
+                    {
+                        "jwtAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "No response body"
                     }
                 }
             }
@@ -15336,6 +15637,10 @@
                         "format": "date-time",
                         "nullable": true
                     },
+                    "guest_label": {
+                        "type": "string",
+                        "maxLength": 20
+                    },
                     "notes": {
                         "type": "string"
                     },
@@ -15424,6 +15729,110 @@
                         "type": "string"
                     }
                 }
+            },
+            "OrderFeedback": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "format": "uuid",
+                        "readOnly": true
+                    },
+                    "order_id": {
+                        "type": "string",
+                        "format": "uuid",
+                        "readOnly": true
+                    },
+                    "order_number": {
+                        "type": "string",
+                        "readOnly": true
+                    },
+                    "branch_id": {
+                        "type": "string",
+                        "format": "uuid",
+                        "readOnly": true
+                    },
+                    "branch_name": {
+                        "type": "string",
+                        "readOnly": true
+                    },
+                    "food_rating": {
+                        "type": "integer",
+                        "maximum": 32767,
+                        "minimum": 0
+                    },
+                    "service_rating": {
+                        "type": "integer",
+                        "maximum": 32767,
+                        "minimum": 0
+                    },
+                    "item_ratings": {},
+                    "comment": {
+                        "type": "string"
+                    },
+                    "suggestion_type": {
+                        "$ref": "#/components/schemas/SuggestionTypeEnum"
+                    },
+                    "is_hidden": {
+                        "type": "boolean"
+                    },
+                    "is_resolved": {
+                        "type": "boolean"
+                    },
+                    "owner_note": {
+                        "type": "string"
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "readOnly": true
+                    }
+                },
+                "required": [
+                    "branch_id",
+                    "branch_name",
+                    "created_at",
+                    "food_rating",
+                    "id",
+                    "order_id",
+                    "order_number",
+                    "service_rating"
+                ]
+            },
+            "OrderFeedbackRequest": {
+                "type": "object",
+                "properties": {
+                    "food_rating": {
+                        "type": "integer",
+                        "maximum": 32767,
+                        "minimum": 0
+                    },
+                    "service_rating": {
+                        "type": "integer",
+                        "maximum": 32767,
+                        "minimum": 0
+                    },
+                    "item_ratings": {},
+                    "comment": {
+                        "type": "string"
+                    },
+                    "suggestion_type": {
+                        "$ref": "#/components/schemas/SuggestionTypeEnum"
+                    },
+                    "is_hidden": {
+                        "type": "boolean"
+                    },
+                    "is_resolved": {
+                        "type": "boolean"
+                    },
+                    "owner_note": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "food_rating",
+                    "service_rating"
+                ]
             },
             "OrderItem": {
                 "type": "object",
@@ -15630,6 +16039,10 @@
                         "type": "string",
                         "format": "date-time",
                         "nullable": true
+                    },
+                    "guest_label": {
+                        "type": "string",
+                        "maxLength": 20
                     },
                     "notes": {
                         "type": "string"
@@ -16095,6 +16508,37 @@
                         "type": "array",
                         "items": {
                             "$ref": "#/components/schemas/OptionGroup"
+                        }
+                    }
+                }
+            },
+            "PaginatedOrderFeedbackList": {
+                "type": "object",
+                "required": [
+                    "count",
+                    "results"
+                ],
+                "properties": {
+                    "count": {
+                        "type": "integer",
+                        "example": 123
+                    },
+                    "next": {
+                        "type": "string",
+                        "nullable": true,
+                        "format": "uri",
+                        "example": "http://api.example.org/accounts/?page=4"
+                    },
+                    "previous": {
+                        "type": "string",
+                        "nullable": true,
+                        "format": "uri",
+                        "example": "http://api.example.org/accounts/?page=2"
+                    },
+                    "results": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/OrderFeedback"
                         }
                     }
                 }
@@ -17236,6 +17680,10 @@
                         "type": "string",
                         "format": "date-time",
                         "nullable": true
+                    },
+                    "guest_label": {
+                        "type": "string",
+                        "maxLength": 20
                     },
                     "notes": {
                         "type": "string"
@@ -18528,10 +18976,11 @@
                     "WATER",
                     "NAPKINS",
                     "CALL_WAITER",
-                    "BILL"
+                    "BILL",
+                    "CUTLERY"
                 ],
                 "type": "string",
-                "description": "* `WATER` - Water\n* `NAPKINS` - Extra Napkins\n* `CALL_WAITER` - Call Waiter\n* `BILL` - Request Bill"
+                "description": "* `WATER` - Water\n* `NAPKINS` - Extra Napkins\n* `CALL_WAITER` - Call Waiter\n* `BILL` - Request Bill\n* `CUTLERY` - Cutlery"
             },
             "RestockActionEnum": {
                 "enum": [
@@ -19639,6 +20088,17 @@
                 ],
                 "type": "string",
                 "description": "* `DRAFT` - Draft\n* `APPROVED` - Approved\n* `COMPLETED` - Completed\n* `CANCELLED` - Cancelled"
+            },
+            "SuggestionTypeEnum": {
+                "enum": [
+                    "FOOD",
+                    "SERVICE",
+                    "CLEANLINESS",
+                    "PRICE",
+                    "OTHER"
+                ],
+                "type": "string",
+                "description": "* `FOOD` - Food\n* `SERVICE` - Service\n* `CLEANLINESS` - Cleanliness\n* `PRICE` - Price\n* `OTHER` - Other"
             },
             "Supplier": {
                 "type": "object",

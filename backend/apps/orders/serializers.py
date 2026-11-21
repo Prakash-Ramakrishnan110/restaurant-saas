@@ -11,6 +11,7 @@ from apps.orders.models import (
     InvoiceRefund,
     Order,
     OrderEvent,
+    OrderFeedback,
     OrderItem,
     OrderWorkflow,
     PaymentMethod,
@@ -90,6 +91,7 @@ class OrderSerializer(serializers.ModelSerializer[Order]):
             "served_at",
             "completed_at",
             "cancelled_at",
+            "guest_label",
             "notes",
             "items",
             "events",
@@ -397,3 +399,28 @@ class CustomerSerializer(serializers.ModelSerializer[Customer]):
             "lifetime_points_redeemed",
             "created_at",
         ]
+
+
+class OrderFeedbackSerializer(serializers.ModelSerializer[OrderFeedback]):
+    order_number = serializers.CharField(source="order.order_number", read_only=True)
+    branch_name = serializers.CharField(source="branch.name", read_only=True)
+
+    class Meta:
+        model = OrderFeedback
+        fields = [
+            "id",
+            "order_id",
+            "order_number",
+            "branch_id",
+            "branch_name",
+            "food_rating",
+            "service_rating",
+            "item_ratings",
+            "comment",
+            "suggestion_type",
+            "is_hidden",
+            "is_resolved",
+            "owner_note",
+            "created_at",
+        ]
+        read_only_fields = ["id", "order_id", "branch_id", "created_at"]

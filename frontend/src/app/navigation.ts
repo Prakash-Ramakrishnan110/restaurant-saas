@@ -31,6 +31,7 @@ import {
   Settings2,
   Building2,
   Globe,
+  MessageSquare,
 } from "lucide-react";
 
 export interface NavItem {
@@ -199,6 +200,12 @@ export function getNavigationGroups(ctx: NavigationContext): NavGroup[] {
       path: "/menu/availability",
       icon: Clock,
       permission: "menu.availability",
+    },
+    {
+      label: "Feedback",
+      path: "/customers/feedback",
+      icon: MessageSquare,
+      permission: "business.view",
     },
   ];
 

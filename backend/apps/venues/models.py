@@ -39,6 +39,7 @@ class BranchCapabilities(TenantOwnedModel):
     has_seat_ordering = models.BooleanField(default=False)
     supports_courses = models.BooleanField(default=False)
     allows_table_transfer = models.BooleanField(default=True)
+    allows_service_requests = models.BooleanField(default=True)
 
     payment_timing = models.CharField(
         max_length=20,
@@ -351,6 +352,27 @@ class QRCode(BranchOwnedModel):
 
     def __str__(self) -> str:
         return f"QR [{self.public_token[:8]}...] ({self.target_type})"
+
+
+class QRDailyScan(BranchOwnedModel):
+    """Privacy-safe daily QR scan counter (no cookies, no IP storage, no personal data)."""
+
+    qr_code = models.ForeignKey(
+        QRCode,
+        on_delete=models.CASCADE,
+        related_name="daily_scans",
+    )
+    scan_date = models.DateField(db_index=True)
+    scan_count = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        ordering = ["-scan_date"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["qr_code", "scan_date"],
+                name="unique_qr_daily_scan_date",
+            )
+        ]
 
 
 class TokenCounter(BranchOwnedModel):

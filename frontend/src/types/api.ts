@@ -1801,6 +1801,74 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/orders/feedback/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description Stage D3: Owner & Branch Manager private feedback inbox, moderation, and CSV export. */
+        get: operations["orders_feedback_list"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/orders/feedback/{id}/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description Stage D3: Owner & Branch Manager private feedback inbox, moderation, and CSV export. */
+        get: operations["orders_feedback_retrieve"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/orders/feedback/{id}/moderate/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** @description Stage D3: Owner & Branch Manager private feedback inbox, moderation, and CSV export. */
+        post: operations["orders_feedback_moderate_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/orders/feedback/export-csv/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description Stage D3: Owner & Branch Manager private feedback inbox, moderation, and CSV export. */
+        get: operations["orders_feedback_export_csv_retrieve"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/orders/invoices/": {
         parameters: {
             query?: never;
@@ -2196,6 +2264,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/public/orders/{tracking_token}/feedback/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** @description Stage D3: Verified-order guest feedback (private to OWNER/BRANCH_MANAGER, never public). */
+        post: operations["public_orders_feedback_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/public/qr/{token}/": {
         parameters: {
             query?: never;
@@ -2241,6 +2326,41 @@ export interface paths {
         put?: never;
         /** @description Public unauthenticated endpoint to place a server-priced QR order. */
         post: operations["public_qr_orders_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/public/qr/{token}/reorder-preview/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** @description Stage D2: Revalidates guest phone-only order history items against current server prices & availability. */
+        post: operations["public_qr_reorder_preview_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/public/qr/{token}/service-requests/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description Stage D4: Guest table service requests (Call waiter, Water, Bill, Cutlery) with anti-spam limits. */
+        get: operations["public_qr_service_requests_retrieve"];
+        put?: never;
+        /** @description Stage D4: Guest table service requests (Call waiter, Water, Bill, Cutlery) with anti-spam limits. */
+        post: operations["public_qr_service_requests_create"];
         delete?: never;
         options?: never;
         head?: never;
@@ -2327,6 +2447,23 @@ export interface paths {
         put?: never;
         /** @description Staff management of cryptographic QR tokens. */
         post: operations["qr_codes_rotate_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/qr-codes/analytics/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description Stage D5: Privacy-safe daily QR scan counts, orders, and conversion by table and day. */
+        get: operations["qr_codes_analytics_retrieve"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -4291,6 +4428,7 @@ export interface components {
             completed_at?: string | null;
             /** Format: date-time */
             cancelled_at?: string | null;
+            guest_label?: string;
             notes?: string;
             readonly items: components["schemas"]["OrderItem"][];
             readonly events: components["schemas"]["OrderEvent"][];
@@ -4312,6 +4450,36 @@ export interface components {
             from_status?: string;
             to_status?: string;
             notes?: string;
+        };
+        OrderFeedback: {
+            /** Format: uuid */
+            readonly id: string;
+            /** Format: uuid */
+            readonly order_id: string;
+            readonly order_number: string;
+            /** Format: uuid */
+            readonly branch_id: string;
+            readonly branch_name: string;
+            food_rating: number;
+            service_rating: number;
+            item_ratings?: unknown;
+            comment?: string;
+            suggestion_type?: components["schemas"]["SuggestionTypeEnum"];
+            is_hidden?: boolean;
+            is_resolved?: boolean;
+            owner_note?: string;
+            /** Format: date-time */
+            readonly created_at: string;
+        };
+        OrderFeedbackRequest: {
+            food_rating: number;
+            service_rating: number;
+            item_ratings?: unknown;
+            comment?: string;
+            suggestion_type?: components["schemas"]["SuggestionTypeEnum"];
+            is_hidden?: boolean;
+            is_resolved?: boolean;
+            owner_note?: string;
         };
         OrderItem: {
             /** Format: uuid */
@@ -4395,6 +4563,7 @@ export interface components {
             completed_at?: string | null;
             /** Format: date-time */
             cancelled_at?: string | null;
+            guest_label?: string;
             notes?: string;
         };
         /**
@@ -4629,6 +4798,21 @@ export interface components {
              */
             previous?: string | null;
             results: components["schemas"]["OptionGroup"][];
+        };
+        PaginatedOrderFeedbackList: {
+            /** @example 123 */
+            count: number;
+            /**
+             * Format: uri
+             * @example http://api.example.org/accounts/?page=4
+             */
+            next?: string | null;
+            /**
+             * Format: uri
+             * @example http://api.example.org/accounts/?page=2
+             */
+            previous?: string | null;
+            results: components["schemas"]["OrderFeedback"][];
         };
         PaginatedOrderList: {
             /** @example 123 */
@@ -5096,6 +5280,7 @@ export interface components {
             completed_at?: string | null;
             /** Format: date-time */
             cancelled_at?: string | null;
+            guest_label?: string;
             notes?: string;
         };
         PatchedPlatformAnnouncementRequest: {
@@ -5557,9 +5742,10 @@ export interface components {
          *     * `NAPKINS` - Extra Napkins
          *     * `CALL_WAITER` - Call Waiter
          *     * `BILL` - Request Bill
+         *     * `CUTLERY` - Cutlery
          * @enum {string}
          */
-        RequestTypeEnum: "WATER" | "NAPKINS" | "CALL_WAITER" | "BILL";
+        RequestTypeEnum: "WATER" | "NAPKINS" | "CALL_WAITER" | "BILL" | "CUTLERY";
         /**
          * @description * `NONE` - No Stock Action
          *     * `RESTOCK` - Return to Stock
@@ -5962,6 +6148,15 @@ export interface components {
          * @enum {string}
          */
         StockTransferStatusEnum: "DRAFT" | "APPROVED" | "COMPLETED" | "CANCELLED";
+        /**
+         * @description * `FOOD` - Food
+         *     * `SERVICE` - Service
+         *     * `CLEANLINESS` - Cleanliness
+         *     * `PRICE` - Price
+         *     * `OTHER` - Other
+         * @enum {string}
+         */
+        SuggestionTypeEnum: "FOOD" | "SERVICE" | "CLEANLINESS" | "PRICE" | "OTHER";
         /** @description Omits all cost/value/margin fields completely when caller lacks inventory.costs. */
         Supplier: {
             /** Format: uuid */
@@ -10638,6 +10833,97 @@ export interface operations {
             };
         };
     };
+    orders_feedback_list: {
+        parameters: {
+            query?: {
+                /** @description A page number within the paginated result set. */
+                page?: number;
+                /** @description Number of results to return per page. */
+                page_size?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaginatedOrderFeedbackList"];
+                };
+            };
+        };
+    };
+    orders_feedback_retrieve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OrderFeedback"];
+                };
+            };
+        };
+    };
+    orders_feedback_moderate_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["OrderFeedbackRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["OrderFeedbackRequest"];
+                "multipart/form-data": components["schemas"]["OrderFeedbackRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OrderFeedback"];
+                };
+            };
+        };
+    };
+    orders_feedback_export_csv_retrieve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OrderFeedback"];
+                };
+            };
+        };
+    };
     orders_invoices_list: {
         parameters: {
             query?: {
@@ -11376,6 +11662,26 @@ export interface operations {
             };
         };
     };
+    public_orders_feedback_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                tracking_token: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No response body */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     public_qr_retrieve: {
         parameters: {
             query?: never;
@@ -11418,6 +11724,66 @@ export interface operations {
         };
     };
     public_qr_orders_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                token: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No response body */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    public_qr_reorder_preview_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                token: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No response body */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    public_qr_service_requests_retrieve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                token: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No response body */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    public_qr_service_requests_create: {
         parameters: {
             query?: never;
             header?: never;
@@ -11583,6 +11949,24 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["QRCode"];
                 };
+            };
+        };
+    };
+    qr_codes_analytics_retrieve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No response body */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };

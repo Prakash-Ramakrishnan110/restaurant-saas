@@ -6,6 +6,7 @@ from apps.orders.views import (
     CustomerViewSet,
     InvoiceViewSet,
     KDSViewSet,
+    OrderFeedbackViewSet,
     OrderViewSet,
     ServiceRequestViewSet,
     ShiftCloseoutViewSet,
@@ -14,6 +15,7 @@ from apps.orders.views import (
 router = DefaultRouter()
 router.register(r"kds", KDSViewSet, basename="kds")
 router.register(r"service-requests", ServiceRequestViewSet, basename="service-requests")
+router.register(r"feedback", OrderFeedbackViewSet, basename="order-feedback")
 router.register(r"customers", CustomerViewSet, basename="customers")
 router.register(r"billing", BillingViewSet, basename="billing")
 router.register(r"invoices", InvoiceViewSet, basename="invoices")
