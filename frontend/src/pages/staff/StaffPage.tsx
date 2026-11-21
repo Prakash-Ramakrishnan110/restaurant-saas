@@ -10,6 +10,7 @@ import {
   Copy,
   Power,
   Trash2,
+  LayoutGrid,
 } from "lucide-react";
 import { PageHeader } from "../../components/app/PageHeader";
 import { Card, CardContent } from "../../components/ui/card";
@@ -51,6 +52,9 @@ export const StaffPage: React.FC = () => {
 
   const [staffList, setStaffList] = useState<StaffMembership[]>([]);
   const [branches, setBranches] = useState<any[]>([]);
+  const [sections, setSections] = useState<any[]>([]);
+  const [assignments, setAssignments] = useState<any[]>([]);
+  const [assignTarget, setAssignTarget] = useState<StaffMembership | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
@@ -97,13 +101,17 @@ export const StaffPage: React.FC = () => {
       if (statusFilter) queryParams.is_active = statusFilter;
       if (branchFilter) queryParams.branch = branchFilter;
 
-      const [staffRes, branchRes] = await Promise.all([
+      const [staffRes, branchRes, secRes, assignRes] = await Promise.all([
         apiClient.get<any>("/staff/", { params: queryParams }),
         apiClient.get<any>("/branches/"),
+        apiClient.get<any>("/sections/").catch(() => ({ data: [] })),
+        apiClient.get<any>("/staff-assignments/").catch(() => ({ data: [] })),
       ]);
 
       setStaffList(staffRes.data?.results || staffRes.data || []);
       setBranches(branchRes.data?.results || branchRes.data || []);
+      setSections(secRes.data?.results || secRes.data || []);
+      setAssignments(assignRes.data?.results || assignRes.data || []);
     } catch (err: any) {
       setErrorMessage(mapBackendErrorCode(err));
     } finally {
@@ -387,7 +395,24 @@ export const StaffPage: React.FC = () => {
                     </span>
                   </td>
                   <td className="p-3.5 text-muted-foreground">
-                    {staff.branches.map((b) => b.name).join(", ") || "All Branches"}
+                    <div>{staff.branches.map((b) => b.name).join(", ") || "All Branches"}</div>
+                    {assignments.filter((a) => a.membership === staff.id).length > 0 && (
+                      <div className="flex flex-wrap gap-1 mt-1">
+                        {assignments
+                          .filter((a) => a.membership === staff.id)
+                          .map((a) => {
+                            const sec = sections.find((s) => s.id === a.section);
+                            return (
+                              <span
+                                key={a.id}
+                                className="px-1.5 py-0.5 rounded bg-[#FF6A00]/15 text-[#0B1F3B] dark:text-amber-200 text-[10px] font-semibold"
+                              >
+                                {sec?.name || "Section"}
+                              </span>
+                            );
+                          })}
+                      </div>
+                    )}
                   </td>
                   <td className="p-3.5">
                     <span
@@ -403,6 +428,16 @@ export const StaffPage: React.FC = () => {
                   <td className="p-3.5 text-right">
                     {canManage && (
                       <div className="flex items-center justify-end gap-1.5">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setAssignTarget(staff)}
+                          className="h-8 px-2 text-xs font-semibold"
+                          title="Assign dining sections"
+                        >
+                          <LayoutGrid className="w-3.5 h-3.5 mr-1" />
+                          Sections
+                        </Button>
                         <Button
                           variant="outline"
                           size="sm"
@@ -716,6 +751,71 @@ export const StaffPage: React.FC = () => {
         isLoading={actionLoading}
         onConfirm={handleDeleteStaff}
       />
+
+      {/* Assign Sections Dialog */}
+      <Dialog open={Boolean(assignTarget)} onOpenChange={(open) => !open && setAssignTarget(null)}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>
+              Assign Sections — {assignTarget?.user.full_name || "Staff"}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-2 py-2 max-h-72 overflow-y-auto">
+            {sections.filter((s) => s.is_active !== false).length === 0 ? (
+              <p className="text-xs text-muted-foreground">
+                No active dining sections found. Create sections under Venue Layout first.
+              </p>
+            ) : (
+              sections
+                .filter((s) => s.is_active !== false)
+                .map((sec) => {
+                  const existing = assignments.find(
+                    (a) => a.membership === assignTarget?.id && a.section === sec.id
+                  );
+                  return (
+                    <label
+                      key={sec.id}
+                      className="flex items-center justify-between p-3 rounded-lg border border-border bg-card hover:bg-muted/40 cursor-pointer text-xs"
+                    >
+                      <span className="font-semibold text-foreground">{sec.name}</span>
+                      <input
+                        type="checkbox"
+                        checked={Boolean(existing)}
+                        disabled={actionLoading}
+                        onChange={async () => {
+                          if (!assignTarget) return;
+                          setActionLoading(true);
+                          try {
+                            if (existing) {
+                              await apiClient.delete(`/staff-assignments/${existing.id}/`);
+                            } else {
+                              await apiClient.post("/staff-assignments/", {
+                                branch: sec.branch,
+                                membership: assignTarget.id,
+                                section: sec.id,
+                              });
+                            }
+                            await fetchStaff();
+                          } catch (err: any) {
+                            setErrorMessage(mapBackendErrorCode(err));
+                          } finally {
+                            setActionLoading(false);
+                          }
+                        }}
+                        className="h-4 w-4 accent-[#FF6A00]"
+                      />
+                    </label>
+                  );
+                })
+            )}
+          </div>
+          <DialogFooter>
+            <Button type="button" variant="outline" onClick={() => setAssignTarget(null)}>
+              Done
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

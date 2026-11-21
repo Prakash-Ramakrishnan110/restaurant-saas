@@ -66,7 +66,7 @@ interface CartItem extends OrderItemPayload {
 export const FloorPOSPage: React.FC = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { activeTenant } = useAuth();
+  const { activeTenant, user } = useAuth();
 
   const usesTables = useMemo(() => {
     const tenant = activeTenant as
@@ -87,6 +87,8 @@ export const FloorPOSPage: React.FC = () => {
 
   // Data states
   const [tables, setTables] = useState<DiningTableItem[]>([]);
+  const [mySectionIds, setMySectionIds] = useState<string[]>([]);
+  const [tableScope, setTableScope] = useState<"MINE" | "ALL">("MINE");
   const [categories, setCategories] = useState<any[]>([]);
   const [menuItems, setMenuItems] = useState<MenuItemData[]>([]);
   const [availabilityMap, setAvailabilityMap] = useState<Record<string, boolean>>({});
@@ -152,17 +154,27 @@ export const FloorPOSPage: React.FC = () => {
       const canCheckAvailability = ["OWNER", "MANAGER", "KITCHEN"].includes(
         (activeTenant.role || "").toUpperCase()
       );
-      const [tblData, catRes, itemRes, sessRes, srvRes, availRes, ordRes] = await Promise.all([
-        tblPromise,
-        apiClient.get<any>("/menu/categories/"),
-        apiClient.get<any>("/menu/items/"),
-        apiClient.get<any>("/sessions/").catch(() => ({ data: [] })),
-        ordersApi.getServiceRequests("PENDING").catch(() => ({ data: [] })),
-        canCheckAvailability
-          ? apiClient.get<any>("/menu/availability/").catch(() => ({ data: [] }))
-          : Promise.resolve({ data: [] }),
-        ordersApi.getOrders().catch(() => ({ data: [] })),
-      ]);
+      const [tblData, catRes, itemRes, sessRes, srvRes, availRes, ordRes, assignRes] =
+        await Promise.all([
+          tblPromise,
+          apiClient.get<any>("/menu/categories/"),
+          apiClient.get<any>("/menu/items/"),
+          apiClient.get<any>("/sessions/").catch(() => ({ data: [] })),
+          ordersApi.getServiceRequests("PENDING").catch(() => ({ data: [] })),
+          canCheckAvailability
+            ? apiClient.get<any>("/menu/availability/").catch(() => ({ data: [] }))
+            : Promise.resolve({ data: [] }),
+          ordersApi.getOrders().catch(() => ({ data: [] })),
+          apiClient.get<any>("/staff-assignments/").catch(() => ({ data: [] })),
+        ]);
+      const assigns = assignRes.data?.results || assignRes.data || [];
+      if (Array.isArray(assigns) && user?.email) {
+        setMySectionIds(
+          assigns
+            .filter((a: any) => a.user_email === user.email)
+            .map((a: any) => String(a.section))
+        );
+      }
 
       const sessData = sessRes.data?.results || sessRes.data || [];
       const rawOrd = ordRes.data as { results?: any[] } | any[];
@@ -502,8 +514,38 @@ export const FloorPOSPage: React.FC = () => {
           </div>
 
           {usesTables ? (
-            <div className="flex-1 overflow-y-auto pt-3 grid grid-cols-2 content-start auto-rows-max gap-2.5 pr-1">
-              {tables.map((tbl) => {
+            <div className="flex-1 flex flex-col overflow-hidden">
+              {mySectionIds.length > 0 && (
+                <div className="flex items-center gap-1 pt-2">
+                  <button
+                    type="button"
+                    onClick={() => setTableScope("MINE")}
+                    className={`flex-1 py-1 rounded text-xs font-semibold min-h-[30px] border ${
+                      tableScope === "MINE"
+                        ? "bg-[#FF6A00] text-[#0B1F3B] border-[#FF6A00]"
+                        : "bg-card text-muted-foreground border-border"
+                    }`}
+                  >
+                    My Sections
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setTableScope("ALL")}
+                    className={`flex-1 py-1 rounded text-xs font-semibold min-h-[30px] border ${
+                      tableScope === "ALL"
+                        ? "bg-[#FF6A00] text-[#0B1F3B] border-[#FF6A00]"
+                        : "bg-card text-muted-foreground border-border"
+                    }`}
+                  >
+                    All Tables
+                  </button>
+                </div>
+              )}
+              <div className="flex-1 overflow-y-auto pt-3 grid grid-cols-2 content-start auto-rows-max gap-2.5 pr-1">
+              {(mySectionIds.length > 0 && tableScope === "MINE"
+                ? tables.filter((t: any) => !t.section || mySectionIds.includes(String(t.section)))
+                : tables
+              ).map((tbl) => {
                 const isSelected = selectedTable?.id === tbl.id;
                 const hasOpenSession = Boolean(
                   activeSessions.find((s: any) => {
@@ -549,6 +591,7 @@ export const FloorPOSPage: React.FC = () => {
                   </button>
                 );
               })}
+              </div>
             </div>
           ) : (
             <div className="flex-1 flex flex-col gap-4 pt-4">

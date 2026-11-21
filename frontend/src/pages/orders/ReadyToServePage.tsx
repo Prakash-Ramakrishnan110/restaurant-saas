@@ -1,20 +1,45 @@
 import React, { useState, useEffect } from "react";
 import { CheckCircle2, RefreshCw, Utensils, Zap, Clock } from "lucide-react";
 import { ordersApi, Order } from "../../api/orders";
+import { apiClient } from "../../api/client";
+import { useAuth } from "../../context/AuthContext";
 import { unwrapList } from "../../api/pagination";
 import { Button } from "../../components/ui/button";
 import { Card, CardContent } from "../../components/ui/card";
 
 export const ReadyToServePage: React.FC = () => {
+  const { user } = useAuth();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [servingId, setServingId] = useState<string | null>(null);
+  const [mySectionIds, setMySectionIds] = useState<string[]>([]);
+  const [tableSectionMap, setTableSectionMap] = useState<Record<string, string>>({});
+  const [sectionScope, setSectionScope] = useState<"MINE" | "ALL">("MINE");
 
   const fetchReadyOrders = async () => {
     try {
       setLoading(true);
-      const res = await ordersApi.getOrders({ status: "READY" });
+      const [res, assignRes, tblRes] = await Promise.all([
+        ordersApi.getOrders({ status: "READY" }),
+        apiClient.get<any>("/staff-assignments/").catch(() => ({ data: [] })),
+        apiClient.get<any>("/tables/").catch(() => ({ data: [] })),
+      ]);
       setOrders(unwrapList<Order>(res.data));
+      const assigns = assignRes.data?.results || assignRes.data || [];
+      const mine = Array.isArray(assigns)
+        ? assigns
+            .filter((a: any) => user?.email && a.user_email === user.email)
+            .map((a: any) => String(a.section))
+        : [];
+      setMySectionIds(mine);
+      const tbls = tblRes.data?.results || tblRes.data || [];
+      if (Array.isArray(tbls)) {
+        const map: Record<string, string> = {};
+        tbls.forEach((t: any) => {
+          if (t.label && t.section) map[String(t.label)] = String(t.section);
+        });
+        setTableSectionMap(map);
+      }
     } catch (err) {
       console.error("Failed to fetch ready orders", err);
     } finally {
@@ -41,7 +66,16 @@ export const ReadyToServePage: React.FC = () => {
     }
   };
 
-  const orderList = Array.isArray(orders) ? orders : [];
+  const allReadyOrders = Array.isArray(orders) ? orders : [];
+  const hasAssignments = mySectionIds.length > 0;
+  const orderList =
+    hasAssignments && sectionScope === "MINE"
+      ? allReadyOrders.filter((o) => {
+          if (!o.table_number) return true;
+          const secId = tableSectionMap[o.table_number];
+          return !secId || mySectionIds.includes(secId);
+        })
+      : allReadyOrders;
 
   return (
     <div className="space-y-6 max-w-5xl mx-auto">
@@ -64,16 +98,44 @@ export const ReadyToServePage: React.FC = () => {
           </p>
         </div>
 
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={fetchReadyOrders}
-          disabled={loading}
-          className="min-h-[44px] text-xs font-semibold self-start sm:self-auto"
-        >
-          <RefreshCw className={`h-4 w-4 mr-1.5 ${loading ? "animate-spin" : ""}`} />
-          Refresh Queue
-        </Button>
+        <div className="flex items-center gap-2 self-start sm:self-auto">
+          {hasAssignments && (
+            <div className="flex items-center gap-1 rounded-md border border-input bg-card p-1">
+              <button
+                type="button"
+                onClick={() => setSectionScope("MINE")}
+                className={`px-2.5 py-1 rounded text-xs font-semibold min-h-[32px] ${
+                  sectionScope === "MINE"
+                    ? "bg-[#FF6A00] text-[#0B1F3B]"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                My Sections
+              </button>
+              <button
+                type="button"
+                onClick={() => setSectionScope("ALL")}
+                className={`px-2.5 py-1 rounded text-xs font-semibold min-h-[32px] ${
+                  sectionScope === "ALL"
+                    ? "bg-[#FF6A00] text-[#0B1F3B]"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                All Sections
+              </button>
+            </div>
+          )}
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={fetchReadyOrders}
+            disabled={loading}
+            className="min-h-[44px] text-xs font-semibold"
+          >
+            <RefreshCw className={`h-4 w-4 mr-1.5 ${loading ? "animate-spin" : ""}`} />
+            Refresh Queue
+          </Button>
+        </div>
       </div>
 
       {/* Main Pickup Queue */}
