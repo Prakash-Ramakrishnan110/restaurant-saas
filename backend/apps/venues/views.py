@@ -590,11 +590,21 @@ class StaffSectionAssignmentViewSet(
 
     def get_permissions(self) -> list[Any]:
         if self.action in ("list", "retrieve"):
-            return [IsAuthenticated(), HasTenantPermission(Permission.STAFF_VIEW)()]
+            return [IsAuthenticated()]
         return [IsAuthenticated(), HasTenantPermission(Permission.TABLE_ASSIGN)()]
 
     def get_queryset(self) -> Any:
-        return StaffSectionAssignment.objects.all().select_related("membership__user", "section")
+        qs = StaffSectionAssignment.objects.all().select_related("membership__user", "section")
+        tenant = getattr(self.request, "tenant", None)
+        user = self.request.user
+        if tenant and user.is_authenticated:
+            from apps.accounts.models import Membership
+            from apps.accounts.permissions import has_permission
+
+            membership = Membership.objects.filter(user=user, tenant=tenant, is_active=True).first()
+            if membership and not has_permission(membership.role, Permission.STAFF_VIEW):
+                qs = qs.filter(membership=membership)
+        return qs
 
     def perform_create(self, serializer: Any) -> None:
         tenant = getattr(self.request, "tenant", None)
