@@ -11,6 +11,7 @@ import {
   Ban,
   Banknote,
   Printer,
+  Download,
 } from "lucide-react";
 import { publicQrApi, PublicOrderTrackerResponse } from "../../api/publicQr";
 import { formatRupees } from "../../utils/currency";
@@ -305,16 +306,58 @@ export const PublicOrderTrackerPage: React.FC = () => {
                   </div>
                 </div>
               )}
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between gap-2 flex-wrap">
                 <h2 className="text-sm font-bold text-foreground">{copy.itemsOrdered}</h2>
-                <button
-                  type="button"
-                  onClick={() => window.print()}
-                  className="print:hidden min-h-[36px] px-3 rounded-lg border border-border bg-background hover:bg-muted text-xs font-bold flex items-center gap-1.5"
-                >
-                  <Printer className="h-3.5 w-3.5" />
-                  <span>{lang === "ta" ? "பில் பதிவிறக்க" : "Save / Print Bill"}</span>
-                </button>
+                <div className="print:hidden flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const esc = (s: string) =>
+                        s.replace(
+                          /[&<>"']/g,
+                          (c) =>
+                            ({
+                              "&": "&amp;",
+                              "<": "&lt;",
+                              ">": "&gt;",
+                              '"': "&quot;",
+                              "'": "&#39;",
+                            })[c] || c
+                        );
+                      const rowsHtml = order.items
+                        .map(
+                          (it) =>
+                            `<tr><td>${it.quantity} x ${esc(it.item_name)}${it.variant_name ? ` (${esc(it.variant_name)})` : ""}</td><td style="text-align:right">${esc(formatRupees(it.subtotal_paise))}</td></tr>`
+                        )
+                        .join("");
+                      const logoHtml = order.logo_url
+                        ? `<img src="${esc(order.logo_url)}" alt="" style="width:48px;height:48px;border-radius:8px;object-fit:cover;margin-bottom:6px;" />`
+                        : "";
+                      const html = `<!doctype html><html><head><meta charset="utf-8"><title>${esc(order.order_number)}</title><style>body{font-family:sans-serif;max-width:380px;margin:24px auto;padding:16px;border:1px solid #ddd;border-radius:12px}table{width:100%;border-collapse:collapse;margin:12px 0}td{padding:6px 0;border-bottom:1px solid #eee;font-size:14px}.tot{font-weight:bold;font-size:16px;display:flex;justify-content:space-between;padding-top:8px}</style></head><body><div style="text-align:center">${logoHtml}<h2 style="margin:4px 0">${esc(order.display_name || "ServeMyFood")}</h2><div style="color:#666;font-size:12px">${esc(order.branch_name || "")} • ${esc(order.order_number)}${order.target_label ? ` • ${esc(order.target_label)}` : ""}</div></div><table>${rowsHtml}</table><div class="tot"><span>Total</span><span>${esc(formatRupees(order.total_paise))}</span></div></body></html>`;
+                      const blob = new Blob([html], { type: "text/html;charset=utf-8" });
+                      const url = URL.createObjectURL(blob);
+                      const a = document.createElement("a");
+                      a.href = url;
+                      a.download = `bill-${order.order_number}.html`;
+                      document.body.appendChild(a);
+                      a.click();
+                      document.body.removeChild(a);
+                      URL.revokeObjectURL(url);
+                    }}
+                    className="min-h-[36px] px-3 rounded-lg bg-[#FF6A00] text-[#0B1F3B] text-xs font-bold flex items-center gap-1.5"
+                  >
+                    <Download className="h-3.5 w-3.5" />
+                    <span>{lang === "ta" ? "பில் பதிவிறக்கு" : "Download Bill"}</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => window.print()}
+                    className="min-h-[36px] px-3 rounded-lg border border-border bg-background hover:bg-muted text-xs font-bold flex items-center gap-1.5"
+                  >
+                    <Printer className="h-3.5 w-3.5" />
+                    <span>{lang === "ta" ? "அச்சிடு" : "Print"}</span>
+                  </button>
+                </div>
               </div>
               <ul className="divide-y divide-border">
                 {order.items.map((it, idx) => (
