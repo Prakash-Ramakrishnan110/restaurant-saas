@@ -17,6 +17,9 @@ interface Customer {
   notes: string;
   visit_count: number;
   total_spend_paise: number;
+  loyalty_points?: number;
+  lifetime_points_earned?: number;
+  lifetime_points_redeemed?: number;
   last_visit_at: string;
 }
 
@@ -207,19 +210,20 @@ export const CustomersPage: React.FC = () => {
                 <th className="px-4 py-3">Special Preferences</th>
                 <th className="px-4 py-3 text-right">Visits</th>
                 <th className="px-4 py-3 text-right">Total Spend</th>
+                <th className="px-4 py-3 text-right">Loyalty Points</th>
                 <th className="px-4 py-3 text-center">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border/60">
               {isLoading ? (
                 <tr>
-                  <td colSpan={7} className="px-4 py-8 text-center text-muted-foreground">
+                  <td colSpan={8} className="px-4 py-8 text-center text-muted-foreground">
                     Loading guest directory...
                   </td>
                 </tr>
               ) : filteredCustomers.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="px-4 py-8 text-center text-muted-foreground">
+                  <td colSpan={8} className="px-4 py-8 text-center text-muted-foreground">
                     No guest profiles found matching your search.
                   </td>
                 </tr>
@@ -263,10 +267,23 @@ export const CustomersPage: React.FC = () => {
                     <td className="px-4 py-3 font-bold text-foreground text-right">
                       {formatRupees(c.total_spend_paise)}
                     </td>
+                    <td className="px-4 py-3 text-right">
+                      {c.consent_given ? (
+                        <span
+                          data-testid={`customer-loyalty-pts-${c.id}`}
+                          className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-900 dark:bg-amber-950 dark:text-amber-300"
+                        >
+                          {c.loyalty_points ?? 0} pts
+                        </span>
+                      ) : (
+                        <span className="text-[11px] text-muted-foreground">No Consent</span>
+                      )}
+                    </td>
                     <td className="px-4 py-3 text-center">
                       <Button
                         size="sm"
                         variant="ghost"
+                        aria-label={`Edit ${c.name}`}
                         onClick={() => handleOpenEdit(c)}
                         className="h-8 w-8 p-0"
                       >

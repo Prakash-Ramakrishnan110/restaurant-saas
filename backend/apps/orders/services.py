@@ -504,8 +504,12 @@ def settle_bill(
     user_membership: Membership | None = None,
     discount_paise: int = 0,
     notes: str = "",
+    customer_id: Any = None,
+    redeem_loyalty_points: int = 0,
 ) -> BillInvoice:
-    """Settles an active table bill, generates invoice, and frees the table."""
+    """Settles an active table bill, processes guest loyalty points, generates invoice, and frees the table."""
+    from apps.orders.models import Customer
+
     prev_tenant = get_current_tenant()
     token = (
         set_current_tenant(table_session.tenant) if prev_tenant != table_session.tenant else None
@@ -519,6 +523,35 @@ def settle_bill(
             )
 
         bill_calc = calculate_bill(table_session)
+
+        customer_obj: Customer | None = None
+        points_to_redeem = max(0, int(redeem_loyalty_points or 0))
+        if customer_id:
+            customer_obj = (
+                Customer.objects.select_for_update()
+                .filter(tenant=table_session.tenant, id=customer_id)
+                .first()
+            )
+            if customer_obj is None:
+                raise ValidationError({"customer_id": "Guest profile not found."})
+            if points_to_redeem > 0:
+                if not customer_obj.consent_given:
+                    raise BusinessRuleError(
+                        "CONSENT_REQUIRED",
+                        "Guest must provide explicit consent to earn or redeem loyalty points.",
+                        status_code=400,
+                    )
+                if points_to_redeem > customer_obj.loyalty_points:
+                    raise BusinessRuleError(
+                        "INSUFFICIENT_LOYALTY_POINTS",
+                        f"Guest only has {customer_obj.loyalty_points} loyalty points available.",
+                        status_code=400,
+                    )
+                loyalty_discount_paise = points_to_redeem * 100
+                discount_paise = min(
+                    bill_calc["total_paise"], discount_paise + loyalty_discount_paise
+                )
+
         total_paise = max(0, bill_calc["total_paise"] - discount_paise)
 
         if amount_tendered_paise is not None and amount_tendered_paise < total_paise:
@@ -610,6 +643,19 @@ def settle_bill(
         if table_session.table:
             table_session.table.status = TableStatus.AVAILABLE
             table_session.table.save(update_fields=["status"])
+
+        if customer_obj is not None:
+            customer_obj.visit_count += 1
+            customer_obj.total_spend_paise += total_paise
+            customer_obj.last_visit_at = timezone.now()
+            if customer_obj.consent_given:
+                earned_points = total_paise // 10000
+                customer_obj.loyalty_points = (
+                    max(0, customer_obj.loyalty_points - points_to_redeem) + earned_points
+                )
+                customer_obj.lifetime_points_earned += earned_points
+                customer_obj.lifetime_points_redeemed += points_to_redeem
+            customer_obj.save()
 
         return invoice
     finally:
@@ -1092,41 +1138,125 @@ def get_outlets_report(
     start_date: datetime.date,
     end_date: datetime.date,
 ) -> dict[str, Any]:
-    """Compares performance across all branches/outlets (e.g. Lobby Cafe vs Rooftop Bar vs Room Service) (H-21)."""
+    """Compares consolidated sales, refunds, net sales, COGS, gross margin, and wastage across all active branches (H-21, Stage D1)."""
     from django.db.models import Count, Sum
 
-    invoices_qs = BillInvoice.objects.filter(
-        tenant=tenant,
-        is_settled=True,
-        settled_at__date__gte=start_date,
-        settled_at__date__lte=end_date,
-    )
+    from apps.inventory.constants import StockMovementType
+    from apps.inventory.models import StockMovement
+    from apps.orders.models import InvoiceRefund
 
-    outlet_stats = (
-        invoices_qs.values("branch__id", "branch__name", "branch__venue_profile")
-        .annotate(total_sales_paise=Sum("total_paise"), invoices_count=Count("id"))
-        .order_by("-total_sales_paise")
-    )
+    branches = list(Branch.objects.filter(tenant=tenant, is_active=True).order_by("created_at"))
+    outlets: list[dict[str, Any]] = []
 
-    outlets = [
-        {
-            "branch_id": str(row["branch__id"]),
-            "name": row["branch__name"] or "Main Outlet",
-            "venue_profile": row["branch__venue_profile"] or "CASUAL_DINING",
-            "invoices_count": row["invoices_count"] or 0,
-            "total_sales_paise": row["total_sales_paise"] or 0,
-            "average_ticket_paise": (
-                (row["total_sales_paise"] // row["invoices_count"])
-                if row["invoices_count"] > 0
-                else 0
-            ),
-        }
-        for row in outlet_stats
-    ]
+    tot_gross = 0
+    tot_refunds = 0
+    tot_net = 0
+    tot_cogs = 0
+    tot_wastage = 0
+    tot_invoices = 0
+    tot_orders = 0
+
+    for b in branches:
+        inv_agg = BillInvoice.objects.filter(
+            tenant=tenant,
+            branch=b,
+            is_settled=True,
+            settled_at__date__gte=start_date,
+            settled_at__date__lte=end_date,
+        ).aggregate(s=Sum("total_paise"), c=Count("id"))
+        gross_paise = int(inv_agg["s"] or 0)
+        inv_count = int(inv_agg["c"] or 0)
+
+        ref_agg = InvoiceRefund.objects.filter(
+            tenant=tenant,
+            branch=b,
+            created_at__date__gte=start_date,
+            created_at__date__lte=end_date,
+        ).aggregate(s=Sum("amount_paise"))
+        refunds_paise = int(ref_agg["s"] or 0)
+        net_paise = max(0, gross_paise - refunds_paise)
+
+        ord_count = (
+            Order.objects.filter(
+                tenant=tenant,
+                branch=b,
+                placed_at__date__gte=start_date,
+                placed_at__date__lte=end_date,
+            )
+            .exclude(status=OrderStatus.CANCELLED)
+            .count()
+        )
+
+        cogs_movements = StockMovement.objects.filter(
+            tenant=tenant,
+            branch=b,
+            movement_type__in=[
+                StockMovementType.SALE_USAGE,
+                StockMovementType.PRODUCTION_USAGE,
+                StockMovementType.PACKAGING_USAGE,
+            ],
+            created_at__date__gte=start_date,
+            created_at__date__lte=end_date,
+        ).values_list("value_paise", flat=True)
+        cogs_paise = sum(abs(int(v or 0)) for v in cogs_movements)
+
+        waste_movements = StockMovement.objects.filter(
+            tenant=tenant,
+            branch=b,
+            movement_type=StockMovementType.WASTE,
+            created_at__date__gte=start_date,
+            created_at__date__lte=end_date,
+        ).values_list("value_paise", flat=True)
+        wastage_paise = sum(abs(int(v or 0)) for v in waste_movements)
+
+        gross_margin_paise = net_paise - cogs_paise
+        margin_pct = round((gross_margin_paise * 100.0) / net_paise, 1) if net_paise > 0 else 0.0
+
+        tot_gross += gross_paise
+        tot_refunds += refunds_paise
+        tot_net += net_paise
+        tot_cogs += cogs_paise
+        tot_wastage += wastage_paise
+        tot_invoices += inv_count
+        tot_orders += ord_count
+
+        outlets.append(
+            {
+                "branch_id": str(b.id),
+                "name": b.name or "Main Outlet",
+                "venue_profile": getattr(b, "venue_profile", "") or "CASUAL_DINING",
+                "orders_count": ord_count,
+                "invoices_count": inv_count,
+                "total_sales_paise": gross_paise,
+                "gross_sales_paise": gross_paise,
+                "refunds_paise": refunds_paise,
+                "net_sales_paise": net_paise,
+                "cogs_paise": cogs_paise,
+                "gross_margin_paise": gross_margin_paise,
+                "gross_margin_percent": margin_pct,
+                "wastage_paise": wastage_paise,
+                "average_ticket_paise": (gross_paise // inv_count) if inv_count > 0 else 0,
+            }
+        )
+
+    outlets.sort(key=lambda x: x["net_sales_paise"], reverse=True)
+    tot_margin = tot_net - tot_cogs
+    tot_margin_pct = round((tot_margin * 100.0) / tot_net, 1) if tot_net > 0 else 0.0
 
     return {
         "start_date": start_date.isoformat(),
         "end_date": end_date.isoformat(),
+        "totals": {
+            "orders_count": tot_orders,
+            "invoices_count": tot_invoices,
+            "gross_sales_paise": tot_gross,
+            "refunds_paise": tot_refunds,
+            "net_sales_paise": tot_net,
+            "cogs_paise": tot_cogs,
+            "gross_margin_paise": tot_margin,
+            "gross_margin_percent": tot_margin_pct,
+            "wastage_paise": tot_wastage,
+        },
         "outlets": outlets,
     }
 

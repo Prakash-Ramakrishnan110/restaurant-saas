@@ -345,6 +345,8 @@ class SettleBillSerializer(serializers.Serializer):
     )
     amount_tendered_paise = serializers.IntegerField(required=False, min_value=0)
     discount_paise = serializers.IntegerField(required=False, default=0, min_value=0)
+    customer_id = serializers.UUIDField(required=False, allow_null=True)
+    redeem_loyalty_points = serializers.IntegerField(required=False, default=0, min_value=0)
     notes = serializers.CharField(required=False, allow_blank=True, default="")
 
 
@@ -383,7 +385,15 @@ class CustomerSerializer(serializers.ModelSerializer[Customer]):
             "notes",
             "visit_count",
             "total_spend_paise",
+            "loyalty_points",
+            "lifetime_points_earned",
+            "lifetime_points_redeemed",
             "last_visit_at",
             "created_at",
         ]
-        read_only_fields = ["id", "created_at"]
+        read_only_fields = [
+            "id",
+            "lifetime_points_earned",
+            "lifetime_points_redeemed",
+            "created_at",
+        ]

@@ -20,10 +20,12 @@ from apps.inventory.constants import (
     InventoryItemType,
     InventoryMode,
     PackagingMode,
+    PurchaseOrderStatus,
     StockCountStatus,
     StockCountType,
     StockLocationType,
     StockMovementType,
+    StockTransferStatus,
     WasteReason,
 )
 from apps.inventory.models import (
@@ -32,6 +34,8 @@ from apps.inventory.models import (
     InventoryItem,
     InventorySettings,
     OrderLineStockDeduction,
+    PurchaseOrder,
+    PurchaseOrderLine,
     Recipe,
     RecipeLine,
     StockBatch,
@@ -40,6 +44,8 @@ from apps.inventory.models import (
     StockLevel,
     StockLocation,
     StockMovement,
+    StockTransfer,
+    StockTransferLine,
     Supplier,
     SupplierItem,
     UnitConversion,
@@ -221,9 +227,10 @@ def post_stock_movement(
     effective_unit_cost = current_wac if unit_cost_paise is None else int(unit_cost_paise)
     value_paise = round_paise(quantity * Decimal(effective_unit_cost))
 
-    # Recompute weighted average cost on PURCHASE or OPENING with positive quantity
+    # Recompute weighted average cost on PURCHASE, OPENING, or TRANSFER_IN with positive quantity
     if (
-        movement_type in {StockMovementType.PURCHASE, StockMovementType.OPENING}
+        movement_type
+        in {StockMovementType.PURCHASE, StockMovementType.OPENING, StockMovementType.TRANSFER_IN}
         and quantity > ZERO
         and unit_cost_paise is not None
     ):
@@ -1412,3 +1419,443 @@ def render_csv_string(headers: list[str], rows: list[list[Any]]) -> str:
     for row in rows:
         writer.writerow([sanitize_csv_cell(c) for c in row])
     return buf.getvalue()
+
+
+# ---------------------------------------------------------------------------
+# Stage D: Inter-Branch Stock Transfers (D1) & Purchase Orders (D2)
+# ---------------------------------------------------------------------------
+
+
+@transaction.atomic
+def create_stock_transfer(
+    *,
+    from_branch: Branch,
+    to_branch: Branch,
+    lines_data: list[dict[str, Any]],
+    notes: str = "",
+    actor: Any = None,
+    request: Any = None,
+) -> StockTransfer:
+    """Creates a DRAFT inter-branch stock transfer with validated positive line quantities."""
+    if from_branch.tenant_id != to_branch.tenant_id:
+        raise BusinessRuleError(
+            "CROSS_TENANT_FORBIDDEN",
+            "Cannot transfer stock across different restaurant organizations.",
+            status_code=403,
+        )
+    if from_branch.id == to_branch.id:
+        raise BusinessRuleError(
+            "SAME_BRANCH_TRANSFER",
+            "Source and destination branches must be different for an inter-branch transfer.",
+            status_code=400,
+        )
+    if not lines_data:
+        raise ValidationError({"lines": "At least one transfer item line is required."})
+
+    from_loc = get_or_create_default_location(from_branch)
+    to_loc = get_or_create_default_location(to_branch)
+    actor_user = (
+        actor if (actor is not None and getattr(actor, "is_authenticated", False)) else None
+    )
+
+    transfer = StockTransfer.objects.create(
+        tenant=from_branch.tenant,
+        from_branch=from_branch,
+        from_location=from_loc,
+        to_branch=to_branch,
+        to_location=to_loc,
+        status=StockTransferStatus.DRAFT,
+        requested_by=actor_user,
+        notes=notes,
+    )
+
+    for idx, entry in enumerate(lines_data):
+        item: InventoryItem = entry["item"]
+        qty = Decimal(str(entry["quantity"]))
+        if qty <= ZERO:
+            raise ValidationError({"lines": f"Row {idx + 1}: quantity must be greater than zero."})
+        unit_name = entry.get("unit_name") or item.base_unit
+        base_qty = to_base_quantity(item, qty, unit_name)
+        StockTransferLine.objects.create(
+            tenant=from_branch.tenant,
+            transfer=transfer,
+            item=item,
+            quantity=base_qty,
+        )
+
+    log_audit_event(
+        action="inventory.transfer.create",
+        entity_type="StockTransfer",
+        entity_id=str(transfer.id),
+        actor=actor_user,
+        tenant=from_branch.tenant,
+        after_state={
+            "from_branch_id": str(from_branch.id),
+            "to_branch_id": str(to_branch.id),
+            "status": transfer.status,
+            "line_count": len(lines_data),
+        },
+        request=request,
+    )
+    return transfer
+
+
+@transaction.atomic
+def dispatch_stock_transfer(
+    *,
+    transfer: StockTransfer,
+    actor: Any = None,
+    request: Any = None,
+) -> StockTransfer:
+    """Dispatches a DRAFT stock transfer, posting append-only TRANSFER_OUT movements on from_branch."""
+    locked = (
+        StockTransfer.objects.select_for_update()
+        .select_related("from_branch", "from_location", "to_branch", "to_location", "tenant")
+        .prefetch_related("lines__item")
+        .get(pk=transfer.pk)
+    )
+    if locked.status != StockTransferStatus.DRAFT:
+        raise BusinessRuleError(
+            "INVALID_STATUS_TRANSITION",
+            f"Cannot dispatch transfer in '{locked.status}' status.",
+            status_code=400,
+        )
+
+    actor_user = (
+        actor if (actor is not None and getattr(actor, "is_authenticated", False)) else None
+    )
+
+    for line in locked.lines.all():
+        source_wac = get_branch_item_wac(locked.from_branch, line.item)
+        post_stock_movement(
+            branch=locked.from_branch,
+            location=locked.from_location,
+            item=line.item,
+            movement_type=StockMovementType.TRANSFER_OUT,
+            quantity=-line.quantity,
+            unit_cost_paise=source_wac,
+            reference_type="StockTransfer",
+            reference_id=str(locked.id),
+            reason_code="INTER_BRANCH_TRANSFER_OUT",
+            notes=f"Transfer to {locked.to_branch.name}",
+            actor=actor_user,
+        )
+
+    locked.status = StockTransferStatus.APPROVED
+    locked.approved_by = actor_user
+    locked.save(update_fields=["status", "approved_by", "updated_at"])
+
+    log_audit_event(
+        action="inventory.transfer.dispatch",
+        entity_type="StockTransfer",
+        entity_id=str(locked.id),
+        actor=actor_user,
+        tenant=locked.tenant,
+        before_state={"status": StockTransferStatus.DRAFT},
+        after_state={"status": locked.status},
+        request=request,
+    )
+    return locked
+
+
+@transaction.atomic
+def receive_stock_transfer(
+    *,
+    transfer: StockTransfer,
+    actor: Any = None,
+    request: Any = None,
+) -> StockTransfer:
+    """Receives an APPROVED (in-transit) stock transfer, posting append-only TRANSFER_IN movements on to_branch."""
+    locked = (
+        StockTransfer.objects.select_for_update()
+        .select_related("from_branch", "from_location", "to_branch", "to_location", "tenant")
+        .prefetch_related("lines__item")
+        .get(pk=transfer.pk)
+    )
+    if locked.status != StockTransferStatus.APPROVED:
+        raise BusinessRuleError(
+            "INVALID_STATUS_TRANSITION",
+            f"Transfer must be dispatched (APPROVED) before receiving (current: '{locked.status}').",
+            status_code=400,
+        )
+
+    actor_user = (
+        actor if (actor is not None and getattr(actor, "is_authenticated", False)) else None
+    )
+
+    for line in locked.lines.all():
+        out_mv = (
+            StockMovement.objects.filter(
+                branch=locked.from_branch,
+                item=line.item,
+                movement_type=StockMovementType.TRANSFER_OUT,
+                reference_type="StockTransfer",
+                reference_id=str(locked.id),
+            )
+            .order_by("-sequence_number")
+            .first()
+        )
+        unit_cost = (
+            out_mv.unit_cost_paise
+            if out_mv is not None
+            else get_branch_item_wac(locked.from_branch, line.item)
+        )
+        post_stock_movement(
+            branch=locked.to_branch,
+            location=locked.to_location,
+            item=line.item,
+            movement_type=StockMovementType.TRANSFER_IN,
+            quantity=line.quantity,
+            unit_cost_paise=unit_cost,
+            reference_type="StockTransfer",
+            reference_id=str(locked.id),
+            reason_code="INTER_BRANCH_TRANSFER_IN",
+            notes=f"Transfer from {locked.from_branch.name}",
+            actor=actor_user,
+        )
+
+    locked.status = StockTransferStatus.COMPLETED
+    locked.save(update_fields=["status", "updated_at"])
+
+    log_audit_event(
+        action="inventory.transfer.receive",
+        entity_type="StockTransfer",
+        entity_id=str(locked.id),
+        actor=actor_user,
+        tenant=locked.tenant,
+        before_state={"status": StockTransferStatus.APPROVED},
+        after_state={"status": locked.status},
+        request=request,
+    )
+    return locked
+
+
+@transaction.atomic
+def create_purchase_order(
+    *,
+    branch: Branch,
+    supplier: Supplier | None,
+    lines_data: list[dict[str, Any]],
+    notes: str = "",
+    actor: Any = None,
+    request: Any = None,
+) -> PurchaseOrder:
+    """Creates a DRAFT PurchaseOrder with sequential order_number and integer paise line totals."""
+    if not lines_data:
+        raise ValidationError({"lines": "Purchase order must contain at least one item line."})
+
+    Branch.objects.select_for_update().only("id").get(pk=branch.pk)
+    po_seq = PurchaseOrder.objects.filter(tenant=branch.tenant).count() + 1
+    today_str = timezone.now().strftime("%Y%m")
+    order_number = f"PO-{today_str}-{po_seq:04d}"
+
+    po = PurchaseOrder.objects.create(
+        tenant=branch.tenant,
+        branch=branch,
+        order_number=order_number,
+        supplier=supplier,
+        status=PurchaseOrderStatus.DRAFT,
+        total_cost_paise=0,
+        notes=notes,
+    )
+
+    total_cost_paise = 0
+    for idx, entry in enumerate(lines_data):
+        item: InventoryItem = entry["item"]
+        qty = Decimal(str(entry["quantity_ordered"]))
+        if qty <= ZERO:
+            raise ValidationError({"lines": f"Row {idx + 1}: ordered quantity must be positive."})
+        unit_name = str(entry.get("unit_name") or item.base_unit)
+        unit_cost_paise = int(entry.get("unit_cost_paise", 0))
+        if unit_cost_paise < 0:
+            raise ValidationError({"lines": f"Row {idx + 1}: unit cost cannot be negative."})
+        line_total = round_paise(qty * Decimal(unit_cost_paise))
+        PurchaseOrderLine.objects.create(
+            tenant=branch.tenant,
+            purchase_order=po,
+            item=item,
+            quantity_ordered=qty,
+            quantity_received=ZERO,
+            unit_name=unit_name,
+            unit_cost_paise=unit_cost_paise,
+            line_total_paise=line_total,
+        )
+        total_cost_paise += line_total
+
+    po.total_cost_paise = total_cost_paise
+    po.save(update_fields=["total_cost_paise", "updated_at"])
+
+    actor_user = (
+        actor if (actor is not None and getattr(actor, "is_authenticated", False)) else None
+    )
+    log_audit_event(
+        action="inventory.po.create",
+        entity_type="PurchaseOrder",
+        entity_id=str(po.id),
+        actor=actor_user,
+        tenant=branch.tenant,
+        after_state={
+            "order_number": po.order_number,
+            "total_cost_paise": total_cost_paise,
+            "line_count": len(lines_data),
+        },
+        request=request,
+    )
+    return po
+
+
+@transaction.atomic
+def auto_draft_low_stock_po(
+    *,
+    branch: Branch,
+    supplier: Supplier | None = None,
+    actor: Any = None,
+    request: Any = None,
+) -> PurchaseOrder:
+    """Auto-drafts a PurchaseOrder from items currently at or below reorder_level."""
+    alerts = compute_branch_alerts(branch, include_costs=True)
+    low_items = alerts.get("low_stock", [])
+    if not low_items:
+        raise BusinessRuleError(
+            "NO_LOW_STOCK_ITEMS",
+            "No items are currently below their reorder level.",
+            status_code=400,
+        )
+
+    lines_data: list[dict[str, Any]] = []
+    for entry in low_items:
+        item = InventoryItem.objects.filter(tenant=branch.tenant, pk=entry["item_id"]).first()
+        if item is None:
+            continue
+        cur_qty = Decimal(str(entry["quantity"]))
+        par = item.par_level if item.par_level > ZERO else item.reorder_level * Decimal("2")
+        target_order_qty = max(par - max(ZERO, cur_qty), item.reorder_level, Decimal("1.000"))
+        wac = int(entry.get("weighted_avg_cost_paise") or get_branch_item_wac(branch, item))
+        lines_data.append(
+            {
+                "item": item,
+                "quantity_ordered": target_order_qty,
+                "unit_name": item.base_unit,
+                "unit_cost_paise": wac,
+            }
+        )
+
+    return create_purchase_order(
+        branch=branch,
+        supplier=supplier,
+        lines_data=lines_data,
+        notes="Auto-drafted from Low Stock Alerts",
+        actor=actor,
+        request=request,
+    )
+
+
+@transaction.atomic
+def receive_purchase_order(
+    *,
+    purchase_order: PurchaseOrder,
+    branch: Branch,
+    received_lines: list[dict[str, Any]] | None = None,
+    supplier_invoice_number: str = "",
+    actor: Any = None,
+    request: Any = None,
+) -> dict[str, Any]:
+    """Converts a PurchaseOrder into an inward GoodsReceipt, updates WAC, and detects price jumps."""
+    po = (
+        PurchaseOrder.objects.select_for_update(of=("self",))
+        .select_related("supplier", "branch", "tenant")
+        .prefetch_related("lines__item")
+        .get(pk=purchase_order.pk)
+    )
+    if po.status in (PurchaseOrderStatus.RECEIVED, PurchaseOrderStatus.CANCELLED):
+        raise BusinessRuleError(
+            "INVALID_STATUS_TRANSITION",
+            f"Purchase order '{po.order_number}' is already '{po.status}'.",
+            status_code=400,
+        )
+
+    target_branch = po.branch or branch
+    settings_obj = get_or_create_branch_settings(target_branch)
+    jump_threshold_pct = settings_obj.price_jump_alert_percent
+
+    overrides_by_item: dict[str, dict[str, Any]] = {}
+    for ov in received_lines or []:
+        iid = str(ov.get("item") or ov.get("item_id") or "")
+        if iid:
+            overrides_by_item[iid] = ov
+
+    receipt_lines_data: list[dict[str, Any]] = []
+    price_jump_alerts: list[dict[str, Any]] = []
+    all_fulfilled = True
+
+    for po_line in po.lines.all():
+        ov = overrides_by_item.get(str(po_line.item_id), {})
+        remaining_qty = max(ZERO, po_line.quantity_ordered - po_line.quantity_received)
+        recv_qty = Decimal(str(ov.get("quantity_received", remaining_qty)))
+        unit_cost_paise = int(ov.get("unit_cost_paise", po_line.unit_cost_paise))
+
+        if recv_qty > ZERO:
+            prev_wac = get_branch_item_wac(target_branch, po_line.item)
+            base_qty = to_base_quantity(po_line.item, recv_qty, po_line.unit_name)
+            line_total = round_paise(recv_qty * Decimal(unit_cost_paise))
+            new_base_cost = (
+                round_paise(Decimal(line_total) / base_qty) if base_qty > ZERO else unit_cost_paise
+            )
+            if prev_wac > 0 and new_base_cost > prev_wac:
+                jump_pct = (
+                    (Decimal(new_base_cost - prev_wac) * HUNDRED) / Decimal(prev_wac)
+                ).quantize(Decimal("0.1"), rounding=ROUND_HALF_UP)
+                if jump_pct >= jump_threshold_pct:
+                    price_jump_alerts.append(
+                        {
+                            "item_id": str(po_line.item_id),
+                            "item_name": po_line.item.name,
+                            "previous_wac_paise": prev_wac,
+                            "received_unit_cost_paise": new_base_cost,
+                            "jump_percent": str(jump_pct),
+                        }
+                    )
+
+            receipt_lines_data.append(
+                {
+                    "item": po_line.item,
+                    "quantity": recv_qty,
+                    "unit_name": po_line.unit_name or po_line.item.base_unit,
+                    "unit_cost_paise": unit_cost_paise,
+                    "line_total_paise": line_total,
+                }
+            )
+            po_line.quantity_received += recv_qty
+            po_line.unit_cost_paise = unit_cost_paise
+            po_line.save(update_fields=["quantity_received", "unit_cost_paise", "updated_at"])
+
+        if po_line.quantity_received < po_line.quantity_ordered:
+            all_fulfilled = False
+
+    if not receipt_lines_data:
+        raise ValidationError(
+            {"lines": "At least one line must have a positive received quantity."}
+        )
+
+    receipt = create_goods_receipt(
+        branch=target_branch,
+        supplier=po.supplier,
+        supplier_invoice_number=supplier_invoice_number or f"GRN-{po.order_number}",
+        notes=f"Converted from {po.order_number}",
+        confirm_duplicate=True,
+        lines_data=receipt_lines_data,
+        actor=actor,
+        request=request,
+    )
+    receipt.purchase_order = po
+    receipt.save(update_fields=["purchase_order", "updated_at"])
+
+    po.status = PurchaseOrderStatus.RECEIVED if all_fulfilled else PurchaseOrderStatus.PARTIAL
+    po.received_at = timezone.now()
+    po.save(update_fields=["status", "received_at", "updated_at"])
+
+    return {
+        "purchase_order": po,
+        "goods_receipt": receipt,
+        "price_jump_alerts": price_jump_alerts,
+    }

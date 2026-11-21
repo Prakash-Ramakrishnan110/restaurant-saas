@@ -21,6 +21,7 @@ from apps.core.exceptions import BusinessRuleError
 from apps.inventory.constants import (
     DeductionStatus,
     InventoryMode,
+    PurchaseOrderStatus,
     StockMovementType,
     WasteReason,
 )
@@ -35,6 +36,7 @@ from apps.inventory.models import (
     StockLevel,
     StockLocation,
     StockMovement,
+    StockTransfer,
     Supplier,
 )
 from apps.inventory.serializers import (
@@ -47,16 +49,21 @@ from apps.inventory.serializers import (
     StockCountSerializer,
     StockLocationSerializer,
     StockMovementSerializer,
+    StockTransferSerializer,
     SupplierSerializer,
     UnitConversionSerializer,
 )
 from apps.inventory.services import (
     apply_stock_paste,
     approve_stock_count,
+    auto_draft_low_stock_po,
     compute_branch_alerts,
     create_goods_receipt,
+    create_purchase_order,
     create_stock_count,
+    create_stock_transfer,
     deduct_order_line,
+    dispatch_stock_transfer,
     get_or_create_branch_settings,
     get_or_create_default_location,
     preview_stock_paste,
@@ -760,6 +767,8 @@ class PurchaseOrderViewSet(CostAwareModelViewSet):
     def get_permissions(self) -> list[Any]:
         if self.action in ("list", "retrieve"):
             return [IsAuthenticated(), HasTenantPermission(Permission.INVENTORY_VIEW)()]
+        if self.action == "receive":
+            return [IsAuthenticated(), HasTenantPermission(Permission.INVENTORY_RECEIVE)()]
         return [IsAuthenticated(), HasTenantPermission(Permission.INVENTORY_MANAGE)()]
 
     def get_queryset(self) -> Any:
@@ -768,9 +777,183 @@ class PurchaseOrderViewSet(CostAwareModelViewSet):
             return PurchaseOrder.objects.none()
         return (
             PurchaseOrder.objects.filter(tenant=tenant)
-            .select_related("supplier")
+            .select_related("supplier", "branch")
             .prefetch_related("lines__item")
         )
+
+    def create(self, request: Request) -> Response:
+        tenant = getattr(request, "tenant", None) or get_current_tenant()
+        _check_inventory_entitlement(tenant)
+        branch = _resolve_branch(request)
+
+        supplier = None
+        if request.data.get("supplier"):
+            supplier = Supplier.objects.filter(pk=request.data["supplier"], tenant=tenant).first()
+            if supplier is None:
+                raise BusinessRuleError(
+                    "INVALID_REFERENCE", "Invalid supplier reference.", status_code=400
+                )
+
+        raw_lines = request.data.get("lines") or []
+        parsed_lines: list[dict[str, Any]] = []
+        for entry in raw_lines:
+            item = _resolve_item_in_body(tenant, entry.get("item"))
+            parsed_lines.append(
+                {
+                    "item": item,
+                    "quantity_ordered": entry.get("quantity_ordered", entry.get("quantity", "0")),
+                    "unit_name": entry.get("unit_name") or item.base_unit,
+                    "unit_cost_paise": entry.get("unit_cost_paise", 0),
+                }
+            )
+
+        from apps.inventory.services import (  # noqa: F401
+            receive_purchase_order,
+            receive_stock_transfer,
+        )
+
+        po = create_purchase_order(
+            branch=branch,
+            supplier=supplier,
+            lines_data=parsed_lines,
+            notes=str(request.data.get("notes") or ""),
+            actor=request.user,
+            request=request,
+        )
+        return Response(self.get_serializer(po).data, status=status.HTTP_201_CREATED)
+
+    @action(detail=False, methods=["post"], url_path="auto-draft-low-stock")
+    def auto_draft_low_stock(self, request: Request) -> Response:
+        tenant = getattr(request, "tenant", None) or get_current_tenant()
+        _check_inventory_entitlement(tenant)
+        branch = _resolve_branch(request)
+        supplier = None
+        if request.data.get("supplier"):
+            supplier = Supplier.objects.filter(pk=request.data["supplier"], tenant=tenant).first()
+        po = auto_draft_low_stock_po(
+            branch=branch,
+            supplier=supplier,
+            actor=request.user,
+            request=request,
+        )
+        return Response(self.get_serializer(po).data, status=status.HTTP_201_CREATED)
+
+    @action(detail=True, methods=["post"], url_path="send")
+    def send(self, request: Request, pk: str | None = None) -> Response:
+        po = self.get_object()
+        if po.status != PurchaseOrderStatus.DRAFT:
+            raise BusinessRuleError(
+                "INVALID_STATUS_TRANSITION",
+                f"Cannot send purchase order in '{po.status}' status.",
+                status_code=400,
+            )
+        po.status = PurchaseOrderStatus.SENT
+        po.save(update_fields=["status", "updated_at"])
+        return Response(self.get_serializer(po).data)
+
+    @action(detail=True, methods=["post"], url_path="receive")
+    def receive(self, request: Request, pk: str | None = None) -> Response:
+        from apps.inventory.services import receive_purchase_order
+
+        po = self.get_object()
+        branch = po.branch or _resolve_branch(request)
+        result = receive_purchase_order(
+            purchase_order=po,
+            branch=branch,
+            received_lines=request.data.get("lines"),
+            supplier_invoice_number=str(request.data.get("supplier_invoice_number") or ""),
+            actor=request.user,
+            request=request,
+        )
+        return Response(
+            {
+                "purchase_order": self.get_serializer(result["purchase_order"]).data,
+                "goods_receipt": GoodsReceiptSerializer(
+                    result["goods_receipt"], context=self.get_serializer_context()
+                ).data,
+                "price_jump_alerts": result["price_jump_alerts"],
+            }
+        )
+
+
+class StockTransferViewSet(viewsets.ModelViewSet):
+    serializer_class = StockTransferSerializer
+
+    def get_permissions(self) -> list[Any]:
+        if self.action in ("list", "retrieve"):
+            return [IsAuthenticated(), HasTenantPermission(Permission.INVENTORY_VIEW)()]
+        return [IsAuthenticated(), HasTenantPermission(Permission.INVENTORY_MANAGE)()]
+
+    def get_queryset(self) -> Any:
+        tenant = getattr(self.request, "tenant", None) or get_current_tenant()
+        if not tenant:
+            return StockTransfer.objects.none()
+        return (
+            StockTransfer.objects.filter(tenant=tenant)
+            .select_related("from_branch", "to_branch", "from_location", "to_location")
+            .prefetch_related("lines__item")
+        )
+
+    def create(self, request: Request) -> Response:
+        from apps.tenants.models import Branch
+
+        tenant = getattr(request, "tenant", None) or get_current_tenant()
+        _check_inventory_entitlement(tenant)
+
+        from_branch_id = request.data.get("from_branch")
+        to_branch_id = request.data.get("to_branch")
+        from_branch = Branch.objects.filter(tenant=tenant, pk=from_branch_id).first()
+        to_branch = Branch.objects.filter(tenant=tenant, pk=to_branch_id).first()
+        if from_branch is None or to_branch is None:
+            raise BusinessRuleError(
+                "INVALID_REFERENCE",
+                "Both source and destination branches must belong to your organization.",
+                status_code=400,
+            )
+
+        raw_lines = request.data.get("lines") or []
+        parsed_lines: list[dict[str, Any]] = []
+        for entry in raw_lines:
+            item = _resolve_item_in_body(tenant, entry.get("item"))
+            parsed_lines.append(
+                {
+                    "item": item,
+                    "quantity": entry.get("quantity", "0"),
+                    "unit_name": entry.get("unit_name") or item.base_unit,
+                }
+            )
+
+        transfer = create_stock_transfer(
+            from_branch=from_branch,
+            to_branch=to_branch,
+            lines_data=parsed_lines,
+            notes=str(request.data.get("notes") or ""),
+            actor=request.user,
+            request=request,
+        )
+        return Response(self.get_serializer(transfer).data, status=status.HTTP_201_CREATED)
+
+    @action(detail=True, methods=["post"], url_path="dispatch")
+    def dispatch_transfer(self, request: Request, pk: str | None = None) -> Response:
+        transfer = self.get_object()
+        updated = dispatch_stock_transfer(
+            transfer=transfer,
+            actor=request.user,
+            request=request,
+        )
+        return Response(self.get_serializer(updated).data)
+
+    @action(detail=True, methods=["post"], url_path="receive")
+    def receive_transfer(self, request: Request, pk: str | None = None) -> Response:
+        from apps.inventory.services import receive_stock_transfer
+
+        transfer = self.get_object()
+        updated = receive_stock_transfer(
+            transfer=transfer,
+            actor=request.user,
+            request=request,
+        )
+        return Response(self.get_serializer(updated).data)
 
 
 class InventorySettingsView(APIView):

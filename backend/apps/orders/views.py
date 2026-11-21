@@ -12,6 +12,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from apps.accounts.models import Membership
+from apps.core.exceptions import BusinessRuleError
 from apps.orders.models import (
     BillInvoice,
     CashierShiftCloseout,
@@ -340,6 +341,8 @@ class BillingViewSet(viewsets.ViewSet):
             user_membership=membership,
             discount_paise=data.get("discount_paise", 0),
             notes=data.get("notes", ""),
+            customer_id=data.get("customer_id"),
+            redeem_loyalty_points=data.get("redeem_loyalty_points", 0),
         )
 
         out_serializer = BillInvoiceSerializer(invoice)
@@ -884,6 +887,47 @@ class CustomerViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer: serializers.BaseSerializer[Customer]) -> None:
         tenant = getattr(self.request, "tenant", None)
         serializer.save(tenant=tenant)
+
+    @action(detail=True, methods=["post"], url_path="loyalty")
+    def loyalty(self, request: Request, pk: str | None = None) -> Response:
+        customer = self.get_object()
+        if not customer.consent_given:
+            raise BusinessRuleError(
+                "CONSENT_REQUIRED",
+                "Guest must provide explicit consent to earn or redeem loyalty points.",
+                status_code=400,
+            )
+
+        action_type = str(request.data.get("action") or "EARN").upper()
+        if action_type == "EARN":
+            spend_paise = int(request.data.get("spend_paise", 0))
+            pts = int(request.data.get("points", spend_paise // 10000))
+            if pts < 0:
+                raise ValidationError({"points": "Earned points cannot be negative."})
+            customer.loyalty_points += pts
+            customer.lifetime_points_earned += pts
+            if spend_paise > 0:
+                customer.total_spend_paise += spend_paise
+                customer.visit_count += 1
+            customer.last_visit_at = timezone.now()
+            customer.save()
+        elif action_type == "REDEEM":
+            pts = int(request.data.get("points", 0))
+            if pts <= 0:
+                raise ValidationError({"points": "Points to redeem must be positive."})
+            if pts > customer.loyalty_points:
+                raise BusinessRuleError(
+                    "INSUFFICIENT_LOYALTY_POINTS",
+                    f"Guest only has {customer.loyalty_points} loyalty points available.",
+                    status_code=400,
+                )
+            customer.loyalty_points -= pts
+            customer.lifetime_points_redeemed += pts
+            customer.save()
+        else:
+            raise ValidationError({"action": "Action must be EARN or REDEEM."})
+
+        return Response(CustomerSerializer(customer).data)
 
 
 class ExportMyDataView(APIView):

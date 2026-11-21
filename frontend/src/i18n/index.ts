@@ -331,6 +331,15 @@ export const defaultResources = {
           "This QR code could not be verified or has been replaced by venue staff. Please request assistance from restaurant personnel.",
         poweredBy: "Powered by ServeMyFood Hospitality Platform",
       },
+      scale: {
+        multiOutletTitle: "Multi-Outlet Revenue Comparison",
+        interBranchTransfers: "Inter-Branch Stock Transfers",
+        purchaseOrders: "Purchase Orders & One-Click Goods Receipt",
+        convertToReceipt: "Convert to Goods Receipt",
+        guestLoyalty: "Guest Profiles & VIP Loyalty",
+        loyaltyPoints: "Loyalty Points",
+        redeemPoints: "Redeem Points",
+      },
     },
   },
   ta: {
@@ -660,6 +669,15 @@ export const defaultResources = {
         notFoundMessage:
           "இந்த QR குறியீடு சரிபார்க்கப்படவில்லை அல்லது மாற்றப்பட்டுள்ளது. தயவுசெய்து உணவக பணியாளரை அணுகவும்.",
         poweredBy: "ServeMyFood உணவக மேலாண்மை தளம்",
+      },
+      scale: {
+        multiOutletTitle: "கிளைகளின் வருவாய் ஒப்பீடு",
+        interBranchTransfers: "கிளைகளுக்கு இடையேயான சரக்கு பரிமாற்றம்",
+        purchaseOrders: "கொள்முதல் ஆர்டர்கள் மற்றும் சரக்கு வரவு",
+        convertToReceipt: "சரக்கு வரவாக மாற்றுக",
+        guestLoyalty: "வாடிக்கையாளர் விவரங்கள் மற்றும் புள்ளிகள்",
+        loyaltyPoints: "விசுவாசப் புள்ளிகள்",
+        redeemPoints: "புள்ளிகளைப் பயன்படுத்துக",
       },
     },
   },

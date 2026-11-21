@@ -308,6 +308,23 @@ export interface paths {
         patch: operations["customers_partial_update"];
         trace?: never;
     };
+    "/api/v1/customers/{id}/loyalty/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** @description Customer CRM directory for guest preferences, visit counts, and consent (H-24). */
+        post: operations["customers_loyalty_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/entitlements/": {
         parameters: {
             query?: never;
@@ -633,6 +650,54 @@ export interface paths {
         patch: operations["inventory_purchase_orders_partial_update"];
         trace?: never;
     };
+    "/api/v1/inventory/purchase-orders/{id}/receive/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["inventory_purchase_orders_receive_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/inventory/purchase-orders/{id}/send/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["inventory_purchase_orders_send_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/inventory/purchase-orders/auto-draft-low-stock/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["inventory_purchase_orders_auto_draft_low_stock_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/inventory/receipts/": {
         parameters: {
             query?: never;
@@ -759,6 +824,70 @@ export interface paths {
         options?: never;
         head?: never;
         patch: operations["inventory_suppliers_partial_update"];
+        trace?: never;
+    };
+    "/api/v1/inventory/transfers/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["inventory_transfers_list"];
+        put?: never;
+        post: operations["inventory_transfers_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/inventory/transfers/{id}/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["inventory_transfers_retrieve"];
+        put: operations["inventory_transfers_update"];
+        post?: never;
+        delete: operations["inventory_transfers_destroy"];
+        options?: never;
+        head?: never;
+        patch: operations["inventory_transfers_partial_update"];
+        trace?: never;
+    };
+    "/api/v1/inventory/transfers/{id}/dispatch/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["inventory_transfers_dispatch_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/inventory/transfers/{id}/receive/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["inventory_transfers_receive_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
         trace?: never;
     };
     "/api/v1/inventory/wastage/": {
@@ -1420,6 +1549,23 @@ export interface paths {
         head?: never;
         /** @description Customer CRM directory for guest preferences, visit counts, and consent (H-24). */
         patch: operations["orders_customers_partial_update"];
+        trace?: never;
+    };
+    "/api/v1/orders/customers/{id}/loyalty/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** @description Customer CRM directory for guest preferences, visit counts, and consent (H-24). */
+        post: operations["orders_customers_loyalty_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
         trace?: never;
     };
     "/api/v1/orders/invoices/": {
@@ -3276,6 +3422,10 @@ export interface components {
             visit_count?: number;
             /** Format: int64 */
             total_spend_paise?: number;
+            /** @description Available guest loyalty points (1 point = ₹1 / 100 paise discount) */
+            loyalty_points?: number;
+            readonly lifetime_points_earned: number;
+            readonly lifetime_points_redeemed: number;
             /** Format: date-time */
             last_visit_at?: string;
             /** Format: date-time */
@@ -3295,6 +3445,8 @@ export interface components {
             visit_count?: number;
             /** Format: int64 */
             total_spend_paise?: number;
+            /** @description Available guest loyalty points (1 point = ₹1 / 100 paise discount) */
+            loyalty_points?: number;
             /** Format: date-time */
             last_visit_at?: string;
         };
@@ -4407,6 +4559,21 @@ export interface components {
             previous?: string | null;
             results: components["schemas"]["StockMovement"][];
         };
+        PaginatedStockTransferList: {
+            /** @example 123 */
+            count: number;
+            /**
+             * Format: uri
+             * @example http://api.example.org/accounts/?page=4
+             */
+            next?: string | null;
+            /**
+             * Format: uri
+             * @example http://api.example.org/accounts/?page=2
+             */
+            previous?: string | null;
+            results: components["schemas"]["StockTransfer"][];
+        };
         PaginatedSupplierList: {
             /** @example 123 */
             count: number;
@@ -4554,6 +4721,8 @@ export interface components {
             visit_count?: number;
             /** Format: int64 */
             total_spend_paise?: number;
+            /** @description Available guest loyalty points (1 point = ₹1 / 100 paise discount) */
+            loyalty_points?: number;
             /** Format: date-time */
             last_visit_at?: string;
         };
@@ -4745,6 +4914,18 @@ export interface components {
             location_type?: components["schemas"]["LocationTypeEnum"];
             is_default?: boolean;
             is_active?: boolean;
+        };
+        PatchedStockTransferRequest: {
+            /** Format: uuid */
+            from_branch?: string;
+            /** Format: uuid */
+            from_location?: string;
+            /** Format: uuid */
+            to_branch?: string;
+            /** Format: uuid */
+            to_location?: string;
+            status?: components["schemas"]["StockTransferStatusEnum"];
+            notes?: string;
         };
         /** @description Omits all cost/value/margin fields completely when caller lacks inventory.costs. */
         PatchedSupplierRequest: {
@@ -5456,6 +5637,63 @@ export interface components {
             reason_code?: string;
             notes?: string;
         };
+        StockTransfer: {
+            /** Format: uuid */
+            readonly id: string;
+            /** Format: uuid */
+            from_branch: string;
+            readonly from_branch_name: string;
+            /** Format: uuid */
+            from_location: string;
+            /** Format: uuid */
+            to_branch: string;
+            readonly to_branch_name: string;
+            /** Format: uuid */
+            to_location: string;
+            status?: components["schemas"]["StockTransferStatusEnum"];
+            notes?: string;
+            /** Format: date-time */
+            readonly created_at: string;
+            /** Format: date-time */
+            readonly updated_at: string;
+            readonly lines: components["schemas"]["StockTransferLine"][];
+        };
+        StockTransferLine: {
+            /** Format: uuid */
+            readonly id: string;
+            /** Format: uuid */
+            item: string;
+            readonly item_name: string;
+            readonly base_unit: string;
+            /** Format: decimal */
+            quantity: string;
+        };
+        StockTransferLineRequest: {
+            /** Format: uuid */
+            item: string;
+            /** Format: decimal */
+            quantity: string;
+        };
+        StockTransferRequest: {
+            /** Format: uuid */
+            from_branch: string;
+            /** Format: uuid */
+            from_location: string;
+            /** Format: uuid */
+            to_branch: string;
+            /** Format: uuid */
+            to_location: string;
+            status?: components["schemas"]["StockTransferStatusEnum"];
+            notes?: string;
+        };
+        /**
+         * @description * `DRAFT` - Draft
+         *     * `APPROVED` - Approved
+         *     * `COMPLETED` - Completed
+         *     * `CANCELLED` - Cancelled
+         * @enum {string}
+         */
+        StockTransferStatusEnum: "DRAFT" | "APPROVED" | "COMPLETED" | "CANCELLED";
         /** @description Omits all cost/value/margin fields completely when caller lacks inventory.costs. */
         Supplier: {
             /** Format: uuid */
@@ -6439,6 +6677,34 @@ export interface operations {
             };
         };
     };
+    customers_loyalty_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description A UUID string identifying this customer. */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CustomerRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["CustomerRequest"];
+                "multipart/form-data": components["schemas"]["CustomerRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Customer"];
+                };
+            };
+        };
+    };
     entitlements_retrieve: {
         parameters: {
             query?: never;
@@ -7258,6 +7524,87 @@ export interface operations {
             };
         };
     };
+    inventory_purchase_orders_receive_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description A UUID string identifying this purchase order. */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PurchaseOrderRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["PurchaseOrderRequest"];
+                "multipart/form-data": components["schemas"]["PurchaseOrderRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PurchaseOrder"];
+                };
+            };
+        };
+    };
+    inventory_purchase_orders_send_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description A UUID string identifying this purchase order. */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PurchaseOrderRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["PurchaseOrderRequest"];
+                "multipart/form-data": components["schemas"]["PurchaseOrderRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PurchaseOrder"];
+                };
+            };
+        };
+    };
+    inventory_purchase_orders_auto_draft_low_stock_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PurchaseOrderRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["PurchaseOrderRequest"];
+                "multipart/form-data": components["schemas"]["PurchaseOrderRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PurchaseOrder"];
+                };
+            };
+        };
+    };
     inventory_receipts_list: {
         parameters: {
             query?: {
@@ -7677,6 +8024,210 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Supplier"];
+                };
+            };
+        };
+    };
+    inventory_transfers_list: {
+        parameters: {
+            query?: {
+                /** @description A page number within the paginated result set. */
+                page?: number;
+                /** @description Number of results to return per page. */
+                page_size?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaginatedStockTransferList"];
+                };
+            };
+        };
+    };
+    inventory_transfers_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["StockTransferRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["StockTransferRequest"];
+                "multipart/form-data": components["schemas"]["StockTransferRequest"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StockTransfer"];
+                };
+            };
+        };
+    };
+    inventory_transfers_retrieve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description A UUID string identifying this stock transfer. */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StockTransfer"];
+                };
+            };
+        };
+    };
+    inventory_transfers_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description A UUID string identifying this stock transfer. */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["StockTransferRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["StockTransferRequest"];
+                "multipart/form-data": components["schemas"]["StockTransferRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StockTransfer"];
+                };
+            };
+        };
+    };
+    inventory_transfers_destroy: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description A UUID string identifying this stock transfer. */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No response body */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    inventory_transfers_partial_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description A UUID string identifying this stock transfer. */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["PatchedStockTransferRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["PatchedStockTransferRequest"];
+                "multipart/form-data": components["schemas"]["PatchedStockTransferRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StockTransfer"];
+                };
+            };
+        };
+    };
+    inventory_transfers_dispatch_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description A UUID string identifying this stock transfer. */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["StockTransferRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["StockTransferRequest"];
+                "multipart/form-data": components["schemas"]["StockTransferRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StockTransfer"];
+                };
+            };
+        };
+    };
+    inventory_transfers_receive_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description A UUID string identifying this stock transfer. */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["StockTransferRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["StockTransferRequest"];
+                "multipart/form-data": components["schemas"]["StockTransferRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StockTransfer"];
                 };
             };
         };
@@ -9304,6 +9855,34 @@ export interface operations {
                 "application/json": components["schemas"]["PatchedCustomerRequest"];
                 "application/x-www-form-urlencoded": components["schemas"]["PatchedCustomerRequest"];
                 "multipart/form-data": components["schemas"]["PatchedCustomerRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Customer"];
+                };
+            };
+        };
+    };
+    orders_customers_loyalty_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description A UUID string identifying this customer. */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CustomerRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["CustomerRequest"];
+                "multipart/form-data": components["schemas"]["CustomerRequest"];
             };
         };
         responses: {

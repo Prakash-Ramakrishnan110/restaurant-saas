@@ -74,6 +74,39 @@ export const BillingPage: React.FC = () => {
   const [mergeTargetSessionId, setMergeTargetSessionId] = useState<string>("");
   const [opsNotice, setOpsNotice] = useState<string | null>(null);
 
+  // Stage D3: Guest Phone Lookup & Loyalty Points state
+  const [guestSearchPhone, setGuestSearchPhone] = useState<string>("");
+  const [matchedGuest, setMatchedGuest] = useState<{
+    id: string;
+    name: string;
+    phone: string;
+    consent_given: boolean;
+    dietary_preference: string;
+    allergies: string;
+    loyalty_points: number;
+  } | null>(null);
+  const [redeemLoyaltyPoints, setRedeemLoyaltyPoints] = useState<number>(0);
+
+  const handleLookupGuest = async () => {
+    if (!guestSearchPhone.trim()) return;
+    try {
+      const res = await apiClient.get<any>("/customers/", {
+        params: { search: guestSearchPhone.trim() },
+      });
+      const list = unwrapList<any>(res.data);
+      if (list.length > 0) {
+        setMatchedGuest(list[0]);
+        setRedeemLoyaltyPoints(0);
+        setOpsNotice(`Linked guest ${list[0].name} (${list[0].loyalty_points || 0} loyalty pts).`);
+      } else {
+        setMatchedGuest(null);
+        setErrorMessage("No guest profile found matching that phone or name.");
+      }
+    } catch {
+      setErrorMessage("Could not search guest directory.");
+    }
+  };
+
   // Error / Success
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
@@ -145,7 +178,12 @@ export const BillingPage: React.FC = () => {
     loadSessionBill(sId);
   };
 
-  const grandTotalPaise = Math.max(0, (billData?.total_paise || 0) - discountPaise);
+  const loyaltyDiscountPaise =
+    matchedGuest && matchedGuest.consent_given
+      ? Math.min(redeemLoyaltyPoints, matchedGuest.loyalty_points || 0) * 100
+      : 0;
+  const totalDiscountPaise = discountPaise + loyaltyDiscountPaise;
+  const grandTotalPaise = Math.max(0, (billData?.total_paise || 0) - totalDiscountPaise);
   const tenderedPaise = parseRupees(amountTendered) || grandTotalPaise;
   const changeDuePaise = Math.max(0, tenderedPaise - grandTotalPaise);
 
@@ -158,6 +196,8 @@ export const BillingPage: React.FC = () => {
         payment_method: paymentMethod,
         amount_tendered_paise: tenderedPaise || grandTotalPaise,
         discount_paise: discountPaise,
+        customer_id: matchedGuest?.id || null,
+        redeem_loyalty_points: matchedGuest && matchedGuest.consent_given ? redeemLoyaltyPoints : 0,
         notes: notes || "",
       });
 
@@ -424,10 +464,16 @@ export const BillingPage: React.FC = () => {
                     <span>Subtotal:</span>
                     <span className="font-mono">{formatRupees(billData.subtotal_paise)}</span>
                   </div>
-                  {discountPaise > 0 && (
+                  {totalDiscountPaise > 0 && (
                     <div className="flex justify-between text-emerald-600 font-bold">
-                      <span>Discount:</span>
-                      <span className="font-mono">-{formatRupees(discountPaise)}</span>
+                      <span>
+                        Discount
+                        {loyaltyDiscountPaise > 0
+                          ? ` (includes ${redeemLoyaltyPoints} loyalty pts)`
+                          : ""}
+                        :
+                      </span>
+                      <span className="font-mono">-{formatRupees(totalDiscountPaise)}</span>
                     </div>
                   )}
                   <div className="flex justify-between text-base font-extrabold text-foreground pt-2 border-t border-border">
@@ -437,6 +483,84 @@ export const BillingPage: React.FC = () => {
                     </span>
                   </div>
                 </div>
+              </div>
+
+              {/* Stage D3: Guest Phone Lookup & Loyalty Points Redemption */}
+              <div className="rounded-xl border border-border bg-card p-4 space-y-3 text-xs">
+                <div className="flex items-center justify-between">
+                  <span className="font-bold uppercase text-muted-foreground">
+                    Guest Loyalty &amp; Phone Lookup
+                  </span>
+                  <span className="text-[11px] text-muted-foreground">
+                    Earn 1 pt / ₹100 • Redeem 1 pt = ₹1
+                  </span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Input
+                    type="text"
+                    data-testid="billing-guest-phone-input"
+                    placeholder="Enter guest phone or name..."
+                    value={guestSearchPhone}
+                    onChange={(e) => setGuestSearchPhone(e.target.value)}
+                    className="h-9 text-xs"
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    data-testid="billing-guest-lookup-btn"
+                    onClick={() => void handleLookupGuest()}
+                    className="h-9 text-xs font-bold shrink-0"
+                  >
+                    Lookup Guest
+                  </Button>
+                </div>
+                {matchedGuest && (
+                  <div
+                    data-testid="billing-matched-guest-card"
+                    className="p-3 rounded-lg border border-border bg-muted/30 flex flex-col sm:flex-row sm:items-center justify-between gap-2"
+                  >
+                    <div>
+                      <div className="font-bold text-foreground">
+                        {matchedGuest.name} ({matchedGuest.phone})
+                      </div>
+                      <div className="text-[11px] text-muted-foreground">
+                        Available Balance: <strong>{matchedGuest.loyalty_points || 0} pts</strong>
+                        {matchedGuest.allergies ? ` • Allergic: ${matchedGuest.allergies}` : ""}
+                      </div>
+                    </div>
+                    {matchedGuest.consent_given && (matchedGuest.loyalty_points || 0) > 0 && (
+                      <div className="flex items-center gap-2">
+                        <label
+                          htmlFor="redeem-pts-input"
+                          className="text-[11px] font-semibold text-muted-foreground"
+                        >
+                          Redeem Pts:
+                        </label>
+                        <input
+                          id="redeem-pts-input"
+                          data-testid="billing-redeem-points-input"
+                          type="number"
+                          min={0}
+                          max={matchedGuest.loyalty_points || 0}
+                          value={redeemLoyaltyPoints}
+                          onChange={(e) =>
+                            setRedeemLoyaltyPoints(
+                              Math.max(
+                                0,
+                                Math.min(
+                                  matchedGuest.loyalty_points || 0,
+                                  Number(e.target.value) || 0
+                                )
+                              )
+                            )
+                          }
+                          className="w-20 px-2 py-1 rounded border border-input bg-background font-mono text-right font-bold"
+                        />
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
 
               {/* Settlement Form */}

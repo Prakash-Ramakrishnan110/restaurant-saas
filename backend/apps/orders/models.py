@@ -552,6 +552,12 @@ class Customer(TenantOwnedModel):
     notes = models.TextField(blank=True, default="")
     visit_count = models.PositiveIntegerField(default=1)
     total_spend_paise = models.BigIntegerField(default=0)
+    loyalty_points = models.PositiveIntegerField(
+        default=0,
+        help_text="Available guest loyalty points (1 point = ₹1 / 100 paise discount)",
+    )
+    lifetime_points_earned = models.PositiveIntegerField(default=0)
+    lifetime_points_redeemed = models.PositiveIntegerField(default=0)
     last_visit_at = models.DateTimeField(default=timezone.now)
 
     class Meta:

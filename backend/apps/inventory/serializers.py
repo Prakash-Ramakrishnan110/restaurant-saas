@@ -20,6 +20,8 @@ from apps.inventory.models import (
     StockLevel,
     StockLocation,
     StockMovement,
+    StockTransfer,
+    StockTransferLine,
     Supplier,
     UnitConversion,
 )
@@ -442,4 +444,42 @@ class OrderLineStockDeductionSerializer(serializers.ModelSerializer):
             "attempts",
             "deducted_at",
             "created_at",
+        ]
+
+
+class StockTransferLineSerializer(serializers.ModelSerializer):
+    item_name = serializers.CharField(source="item.name", read_only=True)
+    base_unit = serializers.CharField(source="item.base_unit", read_only=True)
+
+    class Meta:
+        model = StockTransferLine
+        fields = [
+            "id",
+            "item",
+            "item_name",
+            "base_unit",
+            "quantity",
+        ]
+
+
+class StockTransferSerializer(serializers.ModelSerializer):
+    lines = StockTransferLineSerializer(many=True, read_only=True)
+    from_branch_name = serializers.CharField(source="from_branch.name", read_only=True)
+    to_branch_name = serializers.CharField(source="to_branch.name", read_only=True)
+
+    class Meta:
+        model = StockTransfer
+        fields = [
+            "id",
+            "from_branch",
+            "from_branch_name",
+            "from_location",
+            "to_branch",
+            "to_branch_name",
+            "to_location",
+            "status",
+            "notes",
+            "created_at",
+            "updated_at",
+            "lines",
         ]

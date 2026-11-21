@@ -226,6 +226,8 @@ export interface SettleBillPayload {
   payment_method: "CASH" | "UPI" | "CARD" | "ROOM_FOLIO";
   amount_tendered_paise?: number;
   discount_paise?: number;
+  customer_id?: string | null;
+  redeem_loyalty_points?: number;
   notes?: string;
 }
 

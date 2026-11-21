@@ -13,6 +13,7 @@ from apps.inventory.views import (
     StockHealthView,
     StockLocationViewSet,
     StockMovementViewSet,
+    StockTransferViewSet,
     SupplierViewSet,
     WastageViewSet,
 )
@@ -29,6 +30,7 @@ router.register(r"movements", StockMovementViewSet, basename="movement")
 router.register(r"counts", StockCountViewSet, basename="count")
 router.register(r"recipes", RecipeViewSet, basename="recipe")
 router.register(r"purchase-orders", PurchaseOrderViewSet, basename="purchase-order")
+router.register(r"transfers", StockTransferViewSet, basename="transfer")
 
 urlpatterns = [
     path("settings/", InventorySettingsView.as_view(), name="inventory-settings"),
