@@ -1,4 +1,4 @@
-import axios, { AxiosError, InternalAxiosRequestConfig } from "axios";
+import axios, { AxiosError, AxiosRequestConfig, InternalAxiosRequestConfig } from "axios";
 
 export interface ApiErrorPayload {
   error: {
@@ -34,6 +34,27 @@ export const apiClient = axios.create({
     "Content-Type": "application/json",
   },
 });
+
+// Deduplicate identical concurrent in-flight GET requests (e.g. React.StrictMode double-mount)
+const inFlightGets = new Map<string, Promise<any>>();
+const rawGet = apiClient.get.bind(apiClient);
+apiClient.get = ((url: string, config?: AxiosRequestConfig): Promise<any> => {
+  if (config?.signal) {
+    return rawGet(url, config);
+  }
+  const key = `${activeTenantId || ""}::${inMemoryAccessToken ? "auth" : "anon"}::${url}::${
+    config?.params ? JSON.stringify(config.params) : ""
+  }`;
+  const existing = inFlightGets.get(key);
+  if (existing) {
+    return existing;
+  }
+  const reqPromise = rawGet(url, config).finally(() => {
+    inFlightGets.delete(key);
+  });
+  inFlightGets.set(key, reqPromise);
+  return reqPromise;
+}) as typeof apiClient.get;
 
 // Single-flight refresh mutex
 let refreshPromise: Promise<string | null> | null = null;

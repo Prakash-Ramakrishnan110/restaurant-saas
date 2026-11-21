@@ -32,7 +32,9 @@ const MIME_TYPES: Record<string, string> = {
 };
 
 function serveMarketingOnRoot(): Plugin {
-  const attach = (middlewares: { use: (fn: (req: any, res: any, next: () => void) => void) => void }) => {
+  const attach = (middlewares: {
+    use: (fn: (req: any, res: any, next: () => void) => void) => void;
+  }) => {
     middlewares.use((req, res, next) => {
       if (!req.url || (req.method !== "GET" && req.method !== "HEAD")) return next();
       const pathname = decodeURIComponent(req.url.split("?")[0]);
@@ -59,7 +61,11 @@ function serveMarketingOnRoot(): Plugin {
         pathname.startsWith("/assets/")
       ) {
         const assetFile = path.join(MARKETING_DIST, pathname.slice(1));
-        if (assetFile.startsWith(MARKETING_DIST) && fs.existsSync(assetFile) && fs.statSync(assetFile).isFile()) {
+        if (
+          assetFile.startsWith(MARKETING_DIST) &&
+          fs.existsSync(assetFile) &&
+          fs.statSync(assetFile).isFile()
+        ) {
           const stat = fs.statSync(assetFile);
           const ext = path.extname(assetFile).toLowerCase();
           const mime = MIME_TYPES[ext] || "application/octet-stream";
@@ -132,11 +138,26 @@ export default defineConfig({
     coverage: {
       provider: "v8",
       reporter: ["text", "json", "html"],
-      include: ["src/api/**", "src/context/**", "src/pages/auth/**", "src/components/**", "src/lib/**"],
+      include: [
+        "src/api/**",
+        "src/context/**",
+        "src/pages/auth/**",
+        "src/components/**",
+        "src/lib/**",
+      ],
     },
   },
   server: {
     port: 5173,
+    warmup: {
+      clientFiles: [
+        "./src/main.tsx",
+        "./src/App.tsx",
+        "./src/StaffApp.tsx",
+        "./src/pages/**/*.tsx",
+        "./src/components/**/*.tsx",
+      ],
+    },
     proxy: {
       "/api": {
         target: "http://127.0.0.1:8000",

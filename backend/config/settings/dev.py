@@ -30,3 +30,10 @@ REST_FRAMEWORK["DEFAULT_THROTTLE_RATES"] = {  # noqa: F405
     "public_qr_token": "10000/minute",
     "public_order_track": "10000/minute",
 }
+
+DATABASES["default"]["CONN_MAX_AGE"] = 60  # noqa: F405
+
+PASSWORD_HASHERS = [
+    "django.contrib.auth.hashers.MD5PasswordHasher",
+    *PASSWORD_HASHERS,  # noqa: F405
+]

@@ -38,7 +38,7 @@ services:
       context: ./backend
       dockerfile: Dockerfile
     container_name: fusion_backend
-    command: python manage.py runserver 0.0.0.0:8000
+    command: python manage.py runserver 0.0.0.0:8000 --noreload
     volumes:
       - ./backend:/app
     ports:
