@@ -741,6 +741,38 @@ export const FloorPOSPage: React.FC = () => {
                   : `Counter Token #${counterToken}`}
               </h3>
             </div>
+            {usesTables &&
+              selectedTable &&
+              !selectedSessionId &&
+              ((selectedTable.status as string) === "CLEANING" ||
+                (selectedTable.status as string) === "DIRTY") && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="text-xs gap-1 text-emerald-700 border-emerald-300 hover:bg-emerald-50 dark:text-emerald-300 dark:border-emerald-800"
+                  disabled={submitting}
+                  onClick={async () => {
+                    try {
+                      setSubmitting(true);
+                      await apiClient.post(`/tables/${selectedTable.id}/status/`, {
+                        status: "AVAILABLE",
+                        reason: "Marked free from Floor POS",
+                      });
+                      setSuccessToast(`Table ${selectedTable.label} is now Free.`);
+                      await fetchData();
+                      setSelectedTable((prev) => (prev ? { ...prev, status: "AVAILABLE" } : null));
+                    } catch (err: any) {
+                      setErrorToast(
+                        err?.response?.data?.error?.message || "Could not mark table free."
+                      );
+                    } finally {
+                      setSubmitting(false);
+                    }
+                  }}
+                >
+                  Mark Free
+                </Button>
+              )}
             {usesTables && selectedSessionId && (
               <div className="flex items-center gap-1.5">
                 <Button

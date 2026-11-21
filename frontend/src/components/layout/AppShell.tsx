@@ -535,7 +535,9 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
             aria-label="Switch language"
           >
             <Globe className="h-3.5 w-3.5 sm:mr-1" />
-            <span className="ml-0.5">{i18n.language.startsWith("ta") ? "தமிழ்" : "EN"}</span>
+            <span className="hidden sm:inline ml-0.5">
+              {i18n.language.startsWith("ta") ? "தமிழ்" : "EN"}
+            </span>
           </Button>
 
           {/* Sound Alerts Switcher */}
