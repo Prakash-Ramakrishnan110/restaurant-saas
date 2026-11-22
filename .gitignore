@@ -64,12 +64,9 @@ test-results/
 .playwright-mcp/
 
 # Environment & Secrets
-.env
-.env.local
 
 # IDE
 .idea/
-.vscode/
 *.swp
 *.swo
 

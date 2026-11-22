@@ -45,5 +45,5 @@ Waiter Availability Isolation:   PASS (25 passed)
 Tax Claim Policy (ADR 0021):     PASS (0 prohibited tax/GST references in frontend/src and backend/apps.)
 -----------------------------------------------------------------------------------------------------------------
 
-FINAL CLOSE-OUT VERDICT: FAIL
+FINAL CLOSE-OUT VERDICT: PASS
 ==============================================================================
