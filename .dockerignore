@@ -1,0 +1,16 @@
+.git
+.github
+**/node_modules
+**/__pycache__
+**/.pytest_cache
+**/.ruff_cache
+**/.mypy_cache
+**/dist
+**/dist-ssr
+backups
+docs
+files
+print-bridge
+.playwright-mcp
+*.sqlite3
+*.log

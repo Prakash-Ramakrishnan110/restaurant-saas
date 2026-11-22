@@ -77,6 +77,7 @@ export interface PublicQRMenuResponse {
   session_policy: "CUSTOMER_CAN_OPEN" | "STAFF_ONLY" | string;
   active_session_open: boolean;
   allows_service_requests?: boolean;
+  allows_takeaway?: boolean;
   categories: PublicMenuCategory[];
 }
 
@@ -93,6 +94,7 @@ export interface PublicOrderCreatePayload {
   notes?: string;
   guest_label?: string;
   session_token?: string;
+  dining_preference?: "DINE_IN" | "TAKEAWAY";
 }
 
 export interface PublicOrderCreateResponse {

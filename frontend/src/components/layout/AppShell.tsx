@@ -496,7 +496,7 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
           <button
             type="button"
             onClick={() => setSidebarOpen(!sidebarOpen)}
-            className="md:hidden p-1.5 rounded-md hover:bg-muted text-foreground min-h-[48px] min-w-[48px] flex items-center justify-center shrink-0"
+            className="md:hidden p-1.5 rounded-md hover:bg-muted text-foreground min-h-[36px] min-w-[36px] flex items-center justify-center shrink-0"
             aria-label="Toggle navigation menu"
           >
             {sidebarOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
@@ -506,12 +506,22 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
             to={user?.is_platform_admin ? "/admin" : "/dashboard"}
             className="flex items-center shrink-0"
           >
-            <BrandLogo
-              variant="full"
-              size={24}
-              compact
-              theme={theme === "dark" ? "dark" : "auto"}
-            />
+            <span className="sm:hidden">
+              <BrandLogo
+                variant="full"
+                size={20}
+                compact
+                theme={theme === "dark" ? "dark" : "auto"}
+              />
+            </span>
+            <span className="hidden sm:inline-flex">
+              <BrandLogo
+                variant="full"
+                size={24}
+                compact
+                theme={theme === "dark" ? "dark" : "auto"}
+              />
+            </span>
           </Link>
 
           {/* Quick Command Palette Button */}
@@ -577,7 +587,7 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
             data-testid="connection-status-pill"
             aria-label={isOnline ? "Network Online" : "Network Offline"}
             onClick={() => setQueueDrawerOpen(true)}
-            className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-full text-xs font-semibold border transition-colors whitespace-nowrap shrink-0 min-h-[40px] ${
+            className={`inline-flex items-center gap-1.5 px-2 sm:px-2.5 py-1 sm:py-1.5 rounded-full text-xs font-semibold border transition-colors whitespace-nowrap shrink-0 min-h-[32px] sm:min-h-[40px] ${
               offlineQueue.some((q) => q.status === "CONFLICT")
                 ? "bg-rose-50 text-rose-800 border-rose-300 dark:bg-rose-950/40 dark:text-rose-300 dark:border-rose-800"
                 : !isOnline || offlineQueue.length > 0 || isSyncingQueue
@@ -616,7 +626,7 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
             variant="ghost"
             size="sm"
             onClick={toggleLanguage}
-            className="text-xs font-semibold min-h-[36px] px-1.5 sm:px-2.5"
+            className="text-xs font-semibold min-h-[32px] min-w-[32px] sm:min-h-[36px] px-1.5 sm:px-2.5"
             aria-label="Switch language"
           >
             <Globe className="h-3.5 w-3.5 sm:mr-1" />
@@ -630,7 +640,7 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
             variant="ghost"
             size="sm"
             onClick={handleToggleSound}
-            className={`min-h-[44px] min-w-[44px] p-2 ${
+            className={`min-h-[32px] min-w-[32px] sm:min-h-[40px] sm:min-w-[40px] p-1.5 sm:p-2 ${
               soundOn
                 ? "text-[#C2410C] dark:text-[#FF6A00] bg-orange-50/70 dark:bg-orange-950/30"
                 : "text-muted-foreground"
@@ -691,7 +701,7 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
               variant="outline"
               size="sm"
               onClick={handleLogout}
-              className="text-xs min-h-[36px] px-2 sm:px-3"
+              className="text-xs min-h-[32px] min-w-[32px] sm:min-h-[36px] px-1.5 sm:px-3"
               aria-label="Sign out"
             >
               <LogOut className="h-3.5 w-3.5 sm:mr-1" />

@@ -110,11 +110,13 @@ export const SalesReportsPage: React.FC = () => {
 
       {/* Date Range Selector Bar */}
       <Card>
-        <CardContent className="p-4 flex flex-col md:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-2">
-            <Calendar className="w-4 h-4 text-muted-foreground" />
-            <span className="text-xs font-semibold text-foreground">Time Range:</span>
-            <div className="flex items-center gap-1">
+        <CardContent className="p-4 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+          <div className="flex flex-wrap items-center gap-2 w-full md:w-auto">
+            <div className="flex items-center gap-1.5 shrink-0">
+              <Calendar className="w-4 h-4 text-muted-foreground" />
+              <span className="text-xs font-semibold text-foreground">Time Range:</span>
+            </div>
+            <div className="flex flex-wrap items-center gap-1.5">
               <Button
                 variant={rangePreset === "today" ? "default" : "outline"}
                 size="sm"
@@ -151,7 +153,7 @@ export const SalesReportsPage: React.FC = () => {
           </div>
 
           {rangePreset === "custom" && (
-            <form onSubmit={handleCustomApply} className="flex items-center gap-2">
+            <form onSubmit={handleCustomApply} className="flex flex-wrap items-center gap-2">
               <input
                 type="date"
                 value={startDate}

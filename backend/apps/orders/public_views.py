@@ -348,6 +348,11 @@ class PublicQRMenuView(APIView):
                 "payment_timing": payment_timing,
                 "session_policy": session_policy,
                 "active_session_open": active_session is not None,
+                "allows_takeaway": (
+                    False
+                    if target_type == QRTargetType.ROOM
+                    else (bool(capabilities.allows_takeaway) if capabilities else True)
+                ),
                 "categories": categories_payload,
             }
 
@@ -613,6 +618,17 @@ class PublicQROrderCreateView(APIView):
 
             tracking_token = secrets.token_urlsafe(16)
             guest_label = str(request.data.get("guest_label") or "").strip()[:20]
+            dining_preference = str(request.data.get("dining_preference") or "").strip().upper()
+            can_takeaway = (
+                target_type != QRTargetType.ROOM
+                and (capabilities is None or bool(capabilities.allows_takeaway))
+            )
+            if (
+                dining_preference == "TAKEAWAY"
+                and can_takeaway
+                and not order_notes.startswith("[PARCEL]")
+            ):
+                order_notes = (f"[PARCEL] {order_notes}".strip())[:300]
 
             try:
                 with transaction.atomic():

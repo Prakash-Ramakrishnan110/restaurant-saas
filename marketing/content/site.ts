@@ -13,9 +13,9 @@ export interface SiteConfig {
 export const SITE_CONFIG: SiteConfig = {
   companyName: "Fusion Engine Technology",
   productName: "ServeMyFood",
-  siteUrl: "TODO: https://servemyfood.in",
+  siteUrl: import.meta.env.VITE_SITE_URL || "https://servemyfood.in",
   appUrl: "/login",
-  apiBaseUrl: "http://localhost:8000",
+  apiBaseUrl: import.meta.env.VITE_API_BASE_URL ?? "",
   whatsappNumber: "916369884331",
   contactPhone: "+91 63698 84331",
   contactEmail: "fusionenginetechnology@gmail.com",

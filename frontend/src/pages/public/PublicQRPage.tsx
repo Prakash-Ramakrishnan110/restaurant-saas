@@ -185,6 +185,7 @@ export const PublicQRPage: React.FC = () => {
   // Cart sheet & submission state
   const [cartOpen, setCartOpen] = useState<boolean>(false);
   const [guestLabel, setGuestLabel] = useState<string>("");
+  const [diningPreference, setDiningPreference] = useState<"DINE_IN" | "TAKEAWAY">("DINE_IN");
   const [submitting, setSubmitting] = useState<boolean>(false);
   const [orderError, setOrderError] = useState<string | null>(null);
   const [staffRequiredBanner, setStaffRequiredBanner] = useState<boolean>(false);
@@ -504,6 +505,9 @@ export const PublicQRPage: React.FC = () => {
           notes: cart.notes.trim().slice(0, 300),
           ...(guestLabel.trim() ? { guest_label: guestLabel.trim().slice(0, 20) } : {}),
           ...(activeToken ? { session_token: activeToken } : {}),
+          ...(menu.allows_takeaway && menu.target_type !== "ROOM"
+            ? { dining_preference: diningPreference }
+            : {}),
         },
         idempotencyKeyRef.current
       );
@@ -1498,6 +1502,50 @@ export const PublicQRPage: React.FC = () => {
                   className="w-full min-h-[44px] px-3 rounded-xl border border-input bg-background text-sm"
                 />
               </div>
+
+              {menu.allows_takeaway && menu.target_type !== "ROOM" && (
+                <div className="space-y-1.5 pt-2">
+                  <span className="block text-sm font-bold">{copy.diningPreferenceLabel}</span>
+                  <div
+                    className="grid grid-cols-2 gap-2"
+                    role="radiogroup"
+                    aria-label={copy.diningPreferenceLabel}
+                  >
+                    <button
+                      type="button"
+                      role="radio"
+                      aria-checked={diningPreference === "DINE_IN"}
+                      onClick={() => {
+                        resetIdempotencyKey();
+                        setDiningPreference("DINE_IN");
+                      }}
+                      className={`min-h-[44px] px-3 py-2 rounded-xl border text-xs font-bold transition-colors ${
+                        diningPreference === "DINE_IN"
+                          ? "border-[#FF6A00] bg-orange-50 text-[#C2410C] dark:bg-orange-950/30 dark:text-[#FF6A00]"
+                          : "border-border bg-background text-foreground hover:bg-muted/50"
+                      }`}
+                    >
+                      {copy.eatHere}
+                    </button>
+                    <button
+                      type="button"
+                      role="radio"
+                      aria-checked={diningPreference === "TAKEAWAY"}
+                      onClick={() => {
+                        resetIdempotencyKey();
+                        setDiningPreference("TAKEAWAY");
+                      }}
+                      className={`min-h-[44px] px-3 py-2 rounded-xl border text-xs font-bold transition-colors ${
+                        diningPreference === "TAKEAWAY"
+                          ? "border-[#FF6A00] bg-orange-50 text-[#C2410C] dark:bg-orange-950/30 dark:text-[#FF6A00]"
+                          : "border-border bg-background text-foreground hover:bg-muted/50"
+                      }`}
+                    >
+                      {copy.parcel}
+                    </button>
+                  </div>
+                </div>
+              )}
 
               <div className="space-y-1.5 pt-2">
                 <label className="block text-sm font-bold" htmlFor="order-note">

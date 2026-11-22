@@ -292,6 +292,11 @@ export const KDSPage: React.FC = () => {
                           QR
                         </Badge>
                       )}
+                      {(t.notes || "").includes("[PARCEL]") && (
+                        <Badge className="text-xs bg-amber-400 text-[#0B1F3B] font-extrabold border-none">
+                          PARCEL
+                        </Badge>
+                      )}
                       <Badge
                         variant="outline"
                         className="text-xs bg-white/15 text-white border-none font-semibold"

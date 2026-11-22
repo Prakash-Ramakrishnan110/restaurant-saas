@@ -31,6 +31,9 @@ export const PUBLIC_QR_COPY: Record<
     yourOrder: string;
     orderNote: string;
     orderNotePlaceholder: string;
+    diningPreferenceLabel: string;
+    eatHere: string;
+    parcel: string;
     placeOrder: string;
     placingOrder: string;
     clearCart: string;
@@ -107,6 +110,9 @@ export const PUBLIC_QR_COPY: Record<
     yourOrder: "Your order",
     orderNote: "Note for kitchen (optional)",
     orderNotePlaceholder: "Any allergy or serving request",
+    diningPreferenceLabel: "How would you like it?",
+    eatHere: "Eat Here",
+    parcel: "Parcel (Takeaway)",
     placeOrder: "Place order",
     placingOrder: "Sending order...",
     clearCart: "Clear",
@@ -181,6 +187,9 @@ export const PUBLIC_QR_COPY: Record<
     yourOrder: "உங்கள் ஆர்டர்",
     orderNote: "சமையலறைக்கு குறிப்பு (விருப்பம்)",
     orderNotePlaceholder: "ஏதேனும் சிறப்பு விருப்பம்",
+    diningPreferenceLabel: "எப்படிப் பரிமாற வேண்டும்?",
+    eatHere: "இங்கே சாப்பிட",
+    parcel: "பார்சல்",
     placeOrder: "ஆர்டர் செய்",
     placingOrder: "ஆர்டர் அனுப்பப்படுகிறது...",
     clearCart: "அழி",

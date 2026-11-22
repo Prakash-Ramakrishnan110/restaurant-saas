@@ -296,18 +296,16 @@ export const LoginPage: React.FC = () => {
         </div>
 
         {/* Footer links */}
-        <div className="flex flex-wrap items-center justify-center gap-4 text-xs text-muted-foreground">
+        <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-xs text-muted-foreground">
           <a
             href={import.meta.env.VITE_MARKETING_URL || "/"}
             className="hover:text-foreground underline font-medium"
           >
             ← Back to website
           </a>
-          <span>•</span>
           <a href="/dev/brand" className="hover:text-foreground underline">
             {t("nav.devBrand")}
           </a>
-          <span>•</span>
           <a href="/dev/design-system" className="hover:text-foreground underline">
             {t("nav.devComponents")}
           </a>
