@@ -108,12 +108,28 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 # Database configuration
-POSTGRES_HOST_PORT = env.int("POSTGRES_HOST_PORT", default=5436)
+# Database configuration - supports DATABASE_URL, DATABASE_PRIVATE_URL, DATABASE_PUBLIC_URL,
+# Railway PG* variables, or local development defaults
+_db_url = (
+    env.str("DATABASE_URL", default="")
+    or env.str("DATABASE_PRIVATE_URL", default="")
+    or env.str("DATABASE_PUBLIC_URL", default="")
+)
+
+if not _db_url:
+    _pg_host = env.str("PGHOST", default="") or env.str("DB_HOST", default="")
+    if _pg_host:
+        _pg_user = env.str("PGUSER", default="") or env.str("DB_USER", default="postgres")
+        _pg_pass = env.str("PGPASSWORD", default="") or env.str("DB_PASSWORD", default="postgres")
+        _pg_port = env.int("PGPORT", default=0) or env.int("DB_PORT", default=5432)
+        _pg_name = env.str("PGDATABASE", default="") or env.str("DB_NAME", default="railway")
+        _db_url = f"postgres://{_pg_user}:{_pg_pass}@{_pg_host}:{_pg_port}/{_pg_name}"
+    else:
+        POSTGRES_HOST_PORT = env.int("POSTGRES_HOST_PORT", default=5436)
+        _db_url = f"postgres://{env.str('DB_USER', 'postgres')}:{env.str('DB_PASSWORD', 'postgres')}@{env.str('DB_HOST', '127.0.0.1')}:{env.int('DB_PORT', POSTGRES_HOST_PORT)}/{env.str('DB_NAME', 'fusion_saas')}"
+
 DATABASES = {
-    "default": env.db(
-        "DATABASE_URL",
-        default=f"postgres://{env.str('DB_USER', 'postgres')}:{env.str('DB_PASSWORD', 'postgres')}@{env.str('DB_HOST', '127.0.0.1')}:{env.int('DB_PORT', POSTGRES_HOST_PORT)}/{env.str('DB_NAME', 'fusion_saas')}",
-    )
+    "default": env.db_url_config(_db_url)
 }
 
 # Redis & Channels Layer
