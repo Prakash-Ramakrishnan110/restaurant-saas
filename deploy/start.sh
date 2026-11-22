@@ -3,6 +3,10 @@ set -eu
 
 export PORT="${PORT:-8080}"
 
+echo "[start.sh] Available environment variables: $(env | cut -d= -f1 | sort | tr '\n' ' ')"
+echo "[start.sh] DATABASE_URL is set: $(if [ -n "${DATABASE_URL:-}" ]; then echo "YES (len ${#DATABASE_URL})"; else echo "NO"; fi)"
+echo "[start.sh] PGHOST is set: $(if [ -n "${PGHOST:-}" ]; then echo "YES ($PGHOST)"; else echo "NO"; fi)"
+
 echo "[start.sh] Checking database settings..."
 python -c "
 import os
