@@ -1,0 +1,133 @@
+{
+  "fe_paths_not_in_openapi": [
+    {
+      "path": "/api/v1/api/v1/tables/",
+      "file": "auth.test.tsx"
+    },
+    {
+      "path": "/api/v1/inventory/reports/wastage/",
+      "file": "WastagePage.tsx"
+    },
+    {
+      "path": "/api/v1/menu/translations/{id}/",
+      "file": "MenuTranslationsPage.tsx"
+    },
+    {
+      "path": "/api/v1/orders/{id}/transition/",
+      "file": "RoomServicePage.tsx"
+    },
+    {
+      "path": "/api/v1/orders/{id}/transition/",
+      "file": "TakeawayPage.tsx"
+    },
+    {
+      "path": "/api/v1/tenants/{id}/{id}/",
+      "file": "CustomerDetailPage.tsx"
+    },
+    {
+      "path": "/api/v1/tenants/{id}/{id}/",
+      "file": "TenantsDirectoryPage.tsx"
+    },
+    {
+      "path": "/api/v1/test-endpoint/",
+      "file": "auth.test.tsx"
+    }
+  ],
+  "fe_permissions_used": [
+    "area.manage",
+    "billing.manage",
+    "branch.manage",
+    "business.manage",
+    "inventory.approve",
+    "inventory.costs",
+    "inventory.count",
+    "inventory.manage",
+    "menu.availability",
+    "menu.manage",
+    "staff.manage",
+    "table.manage",
+    "table.merge",
+    "table.status_update",
+    "unknown.perm"
+  ],
+  "fe_permissions_not_in_rbac_constants": [
+    "unknown.perm"
+  ],
+  "rbac_permissions_unused_in_fe": [
+    "area.view",
+    "audit.view",
+    "branch.view",
+    "business.view",
+    "floor.manage",
+    "inventory.receive",
+    "inventory.view",
+    "inventory.waste",
+    "invoice.refund",
+    "menu.view",
+    "order.cancel",
+    "order.create",
+    "platform.admin",
+    "printer.reprint",
+    "qr.manage",
+    "qr.view",
+    "report.view",
+    "staff.view",
+    "table.assign",
+    "table.view",
+    "table_session.close",
+    "table_session.open",
+    "tenant.manage"
+  ],
+  "sidebar_map_routes_missing_in_navigation_ts": [
+    "/activity",
+    "/admin/requests",
+    "/admin/settings",
+    "/admin/subscriptions",
+    "/admin/templates",
+    "/admin/tenants/:id",
+    "/admin/users",
+    "/billing/room-charges",
+    "/documents",
+    "/events",
+    "/menu/import",
+    "/menu/options",
+    "/menu/prices",
+    "/my-shift",
+    "/offers",
+    "/reports/exceptions",
+    "/reports/feedback",
+    "/reports/items",
+    "/reports/orders",
+    "/reports/outlets",
+    "/reports/payments",
+    "/reports/sales",
+    "/reports/staff",
+    "/reports/taxes",
+    "/reservations",
+    "/room-service",
+    "/settings/approvals",
+    "/settings/customer-ordering",
+    "/settings/devices",
+    "/settings/integrations",
+    "/settings/notifications",
+    "/settings/payments",
+    "/settings/sound",
+    "/settings/taxes",
+    "/takeaway",
+    "/team/assignments",
+    "/team/leave",
+    "/team/roles",
+    "/team/shifts",
+    "/venue/areas",
+    "/venue/counters",
+    "/venue/floor",
+    "/venue/rooms",
+    "/venue/tables"
+  ],
+  "navigation_ts_routes_missing_in_sidebar_map": [
+    "/customers/feedback",
+    "/help",
+    "/menu/translations",
+    "/venue"
+  ]
+}

@@ -1,0 +1,462 @@
+{
+  "total_steps": 185,
+  "pass_count": 176,
+  "fail_count": 3,
+  "blocked_count": 6,
+  "steps_with_http_errors": 9,
+  "steps_with_console_errors": 9,
+  "steps_with_page_errors": 0,
+  "horizontal_scroll_screens": 0,
+  "small_tap_target_screens": 181,
+  "small_tap_target_total_elements": 5335,
+  "small_text_screens": 174,
+  "small_text_total_elements": 3010,
+  "axe_violation_screens": 152,
+  "low_contrast_screens": 151,
+  "orange_text_screens": 155,
+  "white_on_orange_screens": 0,
+  "broken_media_screens": 2,
+  "skeleton_10s_screens": 5,
+  "zeros_after_failed_req_screens": 0,
+  "forbidden_word_screens": 58,
+  "counter_table_word_screens": 4,
+  "missing_tamil_screens": 10,
+  "non_pass_steps": [
+    {
+      "flow": "F-02",
+      "step": "02-tracker",
+      "role": "GUEST",
+      "viewport": "mobile",
+      "status": "BLOCKED",
+      "note": "",
+      "url": "/q/KysoK5g3qqfgDR9dUzCU8rBNbFhnjlBA",
+      "httpErrors": [
+        {
+          "status": 429,
+          "method": "POST",
+          "url": "/api/v1/public/qr/KysoK5g3qqfgDR9dUzCU8rBNbFhnjlBA/orders/"
+        }
+      ],
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 429 (Unknown Status)"
+      ],
+      "pageErrors": [],
+      "shotPath": "docs/audit/walk/shots/F-02/mobile__02-tracker.png"
+    },
+    {
+      "flow": "F-03",
+      "step": "02-tracker",
+      "role": "GUEST",
+      "viewport": "mobile",
+      "status": "BLOCKED",
+      "note": "",
+      "url": "/q/IZFSNb-TuZVH-GiuV3yTtv5CDa8M9WBD",
+      "httpErrors": [],
+      "consoleErrors": [],
+      "pageErrors": [],
+      "shotPath": "docs/audit/walk/shots/F-03/mobile__02-tracker.png"
+    },
+    {
+      "flow": "F-05",
+      "step": "01-invalid-token",
+      "role": "GUEST",
+      "viewport": "mobile",
+      "status": "PASS",
+      "note": "",
+      "url": "/q/invalid-nonexistent-token-999",
+      "httpErrors": [
+        {
+          "status": 404,
+          "method": "GET",
+          "url": "/api/v1/public/qr/invalid-nonexistent-token-999/menu/"
+        },
+        {
+          "status": 404,
+          "method": "GET",
+          "url": "/api/v1/public/qr/invalid-nonexistent-token-999/menu/"
+        }
+      ],
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 404 (Not Found)",
+        "Failed to load resource: the server responded with a status of 404 (Not Found)"
+      ],
+      "pageErrors": [],
+      "shotPath": "docs/audit/walk/shots/F-05/mobile__01-invalid-token.png"
+    },
+    {
+      "flow": "F-05",
+      "step": "03-rotated-old-token",
+      "role": "GUEST",
+      "viewport": "mobile",
+      "status": "PASS",
+      "note": "",
+      "url": "/q/Ys7Yp6oYO-GAMMxqLUiVgcv_p9ZMcDJC",
+      "httpErrors": [
+        {
+          "status": 404,
+          "method": "GET",
+          "url": "/api/v1/public/qr/Ys7Yp6oYO-GAMMxqLUiVgcv_p9ZMcDJC/menu/"
+        },
+        {
+          "status": 404,
+          "method": "GET",
+          "url": "/api/v1/public/qr/Ys7Yp6oYO-GAMMxqLUiVgcv_p9ZMcDJC/menu/"
+        }
+      ],
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 404 (Not Found)",
+        "Failed to load resource: the server responded with a status of 404 (Not Found)"
+      ],
+      "pageErrors": [],
+      "shotPath": "docs/audit/walk/shots/F-05/mobile__03-rotated-old-token.png"
+    },
+    {
+      "flow": "F-06",
+      "step": "02-reorder-cart",
+      "role": "GUEST",
+      "viewport": "mobile",
+      "status": "BLOCKED",
+      "note": "Initial order failed before reorder",
+      "url": "/q/6qEs8CBUy1cXAufmN035t_iRZcOgJNWv",
+      "httpErrors": [
+        {
+          "status": 429,
+          "method": "POST",
+          "url": "/api/v1/public/qr/6qEs8CBUy1cXAufmN035t_iRZcOgJNWv/orders/"
+        }
+      ],
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 429 (Unknown Status)"
+      ],
+      "pageErrors": [],
+      "shotPath": "docs/audit/walk/shots/F-06/mobile__02-reorder-cart.png"
+    },
+    {
+      "flow": "F-07",
+      "step": "01-guest-requests",
+      "role": "GUEST",
+      "viewport": "mobile",
+      "status": "FAIL",
+      "note": "HTTP 400 /api/v1/public/qr/demo-spice-t4/service-requests/; 400 /api/v1/public/qr/demo-spice-t4/service-requests/; 400 /api/v1/public/qr/demo-spice-t4/service-requests/",
+      "url": "/q/demo-spice-t4",
+      "httpErrors": [
+        {
+          "status": 400,
+          "method": "POST",
+          "url": "/api/v1/public/qr/demo-spice-t4/service-requests/"
+        },
+        {
+          "status": 400,
+          "method": "POST",
+          "url": "/api/v1/public/qr/demo-spice-t4/service-requests/"
+        },
+        {
+          "status": 400,
+          "method": "POST",
+          "url": "/api/v1/public/qr/demo-spice-t4/service-requests/"
+        }
+      ],
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 400 (Bad Request)",
+        "Failed to load resource: the server responded with a status of 400 (Bad Request)",
+        "Failed to load resource: the server responded with a status of 400 (Bad Request)"
+      ],
+      "pageErrors": [],
+      "shotPath": "docs/audit/walk/shots/F-07/mobile__01-guest-requests.png"
+    },
+    {
+      "flow": "F-09",
+      "step": "03-first-order-fired",
+      "role": "WAITER",
+      "viewport": "mobile",
+      "status": "BLOCKED",
+      "note": "Fire Order button missing or disabled",
+      "url": "/pos",
+      "httpErrors": [],
+      "consoleErrors": [],
+      "pageErrors": [],
+      "shotPath": "docs/audit/walk/shots/F-09/mobile__03-first-order-fired.png"
+    },
+    {
+      "flow": "F-16",
+      "step": "02-settled",
+      "role": "CASHIER",
+      "viewport": "desktop",
+      "status": "BLOCKED",
+      "note": "No Mark Paid button enabled for awaiting payment order",
+      "url": "/billing",
+      "httpErrors": [],
+      "consoleErrors": [],
+      "pageErrors": [],
+      "shotPath": "docs/audit/walk/shots/F-16/desktop__02-settled.png"
+    },
+    {
+      "flow": "F-05",
+      "step": "01-invalid-token",
+      "role": "GUEST",
+      "viewport": "desktop",
+      "status": "PASS",
+      "note": "",
+      "url": "/q/invalid-nonexistent-token-999",
+      "httpErrors": [
+        {
+          "status": 404,
+          "method": "GET",
+          "url": "/api/v1/public/qr/invalid-nonexistent-token-999/menu/"
+        },
+        {
+          "status": 404,
+          "method": "GET",
+          "url": "/api/v1/public/qr/invalid-nonexistent-token-999/menu/"
+        }
+      ],
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 404 (Not Found)",
+        "Failed to load resource: the server responded with a status of 404 (Not Found)"
+      ],
+      "pageErrors": [],
+      "shotPath": "docs/audit/walk/shots/F-05/desktop__01-invalid-token.png"
+    },
+    {
+      "flow": "F-05",
+      "step": "03-rotated-old-token",
+      "role": "GUEST",
+      "viewport": "desktop",
+      "status": "PASS",
+      "note": "",
+      "url": "/q/Ys7Yp6oYO-GAMMxqLUiVgcv_p9ZMcDJC",
+      "httpErrors": [
+        {
+          "status": 404,
+          "method": "GET",
+          "url": "/api/v1/public/qr/Ys7Yp6oYO-GAMMxqLUiVgcv_p9ZMcDJC/menu/"
+        }
+      ],
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 404 (Not Found)"
+      ],
+      "pageErrors": [],
+      "shotPath": "docs/audit/walk/shots/F-05/desktop__03-rotated-old-token.png"
+    },
+    {
+      "flow": "F-07",
+      "step": "01-guest-requests",
+      "role": "GUEST",
+      "viewport": "desktop",
+      "status": "FAIL",
+      "note": "HTTP 400 /api/v1/public/qr/aMMgnG_AGOnIGmrIJEO1_srnG6REC8ud/service-requests/",
+      "url": "/q/aMMgnG_AGOnIGmrIJEO1_srnG6REC8ud",
+      "httpErrors": [
+        {
+          "status": 400,
+          "method": "POST",
+          "url": "/api/v1/public/qr/aMMgnG_AGOnIGmrIJEO1_srnG6REC8ud/service-requests/"
+        }
+      ],
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 400 (Bad Request)"
+      ],
+      "pageErrors": [],
+      "shotPath": "docs/audit/walk/shots/F-07/desktop__01-guest-requests.png"
+    },
+    {
+      "flow": "F-09",
+      "step": "03-first-order-fired",
+      "role": "WAITER",
+      "viewport": "desktop",
+      "status": "BLOCKED",
+      "note": "Fire Order button missing or disabled",
+      "url": "/pos",
+      "httpErrors": [],
+      "consoleErrors": [],
+      "pageErrors": [],
+      "shotPath": "docs/audit/walk/shots/F-09/desktop__03-first-order-fired.png"
+    },
+    {
+      "flow": "F-12",
+      "step": "03-sold-out-switches",
+      "role": "KITCHEN",
+      "viewport": "desktop",
+      "status": "FAIL",
+      "note": "HTTP 403 /api/v1/branches/",
+      "url": "/menu/availability",
+      "httpErrors": [
+        {
+          "status": 403,
+          "method": "GET",
+          "url": "/api/v1/branches/"
+        }
+      ],
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 403 (Forbidden)"
+      ],
+      "pageErrors": [],
+      "shotPath": "docs/audit/walk/shots/F-12/desktop__03-sold-out-switches.png"
+    }
+  ],
+  "forbidden_words_histogram": {
+    "tenants": 33,
+    "tenant": 27,
+    "sessions": 23,
+    "session": 14,
+    "entitlements": 14,
+    "tax": 8,
+    "gst": 7,
+    "paise": 7,
+    "preset": 6,
+    "pms": 2,
+    "ledger": 2,
+    "\u0b89\u0bb0\u0bbf\u0bae\u0bc8": 2,
+    "gstin": 2,
+    "presets": 1
+  },
+  "axe_rules_histogram": {
+    "color-contrast (serious)": 151,
+    "select-name (critical)": 35,
+    "label (critical)": 21,
+    "button-name (critical)": 18,
+    "scrollable-region-focusable (serious)": 11
+  },
+  "http_errors_list": [
+    {
+      "flow": "F-02",
+      "step": "02-tracker",
+      "viewport": "mobile",
+      "role": "GUEST",
+      "url_page": "/q/KysoK5g3qqfgDR9dUzCU8rBNbFhnjlBA",
+      "status": 429,
+      "method": "POST",
+      "url": "/api/v1/public/qr/KysoK5g3qqfgDR9dUzCU8rBNbFhnjlBA/orders/"
+    },
+    {
+      "flow": "F-05",
+      "step": "01-invalid-token",
+      "viewport": "mobile",
+      "role": "GUEST",
+      "url_page": "/q/invalid-nonexistent-token-999",
+      "status": 404,
+      "method": "GET",
+      "url": "/api/v1/public/qr/invalid-nonexistent-token-999/menu/"
+    },
+    {
+      "flow": "F-05",
+      "step": "01-invalid-token",
+      "viewport": "mobile",
+      "role": "GUEST",
+      "url_page": "/q/invalid-nonexistent-token-999",
+      "status": 404,
+      "method": "GET",
+      "url": "/api/v1/public/qr/invalid-nonexistent-token-999/menu/"
+    },
+    {
+      "flow": "F-05",
+      "step": "03-rotated-old-token",
+      "viewport": "mobile",
+      "role": "GUEST",
+      "url_page": "/q/Ys7Yp6oYO-GAMMxqLUiVgcv_p9ZMcDJC",
+      "status": 404,
+      "method": "GET",
+      "url": "/api/v1/public/qr/Ys7Yp6oYO-GAMMxqLUiVgcv_p9ZMcDJC/menu/"
+    },
+    {
+      "flow": "F-05",
+      "step": "03-rotated-old-token",
+      "viewport": "mobile",
+      "role": "GUEST",
+      "url_page": "/q/Ys7Yp6oYO-GAMMxqLUiVgcv_p9ZMcDJC",
+      "status": 404,
+      "method": "GET",
+      "url": "/api/v1/public/qr/Ys7Yp6oYO-GAMMxqLUiVgcv_p9ZMcDJC/menu/"
+    },
+    {
+      "flow": "F-06",
+      "step": "02-reorder-cart",
+      "viewport": "mobile",
+      "role": "GUEST",
+      "url_page": "/q/6qEs8CBUy1cXAufmN035t_iRZcOgJNWv",
+      "status": 429,
+      "method": "POST",
+      "url": "/api/v1/public/qr/6qEs8CBUy1cXAufmN035t_iRZcOgJNWv/orders/"
+    },
+    {
+      "flow": "F-07",
+      "step": "01-guest-requests",
+      "viewport": "mobile",
+      "role": "GUEST",
+      "url_page": "/q/demo-spice-t4",
+      "status": 400,
+      "method": "POST",
+      "url": "/api/v1/public/qr/demo-spice-t4/service-requests/"
+    },
+    {
+      "flow": "F-07",
+      "step": "01-guest-requests",
+      "viewport": "mobile",
+      "role": "GUEST",
+      "url_page": "/q/demo-spice-t4",
+      "status": 400,
+      "method": "POST",
+      "url": "/api/v1/public/qr/demo-spice-t4/service-requests/"
+    },
+    {
+      "flow": "F-07",
+      "step": "01-guest-requests",
+      "viewport": "mobile",
+      "role": "GUEST",
+      "url_page": "/q/demo-spice-t4",
+      "status": 400,
+      "method": "POST",
+      "url": "/api/v1/public/qr/demo-spice-t4/service-requests/"
+    },
+    {
+      "flow": "F-05",
+      "step": "01-invalid-token",
+      "viewport": "desktop",
+      "role": "GUEST",
+      "url_page": "/q/invalid-nonexistent-token-999",
+      "status": 404,
+      "method": "GET",
+      "url": "/api/v1/public/qr/invalid-nonexistent-token-999/menu/"
+    },
+    {
+      "flow": "F-05",
+      "step": "01-invalid-token",
+      "viewport": "desktop",
+      "role": "GUEST",
+      "url_page": "/q/invalid-nonexistent-token-999",
+      "status": 404,
+      "method": "GET",
+      "url": "/api/v1/public/qr/invalid-nonexistent-token-999/menu/"
+    },
+    {
+      "flow": "F-05",
+      "step": "03-rotated-old-token",
+      "viewport": "desktop",
+      "role": "GUEST",
+      "url_page": "/q/Ys7Yp6oYO-GAMMxqLUiVgcv_p9ZMcDJC",
+      "status": 404,
+      "method": "GET",
+      "url": "/api/v1/public/qr/Ys7Yp6oYO-GAMMxqLUiVgcv_p9ZMcDJC/menu/"
+    },
+    {
+      "flow": "F-07",
+      "step": "01-guest-requests",
+      "viewport": "desktop",
+      "role": "GUEST",
+      "url_page": "/q/aMMgnG_AGOnIGmrIJEO1_srnG6REC8ud",
+      "status": 400,
+      "method": "POST",
+      "url": "/api/v1/public/qr/aMMgnG_AGOnIGmrIJEO1_srnG6REC8ud/service-requests/"
+    },
+    {
+      "flow": "F-12",
+      "step": "03-sold-out-switches",
+      "viewport": "desktop",
+      "role": "KITCHEN",
+      "url_page": "/menu/availability",
+      "status": 403,
+      "method": "GET",
+      "url": "/api/v1/branches/"
+    }
+  ]
+}

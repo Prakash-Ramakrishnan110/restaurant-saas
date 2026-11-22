@@ -1,0 +1,886 @@
+{
+  "/dashboard": {
+    "allowed_roles": [
+      "OWNER",
+      "BRANCH_MANAGER",
+      "WAITER",
+      "KITCHEN"
+    ],
+    "unauthorized_behaviors": [
+      "CASHIER->/billing",
+      "PLATFORM_ADMIN->/admin",
+      "PUBLIC->/login"
+    ]
+  },
+  "/pos": {
+    "allowed_roles": [
+      "OWNER",
+      "BRANCH_MANAGER",
+      "WAITER",
+      "KITCHEN",
+      "CASHIER"
+    ],
+    "unauthorized_behaviors": [
+      "PLATFORM_ADMIN->/admin",
+      "PUBLIC->/login"
+    ]
+  },
+  "/orders/floor": {
+    "allowed_roles": [
+      "OWNER",
+      "BRANCH_MANAGER",
+      "WAITER",
+      "KITCHEN"
+    ],
+    "unauthorized_behaviors": [
+      "CASHIER:rendered+403/denied",
+      "PLATFORM_ADMIN->/admin",
+      "PUBLIC->/login"
+    ]
+  },
+  "/orders": {
+    "allowed_roles": [
+      "OWNER",
+      "BRANCH_MANAGER",
+      "WAITER",
+      "KITCHEN",
+      "CASHIER"
+    ],
+    "unauthorized_behaviors": [
+      "PLATFORM_ADMIN->/admin",
+      "PUBLIC->/login"
+    ]
+  },
+  "/orders/live": {
+    "allowed_roles": [
+      "OWNER",
+      "BRANCH_MANAGER",
+      "WAITER",
+      "KITCHEN",
+      "CASHIER"
+    ],
+    "unauthorized_behaviors": [
+      "PLATFORM_ADMIN->/admin",
+      "PUBLIC->/login"
+    ]
+  },
+  "/orders/ready": {
+    "allowed_roles": [
+      "OWNER",
+      "BRANCH_MANAGER",
+      "WAITER",
+      "KITCHEN",
+      "CASHIER"
+    ],
+    "unauthorized_behaviors": [
+      "PLATFORM_ADMIN->/admin",
+      "PUBLIC->/login"
+    ]
+  },
+  "/serve": {
+    "allowed_roles": [
+      "OWNER",
+      "BRANCH_MANAGER",
+      "WAITER",
+      "KITCHEN",
+      "CASHIER"
+    ],
+    "unauthorized_behaviors": [
+      "PLATFORM_ADMIN->/admin",
+      "PUBLIC->/login"
+    ]
+  },
+  "/room-service": {
+    "allowed_roles": [
+      "OWNER",
+      "BRANCH_MANAGER",
+      "WAITER",
+      "KITCHEN",
+      "CASHIER"
+    ],
+    "unauthorized_behaviors": [
+      "PLATFORM_ADMIN->/admin",
+      "PUBLIC->/login"
+    ]
+  },
+  "/takeaway": {
+    "allowed_roles": [
+      "OWNER",
+      "BRANCH_MANAGER",
+      "WAITER",
+      "KITCHEN",
+      "CASHIER"
+    ],
+    "unauthorized_behaviors": [
+      "PLATFORM_ADMIN->/admin",
+      "PUBLIC->/login"
+    ]
+  },
+  "/kds": {
+    "allowed_roles": [
+      "OWNER",
+      "BRANCH_MANAGER",
+      "WAITER",
+      "KITCHEN",
+      "CASHIER"
+    ],
+    "unauthorized_behaviors": [
+      "PLATFORM_ADMIN->/admin",
+      "PUBLIC->/login"
+    ]
+  },
+  "/orders/kds": {
+    "allowed_roles": [
+      "OWNER",
+      "BRANCH_MANAGER",
+      "WAITER",
+      "KITCHEN",
+      "CASHIER"
+    ],
+    "unauthorized_behaviors": [
+      "PLATFORM_ADMIN->/admin",
+      "PUBLIC->/login"
+    ]
+  },
+  "/billing": {
+    "allowed_roles": [
+      "OWNER",
+      "BRANCH_MANAGER",
+      "KITCHEN",
+      "CASHIER"
+    ],
+    "unauthorized_behaviors": [
+      "WAITER->/forbidden",
+      "PLATFORM_ADMIN->/admin",
+      "PUBLIC->/login"
+    ]
+  },
+  "/orders/billing": {
+    "allowed_roles": [
+      "OWNER",
+      "BRANCH_MANAGER",
+      "KITCHEN",
+      "CASHIER"
+    ],
+    "unauthorized_behaviors": [
+      "WAITER->/forbidden",
+      "PLATFORM_ADMIN->/admin",
+      "PUBLIC->/login"
+    ]
+  },
+  "/billing/invoices": {
+    "allowed_roles": [
+      "OWNER",
+      "BRANCH_MANAGER",
+      "KITCHEN",
+      "CASHIER"
+    ],
+    "unauthorized_behaviors": [
+      "WAITER->/forbidden",
+      "PLATFORM_ADMIN->/admin",
+      "PUBLIC->/login"
+    ]
+  },
+  "/billing/bills": {
+    "allowed_roles": [
+      "OWNER",
+      "BRANCH_MANAGER",
+      "KITCHEN",
+      "CASHIER"
+    ],
+    "unauthorized_behaviors": [
+      "WAITER->/forbidden",
+      "PLATFORM_ADMIN->/admin",
+      "PUBLIC->/login"
+    ]
+  },
+  "/billing/closeout": {
+    "allowed_roles": [
+      "OWNER",
+      "BRANCH_MANAGER",
+      "KITCHEN",
+      "CASHIER"
+    ],
+    "unauthorized_behaviors": [
+      "WAITER->/forbidden",
+      "PLATFORM_ADMIN->/admin",
+      "PUBLIC->/login"
+    ]
+  },
+  "/billing/room-charges": {
+    "allowed_roles": [
+      "OWNER",
+      "BRANCH_MANAGER",
+      "KITCHEN",
+      "CASHIER"
+    ],
+    "unauthorized_behaviors": [
+      "WAITER->/forbidden",
+      "PLATFORM_ADMIN->/admin",
+      "PUBLIC->/login"
+    ]
+  },
+  "/reports/sales": {
+    "allowed_roles": [
+      "OWNER",
+      "BRANCH_MANAGER",
+      "WAITER",
+      "KITCHEN"
+    ],
+    "unauthorized_behaviors": [
+      "CASHIER:rendered+403/denied",
+      "PLATFORM_ADMIN->/admin",
+      "PUBLIC->/login"
+    ]
+  },
+  "/reports/items": {
+    "allowed_roles": [
+      "OWNER",
+      "BRANCH_MANAGER",
+      "WAITER",
+      "KITCHEN"
+    ],
+    "unauthorized_behaviors": [
+      "CASHIER:rendered+403/denied",
+      "PLATFORM_ADMIN->/admin",
+      "PUBLIC->/login"
+    ]
+  },
+  "/reports/payments": {
+    "allowed_roles": [
+      "OWNER",
+      "BRANCH_MANAGER",
+      "KITCHEN"
+    ],
+    "unauthorized_behaviors": [
+      "WAITER:rendered+403/denied",
+      "CASHIER:rendered+403/denied",
+      "PLATFORM_ADMIN->/admin",
+      "PUBLIC->/login"
+    ]
+  },
+  "/reports/exceptions": {
+    "allowed_roles": [
+      "OWNER",
+      "BRANCH_MANAGER",
+      "WAITER",
+      "KITCHEN"
+    ],
+    "unauthorized_behaviors": [
+      "CASHIER:rendered+403/denied",
+      "PLATFORM_ADMIN->/admin",
+      "PUBLIC->/login"
+    ]
+  },
+  "/reports/staff": {
+    "allowed_roles": [
+      "OWNER",
+      "BRANCH_MANAGER",
+      "WAITER",
+      "KITCHEN"
+    ],
+    "unauthorized_behaviors": [
+      "CASHIER:rendered+403/denied",
+      "PLATFORM_ADMIN->/admin",
+      "PUBLIC->/login"
+    ]
+  },
+  "/reports/outlets": {
+    "allowed_roles": [
+      "OWNER",
+      "BRANCH_MANAGER",
+      "KITCHEN"
+    ],
+    "unauthorized_behaviors": [
+      "WAITER:rendered+403/denied",
+      "CASHIER:rendered+403/denied",
+      "PLATFORM_ADMIN->/admin",
+      "PUBLIC->/login"
+    ]
+  },
+  "/inventory": {
+    "allowed_roles": [
+      "OWNER",
+      "BRANCH_MANAGER",
+      "KITCHEN"
+    ],
+    "unauthorized_behaviors": [
+      "WAITER:rendered+403/denied",
+      "CASHIER:rendered+403/denied",
+      "PLATFORM_ADMIN->/admin",
+      "PUBLIC->/login"
+    ]
+  },
+  "/inventory/recipes": {
+    "allowed_roles": [
+      "OWNER",
+      "BRANCH_MANAGER",
+      "KITCHEN"
+    ],
+    "unauthorized_behaviors": [
+      "WAITER:rendered+403/denied",
+      "CASHIER:rendered+403/denied",
+      "PLATFORM_ADMIN->/admin",
+      "PUBLIC->/login"
+    ]
+  },
+  "/inventory/purchases": {
+    "allowed_roles": [
+      "OWNER",
+      "BRANCH_MANAGER",
+      "WAITER",
+      "KITCHEN"
+    ],
+    "unauthorized_behaviors": [
+      "CASHIER:rendered+403/denied",
+      "PLATFORM_ADMIN->/admin",
+      "PUBLIC->/login"
+    ]
+  },
+  "/inventory/wastage": {
+    "allowed_roles": [
+      "OWNER",
+      "BRANCH_MANAGER",
+      "KITCHEN"
+    ],
+    "unauthorized_behaviors": [
+      "WAITER:rendered+403/denied",
+      "CASHIER:rendered+403/denied",
+      "PLATFORM_ADMIN->/admin",
+      "PUBLIC->/login"
+    ]
+  },
+  "/inventory/reports": {
+    "allowed_roles": [
+      "OWNER",
+      "BRANCH_MANAGER",
+      "KITCHEN"
+    ],
+    "unauthorized_behaviors": [
+      "WAITER:rendered+403/denied",
+      "CASHIER:rendered+403/denied",
+      "PLATFORM_ADMIN->/admin",
+      "PUBLIC->/login"
+    ]
+  },
+  "/inventory/receive": {
+    "allowed_roles": [
+      "OWNER",
+      "BRANCH_MANAGER",
+      "KITCHEN"
+    ],
+    "unauthorized_behaviors": [
+      "WAITER:rendered+403/denied",
+      "CASHIER:rendered+403/denied",
+      "PLATFORM_ADMIN->/admin",
+      "PUBLIC->/login"
+    ]
+  },
+  "/inventory/counts": {
+    "allowed_roles": [
+      "OWNER",
+      "BRANCH_MANAGER",
+      "KITCHEN"
+    ],
+    "unauthorized_behaviors": [
+      "WAITER:rendered+403/denied",
+      "CASHIER:rendered+403/denied",
+      "PLATFORM_ADMIN->/admin",
+      "PUBLIC->/login"
+    ]
+  },
+  "/inventory/settings": {
+    "allowed_roles": [
+      "OWNER",
+      "BRANCH_MANAGER",
+      "WAITER",
+      "KITCHEN"
+    ],
+    "unauthorized_behaviors": [
+      "CASHIER:rendered+403/denied",
+      "PLATFORM_ADMIN->/admin",
+      "PUBLIC->/login"
+    ]
+  },
+  "/activity": {
+    "allowed_roles": [
+      "OWNER",
+      "BRANCH_MANAGER",
+      "KITCHEN"
+    ],
+    "unauthorized_behaviors": [
+      "WAITER:rendered+403/denied",
+      "CASHIER:rendered+403/denied",
+      "PLATFORM_ADMIN->/admin",
+      "PUBLIC->/login"
+    ]
+  },
+  "/menu": {
+    "allowed_roles": [
+      "OWNER",
+      "BRANCH_MANAGER",
+      "KITCHEN",
+      "CASHIER"
+    ],
+    "unauthorized_behaviors": [
+      "WAITER:rendered+403/denied",
+      "PLATFORM_ADMIN->/admin",
+      "PUBLIC->/login"
+    ]
+  },
+  "/menu/options": {
+    "allowed_roles": [
+      "OWNER",
+      "BRANCH_MANAGER",
+      "KITCHEN",
+      "CASHIER"
+    ],
+    "unauthorized_behaviors": [
+      "WAITER:rendered+403/denied",
+      "PLATFORM_ADMIN->/admin",
+      "PUBLIC->/login"
+    ]
+  },
+  "/menu/translations": {
+    "allowed_roles": [
+      "OWNER",
+      "BRANCH_MANAGER",
+      "WAITER"
+    ],
+    "unauthorized_behaviors": [
+      "KITCHEN:rendered+403/denied",
+      "CASHIER:rendered+403/denied",
+      "PLATFORM_ADMIN->/admin",
+      "PUBLIC->/login"
+    ]
+  },
+  "/menu/availability": {
+    "allowed_roles": [
+      "OWNER",
+      "BRANCH_MANAGER",
+      "WAITER",
+      "KITCHEN"
+    ],
+    "unauthorized_behaviors": [
+      "CASHIER:rendered+403/denied",
+      "PLATFORM_ADMIN->/admin",
+      "PUBLIC->/login"
+    ]
+  },
+  "/onboarding": {
+    "allowed_roles": [
+      "OWNER",
+      "BRANCH_MANAGER",
+      "WAITER",
+      "KITCHEN"
+    ],
+    "unauthorized_behaviors": [
+      "CASHIER:rendered+403/denied",
+      "PLATFORM_ADMIN->/admin",
+      "PUBLIC->/login"
+    ]
+  },
+  "/branches": {
+    "allowed_roles": [
+      "OWNER",
+      "BRANCH_MANAGER",
+      "WAITER",
+      "KITCHEN"
+    ],
+    "unauthorized_behaviors": [
+      "CASHIER:rendered+403/denied",
+      "PLATFORM_ADMIN->/admin",
+      "PUBLIC->/login"
+    ]
+  },
+  "/venue": {
+    "allowed_roles": [
+      "OWNER",
+      "BRANCH_MANAGER",
+      "WAITER",
+      "KITCHEN"
+    ],
+    "unauthorized_behaviors": [
+      "CASHIER:rendered+403/denied",
+      "PLATFORM_ADMIN->/admin",
+      "PUBLIC->/login"
+    ]
+  },
+  "/venue/layout": {
+    "allowed_roles": [
+      "OWNER",
+      "BRANCH_MANAGER",
+      "WAITER",
+      "KITCHEN",
+      "CASHIER"
+    ],
+    "unauthorized_behaviors": [
+      "PLATFORM_ADMIN->/admin",
+      "PUBLIC->/login"
+    ]
+  },
+  "/venue/branches": {
+    "allowed_roles": [
+      "OWNER",
+      "BRANCH_MANAGER",
+      "WAITER"
+    ],
+    "unauthorized_behaviors": [
+      "KITCHEN:rendered+403/denied",
+      "CASHIER:rendered+403/denied",
+      "PLATFORM_ADMIN->/admin",
+      "PUBLIC->/login"
+    ]
+  },
+  "/venue/areas": {
+    "allowed_roles": [
+      "OWNER",
+      "BRANCH_MANAGER"
+    ],
+    "unauthorized_behaviors": [
+      "WAITER:rendered+403/denied",
+      "KITCHEN:rendered+403/denied",
+      "CASHIER:rendered+403/denied",
+      "PLATFORM_ADMIN->/admin",
+      "PUBLIC->/login"
+    ]
+  },
+  "/venue/tables": {
+    "allowed_roles": [
+      "OWNER",
+      "BRANCH_MANAGER",
+      "KITCHEN"
+    ],
+    "unauthorized_behaviors": [
+      "WAITER:rendered+403/denied",
+      "CASHIER:rendered+403/denied",
+      "PLATFORM_ADMIN->/admin",
+      "PUBLIC->/login"
+    ]
+  },
+  "/venue/rooms": {
+    "allowed_roles": [
+      "OWNER",
+      "BRANCH_MANAGER"
+    ],
+    "unauthorized_behaviors": [
+      "WAITER:rendered+403/denied",
+      "KITCHEN:rendered+403/denied",
+      "CASHIER:rendered+403/denied",
+      "PLATFORM_ADMIN->/admin",
+      "PUBLIC->/login"
+    ]
+  },
+  "/venue/counters": {
+    "allowed_roles": [
+      "OWNER",
+      "BRANCH_MANAGER",
+      "WAITER",
+      "KITCHEN"
+    ],
+    "unauthorized_behaviors": [
+      "CASHIER:rendered+403/denied",
+      "PLATFORM_ADMIN->/admin",
+      "PUBLIC->/login"
+    ]
+  },
+  "/venue/floor": {
+    "allowed_roles": [
+      "OWNER",
+      "BRANCH_MANAGER",
+      "KITCHEN"
+    ],
+    "unauthorized_behaviors": [
+      "WAITER:rendered+403/denied",
+      "CASHIER:rendered+403/denied",
+      "PLATFORM_ADMIN->/admin",
+      "PUBLIC->/login"
+    ]
+  },
+  "/venue/floor-plan": {
+    "allowed_roles": [
+      "OWNER",
+      "BRANCH_MANAGER",
+      "CASHIER"
+    ],
+    "unauthorized_behaviors": [
+      "WAITER:rendered+403/denied",
+      "KITCHEN:rendered+403/denied",
+      "PLATFORM_ADMIN->/admin",
+      "PUBLIC->/login"
+    ]
+  },
+  "/qr": {
+    "allowed_roles": [
+      "OWNER",
+      "BRANCH_MANAGER",
+      "WAITER"
+    ],
+    "unauthorized_behaviors": [
+      "KITCHEN:rendered+403/denied",
+      "CASHIER:rendered+403/denied",
+      "PLATFORM_ADMIN->/admin",
+      "PUBLIC->/login"
+    ]
+  },
+  "/staff": {
+    "allowed_roles": [
+      "OWNER",
+      "BRANCH_MANAGER",
+      "KITCHEN"
+    ],
+    "unauthorized_behaviors": [
+      "WAITER:rendered+403/denied",
+      "CASHIER:rendered+403/denied",
+      "PLATFORM_ADMIN->/admin",
+      "PUBLIC->/login"
+    ]
+  },
+  "/customers": {
+    "allowed_roles": [
+      "OWNER",
+      "BRANCH_MANAGER",
+      "WAITER",
+      "KITCHEN",
+      "CASHIER"
+    ],
+    "unauthorized_behaviors": [
+      "PLATFORM_ADMIN->/admin",
+      "PUBLIC->/login"
+    ]
+  },
+  "/customers/feedback": {
+    "allowed_roles": [
+      "OWNER",
+      "BRANCH_MANAGER",
+      "WAITER"
+    ],
+    "unauthorized_behaviors": [
+      "KITCHEN:rendered+403/denied",
+      "CASHIER:rendered+403/denied",
+      "PLATFORM_ADMIN->/admin",
+      "PUBLIC->/login"
+    ]
+  },
+  "/team/roles": {
+    "allowed_roles": [
+      "OWNER",
+      "BRANCH_MANAGER",
+      "WAITER",
+      "CASHIER"
+    ],
+    "unauthorized_behaviors": [
+      "KITCHEN:rendered+403/denied",
+      "PLATFORM_ADMIN->/admin",
+      "PUBLIC->/login"
+    ]
+  },
+  "/settings/venue": {
+    "allowed_roles": [
+      "OWNER",
+      "BRANCH_MANAGER",
+      "WAITER",
+      "KITCHEN"
+    ],
+    "unauthorized_behaviors": [
+      "CASHIER:rendered+403/denied",
+      "PLATFORM_ADMIN->/admin",
+      "PUBLIC->/login"
+    ]
+  },
+  "/settings/branding": {
+    "allowed_roles": [
+      "OWNER",
+      "BRANCH_MANAGER",
+      "KITCHEN"
+    ],
+    "unauthorized_behaviors": [
+      "WAITER:rendered+403/denied",
+      "CASHIER:rendered+403/denied",
+      "PLATFORM_ADMIN->/admin",
+      "PUBLIC->/login"
+    ]
+  },
+  "/settings/sound": {
+    "allowed_roles": [
+      "OWNER",
+      "BRANCH_MANAGER",
+      "CASHIER"
+    ],
+    "unauthorized_behaviors": [
+      "WAITER:rendered+403/denied",
+      "KITCHEN:rendered+403/denied",
+      "PLATFORM_ADMIN->/admin",
+      "PUBLIC->/login"
+    ]
+  },
+  "/settings/devices": {
+    "allowed_roles": [
+      "OWNER",
+      "BRANCH_MANAGER",
+      "WAITER",
+      "KITCHEN",
+      "CASHIER"
+    ],
+    "unauthorized_behaviors": [
+      "PLATFORM_ADMIN->/admin",
+      "PUBLIC->/login"
+    ]
+  },
+  "/settings/account": {
+    "allowed_roles": [
+      "OWNER",
+      "BRANCH_MANAGER",
+      "WAITER",
+      "KITCHEN",
+      "CASHIER"
+    ],
+    "unauthorized_behaviors": [
+      "PLATFORM_ADMIN->/admin",
+      "PUBLIC->/login"
+    ]
+  },
+  "/settings/plan": {
+    "allowed_roles": [
+      "OWNER",
+      "BRANCH_MANAGER",
+      "WAITER",
+      "KITCHEN",
+      "CASHIER"
+    ],
+    "unauthorized_behaviors": [
+      "PLATFORM_ADMIN->/admin",
+      "PUBLIC->/login"
+    ]
+  },
+  "/help": {
+    "allowed_roles": [
+      "OWNER",
+      "BRANCH_MANAGER",
+      "WAITER",
+      "KITCHEN",
+      "CASHIER"
+    ],
+    "unauthorized_behaviors": [
+      "PLATFORM_ADMIN->/admin",
+      "PUBLIC->/login"
+    ]
+  },
+  "/admin": {
+    "allowed_roles": [
+      "PLATFORM_ADMIN"
+    ],
+    "unauthorized_behaviors": [
+      "OWNER->/dashboard",
+      "BRANCH_MANAGER->/dashboard",
+      "WAITER->/pos",
+      "KITCHEN->/kds",
+      "CASHIER->/billing",
+      "PUBLIC->/login"
+    ]
+  },
+  "/admin/tenants": {
+    "allowed_roles": [
+      "PLATFORM_ADMIN"
+    ],
+    "unauthorized_behaviors": [
+      "OWNER->/dashboard",
+      "BRANCH_MANAGER->/dashboard",
+      "WAITER->/pos",
+      "KITCHEN->/kds",
+      "CASHIER->/billing",
+      "PUBLIC->/login"
+    ]
+  },
+  "/admin/tenants/new": {
+    "allowed_roles": [
+      "PLATFORM_ADMIN"
+    ],
+    "unauthorized_behaviors": [
+      "OWNER->/dashboard",
+      "BRANCH_MANAGER->/dashboard",
+      "WAITER->/pos",
+      "KITCHEN->/kds",
+      "CASHIER->/billing",
+      "PUBLIC->/login"
+    ]
+  },
+  "/admin/plans": {
+    "allowed_roles": [
+      "PLATFORM_ADMIN"
+    ],
+    "unauthorized_behaviors": [
+      "OWNER->/dashboard",
+      "BRANCH_MANAGER->/dashboard",
+      "WAITER->/pos",
+      "KITCHEN->/kds",
+      "CASHIER->/billing",
+      "PUBLIC->/login"
+    ]
+  },
+  "/admin/health": {
+    "allowed_roles": [
+      "PLATFORM_ADMIN"
+    ],
+    "unauthorized_behaviors": [
+      "OWNER->/dashboard",
+      "BRANCH_MANAGER->/dashboard",
+      "WAITER->/pos",
+      "KITCHEN->/kds",
+      "CASHIER->/billing",
+      "PUBLIC->/login"
+    ]
+  },
+  "/admin/activity": {
+    "allowed_roles": [
+      "PLATFORM_ADMIN"
+    ],
+    "unauthorized_behaviors": [
+      "OWNER->/dashboard",
+      "BRANCH_MANAGER->/dashboard",
+      "WAITER->/pos",
+      "KITCHEN->/kds",
+      "CASHIER->/billing",
+      "PUBLIC->/login"
+    ]
+  },
+  "/admin/support": {
+    "allowed_roles": [
+      "PLATFORM_ADMIN"
+    ],
+    "unauthorized_behaviors": [
+      "OWNER->/dashboard",
+      "BRANCH_MANAGER->/dashboard",
+      "WAITER->/pos",
+      "KITCHEN->/kds",
+      "CASHIER->/billing",
+      "PUBLIC->/login"
+    ]
+  },
+  "/admin/leads": {
+    "allowed_roles": [
+      "PLATFORM_ADMIN"
+    ],
+    "unauthorized_behaviors": [
+      "OWNER->/dashboard",
+      "BRANCH_MANAGER->/dashboard",
+      "WAITER->/pos",
+      "KITCHEN->/kds",
+      "CASHIER->/billing",
+      "PUBLIC->/login"
+    ]
+  },
+  "/admin/announcements": {
+    "allowed_roles": [
+      "PLATFORM_ADMIN"
+    ],
+    "unauthorized_behaviors": [
+      "OWNER->/dashboard",
+      "BRANCH_MANAGER->/dashboard",
+      "WAITER->/pos",
+      "KITCHEN->/kds",
+      "CASHIER->/billing",
+      "PUBLIC->/login"
+    ]
+  }
+}

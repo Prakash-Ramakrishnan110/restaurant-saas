@@ -1,0 +1,1490 @@
+{
+  "tenants": {
+    "artisan-bakery": {
+      "id": "1b5547ee-a51d-4ada-aa87-a92d04e5b7e9",
+      "name": "Artisan Bakehouse",
+      "business_type": "BAKERY",
+      "branches": [
+        {
+          "id": "b0a69907-fc61-4a04-b9bd-36972a5e51c7",
+          "name": "Artisan Bakehouse Flagship",
+          "venue_profile": "QUICK_SERVICE",
+          "uses_tables": false,
+          "qr_ordering_mode": "BROWSE_ONLY",
+          "qr_session_policy": "CUSTOMER_CAN_OPEN",
+          "payment_timing": "PAY_FIRST",
+          "allows_room_service": false
+        }
+      ],
+      "users": {
+        "OWNER": [
+          "owner@artisanbakery.in"
+        ],
+        "CASHIER": [
+          "cashier@artisanbakery.in"
+        ],
+        "KITCHEN": [
+          "kitchen@artisanbakery.in"
+        ]
+      },
+      "qrs": [],
+      "tables": []
+    },
+    "bean-bloom": {
+      "id": "60b5f281-3ea9-4b2b-8d93-870b8cf01ef5",
+      "name": "Bean & Bloom Cafe",
+      "business_type": "CAFE",
+      "branches": [
+        {
+          "id": "f53e48be-7075-45bf-8b0f-dd3830139e76",
+          "name": "Bean & Bloom Indiranagar",
+          "venue_profile": "CAFE",
+          "uses_tables": true,
+          "qr_ordering_mode": "ORDER_DIRECT",
+          "qr_session_policy": "CUSTOMER_CAN_OPEN",
+          "payment_timing": "EITHER",
+          "allows_room_service": false
+        }
+      ],
+      "users": {
+        "OWNER": [
+          "owner@beanbloom.in"
+        ],
+        "WAITER": [
+          "waiter@beanbloom.in"
+        ],
+        "KITCHEN": [
+          "kitchen@beanbloom.in"
+        ]
+      },
+      "qrs": [
+        {
+          "id": "fbd02523-939a-4aae-9af9-a1b4d862e6a7",
+          "target_type": "TABLE",
+          "token": "IZFSNb-TuZVH-GiuV3yTtv5CDa8M9WBD",
+          "table_label": "T1",
+          "table_status": "OCCUPIED",
+          "area_name": null
+        },
+        {
+          "id": "16a1edc2-a42d-44be-b95a-5bd2d07c22fd",
+          "target_type": "TABLE",
+          "token": "2WmI5ZZX5pVHd5XjnaLIWLEElfO-Gab_",
+          "table_label": "T2",
+          "table_status": "AVAILABLE",
+          "area_name": null
+        },
+        {
+          "id": "8bcccddc-17d9-4aaf-bfce-90cfe35bb429",
+          "target_type": "TABLE",
+          "token": "6qEs8CBUy1cXAufmN035t_iRZcOgJNWv",
+          "table_label": "T3",
+          "table_status": "OCCUPIED",
+          "area_name": null
+        },
+        {
+          "id": "04c4e5a3-fec1-416f-859d-5ed4bb070ca3",
+          "target_type": "TABLE",
+          "token": "jZoZMCb4XuJ5_dGE55k3WE9MMHIlwiAU",
+          "table_label": "T4",
+          "table_status": "OCCUPIED",
+          "area_name": null
+        },
+        {
+          "id": "08728d51-81ff-4391-82de-14fd6a1c38e3",
+          "target_type": "TABLE",
+          "token": "SAuvcw5fJM84JsmPCn10rIPOjtyQMIzk",
+          "table_label": "T5",
+          "table_status": "AVAILABLE",
+          "area_name": null
+        },
+        {
+          "id": "db3ab9be-f48f-4a93-8e7e-a5f2e3f82683",
+          "target_type": "TABLE",
+          "token": "sDu00m-X4aJa_upQZuynto9TRiVI4faA",
+          "table_label": "T6",
+          "table_status": "AVAILABLE",
+          "area_name": null
+        },
+        {
+          "id": "017d4163-943a-4c19-8634-7eb778a65ae2",
+          "target_type": "TABLE",
+          "token": "9IcAKbxxRnwumPDNHacFWK5g7kH7E8Df",
+          "table_label": "T7",
+          "table_status": "AVAILABLE",
+          "area_name": null
+        },
+        {
+          "id": "92de68cd-0a18-4cae-bf4c-83b7fd7a1e24",
+          "target_type": "TABLE",
+          "token": "1RBUZccE8joxgD5V_b8lmtOky_k1tmHn",
+          "table_label": "T8",
+          "table_status": "AVAILABLE",
+          "area_name": null
+        },
+        {
+          "id": "0117280b-e4fa-49a0-b43a-2e6dc34e2976",
+          "target_type": "TABLE",
+          "token": "72eAnTJKqE5CFRd7GZk3eh6unv6_PaYT",
+          "table_label": "T9",
+          "table_status": "AVAILABLE",
+          "area_name": null
+        },
+        {
+          "id": "0527c2cb-808e-4ae3-928f-9215db29b746",
+          "target_type": "TABLE",
+          "token": "gaiTwGoljSyNyE26umf3RuyJOeNUv4kF",
+          "table_label": "T10",
+          "table_status": "AVAILABLE",
+          "area_name": null
+        },
+        {
+          "id": "0ba4583f-21f2-40c9-8f65-abcacb2dce13",
+          "target_type": "TABLE",
+          "token": "yaslYrv6mRq4xkpl_vIZEbKu6MUS2DWR",
+          "table_label": "T11",
+          "table_status": "AVAILABLE",
+          "area_name": null
+        },
+        {
+          "id": "0586d95d-1ff8-4db5-b825-21f4755c2743",
+          "target_type": "TABLE",
+          "token": "xSaC3DpQiC3pPbhsoMx3zY_m3lHdTgZd",
+          "table_label": "T12",
+          "table_status": "AVAILABLE",
+          "area_name": null
+        },
+        {
+          "id": "37dc9390-f5d8-4377-8373-3d581b8f5f07",
+          "target_type": "TABLE",
+          "token": "MLX6KV7k2e2xI55aKJ_P9KyUhvPLzD2Z",
+          "table_label": "T13",
+          "table_status": "AVAILABLE",
+          "area_name": null
+        },
+        {
+          "id": "573a88c7-27da-4d7a-99d5-7d2bd0c7504f",
+          "target_type": "TABLE",
+          "token": "__pTg2MUxWtsozh2dGpBRzM613otC9CM",
+          "table_label": "T14",
+          "table_status": "AVAILABLE",
+          "area_name": null
+        },
+        {
+          "id": "00ae6bf6-91c8-4561-b056-f021d3553188",
+          "target_type": "TABLE",
+          "token": "FvT0Pa_B-8QkETTGTcoTfRmJLKrtqo-P",
+          "table_label": "T15",
+          "table_status": "AVAILABLE",
+          "area_name": null
+        }
+      ],
+      "tables": [
+        {
+          "id": "cbbb21c5-e180-466e-8308-b7e3c711c64f",
+          "label": "T1",
+          "type": "TABLE",
+          "status": "OCCUPIED"
+        },
+        {
+          "id": "03badeaf-30a9-4d7f-8640-94a24dee72f7",
+          "label": "T10",
+          "type": "TABLE",
+          "status": "AVAILABLE"
+        },
+        {
+          "id": "09a2bcc6-e43b-4296-8eae-0711de885fa9",
+          "label": "T11",
+          "type": "TABLE",
+          "status": "AVAILABLE"
+        },
+        {
+          "id": "cbe9be94-3f37-4d5b-955c-2c302dc12d89",
+          "label": "T12",
+          "type": "TABLE",
+          "status": "AVAILABLE"
+        },
+        {
+          "id": "17acb145-c1e8-40e2-877a-984f209ce8fb",
+          "label": "T13",
+          "type": "TABLE",
+          "status": "AVAILABLE"
+        },
+        {
+          "id": "d0d98a0c-58ee-440b-9f7c-39938abc2aa4",
+          "label": "T14",
+          "type": "TABLE",
+          "status": "AVAILABLE"
+        },
+        {
+          "id": "28a12f32-da19-4d8e-a4b7-310f14f78d92",
+          "label": "T15",
+          "type": "TABLE",
+          "status": "AVAILABLE"
+        },
+        {
+          "id": "0615918a-e62d-4df2-94c9-7b180f2d4a55",
+          "label": "T2",
+          "type": "TABLE",
+          "status": "AVAILABLE"
+        },
+        {
+          "id": "66cf23a8-bf63-48bf-bad6-35d7450a1afc",
+          "label": "T3",
+          "type": "TABLE",
+          "status": "OCCUPIED"
+        },
+        {
+          "id": "69286846-7c73-4035-b6ef-c9b41c8481cf",
+          "label": "T4",
+          "type": "TABLE",
+          "status": "OCCUPIED"
+        },
+        {
+          "id": "149c1a69-09dd-4ef1-a951-9995597c3978",
+          "label": "T5",
+          "type": "TABLE",
+          "status": "AVAILABLE"
+        },
+        {
+          "id": "1822f0f2-9e76-48ae-8811-983e425cbd93",
+          "label": "T6",
+          "type": "TABLE",
+          "status": "AVAILABLE"
+        },
+        {
+          "id": "21edfe5c-152e-4844-99e9-6a0a91a36934",
+          "label": "T7",
+          "type": "TABLE",
+          "status": "AVAILABLE"
+        },
+        {
+          "id": "f0436bc3-7421-4117-ac22-6455c1750795",
+          "label": "T8",
+          "type": "TABLE",
+          "status": "AVAILABLE"
+        },
+        {
+          "id": "ba72a8c6-754d-4123-973b-0e9350676abf",
+          "label": "T9",
+          "type": "TABLE",
+          "status": "AVAILABLE"
+        }
+      ]
+    },
+    "chai-corner": {
+      "id": "508fd145-0f36-4bd7-94d9-211e76f8505b",
+      "name": "Chai Corner",
+      "business_type": "TEA_SHOP",
+      "branches": [
+        {
+          "id": "ad314d39-f436-4470-a849-485c035597d9",
+          "name": "Chai Corner Koramangala",
+          "venue_profile": "QUICK_SERVICE",
+          "uses_tables": false,
+          "qr_ordering_mode": "BROWSE_ONLY",
+          "qr_session_policy": "CUSTOMER_CAN_OPEN",
+          "payment_timing": "PAY_FIRST",
+          "allows_room_service": false
+        }
+      ],
+      "users": {
+        "KITCHEN": [
+          "kitchen@chaicorner.in"
+        ],
+        "OWNER": [
+          "owner@chaicorner.in"
+        ],
+        "CASHIER": [
+          "cashier@chaicorner.in"
+        ]
+      },
+      "qrs": [],
+      "tables": []
+    },
+    "foodie-plaza": {
+      "id": "e2579d20-fe7a-4840-9a79-310e45660a23",
+      "name": "Foodie Plaza",
+      "business_type": "FOOD_COURT",
+      "branches": [
+        {
+          "id": "fbbcde33-e6c5-48af-b78e-f8615fca9a36",
+          "name": "Foodie Plaza Central",
+          "venue_profile": "FOOD_COURT",
+          "uses_tables": false,
+          "qr_ordering_mode": "ORDER_DIRECT",
+          "qr_session_policy": "CUSTOMER_CAN_OPEN",
+          "payment_timing": "PAY_FIRST",
+          "allows_room_service": false
+        }
+      ],
+      "users": {
+        "OWNER": [
+          "owner@foodieplaza.in"
+        ],
+        "KITCHEN": [
+          "kitchen@foodieplaza.in"
+        ],
+        "CASHIER": [
+          "cashier@foodieplaza.in"
+        ]
+      },
+      "qrs": [
+        {
+          "id": "8b344311-ab47-4d2b-993d-df0459f508fa",
+          "target_type": "COUNTER",
+          "token": "DTZ27ML1AVt-zLdFs6X4WND1cgVqgVEr",
+          "table_label": null,
+          "table_status": null,
+          "area_name": "Counter 1 - South Indian"
+        },
+        {
+          "id": "b1d0a49b-aaa5-4cc6-aef3-17621c81ff86",
+          "target_type": "COUNTER",
+          "token": "9eta23zykVpSKyKzCNFpm5isRx_d3kh3",
+          "table_label": null,
+          "table_status": null,
+          "area_name": "Counter 2 - North Indian Tandoor"
+        },
+        {
+          "id": "21d72881-48b7-42d1-9bc5-e16cd92c5cb7",
+          "target_type": "COUNTER",
+          "token": "ponp42d8cGU94uy8FXTTyk6cEQfSuE-7",
+          "table_label": null,
+          "table_status": null,
+          "area_name": "Counter 3 - Chinese Wok"
+        },
+        {
+          "id": "2f6a0155-dc8b-408d-944c-57ae62af37e5",
+          "target_type": "COUNTER",
+          "token": "UZQJWBXdjn331tOSbormFMyHQ58Lh1zK",
+          "table_label": null,
+          "table_status": null,
+          "area_name": "Counter 4 - Burger & Fries"
+        },
+        {
+          "id": "8c586ad5-2adc-4145-ba84-7efe1f1abd8e",
+          "target_type": "COUNTER",
+          "token": "nqJJVXqUAAjx8QpeBqvV9sS3-ePCALzZ",
+          "table_label": null,
+          "table_status": null,
+          "area_name": "Counter 5 - Woodfired Pizza"
+        },
+        {
+          "id": "237b8c6d-5af0-4527-9b44-9bca8af5a33e",
+          "target_type": "COUNTER",
+          "token": "3zNpVWnJwctvULHr7oF8pBixMvIvFmKi",
+          "table_label": null,
+          "table_status": null,
+          "area_name": "Counter 6 - Chai & Desserts"
+        }
+      ],
+      "tables": []
+    },
+    "grand-meridian": {
+      "id": "ac51234c-22f7-40cd-8826-900f9074c77c",
+      "name": "Grand Meridian",
+      "business_type": "HOTEL",
+      "branches": [
+        {
+          "id": "0d734653-c062-4549-b797-8f62f0fc0fa6",
+          "name": "Grand Meridian Palace",
+          "venue_profile": "HOTEL_RESTAURANT",
+          "uses_tables": true,
+          "qr_ordering_mode": "ORDER_WITH_APPROVAL",
+          "qr_session_policy": "STAFF_ONLY",
+          "payment_timing": "PAY_LATER",
+          "allows_room_service": true
+        }
+      ],
+      "users": {
+        "OWNER": [
+          "owner@grandmeridian.com"
+        ],
+        "BRANCH_MANAGER": [
+          "manager@grandmeridian.com"
+        ]
+      },
+      "qrs": [
+        {
+          "id": "23823a71-57f3-41a7-9b5f-0df96b12bc68",
+          "target_type": "ROOM",
+          "token": "ZwZBexmML_a9oXUx0_LMDIQRNvea_9Mu",
+          "table_label": "Room 101",
+          "table_status": "AVAILABLE",
+          "area_name": null
+        },
+        {
+          "id": "7cc8cd4a-fac3-4cf3-88f9-08dc23396237",
+          "target_type": "ROOM",
+          "token": "I7gPOlc-C2y1HsTC2K-FwU8BgD30mU0L",
+          "table_label": "Room 102",
+          "table_status": "AVAILABLE",
+          "area_name": null
+        },
+        {
+          "id": "358d4880-76ed-4e79-b000-f3539f5b61a5",
+          "target_type": "ROOM",
+          "token": "KFU4Olac0t7bJHuZfsKnHJA4YhHCvJOn",
+          "table_label": "Room 103",
+          "table_status": "AVAILABLE",
+          "area_name": null
+        },
+        {
+          "id": "edd503de-d68d-4b19-a556-214546d40b53",
+          "target_type": "ROOM",
+          "token": "demo-room-104",
+          "table_label": "Room 104",
+          "table_status": "AVAILABLE",
+          "area_name": null
+        },
+        {
+          "id": "62ae6694-9bea-4232-a27c-9c5cbfb1fa2e",
+          "target_type": "ROOM",
+          "token": "H5xZPmVzMDxh7Tn015JUa9mJH9duM-Ny",
+          "table_label": "Room 105",
+          "table_status": "AVAILABLE",
+          "area_name": null
+        },
+        {
+          "id": "d8a3da3a-220e-4fbf-b65d-aada2028e35a",
+          "target_type": "ROOM",
+          "token": "-G1ngpF6HIKA_FCRFdoZSesjA-yP_fwp",
+          "table_label": "Room 106",
+          "table_status": "AVAILABLE",
+          "area_name": null
+        },
+        {
+          "id": "bb150c5e-3d0c-4e72-9f3d-79f64a1d7024",
+          "target_type": "ROOM",
+          "token": "au3dwdinQIhyJwA9JgSOECQuUTC6u3kF",
+          "table_label": "Room 107",
+          "table_status": "AVAILABLE",
+          "area_name": null
+        },
+        {
+          "id": "d5098ae3-ef7b-423c-a085-0887599ff342",
+          "target_type": "ROOM",
+          "token": "uYRiPEoL2TW2IBoFsS_OSjWteLsybHIW",
+          "table_label": "Room 108",
+          "table_status": "AVAILABLE",
+          "area_name": null
+        },
+        {
+          "id": "e9a3004b-2aaa-475f-abeb-43c4c7b8b30a",
+          "target_type": "ROOM",
+          "token": "Ht2fScMFd1MWj8H8gM5Yg3saYa4AbHQU",
+          "table_label": "Room 109",
+          "table_status": "AVAILABLE",
+          "area_name": null
+        },
+        {
+          "id": "1fedd5c3-26bf-4324-ba5a-fef6db7fa957",
+          "target_type": "ROOM",
+          "token": "mWFeBJ6Xw1nm9Oj4x0wQOUWBxnNgzT6e",
+          "table_label": "Room 110",
+          "table_status": "AVAILABLE",
+          "area_name": null
+        },
+        {
+          "id": "d11829bb-f3e7-4358-bb29-8df10d7c1595",
+          "target_type": "ROOM",
+          "token": "rxhkNyY_ggJOoQVr0U5_vZqp3kGGOqUX",
+          "table_label": "Room 111",
+          "table_status": "AVAILABLE",
+          "area_name": null
+        },
+        {
+          "id": "bab09ac8-5099-4a76-9464-10440e991255",
+          "target_type": "ROOM",
+          "token": "NH2KCTs7Mi-hIIiWmix3byrKcth0UJH2",
+          "table_label": "Room 112",
+          "table_status": "AVAILABLE",
+          "area_name": null
+        },
+        {
+          "id": "4cce4996-2c18-441e-a486-020707f48fe1",
+          "target_type": "ROOM",
+          "token": "a03P3vRR_mnTQXTfEdxxbjURdZ3yx5ag",
+          "table_label": "Room 113",
+          "table_status": "AVAILABLE",
+          "area_name": null
+        },
+        {
+          "id": "3e904128-9658-47e5-a8d3-e3e0f961fc68",
+          "target_type": "ROOM",
+          "token": "DjurSstfkaN-qGiRwEMntAfJ-kibpUYS",
+          "table_label": "Room 114",
+          "table_status": "AVAILABLE",
+          "area_name": null
+        },
+        {
+          "id": "63b4a8d2-ebf9-416b-a33c-eb159e15e676",
+          "target_type": "ROOM",
+          "token": "yplDb-mYq3j4pQBEltUP9Th0UHyCEb-7",
+          "table_label": "Room 115",
+          "table_status": "AVAILABLE",
+          "area_name": null
+        },
+        {
+          "id": "1fafb151-f2b1-46e2-a2d5-a5db6e61dd1f",
+          "target_type": "ROOM",
+          "token": "uQ7gN3AzwVTatbfcMVdqT8kLQn-iPuSh",
+          "table_label": "Room 116",
+          "table_status": "AVAILABLE",
+          "area_name": null
+        },
+        {
+          "id": "bb4bcddd-fe6c-4604-9692-f69f2d19ed5d",
+          "target_type": "ROOM",
+          "token": "n9ktxZZD43He9cJKgAWsV8zeTTKfkRBu",
+          "table_label": "Room 117",
+          "table_status": "AVAILABLE",
+          "area_name": null
+        },
+        {
+          "id": "6ff23ed1-8f1d-4758-9633-1ddc9d4ccfd3",
+          "target_type": "ROOM",
+          "token": "Wpe3cb35op5viTJ7G7Q4crjNocP1w1w0",
+          "table_label": "Room 118",
+          "table_status": "AVAILABLE",
+          "area_name": null
+        },
+        {
+          "id": "c18a7854-1c6c-4b36-9d64-7e72c04dee8e",
+          "target_type": "ROOM",
+          "token": "CTFXfFnErDv19ZhBV3mrEVMEAFXTSIFD",
+          "table_label": "Room 119",
+          "table_status": "AVAILABLE",
+          "area_name": null
+        },
+        {
+          "id": "34563947-7640-485c-94fb-17dd1f25d046",
+          "target_type": "ROOM",
+          "token": "3c9BAj1fvZq05w8rGNDdUdTRlxreaQM0",
+          "table_label": "Room 120",
+          "table_status": "AVAILABLE",
+          "area_name": null
+        }
+      ],
+      "tables": [
+        {
+          "id": "00ce6491-57a1-40af-a064-ad84209d270e",
+          "label": "Room 101",
+          "type": "ROOM",
+          "status": "AVAILABLE"
+        },
+        {
+          "id": "d00badea-470f-453e-aa65-889e54fb4342",
+          "label": "Room 102",
+          "type": "ROOM",
+          "status": "AVAILABLE"
+        },
+        {
+          "id": "c9d251a6-e912-4231-91c5-9e0e5445211d",
+          "label": "Room 103",
+          "type": "ROOM",
+          "status": "AVAILABLE"
+        },
+        {
+          "id": "2456ed5f-3ec1-435a-9ca9-db3e39e49b02",
+          "label": "Room 104",
+          "type": "ROOM",
+          "status": "AVAILABLE"
+        },
+        {
+          "id": "c228a6b6-e205-414b-a102-b9513c4400d1",
+          "label": "Room 105",
+          "type": "ROOM",
+          "status": "AVAILABLE"
+        },
+        {
+          "id": "81f82217-1184-42f3-bb59-4f48bc8be97b",
+          "label": "Room 106",
+          "type": "ROOM",
+          "status": "AVAILABLE"
+        },
+        {
+          "id": "487d39ec-c219-4100-882b-aa7d485b643a",
+          "label": "Room 107",
+          "type": "ROOM",
+          "status": "AVAILABLE"
+        },
+        {
+          "id": "4f12241b-f41b-4393-b29f-0309845e585e",
+          "label": "Room 108",
+          "type": "ROOM",
+          "status": "AVAILABLE"
+        },
+        {
+          "id": "859b820f-7199-4d4e-ac09-9443bd47b89f",
+          "label": "Room 109",
+          "type": "ROOM",
+          "status": "AVAILABLE"
+        },
+        {
+          "id": "954aebed-8b55-4af9-8015-ce4a42b87f21",
+          "label": "Room 110",
+          "type": "ROOM",
+          "status": "AVAILABLE"
+        },
+        {
+          "id": "455cab40-5025-4b3d-b836-d14c7fd5cf65",
+          "label": "Room 111",
+          "type": "ROOM",
+          "status": "AVAILABLE"
+        },
+        {
+          "id": "6b2725b7-d68d-4301-802c-34a4267c36bc",
+          "label": "Room 112",
+          "type": "ROOM",
+          "status": "AVAILABLE"
+        },
+        {
+          "id": "8660c5ad-ff7e-41bb-be50-2813e0b975b0",
+          "label": "Room 113",
+          "type": "ROOM",
+          "status": "AVAILABLE"
+        },
+        {
+          "id": "2f510998-21c7-4c8a-8960-d5c91f458364",
+          "label": "Room 114",
+          "type": "ROOM",
+          "status": "AVAILABLE"
+        },
+        {
+          "id": "9f9e68ac-09e5-4f66-9add-82a9ebbd5631",
+          "label": "Room 115",
+          "type": "ROOM",
+          "status": "AVAILABLE"
+        },
+        {
+          "id": "a1d0870c-1aee-4a4c-bb4d-67e1f87806c4",
+          "label": "Room 116",
+          "type": "ROOM",
+          "status": "AVAILABLE"
+        },
+        {
+          "id": "a9319bac-19c9-4050-a00b-289f7810735c",
+          "label": "Room 117",
+          "type": "ROOM",
+          "status": "AVAILABLE"
+        },
+        {
+          "id": "c10141f7-0220-4026-b19c-ca78ddbf013b",
+          "label": "Room 118",
+          "type": "ROOM",
+          "status": "AVAILABLE"
+        },
+        {
+          "id": "182d33ac-b93a-4749-ad69-771274a6b236",
+          "label": "Room 119",
+          "type": "ROOM",
+          "status": "AVAILABLE"
+        },
+        {
+          "id": "fb06e56f-4c81-4b9f-bf49-e139e90ff57b",
+          "label": "Room 120",
+          "type": "ROOM",
+          "status": "AVAILABLE"
+        }
+      ]
+    },
+    "kaveri-cafe": {
+      "id": "1a909592-ac89-43f6-b4e8-7c8be6f2485e",
+      "name": "The Grand Kaveri Cafe",
+      "business_type": "RESTAURANT",
+      "branches": [
+        {
+          "id": "deda650d-5647-42fd-a906-4e30e691c2d7",
+          "name": "T. Nagar Flagship",
+          "venue_profile": "CASUAL_DINING",
+          "uses_tables": null,
+          "qr_ordering_mode": null,
+          "qr_session_policy": null,
+          "payment_timing": null,
+          "allows_room_service": null
+        }
+      ],
+      "users": {
+        "BRANCH_MANAGER": [
+          "manager@kavericafe.com"
+        ],
+        "KITCHEN": [
+          "kitchen@kavericafe.com"
+        ],
+        "OWNER": [
+          "owner@kavericafe.com"
+        ],
+        "WAITER": [
+          "waiter@kavericafe.com"
+        ],
+        "CASHIER": [
+          "cashier@kavericafe.com"
+        ]
+      },
+      "qrs": [],
+      "tables": [
+        {
+          "id": "5797bbf7-e418-47b3-9467-35480af6632e",
+          "label": "T1",
+          "type": "TABLE",
+          "status": "AVAILABLE"
+        },
+        {
+          "id": "606b0e95-5e7a-45a2-bf48-28e3fe453d4f",
+          "label": "T10",
+          "type": "TABLE",
+          "status": "AVAILABLE"
+        },
+        {
+          "id": "71ab2038-4cfe-4311-badf-6c4e3fd9b861",
+          "label": "T11",
+          "type": "TABLE",
+          "status": "AVAILABLE"
+        },
+        {
+          "id": "5f296f15-6d18-4b4c-86ad-4580cece053a",
+          "label": "T12",
+          "type": "TABLE",
+          "status": "AVAILABLE"
+        },
+        {
+          "id": "10615165-1af8-4c68-928d-a611ccd18d12",
+          "label": "T2",
+          "type": "TABLE",
+          "status": "AVAILABLE"
+        },
+        {
+          "id": "a7752661-c6bc-403b-a0e7-70e735abcb8e",
+          "label": "T3",
+          "type": "TABLE",
+          "status": "AVAILABLE"
+        },
+        {
+          "id": "cdd03e4d-9c3f-4f50-9347-cb43cdafe525",
+          "label": "T4",
+          "type": "TABLE",
+          "status": "AVAILABLE"
+        },
+        {
+          "id": "94f67192-8b56-496c-85ab-ec91e3cbca8f",
+          "label": "T5",
+          "type": "TABLE",
+          "status": "AVAILABLE"
+        },
+        {
+          "id": "355de504-f8e9-4a6f-827d-3b5f45474a72",
+          "label": "T6",
+          "type": "TABLE",
+          "status": "AVAILABLE"
+        },
+        {
+          "id": "efc763b3-fd8f-49d0-9ca3-f681bff00b48",
+          "label": "T7",
+          "type": "TABLE",
+          "status": "AVAILABLE"
+        },
+        {
+          "id": "b83c05aa-b309-4ee6-a802-b5dd3a909dc0",
+          "label": "T8",
+          "type": "TABLE",
+          "status": "AVAILABLE"
+        },
+        {
+          "id": "50366b91-f78d-4751-92fd-0062a4dd2b83",
+          "label": "T9",
+          "type": "TABLE",
+          "status": "AVAILABLE"
+        }
+      ]
+    },
+    "madras-chai": {
+      "id": "6b9cc646-f313-4b75-b8ef-6696451b0057",
+      "name": "Madras Chai Point",
+      "business_type": "RESTAURANT",
+      "branches": [
+        {
+          "id": "3f918309-1069-4a10-9cfd-39b989720a19",
+          "name": "Express Kiosk",
+          "venue_profile": "CASUAL_DINING",
+          "uses_tables": null,
+          "qr_ordering_mode": null,
+          "qr_session_policy": null,
+          "payment_timing": null,
+          "allows_room_service": null
+        }
+      ],
+      "users": {
+        "CASHIER": [
+          "cashier@madraschai.com"
+        ],
+        "KITCHEN": [
+          "kitchen@madraschai.com"
+        ],
+        "OWNER": [
+          "owner@madraschai.com"
+        ]
+      },
+      "qrs": [],
+      "tables": []
+    },
+    "prakash-mess": {
+      "id": "900118b1-3043-431e-979a-95055ab04dfa",
+      "name": "Prakash mess",
+      "business_type": "RESTAURANT",
+      "branches": [
+        {
+          "id": "03390c26-ccc3-4cf4-bfc8-0e8ac42911b0",
+          "name": "Prakash mess Main",
+          "venue_profile": "CASUAL_DINING",
+          "uses_tables": true,
+          "qr_ordering_mode": "ORDER_WITH_APPROVAL",
+          "qr_session_policy": "CUSTOMER_CAN_OPEN",
+          "payment_timing": "PAY_LATER",
+          "allows_room_service": false
+        }
+      ],
+      "users": {
+        "OWNER": [
+          "mess@gmail.com"
+        ],
+        "WAITER": [
+          "waiter@gmail.com"
+        ]
+      },
+      "qrs": [
+        {
+          "id": "b65a457d-60b0-42e8-a695-99151cc92bcb",
+          "target_type": "TABLE",
+          "token": "Ztm84kRyn-3fLsK0Nqp8WOqrt6_to0ko",
+          "table_label": "Hen",
+          "table_status": "OCCUPIED",
+          "area_name": null
+        }
+      ],
+      "tables": [
+        {
+          "id": "83696986-aeda-425a-a8a0-e9ec94c79220",
+          "label": "Hen",
+          "type": "TABLE",
+          "status": "OCCUPIED"
+        },
+        {
+          "id": "ee585fb8-2642-4d91-8ce4-78cd94f1fd8f",
+          "label": "fish",
+          "type": "TABLE",
+          "status": "AVAILABLE"
+        },
+        {
+          "id": "97b30325-2ef6-4444-bb01-276d0df31059",
+          "label": "goat",
+          "type": "TABLE",
+          "status": "OCCUPIED"
+        }
+      ]
+    },
+    "royal-dum-pukht": {
+      "id": "77cd075e-ee8e-42be-a662-f2b5c1ee0497",
+      "name": "Royal Dum Pukht",
+      "business_type": "FINE_DINING",
+      "branches": [
+        {
+          "id": "ebcba0ea-18db-4189-972d-d1ed4d07f47b",
+          "name": "Royal Dum Pukht Palace",
+          "venue_profile": "FINE_DINING",
+          "uses_tables": true,
+          "qr_ordering_mode": "BROWSE_ONLY",
+          "qr_session_policy": "STAFF_ONLY",
+          "payment_timing": "PAY_LATER",
+          "allows_room_service": false
+        }
+      ],
+      "users": {
+        "WAITER": [
+          "waiter@royaldumpukht.com"
+        ],
+        "KITCHEN": [
+          "kitchen@royaldumpukht.com"
+        ],
+        "OWNER": [
+          "owner@royaldumpukht.com"
+        ],
+        "BRANCH_MANAGER": [
+          "manager@royaldumpukht.com"
+        ]
+      },
+      "qrs": [
+        {
+          "id": "a87f3f78-97ec-4aa3-972c-f769f668f440",
+          "target_type": "TABLE",
+          "token": "gsQR0Um1jrvM34nTqlnaLl5dSv73hoDc",
+          "table_label": "V1",
+          "table_status": "AVAILABLE",
+          "area_name": null
+        },
+        {
+          "id": "49b73550-8cb2-412b-ae42-e4605a199c46",
+          "target_type": "TABLE",
+          "token": "KITFqzoulYflFE3kDEAD2-p9p8o2TsKH",
+          "table_label": "V2",
+          "table_status": "AVAILABLE",
+          "area_name": null
+        },
+        {
+          "id": "c68f8c2f-fb92-400e-aa05-93c4f796a54f",
+          "target_type": "TABLE",
+          "token": "tgCKgksNFwN2XEBV_QpbcjWpVrV9lAlh",
+          "table_label": "V3",
+          "table_status": "AVAILABLE",
+          "area_name": null
+        },
+        {
+          "id": "1516b5af-3689-4852-b48c-6a6fa95ae4bf",
+          "target_type": "TABLE",
+          "token": "cpDFFfBpAOJpS6QbmX4KR6L6FBTI-2Wg",
+          "table_label": "V4",
+          "table_status": "AVAILABLE",
+          "area_name": null
+        },
+        {
+          "id": "c291c1ab-fd27-44a8-8759-b351c4bbe0ee",
+          "target_type": "TABLE",
+          "token": "jaTWh1eMpJ9Ckjp-UDY4SdpMtEcoPG4E",
+          "table_label": "V5",
+          "table_status": "AVAILABLE",
+          "area_name": null
+        },
+        {
+          "id": "c4d3b726-c6d2-452e-8314-75540f1e6499",
+          "target_type": "TABLE",
+          "token": "9YFouQEsCmg8zzxvhuD0l_91iP_50T0g",
+          "table_label": "V6",
+          "table_status": "AVAILABLE",
+          "area_name": null
+        },
+        {
+          "id": "4964471c-1f48-4284-8987-957338f84b29",
+          "target_type": "TABLE",
+          "token": "XC5Hs4vR2E7CbZqxaNnU3tfjR25m_eM3",
+          "table_label": "V7",
+          "table_status": "AVAILABLE",
+          "area_name": null
+        },
+        {
+          "id": "1d1729ac-40c8-426c-b046-2f8302ecd10f",
+          "target_type": "TABLE",
+          "token": "oDTDlwCYJd4Ql1FNwAfA2rmUnKKbzq4z",
+          "table_label": "V8",
+          "table_status": "AVAILABLE",
+          "area_name": null
+        }
+      ],
+      "tables": [
+        {
+          "id": "0b9f9e5d-1a28-47f9-9fd9-06c1fa704a88",
+          "label": "V1",
+          "type": "TABLE",
+          "status": "AVAILABLE"
+        },
+        {
+          "id": "05b73064-a2a6-4e93-be8b-a2752ba6af5d",
+          "label": "V2",
+          "type": "TABLE",
+          "status": "AVAILABLE"
+        },
+        {
+          "id": "30d8b34c-7531-4e3c-813c-27021852468a",
+          "label": "V3",
+          "type": "TABLE",
+          "status": "AVAILABLE"
+        },
+        {
+          "id": "1c9bf82b-60d4-469f-a127-3cbc5c56ee4b",
+          "label": "V4",
+          "type": "TABLE",
+          "status": "AVAILABLE"
+        },
+        {
+          "id": "b6beb753-818f-4032-9eec-fc356a0d57c4",
+          "label": "V5",
+          "type": "TABLE",
+          "status": "AVAILABLE"
+        },
+        {
+          "id": "d4d881fc-871d-4f86-8fde-a0a9e20eca11",
+          "label": "V6",
+          "type": "TABLE",
+          "status": "AVAILABLE"
+        },
+        {
+          "id": "90c14642-b70e-4d76-b656-787e8c3ba84f",
+          "label": "V7",
+          "type": "TABLE",
+          "status": "AVAILABLE"
+        },
+        {
+          "id": "159b8f91-0e26-410d-8db8-9ec1dcf7c338",
+          "label": "V8",
+          "type": "TABLE",
+          "status": "AVAILABLE"
+        }
+      ]
+    },
+    "spice-garden": {
+      "id": "a3ac5e8e-277d-419f-9332-0a790c1a2a2f",
+      "name": "Spice Garden",
+      "business_type": "RESTAURANT",
+      "branches": [
+        {
+          "id": "f6e1c28a-07c6-4f2e-b735-af507bb0a266",
+          "name": "Spice Garden Indiranagar",
+          "venue_profile": "CASUAL_DINING",
+          "uses_tables": true,
+          "qr_ordering_mode": "ORDER_WITH_APPROVAL",
+          "qr_session_policy": "CUSTOMER_CAN_OPEN",
+          "payment_timing": "PAY_LATER",
+          "allows_room_service": false
+        }
+      ],
+      "users": {
+        "BRANCH_MANAGER": [
+          "manager@spicegarden.com"
+        ],
+        "OWNER": [
+          "owner@spicegarden.com"
+        ],
+        "KITCHEN": [
+          "kitchen@spicegarden.com"
+        ],
+        "WAITER": [
+          "waiter@spicegarden.com"
+        ]
+      },
+      "qrs": [
+        {
+          "id": "0c2d144c-b63c-471e-80d4-f74ac6876967",
+          "target_type": "TABLE",
+          "token": "KysoK5g3qqfgDR9dUzCU8rBNbFhnjlBA",
+          "table_label": "T1",
+          "table_status": "OCCUPIED",
+          "area_name": null
+        },
+        {
+          "id": "b2a57fc4-4fe3-458f-b54f-abdd5f33776f",
+          "target_type": "TABLE",
+          "token": "677lBYDX10jovd5WVAmgCnsrYB4l002a",
+          "table_label": "T2",
+          "table_status": "OCCUPIED",
+          "area_name": null
+        },
+        {
+          "id": "72d0d06d-86e5-4719-95b6-f5560abd11b4",
+          "target_type": "TABLE",
+          "token": "SxH6c5jsq21jF8Ke-W_EsJ7WQuRmLFBa",
+          "table_label": "T3",
+          "table_status": "OCCUPIED",
+          "area_name": null
+        },
+        {
+          "id": "c90cf10c-c441-45b7-b807-6aefd52d8b4c",
+          "target_type": "TABLE",
+          "token": "demo-spice-t4",
+          "table_label": "T4",
+          "table_status": "OCCUPIED",
+          "area_name": null
+        },
+        {
+          "id": "9ee41c8f-0b16-44ec-9d5f-869bf349524e",
+          "target_type": "TABLE",
+          "token": "aMMgnG_AGOnIGmrIJEO1_srnG6REC8ud",
+          "table_label": "T5",
+          "table_status": "AVAILABLE",
+          "area_name": null
+        },
+        {
+          "id": "283d907f-7d0e-42e5-b44f-368b264fe4ce",
+          "target_type": "TABLE",
+          "token": "xaz3V649jqV1AYhoYsgjvhvbrnfq6PYa",
+          "table_label": "T6",
+          "table_status": "OCCUPIED",
+          "area_name": null
+        },
+        {
+          "id": "5d27ec14-68c4-4c89-b528-b8c92045cc59",
+          "target_type": "TABLE",
+          "token": "uQF3mBkGzocanI9744lYsXbNX6yejKDL",
+          "table_label": "T7",
+          "table_status": "OCCUPIED",
+          "area_name": null
+        },
+        {
+          "id": "02f823d7-d53a-418a-8cfe-27b07f3fe472",
+          "target_type": "TABLE",
+          "token": "mL4bMEihv-3WoMjT3nAzx9I4KahAIbhq",
+          "table_label": "T8",
+          "table_status": "OCCUPIED",
+          "area_name": null
+        },
+        {
+          "id": "21298c77-b287-41f2-a00f-5f950ac5431a",
+          "target_type": "TABLE",
+          "token": "ecwimaidg13rXvG79mRdyEtv2bMK79Gj",
+          "table_label": "T9",
+          "table_status": "OCCUPIED",
+          "area_name": null
+        },
+        {
+          "id": "b8796909-fea3-4cd6-b0f2-48f46b0dec39",
+          "target_type": "TABLE",
+          "token": "HjaiVQu328bEmS6ENvNnqDBeRimOt7wU",
+          "table_label": "T10",
+          "table_status": "AVAILABLE",
+          "area_name": null
+        },
+        {
+          "id": "b6a839a4-5444-435d-bb08-65896d0f707e",
+          "target_type": "TABLE",
+          "token": "v1N8Lznnx1IrGvhOHPk0qbw6Vvrgt3W2",
+          "table_label": "T11",
+          "table_status": "AVAILABLE",
+          "area_name": null
+        },
+        {
+          "id": "93bd81ac-6371-4f45-a6dc-f31e5ec751aa",
+          "target_type": "TABLE",
+          "token": "hyufGHk-IiDJYOyZYG3jlEF_n4-Z47en",
+          "table_label": "T12",
+          "table_status": "AVAILABLE",
+          "area_name": null
+        },
+        {
+          "id": "a0cb0dbe-9018-4a6e-9b0d-faf66b8a697d",
+          "target_type": "TABLE",
+          "token": "uJ2Mxs3u1SYhEelPVSaRrEKcXJzK1FDL",
+          "table_label": "T13",
+          "table_status": "AVAILABLE",
+          "area_name": null
+        },
+        {
+          "id": "c7a9761b-4b38-49cf-a0f5-cfa2879adeca",
+          "target_type": "TABLE",
+          "token": "6ezsGEK5oU9kdXz6f1tyAI-KgrtidjWE",
+          "table_label": "T14",
+          "table_status": "AVAILABLE",
+          "area_name": null
+        },
+        {
+          "id": "2f756bf6-c7fb-48ed-bfcf-37f8ae62d78b",
+          "target_type": "TABLE",
+          "token": "GJsvMlbWjLRRDq4I6WxGiqiVFHmMcZrI",
+          "table_label": "T15",
+          "table_status": "AVAILABLE",
+          "area_name": null
+        },
+        {
+          "id": "1db0d6b1-fb42-46ad-be95-8cbfb9d3f4ce",
+          "target_type": "TABLE",
+          "token": "JaEJ4lu5KtdQVmoWn5z5SSc3o5nJ2DCY",
+          "table_label": "T16",
+          "table_status": "AVAILABLE",
+          "area_name": null
+        },
+        {
+          "id": "70120942-3545-4d82-8e41-12c262eb289f",
+          "target_type": "TABLE",
+          "token": "n9--3YpoM_qjMmZeJA1tA8HHqBJJidzD",
+          "table_label": "T17",
+          "table_status": "AVAILABLE",
+          "area_name": null
+        },
+        {
+          "id": "8b83c347-f0a4-4672-adf5-1ef099bc4bd3",
+          "target_type": "TABLE",
+          "token": "I3QjOTuSMgSbqeFUTKUr64b2gsSoKp17",
+          "table_label": "T18",
+          "table_status": "AVAILABLE",
+          "area_name": null
+        },
+        {
+          "id": "d5df3d89-deb1-4461-ae1d-f2518c14e622",
+          "target_type": "TABLE",
+          "token": "8vIKcBHa6vvH7LF4SJnDHgqGSySxc6D-",
+          "table_label": "T19",
+          "table_status": "AVAILABLE",
+          "area_name": null
+        },
+        {
+          "id": "3c774db1-595f-47a6-96d7-ca1cc12e4aa0",
+          "target_type": "TABLE",
+          "token": "NhCqSeSZpUhQmeY_0ydcDxwxMYWAvbEQ",
+          "table_label": "T20",
+          "table_status": "AVAILABLE",
+          "area_name": null
+        },
+        {
+          "id": "2e81c11e-f92b-4f48-acb3-974f178371b9",
+          "target_type": "TABLE",
+          "token": "3bc8c_ZNt8wKUxlu8pn9XyLfrcGOLlMP",
+          "table_label": "T21",
+          "table_status": "AVAILABLE",
+          "area_name": null
+        },
+        {
+          "id": "615c322c-2ad2-421d-8406-d04a1694dc94",
+          "target_type": "TABLE",
+          "token": "GbJJ-i57dw6szQDADIQX8IIw3yMI_4W7",
+          "table_label": "T22",
+          "table_status": "AVAILABLE",
+          "area_name": null
+        },
+        {
+          "id": "45cc2d3d-08a7-4dfb-9afd-f50072199cc6",
+          "target_type": "TABLE",
+          "token": "PZQuTkBxpBhXNoP_kR98E8xj_vWdjnpr",
+          "table_label": "T23",
+          "table_status": "AVAILABLE",
+          "area_name": null
+        },
+        {
+          "id": "5a3c354d-68f1-4604-8253-66c4f9db82db",
+          "target_type": "TABLE",
+          "token": "7mYnD-aQLT3kB_Z6L3BKyBAN6oIdQ35f",
+          "table_label": "T24",
+          "table_status": "AVAILABLE",
+          "area_name": null
+        },
+        {
+          "id": "abf5567d-968f-4420-8729-a93bd96a2032",
+          "target_type": "TABLE",
+          "token": "wwO3HEQSquJDvwwmBSmtbqHI9LmAeCaM",
+          "table_label": "T25",
+          "table_status": "AVAILABLE",
+          "area_name": null
+        },
+        {
+          "id": "e0af7981-115e-4cb5-9d2e-6115463ccdd8",
+          "target_type": "TABLE",
+          "token": "Gvm-2USrB-Qcn9hEkJuX2JV3L0tOybIY",
+          "table_label": "T26",
+          "table_status": "AVAILABLE",
+          "area_name": null
+        },
+        {
+          "id": "209f7b2b-93b1-45bf-ab22-6b3f6d8a8695",
+          "target_type": "TABLE",
+          "token": "H1WFG1blsh_b89EE4vMSp41Hc06nORpS",
+          "table_label": "T27",
+          "table_status": "AVAILABLE",
+          "area_name": null
+        },
+        {
+          "id": "bc53f3ab-f2a6-4000-b086-d5df5a187602",
+          "target_type": "TABLE",
+          "token": "3PwmGgxSBH2orLAUDZEDLXm4G1flMzAr",
+          "table_label": "T28",
+          "table_status": "AVAILABLE",
+          "area_name": null
+        },
+        {
+          "id": "3c21a172-e26e-4272-9ae6-2cc3fe5fe69f",
+          "target_type": "TABLE",
+          "token": "JCcOMAi9iX_zBy_iNVaaz64hwC1H5oQo",
+          "table_label": "T29",
+          "table_status": "AVAILABLE",
+          "area_name": null
+        },
+        {
+          "id": "432a52d2-345a-48a9-a783-702c3df2f764",
+          "target_type": "TABLE",
+          "token": "Ys7Yp6oYO-GAMMxqLUiVgcv_p9ZMcDJC",
+          "table_label": "T30",
+          "table_status": "AVAILABLE",
+          "area_name": null
+        }
+      ],
+      "tables": [
+        {
+          "id": "252f5058-c33f-4c03-a627-e45361b4e026",
+          "label": "T1",
+          "type": "TABLE",
+          "status": "OCCUPIED"
+        },
+        {
+          "id": "25f1f181-a18c-4cf9-a577-e36af1c55746",
+          "label": "T10",
+          "type": "TABLE",
+          "status": "AVAILABLE"
+        },
+        {
+          "id": "99c3b9c8-40c0-4e92-83ee-c57fae3a6644",
+          "label": "T11",
+          "type": "TABLE",
+          "status": "AVAILABLE"
+        },
+        {
+          "id": "1198741b-4084-4b71-a25d-7b46e01dbba4",
+          "label": "T12",
+          "type": "TABLE",
+          "status": "AVAILABLE"
+        },
+        {
+          "id": "f1af342b-1df6-4c74-8fdc-beac07cea8ae",
+          "label": "T13",
+          "type": "TABLE",
+          "status": "AVAILABLE"
+        },
+        {
+          "id": "9765d286-6877-42ae-9c90-ebc463183154",
+          "label": "T14",
+          "type": "TABLE",
+          "status": "AVAILABLE"
+        },
+        {
+          "id": "e2140abe-e54b-4279-8f02-173532c01ced",
+          "label": "T15",
+          "type": "TABLE",
+          "status": "AVAILABLE"
+        },
+        {
+          "id": "9c0adb4c-816e-4ec2-9407-8d5781bc9df7",
+          "label": "T16",
+          "type": "TABLE",
+          "status": "AVAILABLE"
+        },
+        {
+          "id": "b4294121-f288-46e9-9680-765e7efc3822",
+          "label": "T17",
+          "type": "TABLE",
+          "status": "AVAILABLE"
+        },
+        {
+          "id": "f4dfd7f8-aef2-4741-9b1a-2fb92ff484bd",
+          "label": "T18",
+          "type": "TABLE",
+          "status": "AVAILABLE"
+        },
+        {
+          "id": "480f7003-705b-48b7-a9ff-d1216f1038f0",
+          "label": "T19",
+          "type": "TABLE",
+          "status": "AVAILABLE"
+        },
+        {
+          "id": "6093362d-5c2a-4592-92a8-e718d6b3147a",
+          "label": "T2",
+          "type": "TABLE",
+          "status": "OCCUPIED"
+        },
+        {
+          "id": "211537b2-5001-480d-8d0a-6ec17fae6758",
+          "label": "T20",
+          "type": "TABLE",
+          "status": "AVAILABLE"
+        },
+        {
+          "id": "0cbd2cd9-a80b-4496-a790-68964401fa87",
+          "label": "T21",
+          "type": "TABLE",
+          "status": "AVAILABLE"
+        },
+        {
+          "id": "878c04f5-da5a-4b4a-986c-1b6d7678d711",
+          "label": "T22",
+          "type": "TABLE",
+          "status": "AVAILABLE"
+        },
+        {
+          "id": "1aa379b3-84af-49a3-be7f-525fc28fb6b1",
+          "label": "T23",
+          "type": "TABLE",
+          "status": "AVAILABLE"
+        },
+        {
+          "id": "ed1d6323-1c9d-4697-a5f2-f2d3ef7636bd",
+          "label": "T24",
+          "type": "TABLE",
+          "status": "AVAILABLE"
+        },
+        {
+          "id": "b2c26f98-4f9d-4fd6-a2dd-fce6e41c59df",
+          "label": "T25",
+          "type": "TABLE",
+          "status": "AVAILABLE"
+        },
+        {
+          "id": "5314eb72-f090-4ab9-ade7-9f4bc3925adf",
+          "label": "T26",
+          "type": "TABLE",
+          "status": "AVAILABLE"
+        },
+        {
+          "id": "cf07b76c-3b18-408e-80ea-243fc31e3e19",
+          "label": "T27",
+          "type": "TABLE",
+          "status": "AVAILABLE"
+        },
+        {
+          "id": "b5a389de-0636-448f-a69a-dc271b412a16",
+          "label": "T28",
+          "type": "TABLE",
+          "status": "AVAILABLE"
+        },
+        {
+          "id": "801dd414-509c-4b05-ae21-2e4cf7ed54d1",
+          "label": "T29",
+          "type": "TABLE",
+          "status": "AVAILABLE"
+        },
+        {
+          "id": "5e0072f0-f9a8-4eee-9e4d-cc32ea759845",
+          "label": "T3",
+          "type": "TABLE",
+          "status": "OCCUPIED"
+        },
+        {
+          "id": "abb3a2ba-9cd9-4310-9911-4d39e61e44dc",
+          "label": "T30",
+          "type": "TABLE",
+          "status": "AVAILABLE"
+        },
+        {
+          "id": "85c94fcf-a09f-481f-b982-c8919093bdab",
+          "label": "T4",
+          "type": "TABLE",
+          "status": "OCCUPIED"
+        },
+        {
+          "id": "70ee766d-eaab-4ba7-97f2-a128aa46f2d1",
+          "label": "T5",
+          "type": "TABLE",
+          "status": "AVAILABLE"
+        },
+        {
+          "id": "11ab97a4-def5-4cd5-a0e3-f68709cc6c17",
+          "label": "T6",
+          "type": "TABLE",
+          "status": "OCCUPIED"
+        },
+        {
+          "id": "65427962-289e-43f3-a04b-858c48b9bf78",
+          "label": "T7",
+          "type": "TABLE",
+          "status": "OCCUPIED"
+        },
+        {
+          "id": "3fa63a2a-cc50-4c3e-a68c-6026552ce6cf",
+          "label": "T8",
+          "type": "TABLE",
+          "status": "OCCUPIED"
+        },
+        {
+          "id": "3add367c-d9b4-44d1-ba07-b1999a310377",
+          "label": "T9",
+          "type": "TABLE",
+          "status": "OCCUPIED"
+        }
+      ]
+    }
+  }
+}

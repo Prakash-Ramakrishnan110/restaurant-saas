@@ -1,0 +1,170 @@
+[
+  {
+    "flowId": "F-01",
+    "viewport": "mobile",
+    "taps": 1,
+    "durationMs": 5113
+  },
+  {
+    "flowId": "F-02",
+    "viewport": "mobile",
+    "taps": 3,
+    "durationMs": 12253
+  },
+  {
+    "flowId": "F-03",
+    "viewport": "mobile",
+    "taps": 4,
+    "durationMs": 15771
+  },
+  {
+    "flowId": "F-04",
+    "viewport": "mobile",
+    "taps": 5,
+    "durationMs": 22762
+  },
+  {
+    "flowId": "F-05",
+    "viewport": "mobile",
+    "taps": 2,
+    "durationMs": 17168
+  },
+  {
+    "flowId": "F-06",
+    "viewport": "mobile",
+    "taps": 5,
+    "durationMs": 12760
+  },
+  {
+    "flowId": "F-07",
+    "viewport": "mobile",
+    "taps": 6,
+    "durationMs": 37366
+  },
+  {
+    "flowId": "F-08",
+    "viewport": "mobile",
+    "taps": 0,
+    "durationMs": 3755
+  },
+  {
+    "flowId": "F-09",
+    "viewport": "mobile",
+    "taps": 7,
+    "durationMs": 23178
+  },
+  {
+    "flowId": "F-11",
+    "viewport": "mobile",
+    "taps": 2,
+    "durationMs": 32773
+  },
+  {
+    "flowId": "F-12",
+    "viewport": "mobile",
+    "taps": 1,
+    "durationMs": 9208
+  },
+  {
+    "flowId": "F-14",
+    "viewport": "mobile",
+    "taps": 4,
+    "durationMs": 8294
+  },
+  {
+    "flowId": "F-17",
+    "viewport": "mobile",
+    "taps": 6,
+    "durationMs": 12049
+  },
+  {
+    "flowId": "F-22",
+    "viewport": "mobile",
+    "taps": 3,
+    "durationMs": 16825
+  },
+  {
+    "flowId": "F-01",
+    "viewport": "desktop",
+    "taps": 1,
+    "durationMs": 11939
+  },
+  {
+    "flowId": "F-02",
+    "viewport": "desktop",
+    "taps": 3,
+    "durationMs": 14216
+  },
+  {
+    "flowId": "F-03",
+    "viewport": "desktop",
+    "taps": 4,
+    "durationMs": 11697
+  },
+  {
+    "flowId": "F-04",
+    "viewport": "desktop",
+    "taps": 4,
+    "durationMs": 24169
+  },
+  {
+    "flowId": "F-05",
+    "viewport": "desktop",
+    "taps": 0,
+    "durationMs": 3904
+  },
+  {
+    "flowId": "F-06",
+    "viewport": "desktop",
+    "taps": 8,
+    "durationMs": 11369
+  },
+  {
+    "flowId": "F-07",
+    "viewport": "desktop",
+    "taps": 5,
+    "durationMs": 32153
+  },
+  {
+    "flowId": "F-08",
+    "viewport": "desktop",
+    "taps": 0,
+    "durationMs": 5110
+  },
+  {
+    "flowId": "F-09",
+    "viewport": "desktop",
+    "taps": 6,
+    "durationMs": 23899
+  },
+  {
+    "flowId": "F-11",
+    "viewport": "desktop",
+    "taps": 2,
+    "durationMs": 31739
+  },
+  {
+    "flowId": "F-12",
+    "viewport": "desktop",
+    "taps": 1,
+    "durationMs": 9555
+  },
+  {
+    "flowId": "F-14",
+    "viewport": "desktop",
+    "taps": 4,
+    "durationMs": 11659
+  },
+  {
+    "flowId": "F-17",
+    "viewport": "desktop",
+    "taps": 6,
+    "durationMs": 14651
+  },
+  {
+    "flowId": "F-22",
+    "viewport": "desktop",
+    "taps": 3,
+    "durationMs": 15499
+  }
+]
