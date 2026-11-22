@@ -28,6 +28,7 @@ import {
   BarChart2,
   UtensilsCrossed,
   Activity,
+  Download,
 } from "lucide-react";
 import { isSoundEnabled, setSoundEnabled, testSoundAlert } from "../../utils/soundAlerts";
 import { BrandLogo } from "../brand/BrandLogo";
@@ -87,6 +88,21 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
   );
   const [queueDrawerOpen, setQueueDrawerOpen] = useState<boolean>(false);
   const [isSyncingQueue, setIsSyncingQueue] = useState<boolean>(false);
+  const [installPrompt, setInstallPrompt] = useState<any>(null);
+
+  useEffect(() => {
+    const onBeforeInstall = (e: Event) => {
+      e.preventDefault();
+      setInstallPrompt(e);
+    };
+    const onInstalled = () => setInstallPrompt(null);
+    window.addEventListener("beforeinstallprompt", onBeforeInstall);
+    window.addEventListener("appinstalled", onInstalled);
+    return () => {
+      window.removeEventListener("beforeinstallprompt", onBeforeInstall);
+      window.removeEventListener("appinstalled", onInstalled);
+    };
+  }, []);
 
   const handleSyncOfflineQueue = useCallback(async () => {
     setIsSyncingQueue(true);
@@ -491,6 +507,24 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
         {/* Status Pills & Controls */}
         <div className="flex items-center gap-0.5 sm:gap-3 shrink-0">
           {/* Connection Status & Offline Queue Indicator */}
+          {installPrompt && (
+            <Button
+              type="button"
+              size="sm"
+              onClick={async () => {
+                try {
+                  await installPrompt.prompt();
+                  setInstallPrompt(null);
+                } catch {
+                  // Ignore prompt dismissal
+                }
+              }}
+              className="hidden sm:inline-flex items-center gap-1.5 bg-[#FF6A00] hover:bg-[#E55F00] text-[#0B1F3B] font-bold text-xs h-8 px-2.5"
+            >
+              <Download className="h-3.5 w-3.5" />
+              <span>Install App</span>
+            </Button>
+          )}
           <button
             type="button"
             data-testid="connection-status-pill"
