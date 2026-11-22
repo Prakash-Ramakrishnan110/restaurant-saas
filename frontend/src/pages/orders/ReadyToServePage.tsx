@@ -36,9 +36,7 @@ export const ReadyToServePage: React.FC = () => {
       if (prevReadyIdsRef.current !== null) {
         const newlyReady = nextOrders.find((o) => !prevReadyIdsRef.current!.has(o.id));
         if (newlyReady) {
-          playOrderAlert(
-            newlyReady.table_number ? `Table ${newlyReady.table_number}` : "Pickup"
-          );
+          playOrderAlert(newlyReady.table_number ? `Table ${newlyReady.table_number}` : "Pickup");
         }
       }
       prevReadyIdsRef.current = nextReadyIds;

@@ -302,7 +302,7 @@ class BillingViewSet(viewsets.ViewSet):
     """Cashier billing and table session checkout."""
 
     serializer_class = BillInvoiceSerializer
-    permission_classes = [IsAuthenticated, HasTenantPermission(Permission.TABLE_SESSION_CLOSE)]
+    permission_classes = [IsAuthenticated, HasTenantPermission(Permission.BILLING_MANAGE)]
 
     @action(detail=False, methods=["get"], url_path="session/(?P<session_id>[^/.]+)")
     def session_bill(self, request: Request, session_id: str | None = None) -> Response:
@@ -493,7 +493,34 @@ class InvoiceViewSet(viewsets.ReadOnlyModelViewSet):
     """Authoritative Invoices directory, detail, and append-only refund endpoints."""
 
     serializer_class = BillInvoiceSerializer
-    permission_classes = [IsAuthenticated, HasTenantPermission(Permission.PRINTER_REPRINT)]
+    permission_classes = [IsAuthenticated, HasTenantPermission(Permission.BILLING_MANAGE)]
+
+    def get_permissions(self) -> list[Any]:
+        if self.action == "last_for_table":
+            return [IsAuthenticated(), HasTenantPermission(Permission.TABLE_VIEW)()]
+        return [IsAuthenticated(), HasTenantPermission(Permission.BILLING_MANAGE)()]
+
+    @action(detail=False, methods=["get"], url_path="last-for-table")
+    def last_for_table(self, request: Request) -> Response:
+        """Read-only last finalized bill for a table so Waiters can verify amounts for guests."""
+        tenant = getattr(request, "tenant", None)
+        if not tenant:
+            return Response(None, status=status.HTTP_200_OK)
+        table_id = request.query_params.get("table_id")
+        if not table_id:
+            raise ValidationError({"table_id": "table_id query parameter is required."})
+        inv = (
+            BillInvoice.objects.filter(tenant=tenant, table_session__table_id=table_id)
+            .select_related("table_session__table", "branch", "settled_by__user")
+            .prefetch_related("refunds__processed_by__user", "refunds__approved_by__user")
+            .order_by("-created_at")
+            .first()
+        )
+        if not inv:
+            return Response({"found": False}, status=status.HTTP_200_OK)
+        data = dict(BillInvoiceSerializer(inv).data)
+        data["found"] = True
+        return Response(data, status=status.HTTP_200_OK)
 
     def get_queryset(self):
         tenant = getattr(self.request, "tenant", None)
@@ -563,7 +590,7 @@ class ShiftCloseoutViewSet(viewsets.ReadOnlyModelViewSet):
     """Blind cash drawer handover, mid-shift cash movements, and Z-Report closeout."""
 
     serializer_class = CashierShiftCloseoutSerializer
-    permission_classes = [IsAuthenticated, HasTenantPermission(Permission.TABLE_SESSION_CLOSE)]
+    permission_classes = [IsAuthenticated, HasTenantPermission(Permission.BILLING_MANAGE)]
 
     def get_queryset(self):
         tenant = getattr(self.request, "tenant", None)

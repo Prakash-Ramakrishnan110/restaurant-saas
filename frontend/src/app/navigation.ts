@@ -185,9 +185,9 @@ export function getNavigationGroups(ctx: NavigationContext): NavGroup[] {
       badgeKey: "readyOrders",
     },
     { label: "Kitchen KDS", path: "/kds", icon: ChefHat, permission: "menu.availability" },
-    { label: "Cashier Billing", path: "/billing", icon: Receipt, permission: "order.create" },
-    { label: "Bills", path: "/billing/bills", icon: FileText, permission: "order.create" },
-    { label: "Shift Close", path: "/billing/closeout", icon: Clock, permission: "order.create" },
+    { label: "Cashier Billing", path: "/billing", icon: Receipt, permission: "billing.manage" },
+    { label: "Bills", path: "/billing/bills", icon: FileText, permission: "billing.manage" },
+    { label: "Shift Close", path: "/billing/closeout", icon: Clock, permission: "billing.manage" },
     { label: "Menu", path: "/menu", icon: UtensilsCrossed, permission: "menu.view" },
     {
       label: "Translations",

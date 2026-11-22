@@ -548,6 +548,14 @@ class TableSessionViewSet(
     @action(detail=True, methods=["post"], url_path="close")
     def close(self, request: Request, pk: str | None = None) -> Response:
         session = self.get_object()
+        if (
+            session.orders.exists()
+            and not HasTenantPermission(Permission.BILLING_MANAGE)().has_permission(request, self)
+        ):
+            raise ValidationError(
+                {"detail": "Only a Cashier or Manager can close a table with active orders."},
+                code="CASHIER_REQUIRED",
+            )
         session = close_session(session=session, actor=request.user, request=request)
         return Response(TableSessionSerializer(session).data)
 

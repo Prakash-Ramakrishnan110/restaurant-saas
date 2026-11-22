@@ -879,45 +879,45 @@ export const PublicQRPage: React.FC = () => {
                       <button
                         type="button"
                         onClick={async () => {
-                        try {
-                          const res = await publicQrApi.reorderPreview(token, h.items);
-                          if (res.data.available_items.length > 0) {
-                            resetIdempotencyKey();
-                            setCart((prev) => ({
-                              ...prev,
-                              items: [
-                                ...prev.items,
-                                ...res.data.available_items.map((av) => ({
-                                  menu_item_id: av.menu_item_id,
-                                  variant_id: av.variant_id,
-                                  option_ids: [],
-                                  quantity: av.quantity,
-                                  notes: "",
-                                })),
-                              ],
-                            }));
-                            setCartOpen(true);
-                          }
-                          if (res.data.unavailable_items.length > 0) {
+                          try {
+                            const res = await publicQrApi.reorderPreview(token, h.items);
+                            if (res.data.available_items.length > 0) {
+                              resetIdempotencyKey();
+                              setCart((prev) => ({
+                                ...prev,
+                                items: [
+                                  ...prev.items,
+                                  ...res.data.available_items.map((av) => ({
+                                    menu_item_id: av.menu_item_id,
+                                    variant_id: av.variant_id,
+                                    option_ids: [],
+                                    quantity: av.quantity,
+                                    notes: "",
+                                  })),
+                                ],
+                              }));
+                              setCartOpen(true);
+                            }
+                            if (res.data.unavailable_items.length > 0) {
+                              setReorderNotice(
+                                lang === "ta"
+                                  ? "சில உணவுகள் இப்போது கிடைக்கவில்லை."
+                                  : `${res.data.unavailable_items.length} item(s) currently unavailable.`
+                              );
+                            }
+                          } catch {
                             setReorderNotice(
                               lang === "ta"
-                                ? "சில உணவுகள் இப்போது கிடைக்கவில்லை."
-                                : `${res.data.unavailable_items.length} item(s) currently unavailable.`
+                                ? "மீண்டும் ஆர்டர் செய்ய முடியவில்லை."
+                                : "Could not check reorder items."
                             );
                           }
-                        } catch {
-                          setReorderNotice(
-                            lang === "ta"
-                              ? "மீண்டும் ஆர்டர் செய்ய முடியவில்லை."
-                              : "Could not check reorder items."
-                          );
-                        }
-                      }}
-                      className="min-h-[36px] px-3 rounded-lg bg-[#FF6A00] text-[#0B1F3B] font-bold flex items-center gap-1 shrink-0"
-                    >
-                      <RotateCcw className="h-3.5 w-3.5" />
-                      <span>{lang === "ta" ? "மீண்டும் ஆர்டர்" : "Reorder"}</span>
-                    </button>
+                        }}
+                        className="min-h-[36px] px-3 rounded-lg bg-[#FF6A00] text-[#0B1F3B] font-bold flex items-center gap-1 shrink-0"
+                      >
+                        <RotateCcw className="h-3.5 w-3.5" />
+                        <span>{lang === "ta" ? "மீண்டும் ஆர்டர்" : "Reorder"}</span>
+                      </button>
                     </div>
                   </div>
                 ))}

@@ -72,6 +72,7 @@ class Permission:
     MENU_AVAILABILITY = "menu.availability"
     ORDER_CREATE = "order.create"
     ORDER_CANCEL = "order.cancel"
+    BILLING_MANAGE = "billing.manage"
     INVOICE_REFUND = "invoice.refund"
     REPORT_VIEW = "report.view"
     PRINTER_REPRINT = "printer.reprint"

@@ -264,7 +264,7 @@ export interface ServiceRequest {
   table_id?: string;
   table_session_id?: string;
   table_label: string;
-  request_type: "WATER" | "NAPKINS" | "CALL_WAITER" | "BILL";
+  request_type: "WATER" | "NAPKINS" | "CALL_WAITER" | "BILL" | "REQUEST_BILL" | "CUTLERY";
   status: "PENDING" | "ACKNOWLEDGED" | "RESOLVED";
   created_at: string;
   acknowledged_at?: string;
@@ -329,6 +329,11 @@ export const ordersApi = {
     q?: string;
   }) => apiClient.get<BillInvoice[]>("/invoices/", { params }),
 
+  getLastBillForTable: (tableId: string) =>
+    apiClient.get<BillInvoice & { found: boolean }>("/invoices/last-for-table/", {
+      params: { table_id: tableId },
+    }),
+
   getInvoice: (id: string) => apiClient.get<BillInvoice>(`/invoices/${id}/`),
 
   getTodayReport: (params?: { branch_id?: string; date?: string }) =>
@@ -339,6 +344,15 @@ export const ordersApi = {
 
   getServiceRequests: (status?: string) =>
     apiClient.get<ServiceRequest[]>("/orders/service-requests/", { params: { status } }),
+
+  requestServiceCall: (
+    tableId: string,
+    requestType: "CALL_WAITER" | "WATER" | "REQUEST_BILL" | "CUTLERY"
+  ) =>
+    apiClient.post<ServiceRequest>("/orders/service-requests/", {
+      table_id: tableId,
+      request_type: requestType,
+    }),
 
   acknowledgeServiceRequest: (id: string) =>
     apiClient.post<{ id: string; status: string }>(`/orders/service-requests/${id}/acknowledge/`),

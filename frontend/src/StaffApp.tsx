@@ -212,8 +212,9 @@ const queryClient = new QueryClient({
 const ProtectedRoute: React.FC<{
   children: React.ReactNode;
   requirePlatformAdmin?: boolean;
-}> = ({ children, requirePlatformAdmin = false }) => {
-  const { user, mustChangePassword, isLoading } = useAuth();
+  requiredPermission?: string;
+}> = ({ children, requirePlatformAdmin = false, requiredPermission }) => {
+  const { user, mustChangePassword, isLoading, can } = useAuth();
   const location = useLocation();
 
   if (isLoading) {
@@ -243,6 +244,10 @@ const ProtectedRoute: React.FC<{
 
   if (!requirePlatformAdmin && user.is_platform_admin) {
     return <Navigate to="/admin" replace />;
+  }
+
+  if (requiredPermission && !can(requiredPermission)) {
+    return <Navigate to="/forbidden" replace />;
   }
 
   return <AppShell>{children}</AppShell>;
@@ -387,7 +392,7 @@ export const StaffApp: React.FC = () => {
               <Route
                 path="/billing"
                 element={
-                  <ProtectedRoute>
+                  <ProtectedRoute requiredPermission="billing.manage">
                     <BillingPage />
                   </ProtectedRoute>
                 }
@@ -395,7 +400,7 @@ export const StaffApp: React.FC = () => {
               <Route
                 path="/orders/billing"
                 element={
-                  <ProtectedRoute>
+                  <ProtectedRoute requiredPermission="billing.manage">
                     <BillingPage />
                   </ProtectedRoute>
                 }
@@ -403,7 +408,7 @@ export const StaffApp: React.FC = () => {
               <Route
                 path="/billing/invoices"
                 element={
-                  <ProtectedRoute>
+                  <ProtectedRoute requiredPermission="billing.manage">
                     <InvoicesHistoryPage />
                   </ProtectedRoute>
                 }
@@ -411,7 +416,7 @@ export const StaffApp: React.FC = () => {
               <Route
                 path="/billing/bills"
                 element={
-                  <ProtectedRoute>
+                  <ProtectedRoute requiredPermission="billing.manage">
                     <InvoicesHistoryPage />
                   </ProtectedRoute>
                 }
@@ -419,7 +424,7 @@ export const StaffApp: React.FC = () => {
               <Route
                 path="/billing/closeout"
                 element={
-                  <ProtectedRoute>
+                  <ProtectedRoute requiredPermission="billing.manage">
                     <ShiftCloseoutPage />
                   </ProtectedRoute>
                 }
@@ -427,7 +432,7 @@ export const StaffApp: React.FC = () => {
               <Route
                 path="/billing/room-charges"
                 element={
-                  <ProtectedRoute>
+                  <ProtectedRoute requiredPermission="billing.manage">
                     <RoomChargesPage />
                   </ProtectedRoute>
                 }

@@ -236,6 +236,9 @@ class StaffSectionAssignment(BranchOwnedModel):
         on_delete=models.CASCADE,
         related_name="staff_assignments",
     )
+    shift_name = models.CharField(max_length=20, default="FULL_DAY")
+    shift_start = models.CharField(max_length=10, blank=True, default="07:00")
+    shift_end = models.CharField(max_length=10, blank=True, default="23:00")
     valid_from = models.DateTimeField(default=timezone.now)
     valid_to = models.DateTimeField(null=True, blank=True)
 

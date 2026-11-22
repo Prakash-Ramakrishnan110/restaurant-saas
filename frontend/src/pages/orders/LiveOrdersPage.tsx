@@ -425,10 +425,20 @@ export const LiveOrdersPage: React.FC = () => {
                           : "—"}
                       </span>
                     </div>
-                    {!isWaiter && (
+                    {!isWaiter ? (
                       <div className="font-bold text-sm text-foreground">
                         {formatRupees(ord.total_paise || 0)}
                       </div>
+                    ) : (
+                      <span
+                        className={`px-2 py-0.5 rounded-full text-[10px] font-bold border ${
+                          ord.payment_status === "PAID"
+                            ? "bg-emerald-100 text-emerald-800 border-emerald-300 dark:bg-emerald-950/60 dark:text-emerald-300"
+                            : "bg-amber-50 text-amber-800 border-amber-200 dark:bg-amber-950/40 dark:text-amber-300"
+                        }`}
+                      >
+                        {ord.payment_status === "PAID" ? "Payment Completed" : "Payment Pending"}
+                      </span>
                     )}
                   </div>
                   {ord.status === "PENDING_APPROVAL" && (

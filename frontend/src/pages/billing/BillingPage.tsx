@@ -13,7 +13,8 @@ import {
   ArrowRightLeft,
 } from "lucide-react";
 import { apiClient } from "../../api/client";
-import { ordersApi, BillCalculation, BillInvoice, Order } from "../../api/orders";
+import { ordersApi, BillCalculation, BillInvoice, Order, ServiceRequest } from "../../api/orders";
+import { playWaiterCallAlert } from "../../utils/soundAlerts";
 import { useAuth } from "../../context/AuthContext";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
@@ -46,6 +47,8 @@ export const BillingPage: React.FC = () => {
 
   // Sessions and Active Selection
   const [sessions, setSessions] = useState<TableSessionInfo[]>([]);
+  const [billRequests, setBillRequests] = useState<ServiceRequest[]>([]);
+  const prevBillReqIdsRef = React.useRef<Set<string> | null>(null);
   const [awaitingPaymentOrders, setAwaitingPaymentOrders] = useState<Order[]>([]);
   const [settlingOrderId, setSettlingOrderId] = useState<string | null>(null);
   const [orderPaymentMethods, setOrderPaymentMethods] = useState<
@@ -114,13 +117,28 @@ export const BillingPage: React.FC = () => {
   const fetchSessions = async () => {
     if (!activeTenant) return;
     try {
-      const [sessRes, awaitRes] = await Promise.all([
+      const [sessRes, awaitRes, reqRes] = await Promise.all([
         apiClient.get<ListResponse<TableSessionInfo> | TableSessionInfo[]>("/table-sessions/"),
         ordersApi.getOrders({ status: "AWAITING_PAYMENT" }).catch(() => ({ data: [] })),
+        ordersApi.getServiceRequests("PENDING").catch(() => ({ data: [] })),
       ]);
       const openSessions = unwrapList<TableSessionInfo>(sessRes.data).filter(
         (s) => s.status === "OPEN"
       );
+      const pendingBillReqs = unwrapList<ServiceRequest>(reqRes.data).filter(
+        (r) => r.request_type === "REQUEST_BILL"
+      );
+      const nextReqIds = new Set(pendingBillReqs.map((r) => r.id));
+      if (prevBillReqIdsRef.current !== null) {
+        const newest = pendingBillReqs.find((r) => !prevBillReqIdsRef.current!.has(r.id));
+        if (newest) {
+          playWaiterCallAlert(
+            newest.table_label ? `Bill requested for Table ${newest.table_label}` : undefined
+          );
+        }
+      }
+      prevBillReqIdsRef.current = nextReqIds;
+      setBillRequests(pendingBillReqs);
       setSessions(openSessions);
       setAwaitingPaymentOrders(unwrapList<Order>(awaitRes.data));
 
@@ -204,6 +222,15 @@ export const BillingPage: React.FC = () => {
 
       setSettledInvoice(res.data);
       setReceiptModalOpen(true);
+      const matchingReqs = billRequests.filter(
+        (r) =>
+          (billData.table_label && r.table_label === billData.table_label) || r.status === "PENDING"
+      );
+      await Promise.all(
+        matchingReqs
+          .filter((r) => billData.table_label && r.table_label === billData.table_label)
+          .map((r) => ordersApi.acknowledgeServiceRequest(r.id).catch(() => null))
+      );
       setSelectedSessionId(null);
       setBillData(null);
       await fetchSessions();
@@ -380,6 +407,12 @@ export const BillingPage: React.FC = () => {
                         <Badge variant="outline" className="text-[10px] py-0 px-1.5 font-mono">
                           {sess.session_code}
                         </Badge>
+                        {sess.table_label &&
+                          billRequests.some((r) => r.table_label === sess.table_label) && (
+                            <Badge className="bg-[#FF6A00] text-[#0B1F3B] text-[10px] py-0 px-1.5 font-bold">
+                              Bill Requested
+                            </Badge>
+                          )}
                       </div>
                       <p className="text-[11px] text-muted-foreground">
                         Party of {sess.party_size || 2} • {sess.orders_count || 0} order(s)

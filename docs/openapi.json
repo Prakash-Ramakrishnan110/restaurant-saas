@@ -4282,6 +4282,32 @@
                 }
             }
         },
+        "/api/v1/invoices/last-for-table/": {
+            "get": {
+                "operationId": "invoices_last_for_table_retrieve",
+                "description": "Read-only last finalized bill for a table so Waiters can verify amounts for guests.",
+                "tags": [
+                    "invoices"
+                ],
+                "security": [
+                    {
+                        "jwtAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/BillInvoice"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
         "/api/v1/layout-templates/": {
             "get": {
                 "operationId": "layout_templates_list",
@@ -7942,6 +7968,32 @@
                     },
                     "required": true
                 },
+                "security": [
+                    {
+                        "jwtAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/BillInvoice"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/v1/orders/invoices/last-for-table/": {
+            "get": {
+                "operationId": "orders_invoices_last_for_table_retrieve",
+                "description": "Read-only last finalized bill for a table so Waiters can verify amounts for guests.",
+                "tags": [
+                    "orders"
+                ],
                 "security": [
                     {
                         "jwtAuth": []
@@ -19385,6 +19437,18 @@
                         "type": "string",
                         "readOnly": true
                     },
+                    "shift_name": {
+                        "type": "string",
+                        "maxLength": 20
+                    },
+                    "shift_start": {
+                        "type": "string",
+                        "maxLength": 10
+                    },
+                    "shift_end": {
+                        "type": "string",
+                        "maxLength": 10
+                    },
                     "valid_from": {
                         "type": "string",
                         "format": "date-time"
@@ -19430,6 +19494,19 @@
                     "section": {
                         "type": "string",
                         "format": "uuid"
+                    },
+                    "shift_name": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 20
+                    },
+                    "shift_start": {
+                        "type": "string",
+                        "maxLength": 10
+                    },
+                    "shift_end": {
+                        "type": "string",
+                        "maxLength": 10
                     },
                     "valid_from": {
                         "type": "string",

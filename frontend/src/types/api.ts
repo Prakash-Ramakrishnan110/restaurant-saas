@@ -974,6 +974,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/invoices/last-for-table/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description Read-only last finalized bill for a table so Waiters can verify amounts for guests. */
+        get: operations["invoices_last_for_table_retrieve"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/layout-templates/": {
         parameters: {
             query?: never;
@@ -1915,6 +1932,23 @@ export interface paths {
         put?: never;
         /** @description Authoritative Invoices directory, detail, and append-only refund endpoints. */
         post: operations["orders_invoices_refunds_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/orders/invoices/last-for-table/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description Read-only last finalized bill for a table so Waiters can verify amounts for guests. */
+        get: operations["orders_invoices_last_for_table_retrieve"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -5888,6 +5922,9 @@ export interface components {
             /** Format: email */
             readonly user_email: string;
             readonly user_name: string;
+            shift_name?: string;
+            shift_start?: string;
+            shift_end?: string;
             /** Format: date-time */
             valid_from?: string;
             /** Format: date-time */
@@ -5904,6 +5941,9 @@ export interface components {
             membership: string;
             /** Format: uuid */
             section: string;
+            shift_name?: string;
+            shift_start?: string;
+            shift_end?: string;
             /** Format: date-time */
             valid_from?: string;
             /** Format: date-time */
@@ -8862,6 +8902,25 @@ export interface operations {
             };
         };
     };
+    invoices_last_for_table_retrieve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BillInvoice"];
+                };
+            };
+        };
+    };
     layout_templates_list: {
         parameters: {
             query?: never;
@@ -11009,6 +11068,25 @@ export interface operations {
                 "multipart/form-data": components["schemas"]["BillInvoiceRequest"];
             };
         };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BillInvoice"];
+                };
+            };
+        };
+    };
+    orders_invoices_last_for_table_retrieve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
         responses: {
             200: {
                 headers: {

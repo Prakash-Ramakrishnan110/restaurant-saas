@@ -15,7 +15,7 @@ import {
   Zap,
 } from "lucide-react";
 import { apiClient } from "../../api/client";
-import { ordersApi, OrderItemPayload, ServiceRequest } from "../../api/orders";
+import { ordersApi, OrderItemPayload, ServiceRequest, BillInvoice } from "../../api/orders";
 import { unwrapList } from "../../api/pagination";
 import { useAuth } from "../../context/AuthContext";
 import { Button } from "../../components/ui/button";
@@ -89,7 +89,12 @@ export const FloorPOSPage: React.FC = () => {
   // Data states
   const [tables, setTables] = useState<DiningTableItem[]>([]);
   const [mySectionIds, setMySectionIds] = useState<string[]>([]);
+  const [myShiftLabel, setMyShiftLabel] = useState<string>("");
   const [tableScope, setTableScope] = useState<"MINE" | "ALL">("MINE");
+  const [lastBillModalOpen, setLastBillModalOpen] = useState<boolean>(false);
+  const [lastBillData, setLastBillData] = useState<(BillInvoice & { found?: boolean }) | null>(
+    null
+  );
   const [categories, setCategories] = useState<any[]>([]);
   const [menuItems, setMenuItems] = useState<MenuItemData[]>([]);
   const [availabilityMap, setAvailabilityMap] = useState<Record<string, boolean>>({});
@@ -170,11 +175,14 @@ export const FloorPOSPage: React.FC = () => {
         ]);
       const assigns = assignRes.data?.results || assignRes.data || [];
       if (Array.isArray(assigns) && user?.email) {
-        setMySectionIds(
-          assigns
-            .filter((a: any) => a.user_email === user.email)
-            .map((a: any) => String(a.section))
-        );
+        const myAssigns = assigns.filter((a: any) => a.user_email === user.email);
+        setMySectionIds(myAssigns.map((a: any) => String(a.section)));
+        if (myAssigns[0]?.shift_name) {
+          const s = myAssigns[0];
+          setMyShiftLabel(
+            `${String(s.shift_name).replace(/_/g, " ")}${s.shift_start && s.shift_end ? ` (${s.shift_start}-${s.shift_end})` : ""}`
+          );
+        }
       }
 
       const sessData = sessRes.data?.results || sessRes.data || [];
@@ -512,6 +520,11 @@ export const FloorPOSPage: React.FC = () => {
                 <ArrowRightLeft className="h-3.5 w-3.5" /> Transfer
               </Button>
             )}
+            {myShiftLabel && (
+              <div className="mt-2 px-2.5 py-1 rounded bg-[#FF6A00]/10 border border-[#FF6A00]/30 text-[11px] font-semibold text-[#0B1F3B] dark:text-amber-200">
+                Shift: {myShiftLabel}
+              </div>
+            )}
           </div>
 
           {usesTables ? (
@@ -543,55 +556,60 @@ export const FloorPOSPage: React.FC = () => {
                 </div>
               )}
               <div className="flex-1 overflow-y-auto pt-3 grid grid-cols-2 content-start auto-rows-max gap-2.5 pr-1">
-              {(mySectionIds.length > 0 && tableScope === "MINE"
-                ? tables.filter((t: any) => !t.section || mySectionIds.includes(String(t.section)))
-                : tables
-              ).map((tbl) => {
-                const isSelected = selectedTable?.id === tbl.id;
-                const hasOpenSession = Boolean(
-                  activeSessions.find((s: any) => {
-                    const sessTableId = typeof s.table === "object" ? s.table?.id : s.table;
-                    return sessTableId === tbl.id && s.status === "OPEN";
-                  })
-                );
-                const isOccupied = tbl.status === "OCCUPIED" || hasOpenSession;
-                const isCleaning = (tbl.status as string) === "CLEANING" || tbl.status === "DIRTY";
-                return (
-                  <button
-                    key={tbl.id}
-                    onClick={() => handleSelectTable(tbl)}
-                    className={`p-3 rounded-xl border text-left flex flex-col justify-between transition-all min-h-[76px] ${
-                      isSelected
-                        ? "border-[#FF6A00] ring-2 ring-[#FF6A00]/20 bg-orange-50/50 dark:bg-orange-950/20"
-                        : isOccupied
-                          ? "border-red-300 bg-red-50/40 dark:bg-red-950/20 hover:border-red-400"
-                          : isCleaning
-                            ? "border-blue-300 bg-blue-50/40 dark:bg-blue-950/20 hover:border-blue-400"
-                            : "border-border bg-card hover:border-[#FF6A00]/40"
-                    }`}
-                  >
-                    <div className="flex items-center justify-between w-full">
-                      <span className="font-heading font-extrabold text-base text-foreground flex items-center gap-1.5">
-                        <span>{tbl.label}</span>
-                        {qrTableLabels.has(tbl.label) && (
-                          <span className="px-1.5 py-0.5 text-[10px] font-extrabold rounded bg-[#FF6A00] text-[#0B1F3B]">
-                            QR
-                          </span>
-                        )}
+                {(mySectionIds.length > 0 && tableScope === "MINE"
+                  ? tables.filter(
+                      (t: any) => !t.section || mySectionIds.includes(String(t.section))
+                    )
+                  : tables
+                ).map((tbl) => {
+                  const isSelected = selectedTable?.id === tbl.id;
+                  const hasOpenSession = Boolean(
+                    activeSessions.find((s: any) => {
+                      const sessTableId = typeof s.table === "object" ? s.table?.id : s.table;
+                      return sessTableId === tbl.id && s.status === "OPEN";
+                    })
+                  );
+                  const isOccupied = tbl.status === "OCCUPIED" || hasOpenSession;
+                  const isCleaning =
+                    (tbl.status as string) === "CLEANING" || tbl.status === "DIRTY";
+                  return (
+                    <button
+                      key={tbl.id}
+                      onClick={() => handleSelectTable(tbl)}
+                      className={`p-3 rounded-xl border text-left flex flex-col justify-between transition-all min-h-[76px] ${
+                        isSelected
+                          ? "border-[#FF6A00] ring-2 ring-[#FF6A00]/20 bg-orange-50/50 dark:bg-orange-950/20"
+                          : isOccupied
+                            ? "border-red-300 bg-red-50/40 dark:bg-red-950/20 hover:border-red-400"
+                            : isCleaning
+                              ? "border-blue-300 bg-blue-50/40 dark:bg-blue-950/20 hover:border-blue-400"
+                              : "border-border bg-card hover:border-[#FF6A00]/40"
+                      }`}
+                    >
+                      <div className="flex items-center justify-between w-full">
+                        <span className="font-heading font-extrabold text-base text-foreground flex items-center gap-1.5">
+                          <span>{tbl.label}</span>
+                          {qrTableLabels.has(tbl.label) && (
+                            <span className="px-1.5 py-0.5 text-[10px] font-extrabold rounded bg-[#FF6A00] text-[#0B1F3B]">
+                              QR
+                            </span>
+                          )}
+                        </span>
+                        <Badge
+                          variant={
+                            isOccupied ? "destructive" : isCleaning ? "outline" : "secondary"
+                          }
+                          className="text-[10px] px-1.5 py-0"
+                        >
+                          {isOccupied ? "Occupied" : isCleaning ? "Cleaning" : "Free"}
+                        </Badge>
+                      </div>
+                      <span className="text-[11px] text-muted-foreground mt-1 flex items-center gap-1">
+                        <Users className="h-3 w-3" /> {tbl.capacity} seats
                       </span>
-                      <Badge
-                        variant={isOccupied ? "destructive" : isCleaning ? "outline" : "secondary"}
-                        className="text-[10px] px-1.5 py-0"
-                      >
-                        {isOccupied ? "Occupied" : isCleaning ? "Cleaning" : "Free"}
-                      </Badge>
-                    </div>
-                    <span className="text-[11px] text-muted-foreground mt-1 flex items-center gap-1">
-                      <Users className="h-3 w-3" /> {tbl.capacity} seats
-                    </span>
-                  </button>
-                );
-              })}
+                    </button>
+                  );
+                })}
               </div>
             </div>
           ) : (
@@ -708,7 +726,9 @@ export const FloorPOSPage: React.FC = () => {
                         {formatRupees(item.base_price_paise)}
                       </span>
                     ) : (
-                      <span className="text-[11px] font-semibold text-muted-foreground">Tap to add</span>
+                      <span className="text-[11px] font-semibold text-muted-foreground">
+                        Tap to add
+                      </span>
                     )}
                     <Button
                       size="sm"
@@ -773,8 +793,51 @@ export const FloorPOSPage: React.FC = () => {
                   Mark Free
                 </Button>
               )}
+            {usesTables && selectedTable && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="text-xs gap-1"
+                disabled={submitting}
+                onClick={async () => {
+                  try {
+                    const res = await ordersApi.getLastBillForTable(selectedTable.id);
+                    setLastBillData(res.data);
+                    setLastBillModalOpen(true);
+                  } catch {
+                    setErrorToast("Could not load last bill.");
+                  }
+                }}
+              >
+                <Receipt className="h-3.5 w-3.5 text-[#FF6A00]" />
+                Last Bill
+              </Button>
+            )}
             {usesTables && selectedSessionId && (
-              <div className="flex items-center gap-1.5">
+              <div className="flex items-center gap-1.5 flex-wrap">
+                {isWaiter && selectedTable && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="text-xs gap-1 border-[#FF6A00] text-[#0B1F3B] dark:text-amber-200"
+                    disabled={submitting}
+                    onClick={async () => {
+                      try {
+                        setSubmitting(true);
+                        await ordersApi.requestServiceCall(selectedTable.id, "REQUEST_BILL");
+                        setSuccessToast(
+                          `Payment requested from Cashier for Table ${selectedTable.label}.`
+                        );
+                      } catch {
+                        setErrorToast("Could not send payment request.");
+                      } finally {
+                        setSubmitting(false);
+                      }
+                    }}
+                  >
+                    <Bell className="h-3.5 w-3.5 text-[#FF6A00]" /> Request Payment
+                  </Button>
+                )}
                 <Button
                   variant="outline"
                   size="sm"
@@ -1021,6 +1084,52 @@ export const FloorPOSPage: React.FC = () => {
               className="bg-[#FF6A00] text-[#0B1F3B]"
             >
               Confirm Transfer
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Read-Only Last Bill Check Modal (Waiter & Staff) */}
+      <Dialog open={lastBillModalOpen} onOpenChange={setLastBillModalOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Last Bill — Table {selectedTable?.label || ""}</DialogTitle>
+          </DialogHeader>
+          {!lastBillData?.found ? (
+            <p className="text-xs text-muted-foreground py-4">
+              No finalized bill found for this table yet.
+            </p>
+          ) : (
+            <div className="space-y-3 py-2 text-xs">
+              <div className="flex items-center justify-between text-muted-foreground">
+                <span className="font-mono font-bold text-foreground">
+                  {lastBillData.invoice_number}
+                </span>
+                <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-bold text-[10px]">
+                  {lastBillData.payment_method} • Paid
+                </span>
+              </div>
+              <div className="divide-y divide-border border-y border-border">
+                {(lastBillData.items || lastBillData.snapshot_lines || []).map((it, idx) => (
+                  <div key={idx} className="py-1.5 flex items-center justify-between">
+                    <span>
+                      {it.quantity} × {it.item_name}
+                    </span>
+                    <span className="font-semibold">
+                      {formatRupees(it.subtotal_paise || it.unit_price_paise * it.quantity)}
+                    </span>
+                  </div>
+                ))}
+              </div>
+              <div className="flex items-center justify-between font-extrabold text-sm pt-1">
+                <span>Final Bill Total</span>
+                <span className="text-[#FF6A00]">{formatRupees(lastBillData.total_paise)}</span>
+              </div>
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setLastBillModalOpen(false)}>
+              Close
             </Button>
           </DialogFooter>
         </DialogContent>

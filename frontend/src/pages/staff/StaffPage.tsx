@@ -55,6 +55,11 @@ export const StaffPage: React.FC = () => {
   const [sections, setSections] = useState<any[]>([]);
   const [assignments, setAssignments] = useState<any[]>([]);
   const [assignTarget, setAssignTarget] = useState<StaffMembership | null>(null);
+  const [shiftForm, setShiftForm] = useState<{
+    shift_name: string;
+    shift_start: string;
+    shift_end: string;
+  }>({ shift_name: "FULL_DAY", shift_start: "07:00", shift_end: "23:00" });
   const [loading, setLoading] = useState<boolean>(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
@@ -408,6 +413,10 @@ export const StaffPage: React.FC = () => {
                                 className="px-1.5 py-0.5 rounded bg-[#FF6A00]/15 text-[#0B1F3B] dark:text-amber-200 text-[10px] font-semibold"
                               >
                                 {sec?.name || "Section"}
+                                {a.shift_name ? ` • ${a.shift_name.replace(/_/g, " ")}` : ""}
+                                {a.shift_start && a.shift_end
+                                  ? ` (${a.shift_start}-${a.shift_end})`
+                                  : ""}
                               </span>
                             );
                           })}
@@ -752,62 +761,107 @@ export const StaffPage: React.FC = () => {
         onConfirm={handleDeleteStaff}
       />
 
-      {/* Assign Sections Dialog */}
+      {/* Assign Sections & Shift Plan Dialog */}
       <Dialog open={Boolean(assignTarget)} onOpenChange={(open) => !open && setAssignTarget(null)}>
         <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle>
-              Assign Sections — {assignTarget?.user.full_name || "Staff"}
+              Sections & Shift Plan — {assignTarget?.user.full_name || "Staff"}
             </DialogTitle>
           </DialogHeader>
-          <div className="space-y-2 py-2 max-h-72 overflow-y-auto">
-            {sections.filter((s) => s.is_active !== false).length === 0 ? (
-              <p className="text-xs text-muted-foreground">
-                No active dining sections found. Create sections under Venue Layout first.
-              </p>
-            ) : (
-              sections
-                .filter((s) => s.is_active !== false)
-                .map((sec) => {
-                  const existing = assignments.find(
-                    (a) => a.membership === assignTarget?.id && a.section === sec.id
-                  );
-                  return (
-                    <label
-                      key={sec.id}
-                      className="flex items-center justify-between p-3 rounded-lg border border-border bg-card hover:bg-muted/40 cursor-pointer text-xs"
-                    >
-                      <span className="font-semibold text-foreground">{sec.name}</span>
-                      <input
-                        type="checkbox"
-                        checked={Boolean(existing)}
-                        disabled={actionLoading}
-                        onChange={async () => {
-                          if (!assignTarget) return;
-                          setActionLoading(true);
-                          try {
-                            if (existing) {
-                              await apiClient.delete(`/staff-assignments/${existing.id}/`);
-                            } else {
-                              await apiClient.post("/staff-assignments/", {
-                                branch: sec.branch,
-                                membership: assignTarget.id,
-                                section: sec.id,
-                              });
+          <div className="space-y-3 py-2">
+            <div className="rounded-lg border border-border bg-muted/30 p-3 space-y-2 text-xs">
+              <div className="font-bold text-foreground">Shift Schedule</div>
+              <div className="grid grid-cols-3 gap-2">
+                <select
+                  aria-label="Shift preset"
+                  value={shiftForm.shift_name}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    const presets: Record<string, { start: string; end: string }> = {
+                      MORNING: { start: "07:00", end: "15:00" },
+                      AFTERNOON: { start: "12:00", end: "20:00" },
+                      EVENING: { start: "15:00", end: "23:00" },
+                      FULL_DAY: { start: "07:00", end: "23:00" },
+                    };
+                    const p = presets[val] || { start: "07:00", end: "23:00" };
+                    setShiftForm({ shift_name: val, shift_start: p.start, shift_end: p.end });
+                  }}
+                  className="col-span-3 sm:col-span-1 rounded border border-input bg-card px-2 py-1.5 min-h-[36px]"
+                >
+                  <option value="MORNING">Morning</option>
+                  <option value="AFTERNOON">Afternoon</option>
+                  <option value="EVENING">Evening</option>
+                  <option value="FULL_DAY">Full Day</option>
+                </select>
+                <input
+                  type="time"
+                  aria-label="Shift start time"
+                  value={shiftForm.shift_start}
+                  onChange={(e) => setShiftForm({ ...shiftForm, shift_start: e.target.value })}
+                  className="rounded border border-input bg-card px-2 py-1.5 min-h-[36px]"
+                />
+                <input
+                  type="time"
+                  aria-label="Shift end time"
+                  value={shiftForm.shift_end}
+                  onChange={(e) => setShiftForm({ ...shiftForm, shift_end: e.target.value })}
+                  className="rounded border border-input bg-card px-2 py-1.5 min-h-[36px]"
+                />
+              </div>
+            </div>
+            <div className="space-y-2 max-h-60 overflow-y-auto">
+              {sections.filter((s) => s.is_active !== false).length === 0 ? (
+                <p className="text-xs text-muted-foreground">
+                  No active dining sections found. Create sections under Venue Layout first.
+                </p>
+              ) : (
+                sections
+                  .filter((s) => s.is_active !== false)
+                  .map((sec) => {
+                    const existing = assignments.find(
+                      (a) => a.membership === assignTarget?.id && a.section === sec.id
+                    );
+                    return (
+                      <label
+                        key={sec.id}
+                        className="flex items-center justify-between p-3 rounded-lg border border-border bg-card hover:bg-muted/40 cursor-pointer text-xs"
+                      >
+                        <span className="font-semibold text-foreground">{sec.name}</span>
+                        <input
+                          type="checkbox"
+                          checked={Boolean(existing)}
+                          disabled={actionLoading}
+                          onChange={async () => {
+                            if (!assignTarget) return;
+                            setActionLoading(true);
+                            try {
+                              if (existing) {
+                                await apiClient.delete(`/staff-assignments/${existing.id}/`);
+                              } else {
+                                await apiClient.post("/staff-assignments/", {
+                                  branch: sec.branch,
+                                  membership: assignTarget.id,
+                                  section: sec.id,
+                                  shift_name: shiftForm.shift_name,
+                                  shift_start: shiftForm.shift_start,
+                                  shift_end: shiftForm.shift_end,
+                                });
+                              }
+                              await fetchStaff();
+                            } catch (err: any) {
+                              setErrorMessage(mapBackendErrorCode(err));
+                            } finally {
+                              setActionLoading(false);
                             }
-                            await fetchStaff();
-                          } catch (err: any) {
-                            setErrorMessage(mapBackendErrorCode(err));
-                          } finally {
-                            setActionLoading(false);
-                          }
-                        }}
-                        className="h-4 w-4 accent-[#FF6A00]"
-                      />
-                    </label>
-                  );
-                })
-            )}
+                          }}
+                          className="h-4 w-4 accent-[#FF6A00]"
+                        />
+                      </label>
+                    );
+                  })
+              )}
+            </div>
           </div>
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => setAssignTarget(null)}>
