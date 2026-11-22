@@ -137,7 +137,7 @@ export const PublicOrderTrackerPage: React.FC = () => {
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col">
       {/* Top Bar */}
-      <header className="sticky top-0 z-20 bg-[#0B1F3B] text-white px-4 py-3 flex items-center justify-between shadow-sm">
+      <header className="print:hidden sticky top-0 z-20 bg-[#0B1F3B] text-white px-4 py-3 flex items-center justify-between shadow-sm">
         <Link
           to={menuPath}
           className="inline-flex items-center gap-2 text-sm font-semibold text-white hover:text-[#FF6A00] min-h-[44px] px-2 -ml-2 rounded-lg"
@@ -186,7 +186,7 @@ export const PublicOrderTrackerPage: React.FC = () => {
         ) : order ? (
           <>
             {/* Header Summary */}
-            <div className="rounded-2xl border border-border bg-card p-5 space-y-2 shadow-sm">
+            <div className="print:hidden rounded-2xl border border-border bg-card p-5 space-y-2 shadow-sm">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-semibold text-muted-foreground">
                   {copy.orderNumber} #{order.order_number}
@@ -213,13 +213,13 @@ export const PublicOrderTrackerPage: React.FC = () => {
 
             {/* Status Card */}
             {order.status === "AWAITING_PAYMENT" ? (
-              <div className="rounded-2xl border-2 border-[#FF6A00] bg-orange-50/60 dark:bg-orange-950/30 p-5 text-center space-y-2">
+              <div className="print:hidden rounded-2xl border-2 border-[#FF6A00] bg-orange-50/60 dark:bg-orange-950/30 p-5 text-center space-y-2">
                 <Banknote className="h-9 w-9 text-[#0B1F3B] dark:text-[#FF6A00] mx-auto" />
                 <h1 className="text-lg font-extrabold text-foreground">{copy.payFirstTitle}</h1>
                 <p className="text-sm text-muted-foreground">{copy.payFirstBody}</p>
               </div>
             ) : order.status === "PENDING_APPROVAL" ? (
-              <div className="rounded-2xl border border-amber-300 bg-amber-50/70 dark:bg-amber-950/30 p-5 text-center space-y-2">
+              <div className="print:hidden rounded-2xl border border-amber-300 bg-amber-50/70 dark:bg-amber-950/30 p-5 text-center space-y-2">
                 <Clock className="h-9 w-9 text-amber-700 dark:text-amber-300 mx-auto" />
                 <h1 className="text-lg font-extrabold text-foreground">
                   {copy.waitingApprovalTitle}
@@ -227,7 +227,7 @@ export const PublicOrderTrackerPage: React.FC = () => {
                 <p className="text-sm text-muted-foreground">{copy.waitingApprovalBody}</p>
               </div>
             ) : order.status === "CANCELLED" ? (
-              <div className="rounded-2xl border border-rose-300 bg-rose-50/70 dark:bg-rose-950/30 p-5 text-center space-y-2">
+              <div className="print:hidden rounded-2xl border border-rose-300 bg-rose-50/70 dark:bg-rose-950/30 p-5 text-center space-y-2">
                 <Ban className="h-9 w-9 text-rose-700 dark:text-rose-300 mx-auto" />
                 <h1 className="text-lg font-extrabold text-foreground">
                   {order.rejected_reason ? copy.rejectedTitle : copy.cancelledTitle}
@@ -239,7 +239,7 @@ export const PublicOrderTrackerPage: React.FC = () => {
                 )}
               </div>
             ) : (
-              <div className="rounded-2xl border border-border bg-card p-5 space-y-4 shadow-sm">
+              <div className="print:hidden rounded-2xl border border-border bg-card p-5 space-y-4 shadow-sm">
                 <h1 className="text-lg font-extrabold text-foreground">
                   {order.status === "BILLED" || order.status === "COMPLETED"
                     ? copy.completedTitle
@@ -284,31 +284,41 @@ export const PublicOrderTrackerPage: React.FC = () => {
             )}
 
             {/* Items Ordered / Printable Bill */}
-            <div className="rounded-2xl border border-border bg-card p-5 space-y-3 shadow-sm">
-              {order.display_name && (
+            <div
+              data-testid="customer-printable-bill"
+              className="rounded-2xl border border-border bg-card p-5 space-y-3 shadow-sm print:border-0 print:shadow-none"
+            >
+              {(order.display_name || order.order_number) && (
                 <div className="flex items-center gap-3 pb-3 border-b border-border">
                   {order.logo_url && (
                     <img
                       src={order.logo_url}
-                      alt={order.display_name}
+                      alt={order.display_name || "Restaurant logo"}
                       className="w-10 h-10 rounded-lg object-cover bg-white shrink-0"
                     />
                   )}
                   <div className="min-w-0">
                     <div className="font-extrabold text-sm text-foreground truncate">
-                      {order.display_name}
+                      {order.display_name || "ServeMyFood"}
                     </div>
-                    {order.branch_name && (
-                      <div className="text-xs text-muted-foreground truncate">
-                        {order.branch_name} • {order.order_number}
-                      </div>
-                    )}
+                    <div className="text-xs text-muted-foreground truncate">
+                      {order.branch_name ? `${order.branch_name} • ` : ""}#{order.order_number}
+                      {order.target_label ? ` • ${order.target_label}` : ""}
+                    </div>
                   </div>
                 </div>
               )}
               <div className="flex items-center justify-between gap-2 flex-wrap">
                 <h2 className="text-sm font-bold text-foreground">{copy.itemsOrdered}</h2>
                 <div className="print:hidden flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => window.print()}
+                    className="min-h-[36px] px-3 rounded-lg bg-[#FF6A00] text-[#0B1F3B] text-xs font-bold flex items-center gap-1.5"
+                  >
+                    <Printer className="h-3.5 w-3.5" />
+                    <span>{lang === "ta" ? "PDF / பில்" : "Save PDF / Print"}</span>
+                  </button>
                   <button
                     type="button"
                     onClick={() => {
@@ -344,18 +354,10 @@ export const PublicOrderTrackerPage: React.FC = () => {
                       document.body.removeChild(a);
                       URL.revokeObjectURL(url);
                     }}
-                    className="min-h-[36px] px-3 rounded-lg bg-[#FF6A00] text-[#0B1F3B] text-xs font-bold flex items-center gap-1.5"
-                  >
-                    <Download className="h-3.5 w-3.5" />
-                    <span>{lang === "ta" ? "பில் பதிவிறக்கு" : "Download Bill"}</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => window.print()}
                     className="min-h-[36px] px-3 rounded-lg border border-border bg-background hover:bg-muted text-xs font-bold flex items-center gap-1.5"
                   >
-                    <Printer className="h-3.5 w-3.5" />
-                    <span>{lang === "ta" ? "அச்சிடு" : "Print"}</span>
+                    <Download className="h-3.5 w-3.5" />
+                    <span>{lang === "ta" ? "HTML பதிவிறக்கு" : "Download HTML"}</span>
                   </button>
                 </div>
               </div>
@@ -390,7 +392,7 @@ export const PublicOrderTrackerPage: React.FC = () => {
 
             {/* Verified Order Feedback */}
             {(order.status === "SERVED" || order.status === "COMPLETED") && trackingToken && (
-              <div className="rounded-2xl border border-border bg-card p-5 space-y-3 shadow-sm">
+              <div className="print:hidden rounded-2xl border border-border bg-card p-5 space-y-3 shadow-sm">
                 <h2 className="text-sm font-bold text-foreground">
                   {lang === "ta" ? "உங்கள் ஆர்டரை மதிப்பிடுங்கள்" : "Rate your order"}
                 </h2>
@@ -521,7 +523,7 @@ export const PublicOrderTrackerPage: React.FC = () => {
             )}
 
             {/* Actions */}
-            <div className="space-y-3">
+            <div className="print:hidden space-y-3">
               {!TERMINAL_STATUSES.has(order.status) && (
                 <button
                   type="button"
@@ -544,7 +546,7 @@ export const PublicOrderTrackerPage: React.FC = () => {
         ) : null}
       </main>
 
-      <footer className="py-4 text-center text-xs text-muted-foreground border-t border-border">
+      <footer className="print:hidden py-4 text-center text-xs text-muted-foreground border-t border-border">
         {copy.poweredBy}
       </footer>
     </div>

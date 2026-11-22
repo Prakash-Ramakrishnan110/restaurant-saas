@@ -229,7 +229,7 @@ export const BillingPage: React.FC = () => {
       await Promise.all(
         matchingReqs
           .filter((r) => billData.table_label && r.table_label === billData.table_label)
-          .map((r) => ordersApi.acknowledgeServiceRequest(r.id).catch(() => null))
+          .map((r) => ordersApi.resolveServiceRequest(r.id).catch(() => null))
       );
       setSelectedSessionId(null);
       setBillData(null);

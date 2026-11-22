@@ -981,7 +981,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** @description Read-only last finalized bill for a table so Waiters can verify amounts for guests. */
+        /** @description Read-only current running bill & last finalized bill for a table. */
         get: operations["invoices_last_for_table_retrieve"];
         put?: never;
         post?: never;
@@ -1945,7 +1945,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** @description Read-only last finalized bill for a table so Waiters can verify amounts for guests. */
+        /** @description Read-only current running bill & last finalized bill for a table. */
         get: operations["orders_invoices_last_for_table_retrieve"];
         put?: never;
         post?: never;
@@ -2055,6 +2055,23 @@ export interface paths {
         put?: never;
         /** @description Customer Call Bell and service requests. */
         post: operations["orders_service_requests_acknowledge_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/orders/service-requests/{id}/resolve/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** @description Customer Call Bell and service requests. */
+        post: operations["orders_service_requests_resolve_create"];
         delete?: never;
         options?: never;
         head?: never;
@@ -11321,6 +11338,34 @@ export interface operations {
         };
     };
     orders_service_requests_acknowledge_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description A UUID string identifying this service request. */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["ServiceRequestRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["ServiceRequestRequest"];
+                "multipart/form-data": components["schemas"]["ServiceRequestRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ServiceRequest"];
+                };
+            };
+        };
+    };
+    orders_service_requests_resolve_create: {
         parameters: {
             query?: never;
             header?: never;

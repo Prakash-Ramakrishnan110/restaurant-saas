@@ -502,13 +502,21 @@ class InvoiceViewSet(viewsets.ReadOnlyModelViewSet):
 
     @action(detail=False, methods=["get"], url_path="last-for-table")
     def last_for_table(self, request: Request) -> Response:
-        """Read-only last finalized bill for a table so Waiters can verify amounts for guests."""
+        """Read-only current running bill & last finalized bill for a table."""
         tenant = getattr(request, "tenant", None)
         if not tenant:
             return Response(None, status=status.HTTP_200_OK)
         table_id = request.query_params.get("table_id")
         if not table_id:
             raise ValidationError({"table_id": "table_id query parameter is required."})
+
+        open_session = (
+            TableSession.objects.filter(tenant=tenant, table_id=table_id, status="OPEN")
+            .select_related("table", "branch")
+            .first()
+        )
+        current_bill = calculate_bill(open_session) if open_session else None
+
         inv = (
             BillInvoice.objects.filter(tenant=tenant, table_session__table_id=table_id)
             .select_related("table_session__table", "branch", "settled_by__user")
@@ -516,10 +524,16 @@ class InvoiceViewSet(viewsets.ReadOnlyModelViewSet):
             .order_by("-created_at")
             .first()
         )
-        if not inv:
-            return Response({"found": False}, status=status.HTTP_200_OK)
-        data = dict(BillInvoiceSerializer(inv).data)
-        data["found"] = True
+        last_bill = BillInvoiceSerializer(inv).data if inv else None
+        if not inv and not current_bill:
+            return Response(
+                {"found": False, "current_bill": None, "last_bill": None},
+                status=status.HTTP_200_OK,
+            )
+        data = dict(last_bill) if last_bill else {}
+        data["found"] = bool(inv)
+        data["current_bill"] = current_bill
+        data["last_bill"] = last_bill
         return Response(data, status=status.HTTP_200_OK)
 
     def get_queryset(self):
@@ -891,6 +905,15 @@ class ServiceRequestViewSet(viewsets.ModelViewSet):
         srv_req = self.get_object()
         srv_req.status = ServiceRequestStatus.ACKNOWLEDGED
         srv_req.acknowledged_at = timezone.now()
+        srv_req.save(update_fields=["status", "acknowledged_at"])
+        return Response({"id": str(srv_req.id), "status": srv_req.status})
+
+    @action(detail=True, methods=["post"], url_path="resolve")
+    def resolve(self, request: Request, pk: str | None = None) -> Response:
+        srv_req = self.get_object()
+        srv_req.status = ServiceRequestStatus.RESOLVED
+        if not srv_req.acknowledged_at:
+            srv_req.acknowledged_at = timezone.now()
         srv_req.save(update_fields=["status", "acknowledged_at"])
         return Response({"id": str(srv_req.id), "status": srv_req.status})
 

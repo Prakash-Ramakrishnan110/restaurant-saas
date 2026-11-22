@@ -15,7 +15,13 @@ import {
   Zap,
 } from "lucide-react";
 import { apiClient } from "../../api/client";
-import { ordersApi, OrderItemPayload, ServiceRequest, BillInvoice } from "../../api/orders";
+import {
+  ordersApi,
+  OrderItemPayload,
+  ServiceRequest,
+  BillInvoice,
+  BillCalculation,
+} from "../../api/orders";
 import { unwrapList } from "../../api/pagination";
 import { useAuth } from "../../context/AuthContext";
 import { Button } from "../../components/ui/button";
@@ -92,9 +98,14 @@ export const FloorPOSPage: React.FC = () => {
   const [myShiftLabel, setMyShiftLabel] = useState<string>("");
   const [tableScope, setTableScope] = useState<"MINE" | "ALL">("MINE");
   const [lastBillModalOpen, setLastBillModalOpen] = useState<boolean>(false);
-  const [lastBillData, setLastBillData] = useState<(BillInvoice & { found?: boolean }) | null>(
-    null
-  );
+  const [lastBillData, setLastBillData] = useState<
+    | (BillInvoice & {
+        found?: boolean;
+        current_bill?: BillCalculation | null;
+        last_bill?: BillInvoice | null;
+      })
+    | null
+  >(null);
   const [categories, setCategories] = useState<any[]>([]);
   const [menuItems, setMenuItems] = useState<MenuItemData[]>([]);
   const [availabilityMap, setAvailabilityMap] = useState<Record<string, boolean>>({});
@@ -748,135 +759,141 @@ export const FloorPOSPage: React.FC = () => {
         {/* COLUMN 3: Cart, Ticket Pacing & Dispatch (4 of 12 cols) */}
         <div className="col-span-12 md:col-span-4 bg-card/40 p-4 flex flex-col md:h-full md:overflow-hidden">
           {/* Header Anchor */}
-          <div className="pb-3 border-b border-border flex items-center justify-between">
-            <div>
-              <span className="text-[11px] uppercase font-bold text-muted-foreground">
-                Order Target
-              </span>
-              <h3 className="text-base font-extrabold font-heading text-foreground">
-                {usesTables
-                  ? selectedTable
-                    ? `Table ${selectedTable.label}`
-                    : "No Table Selected"
-                  : `Counter Token #${counterToken}`}
-              </h3>
+          <div className="pb-3 border-b border-border space-y-2.5">
+            <div className="flex items-center justify-between gap-2">
+              <div className="min-w-0">
+                <span className="text-[11px] uppercase font-bold text-muted-foreground block">
+                  Order Target
+                </span>
+                <h3 className="text-base font-extrabold font-heading text-foreground truncate">
+                  {usesTables
+                    ? selectedTable
+                      ? `Table ${selectedTable.label}`
+                      : "No Table Selected"
+                    : `Counter Token #${counterToken}`}
+                </h3>
+              </div>
             </div>
-            {usesTables &&
-              selectedTable &&
-              !selectedSessionId &&
-              ((selectedTable.status as string) === "CLEANING" ||
-                (selectedTable.status as string) === "DIRTY") && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="text-xs gap-1 text-emerald-700 border-emerald-300 hover:bg-emerald-50 dark:text-emerald-300 dark:border-emerald-800"
-                  disabled={submitting}
-                  onClick={async () => {
-                    try {
-                      setSubmitting(true);
-                      await apiClient.post(`/tables/${selectedTable.id}/status/`, {
-                        status: "AVAILABLE",
-                        reason: "Marked free from Floor POS",
-                      });
-                      setSuccessToast(`Table ${selectedTable.label} is now Free.`);
-                      await fetchData();
-                      setSelectedTable((prev) => (prev ? { ...prev, status: "AVAILABLE" } : null));
-                    } catch (err: any) {
-                      setErrorToast(
-                        err?.response?.data?.error?.message || "Could not mark table free."
-                      );
-                    } finally {
-                      setSubmitting(false);
-                    }
-                  }}
-                >
-                  Mark Free
-                </Button>
-              )}
-            {usesTables && selectedTable && (
-              <Button
-                variant="outline"
-                size="sm"
-                className="text-xs gap-1"
-                disabled={submitting}
-                onClick={async () => {
-                  try {
-                    const res = await ordersApi.getLastBillForTable(selectedTable.id);
-                    setLastBillData(res.data);
-                    setLastBillModalOpen(true);
-                  } catch {
-                    setErrorToast("Could not load last bill.");
-                  }
-                }}
-              >
-                <Receipt className="h-3.5 w-3.5 text-[#FF6A00]" />
-                Last Bill
-              </Button>
-            )}
-            {usesTables && selectedSessionId && (
-              <div className="flex items-center gap-1.5 flex-wrap">
-                {isWaiter && selectedTable && (
+            <div className="flex flex-wrap items-center gap-1.5">
+              {usesTables &&
+                selectedTable &&
+                !selectedSessionId &&
+                ((selectedTable.status as string) === "CLEANING" ||
+                  (selectedTable.status as string) === "DIRTY") && (
                   <Button
                     variant="outline"
                     size="sm"
-                    className="text-xs gap-1 border-[#FF6A00] text-[#0B1F3B] dark:text-amber-200"
+                    className="text-xs gap-1 text-emerald-700 border-emerald-300 hover:bg-emerald-50 dark:text-emerald-300 dark:border-emerald-800"
                     disabled={submitting}
                     onClick={async () => {
                       try {
                         setSubmitting(true);
-                        await ordersApi.requestServiceCall(selectedTable.id, "REQUEST_BILL");
-                        setSuccessToast(
-                          `Payment requested from Cashier for Table ${selectedTable.label}.`
+                        await apiClient.post(`/tables/${selectedTable.id}/status/`, {
+                          status: "AVAILABLE",
+                          reason: "Marked free from Floor POS",
+                        });
+                        setSuccessToast(`Table ${selectedTable.label} is now Free.`);
+                        await fetchData();
+                        setSelectedTable((prev) =>
+                          prev ? { ...prev, status: "AVAILABLE" } : null
                         );
-                      } catch {
-                        setErrorToast("Could not send payment request.");
+                      } catch (err: any) {
+                        setErrorToast(
+                          err?.response?.data?.error?.message || "Could not mark table free."
+                        );
                       } finally {
                         setSubmitting(false);
                       }
                     }}
                   >
-                    <Bell className="h-3.5 w-3.5 text-[#FF6A00]" /> Request Payment
+                    Mark Free
                   </Button>
                 )}
+              {usesTables && selectedTable && (
                 <Button
                   variant="outline"
                   size="sm"
-                  className="text-xs gap-1 text-rose-600 border-rose-200 hover:bg-rose-50 dark:border-rose-900 dark:hover:bg-rose-950/40"
+                  className="text-xs gap-1"
                   disabled={submitting}
                   onClick={async () => {
                     try {
-                      setSubmitting(true);
-                      await apiClient.post(`/sessions/${selectedSessionId}/close/`);
-                      setSelectedSessionId(null);
-                      setSelectedTable(null);
-                      setCart([]);
-                      setSuccessToast("Table freed.");
-                      await fetchData();
-                    } catch (err: any) {
-                      setErrorToast(
-                        err?.response?.data?.error?.message ||
-                          err?.response?.data?.detail ||
-                          "Cannot free table with active orders."
-                      );
-                    } finally {
-                      setSubmitting(false);
+                      const res = await ordersApi.getLastBillForTable(selectedTable.id);
+                      setLastBillData(res.data);
+                      setLastBillModalOpen(true);
+                    } catch {
+                      setErrorToast("Could not load last bill.");
                     }
                   }}
                 >
-                  Free Table
+                  <Receipt className="h-3.5 w-3.5 text-[#FF6A00]" />
+                  Current / Last Bill
                 </Button>
-                {!isWaiter && (
+              )}
+              {usesTables && selectedSessionId && (
+                <>
+                  {isWaiter && selectedTable && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="text-xs gap-1 border-[#FF6A00] text-[#0B1F3B] dark:text-amber-200"
+                      disabled={submitting}
+                      onClick={async () => {
+                        try {
+                          setSubmitting(true);
+                          await ordersApi.requestServiceCall(selectedTable.id, "REQUEST_BILL");
+                          setSuccessToast(
+                            `Payment requested from Cashier for Table ${selectedTable.label}.`
+                          );
+                        } catch {
+                          setErrorToast("Could not send payment request.");
+                        } finally {
+                          setSubmitting(false);
+                        }
+                      }}
+                    >
+                      <Bell className="h-3.5 w-3.5 text-[#FF6A00]" /> Request Payment
+                    </Button>
+                  )}
                   <Button
                     variant="outline"
                     size="sm"
-                    className="text-xs gap-1.5"
-                    onClick={() => navigate(`/billing?session_id=${selectedSessionId}`)}
+                    className="text-xs gap-1 text-rose-600 border-rose-200 hover:bg-rose-50 dark:border-rose-900 dark:hover:bg-rose-950/40"
+                    disabled={submitting}
+                    onClick={async () => {
+                      try {
+                        setSubmitting(true);
+                        await apiClient.post(`/sessions/${selectedSessionId}/close/`);
+                        setSelectedSessionId(null);
+                        setSelectedTable(null);
+                        setCart([]);
+                        setSuccessToast("Table freed.");
+                        await fetchData();
+                      } catch (err: any) {
+                        setErrorToast(
+                          err?.response?.data?.error?.message ||
+                            err?.response?.data?.detail ||
+                            "Cannot free table with active orders."
+                        );
+                      } finally {
+                        setSubmitting(false);
+                      }
+                    }}
                   >
-                    <Receipt className="h-3.5 w-3.5 text-[#FF6A00]" /> Checkout
+                    Free Table
                   </Button>
-                )}
-              </div>
-            )}
+                  {!isWaiter && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="text-xs gap-1.5"
+                      onClick={() => navigate(`/billing?session_id=${selectedSessionId}`)}
+                    >
+                      <Receipt className="h-3.5 w-3.5 text-[#FF6A00]" /> Checkout
+                    </Button>
+                  )}
+                </>
+              )}
+            </div>
           </div>
 
           {/* Cart Item Lines */}
@@ -1089,42 +1106,83 @@ export const FloorPOSPage: React.FC = () => {
         </DialogContent>
       </Dialog>
 
-      {/* Read-Only Last Bill Check Modal (Waiter & Staff) */}
+      {/* Read-Only Current & Last Bill Check Modal (Waiter & Staff) */}
       <Dialog open={lastBillModalOpen} onOpenChange={setLastBillModalOpen}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-md max-h-[85vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Last Bill — Table {selectedTable?.label || ""}</DialogTitle>
+            <DialogTitle>Table Bill — Table {selectedTable?.label || ""}</DialogTitle>
           </DialogHeader>
-          {!lastBillData?.found ? (
+          {!lastBillData?.current_bill && !lastBillData?.found ? (
             <p className="text-xs text-muted-foreground py-4">
-              No finalized bill found for this table yet.
+              No active or finalized bill found for this table yet.
             </p>
           ) : (
-            <div className="space-y-3 py-2 text-xs">
-              <div className="flex items-center justify-between text-muted-foreground">
-                <span className="font-mono font-bold text-foreground">
-                  {lastBillData.invoice_number}
-                </span>
-                <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-bold text-[10px]">
-                  {lastBillData.payment_method} • Paid
-                </span>
-              </div>
-              <div className="divide-y divide-border border-y border-border">
-                {(lastBillData.items || lastBillData.snapshot_lines || []).map((it, idx) => (
-                  <div key={idx} className="py-1.5 flex items-center justify-between">
-                    <span>
-                      {it.quantity} × {it.item_name}
-                    </span>
-                    <span className="font-semibold">
-                      {formatRupees(it.subtotal_paise || it.unit_price_paise * it.quantity)}
+            <div className="space-y-4 py-2 text-xs">
+              {lastBillData?.current_bill && (
+                <div className="rounded-xl border border-[#FF6A00]/40 bg-[#FF6A00]/5 p-3 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="font-bold text-foreground">Current Running Bill</span>
+                    <span className="px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 font-bold text-[10px]">
+                      Open ({lastBillData.current_bill.session_code})
                     </span>
                   </div>
-                ))}
-              </div>
-              <div className="flex items-center justify-between font-extrabold text-sm pt-1">
-                <span>Final Bill Total</span>
-                <span className="text-[#FF6A00]">{formatRupees(lastBillData.total_paise)}</span>
-              </div>
+                  <div className="divide-y divide-border border-y border-border">
+                    {lastBillData.current_bill.items.length === 0 ? (
+                      <div className="py-2 text-muted-foreground">No items ordered yet.</div>
+                    ) : (
+                      lastBillData.current_bill.items.map((it, idx) => (
+                        <div key={idx} className="py-1.5 flex items-center justify-between">
+                          <span>
+                            {it.quantity} × {it.item_name}
+                          </span>
+                          <span className="font-semibold">{formatRupees(it.subtotal_paise)}</span>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                  <div className="flex items-center justify-between font-extrabold text-sm">
+                    <span>Current Total</span>
+                    <span className="text-[#FF6A00]">
+                      {formatRupees(lastBillData.current_bill.total_paise)}
+                    </span>
+                  </div>
+                </div>
+              )}
+
+              {(lastBillData?.last_bill || lastBillData?.found) && (
+                <div className="rounded-xl border border-border bg-card p-3 space-y-2">
+                  <div className="flex items-center justify-between text-muted-foreground">
+                    <span className="font-mono font-bold text-foreground">
+                      Last Paid: {(lastBillData.last_bill || lastBillData).invoice_number}
+                    </span>
+                    <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-bold text-[10px]">
+                      {(lastBillData.last_bill || lastBillData).payment_method} • Paid
+                    </span>
+                  </div>
+                  <div className="divide-y divide-border border-y border-border">
+                    {(
+                      (lastBillData.last_bill || lastBillData).items ||
+                      (lastBillData.last_bill || lastBillData).snapshot_lines ||
+                      []
+                    ).map((it, idx) => (
+                      <div key={idx} className="py-1.5 flex items-center justify-between">
+                        <span>
+                          {it.quantity} × {it.item_name}
+                        </span>
+                        <span className="font-semibold">
+                          {formatRupees(it.subtotal_paise || it.unit_price_paise * it.quantity)}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="flex items-center justify-between font-extrabold text-sm pt-1">
+                    <span>Final Bill Total</span>
+                    <span className="text-[#FF6A00]">
+                      {formatRupees((lastBillData.last_bill || lastBillData).total_paise)}
+                    </span>
+                  </div>
+                </div>
+              )}
             </div>
           )}
           <DialogFooter>

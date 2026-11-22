@@ -330,7 +330,13 @@ export const ordersApi = {
   }) => apiClient.get<BillInvoice[]>("/invoices/", { params }),
 
   getLastBillForTable: (tableId: string) =>
-    apiClient.get<BillInvoice & { found: boolean }>("/invoices/last-for-table/", {
+    apiClient.get<
+      BillInvoice & {
+        found: boolean;
+        current_bill?: BillCalculation | null;
+        last_bill?: BillInvoice | null;
+      }
+    >("/invoices/last-for-table/", {
       params: { table_id: tableId },
     }),
 
@@ -356,6 +362,9 @@ export const ordersApi = {
 
   acknowledgeServiceRequest: (id: string) =>
     apiClient.post<{ id: string; status: string }>(`/orders/service-requests/${id}/acknowledge/`),
+
+  resolveServiceRequest: (id: string) =>
+    apiClient.post<{ id: string; status: string }>(`/orders/service-requests/${id}/resolve/`),
 
   // Stage B: Shift Cash Handover, Partial Refunds, Split & Merge
   getCurrentShift: (branch_id?: string) =>

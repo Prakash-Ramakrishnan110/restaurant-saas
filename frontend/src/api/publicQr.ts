@@ -1,7 +1,6 @@
 import axios from "axios";
 
-const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL || "/api/v1";
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL || "/api/v1";
 
 // Dedicated public client that never reads or writes auth tokens from storage
 const publicHttp = axios.create({
@@ -163,17 +162,26 @@ export const publicQrApi = {
 
   reorderPreview: (
     token: string,
-    items: Array<{ menu_item_id: string; variant_id?: string | null; quantity: number }>
+    items: Array<{
+      menu_item_id: string;
+      variant_id?: string | null;
+      option_ids?: string[];
+      quantity: number;
+    }>
   ) =>
     publicHttp.post<{
-      available_items: Array<{
+      has_changes: boolean;
+      items: Array<{
         menu_item_id: string;
-        variant_id: string | null;
-        name: string;
+        item_name: string;
+        variant_id?: string | null;
+        option_ids?: string[];
         quantity: number;
-        unit_price_paise: number;
+        is_available: boolean;
+        price_changed?: boolean;
+        reason?: string;
+        current_unit_price_paise: number;
       }>;
-      unavailable_items: Array<{ menu_item_id: string; name: string; reason: string }>;
     }>(`/public/qr/${encodeURIComponent(token)}/reorder-preview/`, { items }),
 
   submitServiceRequest: (

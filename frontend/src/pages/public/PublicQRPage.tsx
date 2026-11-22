@@ -879,18 +879,22 @@ export const PublicQRPage: React.FC = () => {
                       <button
                         type="button"
                         onClick={async () => {
+                          setReorderNotice(null);
                           try {
                             const res = await publicQrApi.reorderPreview(token, h.items);
-                            if (res.data.available_items.length > 0) {
+                            const previewItems = res.data?.items || [];
+                            const availableItems = previewItems.filter((it) => it.is_available);
+                            const unavailableItems = previewItems.filter((it) => !it.is_available);
+                            if (availableItems.length > 0) {
                               resetIdempotencyKey();
                               setCart((prev) => ({
                                 ...prev,
                                 items: [
                                   ...prev.items,
-                                  ...res.data.available_items.map((av) => ({
+                                  ...availableItems.map((av) => ({
                                     menu_item_id: av.menu_item_id,
-                                    variant_id: av.variant_id,
-                                    option_ids: [],
+                                    variant_id: av.variant_id || null,
+                                    option_ids: av.option_ids || [],
                                     quantity: av.quantity,
                                     notes: "",
                                   })),
@@ -898,11 +902,17 @@ export const PublicQRPage: React.FC = () => {
                               }));
                               setCartOpen(true);
                             }
-                            if (res.data.unavailable_items.length > 0) {
+                            if (unavailableItems.length > 0) {
                               setReorderNotice(
                                 lang === "ta"
                                   ? "சில உணவுகள் இப்போது கிடைக்கவில்லை."
-                                  : `${res.data.unavailable_items.length} item(s) currently unavailable.`
+                                  : `${unavailableItems.length} item(s) currently unavailable.`
+                              );
+                            } else if (availableItems.some((av) => av.price_changed)) {
+                              setReorderNotice(
+                                lang === "ta"
+                                  ? "சில விலைகளில் மாற்றம் உள்ளது."
+                                  : "Updated prices applied."
                               );
                             }
                           } catch {

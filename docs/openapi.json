@@ -4285,7 +4285,7 @@
         "/api/v1/invoices/last-for-table/": {
             "get": {
                 "operationId": "invoices_last_for_table_retrieve",
-                "description": "Read-only last finalized bill for a table so Waiters can verify amounts for guests.",
+                "description": "Read-only current running bill & last finalized bill for a table.",
                 "tags": [
                     "invoices"
                 ],
@@ -7990,7 +7990,7 @@
         "/api/v1/orders/invoices/last-for-table/": {
             "get": {
                 "operationId": "orders_invoices_last_for_table_retrieve",
-                "description": "Read-only last finalized bill for a table so Waiters can verify amounts for guests.",
+                "description": "Read-only current running bill & last finalized bill for a table.",
                 "tags": [
                     "orders"
                 ],
@@ -8429,6 +8429,64 @@
         "/api/v1/orders/service-requests/{id}/acknowledge/": {
             "post": {
                 "operationId": "orders_service_requests_acknowledge_create",
+                "description": "Customer Call Bell and service requests.",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        },
+                        "description": "A UUID string identifying this service request.",
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "orders"
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/ServiceRequestRequest"
+                            }
+                        },
+                        "application/x-www-form-urlencoded": {
+                            "schema": {
+                                "$ref": "#/components/schemas/ServiceRequestRequest"
+                            }
+                        },
+                        "multipart/form-data": {
+                            "schema": {
+                                "$ref": "#/components/schemas/ServiceRequestRequest"
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "jwtAuth": []
+                    },
+                    {}
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ServiceRequest"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/v1/orders/service-requests/{id}/resolve/": {
+            "post": {
+                "operationId": "orders_service_requests_resolve_create",
                 "description": "Customer Call Bell and service requests.",
                 "parameters": [
                     {

@@ -193,7 +193,7 @@ export const ReadyToServePage: React.FC = () => {
                     type="button"
                     size="sm"
                     onClick={async () => {
-                      await ordersApi.acknowledgeServiceRequest(req.id);
+                      await ordersApi.resolveServiceRequest(req.id);
                       await fetchReadyOrders();
                     }}
                     className="h-8 px-3 bg-[#FF6A00] hover:bg-[#E55F00] text-[#0B1F3B] font-bold"
