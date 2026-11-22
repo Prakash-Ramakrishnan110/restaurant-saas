@@ -56,6 +56,7 @@ from apps.menu.translation_service import (
 from apps.rbac.constants import Permission
 from apps.rbac.permissions import ActionPermission, HasTenantPermission
 from apps.subscriptions.services import enforce_limit
+from apps.tenants.models import Branch
 
 
 class MenuCategoryViewSet(viewsets.ModelViewSet):
@@ -485,9 +486,22 @@ class BranchItemAvailabilityViewSet(viewsets.ModelViewSet):
         "update": Permission.MENU_AVAILABILITY,
         "partial_update": Permission.MENU_AVAILABILITY,
         "destroy": Permission.MENU_AVAILABILITY,
+        "outlets": Permission.MENU_AVAILABILITY,
         "toggle": Permission.MENU_AVAILABILITY,
         "bulk_toggle": Permission.MENU_AVAILABILITY,
     }
+
+    @action(detail=False, methods=["get"], url_path="outlets")
+    def outlets(self, request):
+        """Return active outlets accessible for availability management."""
+        tenant = getattr(request, "tenant", None)
+        if not tenant:
+            return Response({"results": []})
+        qs = Branch.objects.filter(tenant=tenant, is_active=True).order_by("name")
+        user_membership = getattr(request, "membership", None)
+        if user_membership and user_membership.branches.exists():
+            qs = qs.filter(id__in=user_membership.branches.values_list("id", flat=True))
+        return Response({"results": [{"id": str(b.id), "name": b.name} for b in qs]})
 
     def get_queryset(self):
         tenant = getattr(self.request, "tenant", None)

@@ -219,7 +219,7 @@ describe("ServeMyFood Menu Utilities & Components (Prompt 4A)", () => {
     setupAuth("KITCHEN", ["menu.view", "menu.availability"]);
 
     (apiClient.get as any).mockImplementation((url: string) => {
-      if (url.includes("/branches/")) {
+      if (url.includes("/menu/availability/outlets/")) {
         return Promise.resolve({
           data: { results: [{ id: "b-1", name: "Main Branch" }] },
         });
@@ -263,6 +263,8 @@ describe("ServeMyFood Menu Utilities & Components (Prompt 4A)", () => {
       expect(screen.getByText("Masala Chai")).toBeDefined();
       expect(screen.getAllByText("Available").length).toBeGreaterThan(0);
     });
+
+    expect(apiClient.get).not.toHaveBeenCalledWith("/branches/");
 
     const toggleSwitch = screen.getByRole("switch");
     fireEvent.click(toggleSwitch);

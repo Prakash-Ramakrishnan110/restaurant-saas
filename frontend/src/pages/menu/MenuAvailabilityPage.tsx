@@ -44,8 +44,9 @@ export const MenuAvailabilityPage: React.FC = () => {
     setIsLoading(true);
     setErrorMsg("");
     try {
+      const outletsEndpoint = can("branch.view") ? "/branches/" : "/menu/availability/outlets/";
       const [branchRes, catRes] = await Promise.all([
-        apiClient.get<any>("/branches/"),
+        apiClient.get<any>(outletsEndpoint),
         apiClient.get<any>("/menu/categories/"),
       ]);
       const branchList = branchRes.data.results || branchRes.data || [];
@@ -61,7 +62,9 @@ export const MenuAvailabilityPage: React.FC = () => {
         await loadItemsForBranch(branchId);
       }
     } catch (err: any) {
-      setErrorMsg(err?.response?.data?.message || "Failed to load availability data.");
+      setErrorMsg(
+        err?.error?.message || err?.response?.data?.message || "Failed to load availability data."
+      );
     } finally {
       setIsLoading(false);
     }
@@ -83,12 +86,20 @@ export const MenuAvailabilityPage: React.FC = () => {
         is_available: it.is_available !== false,
       }));
       setItems(mapped);
-      apiClient
-        .get<{ summary?: { low_stock_count?: number } }>(`/inventory/alerts/?branch_id=${branchId}`)
-        .then((aRes) => setLowStockCount(aRes.data?.summary?.low_stock_count || 0))
-        .catch(() => setLowStockCount(0));
+      if (can("inventory.view")) {
+        apiClient
+          .get<{ summary?: { low_stock_count?: number } }>(
+            `/inventory/alerts/?branch_id=${branchId}`
+          )
+          .then((aRes) => setLowStockCount(aRes.data?.summary?.low_stock_count || 0))
+          .catch(() => setLowStockCount(0));
+      } else {
+        setLowStockCount(0);
+      }
     } catch (err: any) {
-      setErrorMsg(err?.response?.data?.message || "Failed to load branch items.");
+      setErrorMsg(
+        err?.error?.message || err?.response?.data?.message || "Failed to load branch items."
+      );
     }
   };
 
