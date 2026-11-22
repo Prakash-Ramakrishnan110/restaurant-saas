@@ -136,7 +136,24 @@ DATABASES = {
 }
 
 # Redis & Channels Layer
-REDIS_URL = env.str("REDIS_URL", default="redis://localhost:6379/0")
+REDIS_URL = (
+    env.str("REDIS_URL", default="").strip()
+    or env.str("REDIS_PRIVATE_URL", default="").strip()
+    or env.str("REDIS_PUBLIC_URL", default="").strip()
+    or env.str("CELERY_BROKER_URL", default="").strip()
+)
+if not REDIS_URL or REDIS_URL.startswith("${{"):
+    _redis_host = env.str("REDISHOST", default="").strip()
+    if _redis_host and not _redis_host.startswith("${{"):
+        _redis_port = env.int("REDISPORT", default=6379)
+        _redis_pass = env.str("REDISPASSWORD", default="").strip()
+        _redis_user = env.str("REDISUSER", default="default").strip()
+        if _redis_pass:
+            REDIS_URL = f"redis://{_redis_user}:{_redis_pass}@{_redis_host}:{_redis_port}/0"
+        else:
+            REDIS_URL = f"redis://{_redis_host}:{_redis_port}/0"
+    else:
+        REDIS_URL = "redis://127.0.0.1:6379/0"
 
 CHANNEL_LAYERS = {
     "default": {
