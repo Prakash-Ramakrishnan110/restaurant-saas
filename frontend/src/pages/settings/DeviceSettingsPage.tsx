@@ -366,8 +366,8 @@ export const DeviceSettingsPage: React.FC = () => {
                 <div className="text-center space-y-1 mb-3">
                   <div className="font-bold text-sm tracking-wider">SERVEMYFOOD DEMO</div>
                   <div className="text-[10px] text-gray-600">Anna Salai, Chennai</div>
-                  <div className="text-[10px] border-y border-dashed border-gray-400 py-1 my-1 font-bold">
-                    DEMO RECEIPT - NOT A TAX INVOICE
+                  <div className="text-xs border-y border-dashed border-gray-400 py-1 my-1 font-bold">
+                    DEMO ORDER SUMMARY
                   </div>
                 </div>
 

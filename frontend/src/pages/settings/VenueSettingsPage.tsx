@@ -156,12 +156,13 @@ export const VenueSettingsPage: React.FC = () => {
               </span>
             )}
           </div>
-          <p className="text-[11px] text-muted-foreground mt-0.5 leading-relaxed">{description}</p>
+          <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">{description}</p>
         </div>
 
         <label className="relative inline-flex items-center cursor-pointer shrink-0 mt-0.5">
           <input
             type="checkbox"
+            aria-label={title}
             checked={isChecked}
             disabled={disabled}
             onChange={(e) => handleToggle(key, e.target.checked)}
@@ -286,6 +287,7 @@ export const VenueSettingsPage: React.FC = () => {
                   QR Ordering Mode
                 </label>
                 <select
+                  aria-label="QR ordering mode"
                   disabled={!canEdit}
                   value={capabilities.qr_ordering_mode}
                   onChange={(e) => handleToggle("qr_ordering_mode", e.target.value)}
@@ -299,16 +301,17 @@ export const VenueSettingsPage: React.FC = () => {
 
               <div className="p-4 rounded-xl border border-border bg-card">
                 <label className="font-bold text-xs text-foreground block mb-1">
-                  QR Session Policy
+                  QR Table Access Policy
                 </label>
                 <select
+                  aria-label="QR table access policy"
                   disabled={!canEdit}
                   value={capabilities.qr_session_policy}
                   onChange={(e) => handleToggle("qr_session_policy", e.target.value)}
                   className="w-full rounded-md border border-input bg-card p-2 text-xs min-h-[40px]"
                 >
-                  <option value="CUSTOMER_CAN_OPEN">Guests Can Open Dining Session</option>
-                  <option value="STAFF_ONLY">Staff Only Can Open Session</option>
+                  <option value="CUSTOMER_CAN_OPEN">Guests Can Start Table Order</option>
+                  <option value="STAFF_ONLY">Staff Only Can Open Table</option>
                 </select>
               </div>
             </div>
@@ -360,6 +363,7 @@ export const VenueSettingsPage: React.FC = () => {
                 Payment Timing Policy
               </label>
               <select
+                aria-label="Payment timing policy"
                 disabled={!canEdit}
                 value={capabilities.payment_timing}
                 onChange={(e) => handleToggle("payment_timing", e.target.value)}

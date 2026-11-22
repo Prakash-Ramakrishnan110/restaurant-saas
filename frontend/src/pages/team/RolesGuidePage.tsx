@@ -96,7 +96,7 @@ export const RolesGuidePage: React.FC = () => {
       ],
       dailyDutiesEn: [
         "Print bill when table requests checkout, verify payment tender, and record settlement",
-        "Count drawer cash at shift end and reconcile against expected integer paise total",
+        "Count drawer cash at shift end and reconcile against expected register total",
         "Ensure room charge settlements include guest room number and verified folio check",
       ],
       dailyDutiesTa: [
@@ -121,7 +121,7 @@ export const RolesGuidePage: React.FC = () => {
         { name: "Menu & Sold Out", path: "/menu" },
       ],
       dailyDutiesEn: [
-        "Open table sessions and place orders with special dietary notes (e.g. Jain, less spicy)",
+        "Seat tables and place orders with special dietary notes (e.g. Jain, less spicy)",
         "Pick up food promptly when Ready to Serve chime sounds and mark items delivered",
         "Respond immediately to table Call Waiter bells on the mobile screen",
       ],
@@ -171,7 +171,7 @@ export const RolesGuidePage: React.FC = () => {
             Staff Roles &amp; Rapid Training Guide
           </h1>
           <p className="text-sm text-muted-foreground">
-            Bilingual role cards and daily responsibilities in English &amp; தமிழ் (H-09).
+            Bilingual role cards and daily responsibilities in English &amp; தமிழ்.
           </p>
         </div>
         <button

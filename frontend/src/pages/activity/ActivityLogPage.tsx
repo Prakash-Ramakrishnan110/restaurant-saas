@@ -28,6 +28,27 @@ interface AuditRecord {
   actor_email: string;
 }
 
+const ACTION_LABELS: Record<string, string> = {
+  "order.created": "Order Placed",
+  "order.qr_approved": "QR Order Approved",
+  "order.qr_rejected": "QR Order Rejected",
+  "order.cancelled": "Order Cancelled",
+  "order.status_changed": "Order Status Updated",
+  "qr.rotate": "QR Code Rotated",
+  "qr.created": "QR Code Created",
+  "menu.item_updated": "Menu Item Updated",
+  "menu.availability_toggled": "Item Availability Changed",
+  "staff.invited": "Staff Member Invited",
+  "staff.updated": "Staff Updated",
+  "business.updated": "Business Settings Updated",
+  "shift.closed": "Shift Closed",
+};
+
+function formatAuditAction(action: string): string {
+  if (ACTION_LABELS[action]) return ACTION_LABELS[action];
+  return action.replace(/[._]+/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+}
+
 export const ActivityLogPage: React.FC = () => {
   const [logs, setLogs] = useState<AuditRecord[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -109,10 +130,11 @@ export const ActivityLogPage: React.FC = () => {
               <Search className="w-4 h-4 absolute left-2.5 top-2.5 text-muted-foreground" />
               <input
                 type="text"
+                aria-label="Search audit log by actor or action"
                 placeholder="Search actor or action..."
                 value={searchActor}
                 onChange={(e) => setSearchActor(e.target.value)}
-                className="w-full pl-9 pr-3 py-1.5 text-xs border rounded-md bg-background focus:outline-none focus:ring-1 focus:ring-primary"
+                className="w-full min-h-[40px] pl-9 pr-3 py-1.5 text-xs border rounded-md bg-background focus:outline-none focus:ring-1 focus:ring-primary"
               />
             </div>
 
@@ -164,9 +186,10 @@ export const ActivityLogPage: React.FC = () => {
             <Calendar className="w-4 h-4 text-muted-foreground" />
             <input
               type="date"
+              aria-label="Filter activity log by date"
               value={selectedDate}
               onChange={(e) => setSelectedDate(e.target.value)}
-              className="h-8 px-2 text-xs border rounded-md bg-background"
+              className="min-h-[40px] px-2 text-xs border rounded-md bg-background"
             />
             {selectedDate && (
               <Button
@@ -230,8 +253,8 @@ export const ActivityLogPage: React.FC = () => {
                         </div>
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap">
-                        <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-mono font-semibold bg-primary/10 text-primary border border-primary/20">
-                          {log.action}
+                        <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-primary/10 text-primary border border-primary/20">
+                          {formatAuditAction(log.action)}
                         </span>
                       </td>
                       <td className="px-4 py-3 text-xs text-foreground font-medium">
@@ -246,7 +269,7 @@ export const ActivityLogPage: React.FC = () => {
                           {log.actor_name}
                         </div>
                         {log.actor_email && (
-                          <div className="text-[11px] text-muted-foreground pl-5">
+                          <div className="text-xs text-muted-foreground pl-5">
                             {log.actor_email}
                           </div>
                         )}

@@ -48,6 +48,8 @@ export interface PublicMenuItem {
   price_paise: number;
   food_type: FoodType;
   is_bestseller: boolean;
+  ingredients_note?: string;
+  allergen_note?: string;
   image_card: string;
   image_thumb: string;
   is_available: boolean;
@@ -186,7 +188,7 @@ export const publicQrApi = {
 
   submitServiceRequest: (
     token: string,
-    requestType: "CALL_WAITER" | "WATER" | "REQUEST_BILL" | "CUTLERY"
+    requestType: "CALL_WAITER" | "WATER" | "BILL" | "CUTLERY"
   ) =>
     publicHttp.post<{ id: string; request_type: string; status: string }>(
       `/public/qr/${encodeURIComponent(token)}/service-requests/`,
@@ -198,7 +200,7 @@ export const publicQrApi = {
     payload: {
       food_rating: number;
       service_rating: number;
-      suggestion_type?: "TASTE" | "PORTION" | "SPEED" | "SERVICE" | "OTHER" | "";
+      suggestion_type?: "FOOD" | "SERVICE" | "CLEANLINESS" | "PRICE" | "OTHER" | "";
       comment?: string;
     }
   ) =>

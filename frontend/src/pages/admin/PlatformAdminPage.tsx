@@ -268,15 +268,14 @@ export const PlatformAdminPage: React.FC = () => {
       {/* Header & Quick Actions */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-4 border-b border-border">
         <div>
-          <span className="text-xs font-bold text-[#FF6A00] uppercase tracking-wider">
+          <span className="text-xs font-bold text-[#0B1F3B] dark:text-[#FF6A00] uppercase tracking-wider">
             SaaS Platform Operator
           </span>
           <h1 className="text-2xl sm:text-3xl font-extrabold font-heading text-foreground mt-0.5 flex items-center gap-2">
             <ShieldCheck className="h-7 w-7 text-emerald-600" /> Super-Admin Command Center
           </h1>
           <p className="text-xs text-muted-foreground mt-1">
-            Real-time multi-tenant platform metrics, backend observability, and quick launch
-            modules.
+            Real-time platform metrics, system health, and customer account management.
           </p>
         </div>
 
@@ -376,7 +375,7 @@ export const PlatformAdminPage: React.FC = () => {
                 ? "100% Online"
                 : "Degraded"}
             </div>
-            <span className="text-[11px] text-[#FF6A00] font-semibold flex items-center gap-0.5">
+            <span className="text-xs text-[#C2410C] dark:text-[#FF6A00] font-semibold flex items-center gap-0.5">
               Inspect Telemetry <ArrowRight className="h-3 w-3" />
             </span>
           </div>
@@ -387,12 +386,12 @@ export const PlatformAdminPage: React.FC = () => {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <Card className="border border-border">
           <CardHeader className="pb-3">
-            <CardTitle className="text-base font-heading">Tenants by Subscription Plan</CardTitle>
+            <CardTitle className="text-base font-heading">Customers by Subscription Plan</CardTitle>
             <CardDescription>Distribution across active SaaS tiers</CardDescription>
           </CardHeader>
           <CardContent>
             <HorizontalBarChart
-              emptyText="No customer tenants created yet."
+              emptyText="No customer accounts created yet."
               items={Object.entries(summary?.plan_distribution || {}).map(([plan, count], idx) => ({
                 label: plan,
                 value: count,

@@ -148,7 +148,7 @@ export const TakeawayPage: React.FC = () => {
             Takeaway & Parcel Counter
           </h1>
           <p className="text-sm text-muted-foreground">
-            Packing checklists, 4-digit pickup code verification, and takeaway order queue (R-09).
+            Packing checklists, 4-digit pickup code verification, and takeaway order queue.
           </p>
         </div>
         <div className="flex items-center gap-2">

@@ -207,9 +207,10 @@ export const MenuAvailabilityPage: React.FC = () => {
           <div className="flex items-center gap-2">
             <span className="text-xs text-muted-foreground font-medium">Outlet:</span>
             <select
+              aria-label="Select outlet"
               value={selectedBranchId}
               onChange={(e) => handleBranchChange(e.target.value)}
-              className="h-9 px-3 rounded-md border border-input bg-background text-xs font-semibold focus:ring-2 focus:ring-[#FF6A00]"
+              className="h-10 px-3 rounded-md border border-input bg-background text-xs font-semibold focus:ring-2 focus:ring-[#FF6A00]"
             >
               {branches.map((b) => (
                 <option key={b.id} value={b.id}>
@@ -366,6 +367,7 @@ export const MenuAvailabilityPage: React.FC = () => {
 
                       {canEditAvailability && (
                         <Switch
+                          aria-label={`Toggle availability for ${item.name}`}
                           checked={item.is_available}
                           onCheckedChange={() => handleToggle(item)}
                           disabled={isLoading}

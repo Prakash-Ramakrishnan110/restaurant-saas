@@ -364,7 +364,7 @@ export const DashboardPage: React.FC = () => {
       {/* 1. Top Header with Venue-Adaptive Quick Action */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-4 border-b border-border">
         <div>
-          <span className="text-xs font-bold text-[#FF6A00] uppercase tracking-wider">
+          <span className="text-xs font-bold text-[#0B1F3B] dark:text-[#FF6A00] uppercase tracking-wider">
             {activeTenant?.tenant_name || "Restaurant SaaS"}
           </span>
           <h1 className="text-2xl sm:text-3xl font-extrabold font-heading text-foreground mt-0.5">
@@ -434,7 +434,7 @@ export const DashboardPage: React.FC = () => {
               </span>
               <Link
                 to="/venue"
-                className="text-[#FF6A00] font-semibold hover:underline inline-flex items-center gap-1"
+                className="text-[#C2410C] dark:text-[#FF6A00] font-semibold hover:underline inline-flex items-center gap-1 min-h-[44px]"
               >
                 View Floor <ArrowRight className="h-3 w-3" />
               </Link>
@@ -466,7 +466,7 @@ export const DashboardPage: React.FC = () => {
       {delayedTickets.length > 0 && (
         <div
           role="alert"
-          className="rounded-xl border border-destructive/40 bg-red-500/10 dark:bg-red-950/40 p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-red-900 dark:text-red-200 animate-pulse"
+          className="rounded-xl border border-destructive/40 bg-red-500/10 dark:bg-red-950/40 p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-red-900 dark:text-red-200"
         >
           <div className="flex items-center gap-3">
             <Flame className="h-6 w-6 text-destructive shrink-0" />
@@ -509,10 +509,12 @@ export const DashboardPage: React.FC = () => {
             <div>
               <p className="text-xs sm:text-sm font-bold">
                 🔔 Service Call: Guest at{" "}
-                <span className="text-[#FF6A00] font-black">{waiterCallActive.target}</span> is
-                calling waiter!
+                <span className="text-[#0B1F3B] dark:text-[#FF6A00] font-black">
+                  {waiterCallActive.target}
+                </span>{" "}
+                is calling waiter!
               </p>
-              <span className="text-[11px] text-muted-foreground">{waiterCallActive.time}</span>
+              <span className="text-xs text-muted-foreground">{waiterCallActive.time}</span>
             </div>
           </div>
           <Button
@@ -568,7 +570,7 @@ export const DashboardPage: React.FC = () => {
               Today's Sales & Operations
             </h2>
           </div>
-          <span className="text-xs text-muted-foreground font-medium">
+          <span className="text-xs text-muted-foreground font-medium whitespace-nowrap">
             Live updates · {todayReport?.date || new Date().toISOString().split("T")[0]}
           </span>
         </div>
@@ -785,7 +787,7 @@ export const DashboardPage: React.FC = () => {
               </CardTitle>
             </div>
             {onboarding && (
-              <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-[#FF6A00]/10 text-[#FF6A00]">
+              <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-[#FF6A00] text-[#0B1F3B]">
                 {completedStepsCount} of 7 steps done
               </span>
             )}
@@ -884,7 +886,7 @@ export const DashboardPage: React.FC = () => {
                         <span className="text-xs font-bold text-foreground">{label}</span>
                       </div>
                       {overLimit && (
-                        <span className="text-[10px] font-extrabold uppercase px-1.5 py-0.5 rounded bg-destructive text-white">
+                        <span className="text-xs font-extrabold uppercase px-2 py-0.5 rounded bg-destructive text-white">
                           Over Limit
                         </span>
                       )}
@@ -897,7 +899,7 @@ export const DashboardPage: React.FC = () => {
                           / {limit ?? "Unlimited"}
                         </span>
                       </span>
-                      <span className="text-muted-foreground text-[11px]">
+                      <span className="text-muted-foreground text-xs">
                         {remaining !== null ? `${remaining} remaining` : "No limit"}
                       </span>
                     </div>
@@ -995,7 +997,7 @@ export const DashboardPage: React.FC = () => {
             <div className="flex items-center justify-between mb-3">
               <Boxes className="h-6 w-6 text-[#FF6A00] group-hover:scale-110 transition-transform" />
               {(stockHealth?.failed_deductions?.length ?? 0) > 0 && (
-                <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-destructive/15 text-destructive">
+                <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-destructive/15 text-destructive">
                   {stockHealth?.failed_deductions?.length} retry needed
                 </span>
               )}

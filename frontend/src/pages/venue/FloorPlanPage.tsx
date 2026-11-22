@@ -16,7 +16,7 @@ export interface FloorTable {
   label_number: number;
   capacity: number;
   shape: "SQUARE" | "ROUND" | "RECTANGLE";
-  status: "AVAILABLE" | "OCCUPIED" | "RESERVED" | "BILLING" | "DIRTY";
+  status: "AVAILABLE" | "OCCUPIED" | "RESERVED" | "CLEANING" | "BLOCKED";
   is_active: boolean;
   x?: number;
   y?: number;
@@ -105,26 +105,26 @@ export const FloorPlanPage: React.FC = () => {
         text: "text-purple-700 dark:text-purple-400",
         label: t("floorPlan.legendReserved"),
       },
-      BILLING: {
+      CLEANING: {
         bg: "bg-amber-500/10 hover:bg-amber-500/20",
         border: "border-amber-500/40",
         text: "text-amber-700 dark:text-amber-400",
-        label: t("floorPlan.legendBilling"),
+        label: t("floorPlan.legendCleaning", "Cleaning"),
       },
-      DIRTY: {
+      BLOCKED: {
         bg: "bg-slate-500/10 hover:bg-slate-500/20",
         border: "border-slate-500/40",
         text: "text-slate-700 dark:text-slate-400",
-        label: t("floorPlan.legendDirty"),
+        label: t("floorPlan.legendBlocked", "Blocked"),
       },
     };
 
   const allowedTransitions: Record<string, string[]> = {
-    AVAILABLE: ["OCCUPIED", "RESERVED"],
-    OCCUPIED: ["BILLING", "AVAILABLE"],
-    BILLING: ["DIRTY", "AVAILABLE"],
-    DIRTY: ["AVAILABLE"],
+    AVAILABLE: ["OCCUPIED", "RESERVED", "BLOCKED"],
+    OCCUPIED: ["CLEANING", "AVAILABLE"],
+    CLEANING: ["AVAILABLE"],
     RESERVED: ["OCCUPIED", "AVAILABLE"],
+    BLOCKED: ["AVAILABLE"],
   };
 
   const handleStatusTransition = async (newStatus: string) => {

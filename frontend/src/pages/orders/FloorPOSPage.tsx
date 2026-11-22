@@ -46,7 +46,7 @@ interface DiningTableItem {
   id: string;
   label: string;
   capacity: number;
-  status: "AVAILABLE" | "OCCUPIED" | "RESERVED" | "BILLING" | "DIRTY";
+  status: "AVAILABLE" | "OCCUPIED" | "RESERVED" | "CLEANING" | "BLOCKED";
   section?: { name: string };
   sessions?: { id: string; status: string; guest_count: number }[];
 }
@@ -469,18 +469,34 @@ export const FloorPOSPage: React.FC = () => {
     <div className="flex flex-col md:h-[calc(100vh-4rem)] md:overflow-hidden pb-20 md:pb-0 font-sans">
       {/* Toast notifications */}
       {successToast && (
-        <div className="fixed top-16 right-6 z-50 bg-emerald-700 text-white px-4 py-2.5 rounded-lg shadow-lg flex items-center gap-2 animate-in slide-in-from-top">
-          <CheckCircle2 className="h-5 w-5" />
+        <div
+          role="status"
+          className="fixed top-20 right-4 max-w-[calc(100vw-2rem)] z-50 bg-emerald-700 text-white px-4 py-2.5 rounded-lg shadow-lg flex items-center gap-2 animate-in slide-in-from-top"
+        >
+          <CheckCircle2 className="h-5 w-5 shrink-0" />
           <span className="text-sm font-semibold">{successToast}</span>
-          <button onClick={() => setSuccessToast(null)} className="ml-2 font-bold">
+          <button
+            type="button"
+            aria-label="Dismiss success notification"
+            onClick={() => setSuccessToast(null)}
+            className="ml-2 font-bold min-h-[36px] min-w-[36px] flex items-center justify-center rounded hover:bg-white/15"
+          >
             ×
           </button>
         </div>
       )}
       {errorToast && (
-        <div className="fixed top-16 right-6 z-50 bg-destructive text-white px-4 py-2.5 rounded-lg shadow-lg flex items-center gap-2 animate-in slide-in-from-top">
+        <div
+          role="alert"
+          className="fixed top-20 right-4 max-w-[calc(100vw-2rem)] z-50 bg-destructive text-white px-4 py-2.5 rounded-lg shadow-lg flex items-center gap-2 animate-in slide-in-from-top"
+        >
           <span className="text-sm font-semibold">{errorToast}</span>
-          <button onClick={() => setErrorToast(null)} className="ml-2 font-bold">
+          <button
+            type="button"
+            aria-label="Dismiss error notification"
+            onClick={() => setErrorToast(null)}
+            className="ml-2 font-bold min-h-[36px] min-w-[36px] flex items-center justify-center rounded hover:bg-white/15"
+          >
             ×
           </button>
         </div>
@@ -512,27 +528,29 @@ export const FloorPOSPage: React.FC = () => {
       <div className="flex-1 grid grid-cols-12 gap-0 md:overflow-hidden">
         {/* COLUMN 1: Tables or Counter Selector (3 of 12 cols) */}
         <div className="col-span-12 md:col-span-3 md:border-r border-b md:border-b-0 border-border bg-card/60 p-4 flex flex-col md:h-full md:overflow-hidden">
-          <div className="flex items-center justify-between pb-3 border-b border-border">
-            <h2 className="text-sm font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
-              {usesTables ? (
-                <Layers className="h-4 w-4 text-[#FF6A00]" />
-              ) : (
-                <Zap className="h-4 w-4 text-[#FF6A00]" />
+          <div className="flex flex-col gap-2 pb-3 border-b border-border">
+            <div className="flex items-center justify-between gap-2">
+              <h2 className="text-sm font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
+                {usesTables ? (
+                  <Layers className="h-4 w-4 text-[#C2410C] dark:text-[#FF6A00]" />
+                ) : (
+                  <Zap className="h-4 w-4 text-[#C2410C] dark:text-[#FF6A00]" />
+                )}
+                {usesTables ? "Floor Tables" : "Counter Orders"}
+              </h2>
+              {usesTables && selectedSessionId && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="min-h-[36px] text-xs gap-1"
+                  onClick={() => setTransferModalOpen(true)}
+                >
+                  <ArrowRightLeft className="h-3.5 w-3.5" /> Transfer
+                </Button>
               )}
-              {usesTables ? "Floor Tables" : "Counter Orders"}
-            </h2>
-            {usesTables && selectedSessionId && (
-              <Button
-                variant="outline"
-                size="sm"
-                className="h-7 text-xs gap-1"
-                onClick={() => setTransferModalOpen(true)}
-              >
-                <ArrowRightLeft className="h-3.5 w-3.5" /> Transfer
-              </Button>
-            )}
+            </div>
             {myShiftLabel && (
-              <div className="mt-2 px-2.5 py-1 rounded bg-[#FF6A00]/10 border border-[#FF6A00]/30 text-[11px] font-semibold text-[#0B1F3B] dark:text-amber-200">
+              <div className="px-2.5 py-1 rounded bg-[#FF6A00]/10 border border-[#FF6A00]/30 text-xs font-semibold text-[#0B1F3B] dark:text-amber-200 w-fit">
                 Shift: {myShiftLabel}
               </div>
             )}
@@ -581,8 +599,7 @@ export const FloorPOSPage: React.FC = () => {
                     })
                   );
                   const isOccupied = tbl.status === "OCCUPIED" || hasOpenSession;
-                  const isCleaning =
-                    (tbl.status as string) === "CLEANING" || tbl.status === "DIRTY";
+                  const isCleaning = tbl.status === "CLEANING";
                   return (
                     <button
                       key={tbl.id}
@@ -627,7 +644,9 @@ export const FloorPOSPage: React.FC = () => {
             <div className="flex-1 flex flex-col gap-4 pt-4">
               <div className="p-4 rounded-xl border border-border bg-card text-center">
                 <span className="text-xs text-muted-foreground">Active Daily Token</span>
-                <div className="text-3xl font-extrabold text-[#FF6A00] mt-1">#{counterToken}</div>
+                <div className="text-3xl font-extrabold text-[#0B1F3B] dark:text-[#FF6A00] mt-1">
+                  #{counterToken}
+                </div>
                 <span className="text-xs text-muted-foreground">Chai Corner Takeaway Counter</span>
               </div>
               <Button
@@ -648,16 +667,18 @@ export const FloorPOSPage: React.FC = () => {
             <div className="relative flex-1">
               <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input
+                aria-label="Search menu items"
                 placeholder="Search dish or தமிழ்..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-9 h-9 text-xs"
+                className="pl-9 h-10 text-xs"
               />
             </div>
             <select
+              aria-label="Filter menu by diet type"
               value={selectedFoodType}
               onChange={(e) => setSelectedFoodType(e.target.value)}
-              className="h-9 px-2.5 rounded-md border border-input bg-card text-xs font-semibold"
+              className="h-10 px-2.5 rounded-md border border-input bg-card text-xs font-semibold"
             >
               <option value="ALL">All Diets</option>
               <option value="VEG">Veg Only</option>
@@ -733,18 +754,19 @@ export const FloorPOSPage: React.FC = () => {
                   </div>
                   <div className="flex items-center justify-between mt-3 pt-2 border-t border-border">
                     {!isWaiter ? (
-                      <span className="font-extrabold text-sm text-[#FF6A00]">
+                      <span className="font-extrabold text-sm text-[#0B1F3B] dark:text-[#FF6A00]">
                         {formatRupees(item.base_price_paise)}
                       </span>
                     ) : (
-                      <span className="text-[11px] font-semibold text-muted-foreground">
+                      <span className="text-xs font-semibold text-muted-foreground">
                         Tap to add
                       </span>
                     )}
                     <Button
                       size="sm"
                       variant="ghost"
-                      className="h-7 w-7 p-0 rounded-full"
+                      aria-label={`Add ${item.name} to order`}
+                      className="h-9 w-9 p-0 rounded-full"
                       disabled={!isAvail}
                     >
                       <Plus className="h-4 w-4" />
@@ -778,8 +800,7 @@ export const FloorPOSPage: React.FC = () => {
               {usesTables &&
                 selectedTable &&
                 !selectedSessionId &&
-                ((selectedTable.status as string) === "CLEANING" ||
-                  (selectedTable.status as string) === "DIRTY") && (
+                selectedTable.status === "CLEANING" && (
                   <Button
                     variant="outline"
                     size="sm"
@@ -840,7 +861,7 @@ export const FloorPOSPage: React.FC = () => {
                       onClick={async () => {
                         try {
                           setSubmitting(true);
-                          await ordersApi.requestServiceCall(selectedTable.id, "REQUEST_BILL");
+                          await ordersApi.requestServiceCall(selectedTable.id, "BILL");
                           setSuccessToast(
                             `Payment requested from Cashier for Table ${selectedTable.label}.`
                           );
@@ -917,14 +938,15 @@ export const FloorPOSPage: React.FC = () => {
                       {line.name}
                     </span>
                     {!isWaiter && (
-                      <span className="font-extrabold text-xs text-[#FF6A00]">
+                      <span className="font-extrabold text-xs text-foreground">
                         {formatRupees(line.unit_price_paise * line.quantity)}
                       </span>
                     )}
                   </div>
-                  <div className="flex items-center justify-between text-xs">
+                  <div className="flex items-center justify-between text-xs gap-2">
                     <div className="flex items-center gap-1.5">
                       <select
+                        aria-label={`Course for ${line.name}`}
                         value={line.course}
                         onChange={(e) =>
                           updateCourse(
@@ -932,7 +954,7 @@ export const FloorPOSPage: React.FC = () => {
                             e.target.value as "STARTER" | "MAIN" | "DESSERT" | "BEVERAGE"
                           )
                         }
-                        className="h-6 text-[11px] px-1 rounded border border-input bg-card font-semibold"
+                        className="h-9 text-xs px-2 rounded border border-input bg-card font-semibold"
                       >
                         <option value="STARTER">Starter</option>
                         <option value="MAIN">Main</option>
@@ -950,7 +972,7 @@ export const FloorPOSPage: React.FC = () => {
                             )
                           }
                           aria-label="Assign to chair"
-                          className="h-6 text-[11px] px-1 rounded border border-input bg-card font-semibold text-muted-foreground"
+                          className="h-9 text-xs px-2 rounded border border-input bg-card font-semibold text-muted-foreground"
                         >
                           <option value="">Table Shared</option>
                           {Array.from(
@@ -966,28 +988,33 @@ export const FloorPOSPage: React.FC = () => {
                     </div>
                     <div className="flex items-center gap-2">
                       <button
+                        type="button"
+                        aria-label={`Decrease quantity of ${line.name}`}
                         onClick={() => updateQuantity(line.menu_item_id, -1)}
-                        className="h-6 w-6 rounded bg-muted flex items-center justify-center hover:bg-muted/80"
+                        className="h-10 w-10 rounded bg-muted flex items-center justify-center hover:bg-muted/80"
                       >
-                        <Minus className="h-3 w-3" />
+                        <Minus className="h-3.5 w-3.5" />
                       </button>
-                      <span className="font-bold text-xs min-w-[14px] text-center">
+                      <span className="font-bold text-xs min-w-[16px] text-center">
                         {line.quantity}
                       </span>
                       <button
+                        type="button"
+                        aria-label={`Increase quantity of ${line.name}`}
                         onClick={() => updateQuantity(line.menu_item_id, 1)}
-                        className="h-6 w-6 rounded bg-muted flex items-center justify-center hover:bg-muted/80"
+                        className="h-10 w-10 rounded bg-muted flex items-center justify-center hover:bg-muted/80"
                       >
-                        <Plus className="h-3 w-3" />
+                        <Plus className="h-3.5 w-3.5" />
                       </button>
                     </div>
                   </div>
                   <input
                     type="text"
+                    aria-label={`Special instructions for ${line.name}`}
                     placeholder="Special instructions (e.g. less spicy)..."
                     value={line.notes || ""}
                     onChange={(e) => updateItemNotes(line.menu_item_id, e.target.value)}
-                    className="h-6 text-[11px] px-2 rounded border border-input/60 bg-transparent text-foreground placeholder:text-muted-foreground/60"
+                    className="h-9 text-xs px-2 rounded border border-input/60 bg-transparent text-foreground placeholder:text-muted-foreground/70"
                   />
                 </div>
               ))
@@ -995,11 +1022,11 @@ export const FloorPOSPage: React.FC = () => {
           </div>
 
           {/* Footer Controls & Pacing */}
-          <div className="pt-3 border-t border-border space-y-3">
+          <div className="pt-3 pb-20 md:pb-0 border-t border-border space-y-3">
             <div className="flex items-center justify-between text-xs text-muted-foreground">
               <span>{cart.length} item(s) in cart</span>
               {!isWaiter && (
-                <span className="text-[11px] font-medium">Server calculates final bill</span>
+                <span className="text-xs font-medium">Server calculates final bill</span>
               )}
             </div>
 
@@ -1013,7 +1040,7 @@ export const FloorPOSPage: React.FC = () => {
             )}
 
             <Button
-              className="w-full min-h-[48px] text-sm font-bold bg-[#FF6A00] hover:bg-[#FF6A00]/90 text-[#0B1F3B] gap-2 shadow-sm"
+              className="w-full min-h-[56px] md:min-h-[48px] text-sm font-bold bg-[#FF6A00] hover:bg-[#FF6A00]/90 text-[#0B1F3B] gap-2 shadow-sm"
               disabled={cart.length === 0 || submitting}
               onClick={handleFireOrder}
             >
@@ -1040,9 +1067,9 @@ export const FloorPOSPage: React.FC = () => {
                   key={count}
                   type="button"
                   onClick={() => setGuestCount(count)}
-                  className={`flex-1 py-2 rounded-lg border font-bold text-sm ${
+                  className={`flex-1 min-h-[44px] py-2 rounded-lg border font-bold text-sm ${
                     guestCount === count
-                      ? "border-[#FF6A00] bg-orange-50 dark:bg-orange-950/30 text-[#FF6A00]"
+                      ? "border-[#FF6A00] bg-orange-50 dark:bg-orange-950/30 text-[#0B1F3B] dark:text-[#FF6A00]"
                       : "border-border bg-card text-foreground"
                   }`}
                 >
@@ -1058,9 +1085,9 @@ export const FloorPOSPage: React.FC = () => {
             <Button
               onClick={handleSeatGuests}
               disabled={submitting}
-              className="bg-[#FF6A00] text-[#0B1F3B]"
+              className="bg-[#FF6A00] text-[#0B1F3B] font-bold"
             >
-              Open Dining Session
+              Seat Guests
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -1077,6 +1104,7 @@ export const FloorPOSPage: React.FC = () => {
               Select New Physical Table
             </label>
             <select
+              aria-label="Target table for session transfer"
               value={targetTableId}
               onChange={(e) => setTargetTableId(e.target.value)}
               className="w-full h-10 px-3 rounded-md border border-input bg-card text-sm"

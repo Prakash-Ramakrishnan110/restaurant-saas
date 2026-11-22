@@ -1,3 +1,4 @@
+import mimetypes
 from typing import Any
 
 from django.conf import settings
@@ -23,6 +24,8 @@ from apps.orders.views import (
     StaffReportView,
     TodayReportView,
 )
+
+mimetypes.add_type("image/webp", ".webp", True)
 
 
 class HealthCheckNoSlashView(HealthCheckView):

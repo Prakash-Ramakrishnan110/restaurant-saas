@@ -57,6 +57,51 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
   const { user, memberships, activeTenant, activeRole, selectTenant, logout, can } = useAuth();
   const { theme, setTheme } = useTheme();
   const { i18n } = useTranslation();
+  const isTa = i18n.language.startsWith("ta");
+  const taLabels: Record<string, string> = {
+    "Daily work": "தினசரி பணிகள்",
+    Inventory: "சரக்கு",
+    "Restaurant setup": "உணவக அமைப்பு",
+    Team: "குழு",
+    Settings: "அமைப்புகள்",
+    "Kitchen Station": "சமையலறை பிரிவு",
+    "Floor Service": "தள சேவை",
+    "Billing & Register": "பில்லிங் & பதிவேடு",
+    "Super Admin": "சூப்பர் அட்மின்",
+    Dashboard: "டாஷ்போர்டு",
+    "Floor POS": "தள ஆர்டர்",
+    "Counter Orders": "கவுண்டர் ஆர்டர்கள்",
+    "Tables and Orders": "மேஜைகள் & ஆர்டர்கள்",
+    "Live Orders": "நேரலை ஆர்டர்கள்",
+    "Ready to Serve": "பரிமாறத் தயார்",
+    "Ready for Pickup": "எடுக்கத் தயார்",
+    "Kitchen KDS": "சமையலறை திரை",
+    "Cashier Billing": "காசாளர் பில்லிங்",
+    Bills: "பில்கள்",
+    "Shift Close": "ஷிப்ட் முடிவு",
+    Menu: "மெனு",
+    Translations: "மொழிபெயர்ப்பு",
+    "Today's Availability": "இன்றைய இருப்பு",
+    Feedback: "கருத்துகள்",
+    Onboarding: "தொடக்க அமைப்பு",
+    Branches: "கிளைகள்",
+    "Venue Layout": "தள அமைப்பு",
+    "QR Codes": "QR குறியீடுகள்",
+    Staff: "பணியாளர்கள்",
+    Branding: "பிராண்டிங்",
+    "Venue Settings": "உணவக அமைப்புகள்",
+    "Your Plan & Billing": "திட்டம் & கட்டணம்",
+    "Help Center": "உதவி மையம்",
+    Stock: "சரக்கு",
+    "Receive stock": "சரக்கு வரவு",
+    Wastage: "வீணாகும் பொருட்கள்",
+    Counts: "கணக்கெடுப்பு",
+    Recipes: "செய்முறைகள்",
+    "Suppliers and Orders": "சப்ளையர்கள் & ஆர்டர்கள்",
+    "Inventory reports": "சரக்கு அறிக்கைகள்",
+    "Inventory settings": "சரக்கு அமைப்புகள்",
+  };
+  const trNav = (en: string) => (isTa ? taLabels[en] || en : en);
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -451,7 +496,7 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
           <button
             type="button"
             onClick={() => setSidebarOpen(!sidebarOpen)}
-            className="md:hidden p-1.5 rounded-md hover:bg-muted text-foreground min-h-[40px] min-w-[40px] flex items-center justify-center shrink-0"
+            className="md:hidden p-1.5 rounded-md hover:bg-muted text-foreground min-h-[48px] min-w-[48px] flex items-center justify-center shrink-0"
             aria-label="Toggle navigation menu"
           >
             {sidebarOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
@@ -476,7 +521,9 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
             className="hidden sm:flex items-center gap-2 px-2.5 py-1 text-xs text-muted-foreground bg-muted/60 hover:bg-muted border border-border rounded-md min-h-[36px] whitespace-nowrap shrink-0"
           >
             <Search className="h-3.5 w-3.5 shrink-0" />
-            <span className="whitespace-nowrap">Search or jump to...</span>
+            <span className="whitespace-nowrap">
+              {isTa ? "தேடு அல்லது செல்ல..." : "Search or jump to..."}
+            </span>
             <kbd className="hidden lg:inline-flex items-center gap-0.5 px-1.5 py-0.5 text-[10px] font-mono bg-background border border-border rounded text-muted-foreground whitespace-nowrap shrink-0">
               Ctrl K
             </kbd>
@@ -486,7 +533,7 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
           {memberships.length > 0 && !user?.is_platform_admin && (
             <div className="hidden sm:flex items-center gap-2 border-l border-border pl-4">
               <span className="text-xs font-semibold text-muted-foreground uppercase">
-                Restaurant:
+                {isTa ? "உணவகம்:" : "Restaurant:"}
               </span>
               <select
                 aria-label="Select active restaurant"
@@ -530,11 +577,11 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
             data-testid="connection-status-pill"
             aria-label={isOnline ? "Network Online" : "Network Offline"}
             onClick={() => setQueueDrawerOpen(true)}
-            className={`inline-flex items-center gap-1.5 px-2 py-1 sm:px-2.5 sm:py-1 rounded-full text-[11px] sm:text-xs font-semibold border transition-colors whitespace-nowrap shrink-0 ${
+            className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-full text-xs font-semibold border transition-colors whitespace-nowrap shrink-0 min-h-[40px] ${
               offlineQueue.some((q) => q.status === "CONFLICT")
                 ? "bg-rose-50 text-rose-800 border-rose-300 dark:bg-rose-950/40 dark:text-rose-300 dark:border-rose-800"
                 : !isOnline || offlineQueue.length > 0 || isSyncingQueue
-                  ? "bg-amber-50 text-amber-800 border-amber-300 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-800 animate-pulse"
+                  ? "bg-amber-50 text-amber-800 border-amber-300 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-800"
                   : "bg-emerald-50 text-emerald-800 border-emerald-300 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800"
             }`}
           >
@@ -555,8 +602,12 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
                       ? `Offline — ${offlineQueue.length} queued`
                       : "Offline"
                     : offlineQueue.length > 0
-                      ? `Online (${offlineQueue.length} queued)`
-                      : "Online"}
+                      ? isTa
+                        ? `இணைப்பில் (${offlineQueue.length})`
+                        : `Online (${offlineQueue.length} queued)`
+                      : isTa
+                        ? "இணைப்பில்"
+                        : "Online"}
             </span>
           </button>
 
@@ -579,7 +630,11 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
             variant="ghost"
             size="sm"
             onClick={handleToggleSound}
-            className={`min-h-[34px] min-w-[32px] sm:min-h-[36px] sm:min-w-[36px] p-1.5 sm:p-2 ${soundOn ? "text-[#FF6A00]" : "text-muted-foreground"}`}
+            className={`min-h-[44px] min-w-[44px] p-2 ${
+              soundOn
+                ? "text-[#C2410C] dark:text-[#FF6A00] bg-orange-50/70 dark:bg-orange-950/30"
+                : "text-muted-foreground"
+            }`}
             aria-label={soundOn ? "Mute order sound alerts" : "Enable order sound alerts"}
             title={
               soundOn
@@ -614,7 +669,7 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
               aria-label="Open support desk"
             >
               <LifeBuoy className="h-3.5 w-3.5 text-[#FF6A00]" />
-              <span className="hidden md:inline">Support</span>
+              <span className="hidden md:inline">{isTa ? "உதவி" : "Support"}</span>
               {tenantTickets.filter((t) => t.status === "OPEN" || t.status === "IN_PROGRESS")
                 .length > 0 && (
                 <span className="inline-flex items-center justify-center px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-[#FF6A00] text-[#0B1F3B]">
@@ -640,7 +695,7 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
               aria-label="Sign out"
             >
               <LogOut className="h-3.5 w-3.5 sm:mr-1" />
-              <span className="hidden sm:inline">Sign Out</span>
+              <span className="hidden sm:inline">{isTa ? "வெளியேறு" : "Sign Out"}</span>
             </Button>
           </div>
         </div>
@@ -658,8 +713,8 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
             <nav className="space-y-4" aria-label="Main Navigation">
               {navGroups.map((group) => (
                 <div key={group.label} className="space-y-1">
-                  <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider px-3 mb-1 block select-none">
-                    {group.label}
+                  <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider px-3 mb-1 block select-none">
+                    {trNav(group.label)}
                   </span>
                   {group.items.map((item) => {
                     const Icon = item.icon;
@@ -679,7 +734,7 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
                         key={item.path}
                         to={item.path}
                         onClick={() => setSidebarOpen(false)}
-                        className={`flex items-center justify-between px-3 py-2 rounded-lg text-sm font-medium transition-colors min-h-[44px] ${
+                        className={`flex items-center justify-between px-3 py-2 rounded-lg text-sm font-medium transition-colors min-h-[48px] ${
                           isActive
                             ? "bg-[#FF6A00] text-[#0B1F3B] font-bold shadow-sm"
                             : "text-muted-foreground hover:bg-muted hover:text-foreground"
@@ -687,15 +742,15 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
                       >
                         <div className="flex items-center gap-3">
                           <Icon className="h-4 w-4 shrink-0" />
-                          <span>{item.label}</span>
+                          <span>{trNav(item.label)}</span>
                         </div>
                         {badgeCount > 0 && (
                           <span
-                            className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                            className={`px-2 py-0.5 rounded-full text-xs font-bold ${
                               isActive
                                 ? "bg-[#0B1F3B] text-white"
                                 : item.badgeKey === "readyOrders"
-                                  ? "bg-emerald-500 text-white animate-pulse"
+                                  ? "bg-emerald-600 text-white"
                                   : "bg-[#FF6A00] text-[#0B1F3B]"
                             }`}
                           >
@@ -717,13 +772,13 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
                 ? "ServeMyFood Platform Console"
                 : activeTenant?.tenant_name || "ServeMyFood"}
             </div>
-            <div className="text-[11px] text-muted-foreground flex items-center justify-between mt-0.5">
+            <div className="text-xs text-muted-foreground flex items-center justify-between mt-0.5">
               <span>
                 Role: {user?.is_platform_admin ? "Super Admin" : activeTenant?.role || "Staff"}
               </span>
-              <span className="text-[#C2410C] font-semibold">Active</span>
+              <span className="text-emerald-700 dark:text-emerald-400 font-semibold">Active</span>
             </div>
-            <div className="text-[10px] text-muted-foreground/75 mt-1 font-mono">
+            <div className="text-xs text-muted-foreground/80 mt-1 font-mono">
               ServeMyFood {typeof __APP_VERSION__ !== "undefined" ? __APP_VERSION__ : "v0.8.0"}
             </div>
           </div>
@@ -1248,12 +1303,14 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
             <Link
               key={item.path}
               to={item.path}
-              className={`flex flex-col items-center gap-1 p-1 rounded-md text-[11px] font-semibold min-h-[48px] min-w-[56px] justify-center ${
-                isActive ? "text-[#FF6A00]" : "text-muted-foreground"
+              className={`flex flex-col items-center gap-1 p-1.5 rounded-md text-xs font-semibold min-h-[56px] min-w-[56px] justify-center ${
+                isActive
+                  ? "bg-[#FF6A00]/15 text-[#0B1F3B] dark:text-[#FF6A00] font-bold"
+                  : "text-muted-foreground"
               }`}
             >
               <Icon className="h-5 w-5" />
-              <span>{item.label}</span>
+              <span>{trNav(item.label)}</span>
             </Link>
           );
         })}
@@ -1261,10 +1318,10 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
         <button
           type="button"
           onClick={() => setSidebarOpen(true)}
-          className="flex flex-col items-center gap-1 p-1 rounded-md text-[11px] font-semibold text-muted-foreground min-h-[48px] min-w-[56px] justify-center"
+          className="flex flex-col items-center gap-1 p-1.5 rounded-md text-xs font-semibold text-muted-foreground min-h-[56px] min-w-[56px] justify-center"
         >
           <Menu className="h-5 w-5" />
-          <span>More</span>
+          <span>{isTa ? "மேலும்" : "More"}</span>
         </button>
       </nav>
     </div>

@@ -279,7 +279,7 @@ export const defaultResources = {
       branding: {
         title: "Branding & Business Identity",
         subtitle:
-          "Customize your restaurant's logo, colors, receipt header, and GST billing credentials.",
+          "Customize your restaurant's logo, colors, receipt header, and business registration details.",
         logoSection: "Restaurant Logo",
         logoHelp:
           "Upload a PNG, JPEG, or WebP logo (max 2 MB, min 64×64 px, max 4000×4000 px). SVGs are disallowed for security.",
@@ -294,13 +294,13 @@ export const defaultResources = {
         receiptFooter: "Receipt Footer Message",
         receiptFooterHelp:
           "Optional thank-you note or return policy printed at the bottom of customer bills.",
-        legalSection: "Tax & Registered Entity Details",
+        legalSection: "Business Legal Details",
         legalName: "Registered Legal Business Name",
-        gstin: "GSTIN (Goods and Services Tax ID)",
-        gstinHelp: "15-character uppercase Indian GSTIN structure (e.g. 33AAAAA0000A1Z5).",
+        gstin: "Business Registration Number",
+        gstinHelp: "Optional 15-character business registration code (e.g. 33AAAAA0000A1Z5).",
         registeredAddress: "Registered Business Address",
         accountantNotice:
-          "Please confirm your GSTIN, legal entity name, and tax registration details with your chartered accountant.",
+          "Please confirm your business legal name and registration details with your advisor before printing customer receipts.",
         qrPreviewTitle: "Live Customer QR Card Preview",
       },
       qr: {
@@ -619,7 +619,7 @@ export const defaultResources = {
       branding: {
         title: "பிராண்டிங் மற்றும் வணிக அடையாளம்",
         subtitle:
-          "உங்கள் உணவகத்தின் லோகோ, முதன்மை வண்ணம், பில் உரை மற்றும் ஜிஎஸ்டி விவரங்களை அமைக்கவும்.",
+          "உங்கள் உணவகத்தின் லோகோ, முதன்மை வண்ணம், பில் உரை மற்றும் வணிக பதிவு விவரங்களை அமைக்கவும்.",
         logoSection: "உணவக லோகோ",
         logoHelp:
           "PNG, JPEG அல்லது WebP லோகோவை பதிவேற்றவும் (அதிகபட்சம் 2 MB, 64×64 முதல் 4000×4000 px வரை).",
@@ -633,13 +633,13 @@ export const defaultResources = {
         displayName: "காட்சிப் பெயர் (பில் மற்றும் QR)",
         receiptFooter: "பில் கீழ் அடிக்குறிப்பு உரை",
         receiptFooterHelp: "வாடிக்கையாளர் பில்லின் கீழே அச்சிடப்படும் நன்றி உரை.",
-        legalSection: "வரி மற்றும் பதிவு செய்யப்பட்ட சட்டபூர்வ விவரங்கள்",
+        legalSection: "வணிக சட்டபூர்வ விவரங்கள்",
         legalName: "பதிவு செய்யப்பட்ட சட்டபூர்வ வணிகப் பெயர்",
-        gstin: "ஜிஎஸ்டி எண் (GSTIN)",
-        gstinHelp: "15 எழுத்துக்களைக் கொண்ட இந்திய ஜிஎஸ்டி வடிவம் (எ.கா: 33AAAAA0000A1Z5).",
+        gstin: "வணிக பதிவு எண்",
+        gstinHelp: "விருப்பத்தேர்வு 15 எழுத்து வணிக பதிவு எண் (எ.கா: 33AAAAA0000A1Z5).",
         registeredAddress: "பதிவு செய்யப்பட்ட வணிக முகவரி",
         accountantNotice:
-          "தயவுசெய்து உங்கள் ஜிஎஸ்டி எண், சட்டபூர்வ பெயர் மற்றும் வரி விவரங்களை உங்கள் ஆடிட்டரிடம் (Chartered Accountant) சரிபார்த்துக் கொள்ளவும்.",
+          "வாடிக்கையாளர் ரசீதுகளில் அச்சிடுவதற்கு முன் உங்கள் சட்டபூர்வ வணிகப் பெயர் மற்றும் பதிவு விவரங்களை சரிபார்த்துக் கொள்ளவும்.",
         qrPreviewTitle: "QR அட்டையின் நேரலை முன்னோட்டம்",
       },
       qr: {

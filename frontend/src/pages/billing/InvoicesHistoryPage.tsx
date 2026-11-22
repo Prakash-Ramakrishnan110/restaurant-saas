@@ -516,7 +516,7 @@ export const InvoicesHistoryPage: React.FC = () => {
                   <div className="font-black text-sm uppercase">
                     {activeTenant?.tenant_name || "ServeMyFood"}
                   </div>
-                  <div className="text-[10px] font-bold">REFUND SLIP - NOT A TAX INVOICE</div>
+                  <div className="text-xs font-bold">REFUND SLIP - INTERNAL RECORD</div>
                   <div className="text-[10px] text-gray-600">{latestRefundSlip.refund_number}</div>
                   <div className="text-[10px] text-gray-600">
                     Ref Bill: {refundTarget?.invoice_number}
@@ -579,9 +579,7 @@ export const InvoicesHistoryPage: React.FC = () => {
                 <div className="font-black text-base uppercase tracking-wider">
                   {activeTenant?.tenant_name || "ServeMyFood Restaurant"}
                 </div>
-                <div className="text-[11px] text-gray-600 font-sans font-bold">
-                  DEMO RECEIPT - NOT A TAX INVOICE
-                </div>
+                <div className="text-xs text-gray-600 font-sans font-bold">DEMO ORDER SUMMARY</div>
                 <div className="text-[10px] text-gray-500">{reprintInvoice?.invoice_number}</div>
                 <div className="text-[10px] text-gray-500">
                   {reprintInvoice?.created_at &&

@@ -100,12 +100,21 @@ export const BrandLogo: React.FC<BrandLogoProps> = ({
           >
             ServeMy
           </span>
-          <span className={isMono ? "text-current" : "text-[#FF6A00]"} data-testid="wordmark-food">
+          <span
+            className={
+              isMono
+                ? "text-current"
+                : isForcedDark
+                  ? "text-[#FF6A00]"
+                  : "text-[#C2410C] dark:text-[#FF6A00]"
+            }
+            data-testid="wordmark-food"
+          >
             Food
           </span>
         </span>
         <span
-          className={`${compact ? "hidden sm:block " : ""}text-[10px] uppercase font-sans font-semibold tracking-wider ${
+          className={`${compact ? "hidden sm:block " : ""}text-xs uppercase font-sans font-semibold tracking-wider ${
             isMono
               ? "opacity-70 text-current"
               : isForcedDark

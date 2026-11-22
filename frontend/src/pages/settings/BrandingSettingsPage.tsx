@@ -194,7 +194,9 @@ export const BrandingSettingsPage: React.FC<BrandingSettingsPageProps> = ({
       return;
     }
     if (!gstinValid) {
-      setErrorMessage("GSTIN must match standard 15-character format (e.g. 33AAAAA0000A1Z5).");
+      setErrorMessage(
+        "Registration number must match standard 15-character format (e.g. 33AAAAA0000A1Z5)."
+      );
       return;
     }
 
@@ -473,6 +475,7 @@ export const BrandingSettingsPage: React.FC<BrandingSettingsPageProps> = ({
                     {t("onboarding.docLanguage")}
                   </label>
                   <select
+                    aria-label="Document language"
                     value={docLanguage}
                     onChange={(e) => setDocLanguage(e.target.value as "EN" | "EN_TA")}
                     className="w-full rounded-md border border-input bg-card px-3 py-2 text-sm text-foreground shadow-sm focus:ring-2 focus:ring-[#FF6A00] min-h-[44px]"
@@ -488,7 +491,7 @@ export const BrandingSettingsPage: React.FC<BrandingSettingsPageProps> = ({
                     <label className="text-xs font-semibold text-foreground">
                       {t("branding.receiptFooter")}
                     </label>
-                    <span className="text-[11px] text-muted-foreground">
+                    <span className="text-xs text-muted-foreground">
                       {receiptFooter.length} / 200
                     </span>
                   </div>
@@ -502,7 +505,7 @@ export const BrandingSettingsPage: React.FC<BrandingSettingsPageProps> = ({
               </CardContent>
             </Card>
 
-            {/* Legal & GST Details */}
+            {/* Business Legal Details */}
             <Card>
               <CardHeader>
                 <div className="flex items-center gap-2">
@@ -545,11 +548,10 @@ export const BrandingSettingsPage: React.FC<BrandingSettingsPageProps> = ({
                   />
                   {!gstinValid ? (
                     <p className="text-xs text-destructive font-medium">
-                      Invalid GSTIN format. Must be 15 characters (2 state digits + 10 PAN chars +
-                      entity + Z + check char).
+                      Invalid registration format. Must be 15 characters when provided.
                     </p>
                   ) : (
-                    <p className="text-[11px] text-muted-foreground">{t("branding.gstinHelp")}</p>
+                    <p className="text-xs text-muted-foreground">{t("branding.gstinHelp")}</p>
                   )}
                 </div>
 
@@ -560,7 +562,7 @@ export const BrandingSettingsPage: React.FC<BrandingSettingsPageProps> = ({
                   <textarea
                     value={registeredAddress}
                     onChange={(e) => setRegisteredAddress(e.target.value)}
-                    placeholder="Registered commercial address for tax invoices..."
+                    placeholder="Registered commercial address for business receipts..."
                     className="w-full rounded-md border border-input bg-card p-3 text-sm text-foreground shadow-sm focus:ring-2 focus:ring-[#FF6A00] min-h-[80px]"
                   />
                 </div>

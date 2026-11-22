@@ -116,10 +116,10 @@ describe("Prompt 3B Frontend: Branding Settings Page", () => {
     const gstinInput = screen.getByDisplayValue("33AAAAA0000A1Z5");
     expect(gstinInput).toBeDefined();
 
-    // Check accountant advisory note exists
+    // Check business advisory note exists
     expect(
       screen.getAllByText(
-        /Please confirm your GSTIN, legal entity name, and tax registration details with your chartered accountant/i
+        /Please confirm your business legal name and registration details with your advisor before printing customer receipts/i
       ).length
     ).toBeGreaterThanOrEqual(1);
   });

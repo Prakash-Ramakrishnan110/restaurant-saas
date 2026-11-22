@@ -49,7 +49,7 @@ export const PublicOrderTrackerPage: React.FC = () => {
   const [foodRating, setFoodRating] = useState<number>(5);
   const [serviceRating, setServiceRating] = useState<number>(5);
   const [suggestionType, setSuggestionType] = useState<
-    "" | "TASTE" | "PORTION" | "SPEED" | "SERVICE" | "OTHER"
+    "" | "FOOD" | "SERVICE" | "CLEANLINESS" | "PRICE" | "OTHER"
   >("");
   const [feedbackComment, setFeedbackComment] = useState<string>("");
   const [feedbackSubmitting, setFeedbackSubmitting] = useState<boolean>(false);
@@ -148,7 +148,7 @@ export const PublicOrderTrackerPage: React.FC = () => {
         <button
           type="button"
           onClick={() => setLang((prev) => (prev === "en" ? "ta" : "en"))}
-          className="px-3.5 py-2 rounded-lg bg-white/15 hover:bg-white/25 text-white text-xs font-bold min-h-[44px]"
+          className="px-4 py-2 rounded-lg bg-white/15 hover:bg-white/25 text-white text-xs font-bold min-h-[56px] sm:min-h-[44px]"
         >
           {copy.langToggleLabel}
         </button>
@@ -204,7 +204,7 @@ export const PublicOrderTrackerPage: React.FC = () => {
                   <div className="text-xs uppercase tracking-wider text-white/80 font-semibold">
                     {copy.tokenNumber}
                   </div>
-                  <div className="text-4xl font-extrabold tracking-tight text-[#FF6A00] mt-1">
+                  <div className="mt-2 inline-flex items-center justify-center rounded-xl bg-[#FF6A00] text-[#0B1F3B] px-5 py-1.5 text-3xl font-extrabold tracking-tight">
                     #{order.token_number}
                   </div>
                 </div>
@@ -270,7 +270,7 @@ export const PublicOrderTrackerPage: React.FC = () => {
                           <Icon className="h-4 w-4" />
                         </div>
                         <span
-                          className={`text-[11px] leading-tight font-semibold ${
+                          className={`text-xs leading-tight font-semibold ${
                             done ? "text-foreground" : "text-muted-foreground"
                           }`}
                         >
@@ -298,10 +298,10 @@ export const PublicOrderTrackerPage: React.FC = () => {
                     />
                   )}
                   <div className="min-w-0">
-                    <div className="font-extrabold text-sm text-foreground truncate">
+                    <div className="font-extrabold text-sm text-foreground break-words">
                       {order.display_name || "ServeMyFood"}
                     </div>
-                    <div className="text-xs text-muted-foreground truncate">
+                    <div className="text-xs text-muted-foreground break-words">
                       {order.branch_name ? `${order.branch_name} • ` : ""}#{order.order_number}
                       {order.target_label ? ` • ${order.target_label}` : ""}
                     </div>
@@ -406,14 +406,14 @@ export const PublicOrderTrackerPage: React.FC = () => {
                       <span className="text-xs font-semibold">
                         {lang === "ta" ? "உணவு தரம்" : "Food rating"}
                       </span>
-                      <div className="flex gap-1">
+                      <div className="flex gap-1.5">
                         {[1, 2, 3, 4, 5].map((n) => (
                           <button
                             key={n}
                             type="button"
                             onClick={() => setFoodRating(n)}
                             aria-label={`Food rating ${n}`}
-                            className={`w-9 h-9 rounded-lg text-xs font-bold border ${
+                            className={`w-11 h-11 rounded-lg text-xs font-bold border ${
                               foodRating === n
                                 ? "bg-[#FF6A00] border-[#FF6A00] text-[#0B1F3B]"
                                 : "bg-background border-border text-foreground"
@@ -428,14 +428,14 @@ export const PublicOrderTrackerPage: React.FC = () => {
                       <span className="text-xs font-semibold">
                         {lang === "ta" ? "சேவை தரம்" : "Service rating"}
                       </span>
-                      <div className="flex gap-1">
+                      <div className="flex gap-1.5">
                         {[1, 2, 3, 4, 5].map((n) => (
                           <button
                             key={n}
                             type="button"
                             onClick={() => setServiceRating(n)}
                             aria-label={`Service rating ${n}`}
-                            className={`w-9 h-9 rounded-lg text-xs font-bold border ${
+                            className={`w-11 h-11 rounded-lg text-xs font-bold border ${
                               serviceRating === n
                                 ? "bg-[#FF6A00] border-[#FF6A00] text-[#0B1F3B]"
                                 : "bg-background border-border text-foreground"
@@ -456,14 +456,21 @@ export const PublicOrderTrackerPage: React.FC = () => {
                       <select
                         id="feedback-suggestion"
                         value={suggestionType}
-                        onChange={(e) => setSuggestionType(e.target.value as any)}
+                        onChange={(e) =>
+                          setSuggestionType(
+                            e.target.value as
+                              "" | "FOOD" | "SERVICE" | "CLEANLINESS" | "PRICE" | "OTHER"
+                          )
+                        }
                         className="w-full min-h-[42px] px-3 rounded-xl border border-input bg-background text-xs"
                       >
                         <option value="">{lang === "ta" ? "தேர்வு செய்க..." : "Select..."}</option>
-                        <option value="TASTE">{lang === "ta" ? "சுவை" : "Taste"}</option>
-                        <option value="PORTION">{lang === "ta" ? "அளவு" : "Portion"}</option>
-                        <option value="SPEED">{lang === "ta" ? "வேகம்" : "Speed"}</option>
+                        <option value="FOOD">{lang === "ta" ? "உணவு" : "Food"}</option>
                         <option value="SERVICE">{lang === "ta" ? "சேவை" : "Service"}</option>
+                        <option value="CLEANLINESS">
+                          {lang === "ta" ? "சுத்தம்" : "Cleanliness"}
+                        </option>
+                        <option value="PRICE">{lang === "ta" ? "விலை" : "Price"}</option>
                         <option value="OTHER">{lang === "ta" ? "மற்றவை" : "Other"}</option>
                       </select>
                     </div>

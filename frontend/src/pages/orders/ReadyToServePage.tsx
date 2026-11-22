@@ -115,7 +115,7 @@ export const ReadyToServePage: React.FC = () => {
               Ready to Serve
             </h1>
             {orderList.length > 0 && (
-              <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-300 dark:bg-emerald-950 dark:text-emerald-300 dark:border-emerald-800 animate-pulse">
+              <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-300 dark:bg-emerald-950 dark:text-emerald-300 dark:border-emerald-800">
                 {orderList.length} Ready
               </span>
             )}
@@ -268,7 +268,7 @@ export const ReadyToServePage: React.FC = () => {
                           {it.item_name}
                         </span>
                         {it.notes && (
-                          <span className="text-[11px] text-amber-600 dark:text-amber-400 italic">
+                          <span className="text-xs text-amber-800 dark:text-amber-300 italic">
                             ({it.notes})
                           </span>
                         )}

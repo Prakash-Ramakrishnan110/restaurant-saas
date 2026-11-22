@@ -156,6 +156,7 @@ export const ReceiveStockPage: React.FC = () => {
             Supplier (optional)
           </label>
           <select
+            aria-label="Supplier"
             value={supplierId}
             onChange={(e) => setSupplierId(e.target.value)}
             className="w-full px-3 py-2 text-sm rounded-lg border border-input bg-background min-h-[44px]"
@@ -173,6 +174,7 @@ export const ReceiveStockPage: React.FC = () => {
             Supplier Bill / Reference #
           </label>
           <input
+            aria-label="Supplier bill or reference number"
             value={invoiceNo}
             onChange={(e) => setInvoiceNo(e.target.value)}
             placeholder="e.g. SUP-2026-01"
@@ -182,6 +184,7 @@ export const ReceiveStockPage: React.FC = () => {
         <div>
           <label className="text-xs font-semibold text-muted-foreground block mb-1">Item *</label>
           <select
+            aria-label="Stock item"
             required
             value={selectedItemId}
             onChange={(e) => {
@@ -203,6 +206,7 @@ export const ReceiveStockPage: React.FC = () => {
             Quantity *
           </label>
           <input
+            aria-label="Quantity received"
             type="number"
             step="0.001"
             min="0.001"
@@ -215,6 +219,7 @@ export const ReceiveStockPage: React.FC = () => {
         <div>
           <label className="text-xs font-semibold text-muted-foreground block mb-1">Unit *</label>
           <input
+            aria-label="Measurement unit"
             required
             value={unitName}
             onChange={(e) => setUnitName(e.target.value)}
@@ -227,6 +232,7 @@ export const ReceiveStockPage: React.FC = () => {
             Unit Cost (₹)
           </label>
           <input
+            aria-label="Unit cost in rupees"
             type="number"
             step="0.01"
             min="0"
@@ -240,6 +246,7 @@ export const ReceiveStockPage: React.FC = () => {
             Expiry Date (optional)
           </label>
           <input
+            aria-label="Expiry date"
             type="date"
             value={expiryDate}
             onChange={(e) => setExpiryDate(e.target.value)}

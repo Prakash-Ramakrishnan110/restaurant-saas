@@ -85,6 +85,7 @@ class OrderViewSet(viewsets.ModelViewSet):
         "fire_mains": Permission.ORDER_CREATE,
         "approve": Permission.ORDER_CREATE,
         "reject": Permission.ORDER_CREATE,
+        "transition": Permission.ORDER_CREATE,
     }
 
     def get_queryset(self):
@@ -247,6 +248,33 @@ class OrderViewSet(viewsets.ModelViewSet):
         membership = self._check_qr_review_access(request, order)
         reason = str(request.data.get("reason", "")).strip()
         updated = reject_qr_order(order, reason=reason, user_membership=membership, request=request)
+        return Response(OrderSerializer(updated).data, status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=["post"], url_path="transition")
+    def transition(self, request: Request, pk: str | None = None) -> Response:
+        order = self.get_object()
+        membership = getattr(request, "membership", None)
+        next_status = str(request.data.get("status") or request.data.get("next_status") or "").strip()
+        reason = str(request.data.get("reason", "")).strip()
+        if not next_status:
+            return Response(
+                {
+                    "error": {
+                        "code": "MISSING_STATUS",
+                        "message": "Target status is required.",
+                        "details": {},
+                    }
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        if order.status == OrderStatus.READY and next_status == OrderStatus.COMPLETED:
+            transition_order_status(order, OrderStatus.SERVED, user_membership=membership)
+        updated = transition_order_status(
+            order,
+            next_status,
+            user_membership=membership,
+            reason=reason,
+        )
         return Response(OrderSerializer(updated).data, status=status.HTTP_200_OK)
 
 

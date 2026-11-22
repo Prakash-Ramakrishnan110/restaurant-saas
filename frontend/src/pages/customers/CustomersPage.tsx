@@ -356,6 +356,7 @@ export const CustomersPage: React.FC = () => {
                   Dietary Preference
                 </label>
                 <select
+                  aria-label="Dietary preference"
                   value={dietaryPreference}
                   onChange={(e) =>
                     setDietaryPreference(e.target.value as Customer["dietary_preference"])

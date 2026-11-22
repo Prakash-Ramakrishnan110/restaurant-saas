@@ -628,7 +628,7 @@ export const PublicQRPage: React.FC = () => {
           <button
             type="button"
             onClick={() => setLang((p) => (p === "en" ? "ta" : "en"))}
-            className="min-h-[44px] px-3.5 rounded-lg bg-white/15 text-white text-xs font-bold"
+            className="min-h-[56px] sm:min-h-[44px] px-4 rounded-lg bg-white/15 text-white text-xs font-bold"
           >
             {copy.langToggleLabel}
           </button>
@@ -675,9 +675,9 @@ export const PublicQRPage: React.FC = () => {
               <h1 className="font-extrabold text-base leading-tight truncate">
                 {menu.display_name}
               </h1>
-              <div className="flex items-center gap-2 mt-1 min-w-0">
+              <div className="flex flex-wrap items-center gap-2 mt-1 min-w-0">
                 <span
-                  className="inline-block px-2 py-0.5 rounded text-[11px] font-bold whitespace-nowrap shrink-0"
+                  className="inline-block px-2 py-0.5 rounded text-xs font-bold whitespace-nowrap shrink-0"
                   style={{ backgroundColor: brandTheme.bg, color: brandTheme.text }}
                 >
                   {formatTargetBadge(menu)}
@@ -692,7 +692,7 @@ export const PublicQRPage: React.FC = () => {
           <button
             type="button"
             onClick={() => setLang((p) => (p === "en" ? "ta" : "en"))}
-            className="min-h-[44px] px-3.5 rounded-lg bg-white/15 hover:bg-white/25 text-white text-xs font-bold shrink-0"
+            className="min-h-[56px] sm:min-h-[44px] px-4 rounded-lg bg-white/15 hover:bg-white/25 text-white text-xs font-bold shrink-0"
           >
             {copy.langToggleLabel}
           </button>
@@ -742,7 +742,7 @@ export const PublicQRPage: React.FC = () => {
                 [
                   ["CALL_WAITER", lang === "ta" ? "பணியாளரை அழை" : "Call waiter"],
                   ["WATER", lang === "ta" ? "தண்ணீர்" : "Water"],
-                  ["REQUEST_BILL", lang === "ta" ? "பில்" : "Request bill"],
+                  ["BILL", lang === "ta" ? "பில்" : "Request bill"],
                   ["CUTLERY", lang === "ta" ? "கரண்டி / முட்கரண்டி" : "Cutlery"],
                 ] as const
               ).map(([reqType, label]) => (
@@ -973,11 +973,13 @@ export const PublicQRPage: React.FC = () => {
                   key={val}
                   type="button"
                   onClick={() => setDietFilter(val)}
-                  className={`h-8 px-3 rounded-full text-xs font-bold whitespace-nowrap border ${
+                  className={[
+                    "min-h-[44px] px-3.5 rounded-full text-xs font-bold whitespace-nowrap border",
                     selected
-                      ? "bg-[#0B1F3B] text-white border-[#0B1F3B] dark:bg-[#FF6A00] dark:text-[#0B1F3B] dark:border-[#FF6A00]"
-                      : "bg-card text-foreground/80 border-border hover:text-foreground"
-                  }`}
+                      ? "bg-[#0B1F3B] text-white border-[#0B1F3B]"
+                      : "bg-card text-foreground/80 border-border hover:text-foreground",
+                    selected ? "dark:bg-[#FF6A00] dark:text-[#0B1F3B] dark:border-[#FF6A00]" : "",
+                  ].join(" ")}
                 >
                   {label}
                 </button>
@@ -1061,8 +1063,8 @@ export const PublicQRPage: React.FC = () => {
                         <div className="flex flex-wrap items-center gap-1.5">
                           <FoodTypeBadge foodType={item.food_type} lang={lang} />
                           {item.is_bestseller && (
-                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-100 text-amber-900 dark:bg-amber-950/60 dark:text-amber-200 text-[10px] font-bold">
-                              <Sparkles className="h-2.5 w-2.5" />
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-100 text-amber-900 dark:bg-amber-950/60 dark:text-amber-200 text-xs font-bold">
+                              <Sparkles className="h-3 w-3" />
                               {copy.bestseller}
                             </span>
                           )}
@@ -1094,7 +1096,7 @@ export const PublicQRPage: React.FC = () => {
                         )}
                         {!item.is_available ? (
                           <span
-                            className={`px-2.5 py-1.5 rounded-lg bg-muted text-muted-foreground text-[11px] font-bold whitespace-nowrap ${
+                            className={`px-2.5 py-1.5 rounded-lg bg-muted text-muted-foreground text-xs font-bold whitespace-nowrap ${
                               imgUrl ? "-mt-3 relative z-10 border border-border shadow-xs" : ""
                             }`}
                           >
@@ -1107,7 +1109,7 @@ export const PublicQRPage: React.FC = () => {
                               e.stopPropagation();
                               handleQuickAdd(item);
                             }}
-                            className={`h-9 min-w-[78px] px-3 rounded-lg font-bold text-xs shadow-sm flex items-center justify-center gap-1 whitespace-nowrap active:scale-95 transition-transform ${
+                            className={`min-h-[44px] min-w-[80px] px-3 rounded-lg font-bold text-xs shadow-sm flex items-center justify-center gap-1 whitespace-nowrap active:scale-95 transition-transform ${
                               imgUrl ? "-mt-3.5 relative z-10 ring-2 ring-card" : ""
                             }`}
                             style={{ backgroundColor: brandTheme.bg, color: brandTheme.text }}
@@ -1139,7 +1141,7 @@ export const PublicQRPage: React.FC = () => {
           <button
             type="button"
             onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-            className="min-h-[56px] flex flex-col items-center justify-center gap-0.5 text-[11px] font-semibold text-foreground"
+            className="min-h-[56px] flex flex-col items-center justify-center gap-0.5 text-xs font-semibold text-foreground"
           >
             <UtensilsCrossed className="h-5 w-5" />
             <span>{copy.navMenu}</span>
@@ -1150,7 +1152,7 @@ export const PublicQRPage: React.FC = () => {
               window.scrollTo({ top: 0, behavior: "smooth" });
               document.getElementById("guest-search-input")?.focus();
             }}
-            className="min-h-[56px] flex flex-col items-center justify-center gap-0.5 text-[11px] font-semibold text-foreground"
+            className="min-h-[56px] flex flex-col items-center justify-center gap-0.5 text-xs font-semibold text-foreground"
           >
             <Search className="h-5 w-5" />
             <span>{copy.navSearch}</span>
@@ -1232,21 +1234,21 @@ export const PublicQRPage: React.FC = () => {
 
             <div className="flex-1 overflow-y-auto p-4 space-y-5">
               {/* Ingredients & Allergen Note (Restaurant-entered with mandatory disclaimer) */}
-              {((sheetItem as any).ingredients_note || (sheetItem as any).allergen_note) && (
+              {(sheetItem.ingredients_note || sheetItem.allergen_note) && (
                 <div className="p-3 rounded-xl border border-amber-300 bg-amber-50/60 dark:bg-amber-950/30 dark:border-amber-800 space-y-1 text-xs">
-                  {(sheetItem as any).ingredients_note && (
+                  {sheetItem.ingredients_note && (
                     <div>
                       <span className="font-bold">Ingredients: </span>
-                      <span>{(sheetItem as any).ingredients_note}</span>
+                      <span>{sheetItem.ingredients_note}</span>
                     </div>
                   )}
-                  {(sheetItem as any).allergen_note && (
+                  {sheetItem.allergen_note && (
                     <div>
                       <span className="font-bold">Allergens: </span>
-                      <span>{(sheetItem as any).allergen_note}</span>
+                      <span>{sheetItem.allergen_note}</span>
                     </div>
                   )}
-                  <p className="text-[11px] text-amber-900 dark:text-amber-200 font-semibold pt-1">
+                  <p className="text-xs text-amber-900 dark:text-amber-200 font-semibold pt-1">
                     Information entered by the restaurant. Please confirm allergies with our staff.
                   </p>
                 </div>

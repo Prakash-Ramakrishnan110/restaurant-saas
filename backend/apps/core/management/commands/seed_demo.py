@@ -25,6 +25,7 @@ from apps.subscriptions.models import Plan, Subscription
 from apps.tenants.models import Branch, BusinessSettings, Tenant
 from apps.venues.constants import AreaType, SectionType, TableStatus
 from apps.venues.models import DiningTable, Section, ServiceArea, TableSession
+from apps.venues.services import apply_preset
 
 User = get_user_model()
 
@@ -86,8 +87,12 @@ class Command(BaseCommand):
         b, _ = Branch.objects.get_or_create(
             tenant=t,
             name="T. Nagar Flagship",
-            defaults={"is_active": True},
+            defaults={"is_active": True, "venue_profile": Branch.VenueProfile.CASUAL_DINING},
         )
+        if b.venue_profile != Branch.VenueProfile.CASUAL_DINING:
+            b.venue_profile = Branch.VenueProfile.CASUAL_DINING
+            b.save(update_fields=["venue_profile"])
+        apply_preset(b, profile=Branch.VenueProfile.CASUAL_DINING)
 
         # Areas & Tables
         sa_hall, _ = ServiceArea.objects.get_or_create(
@@ -363,8 +368,12 @@ class Command(BaseCommand):
         b, _ = Branch.objects.get_or_create(
             tenant=t,
             name="Express Kiosk",
-            defaults={"is_active": True},
+            defaults={"is_active": True, "venue_profile": Branch.VenueProfile.QUICK_SERVICE},
         )
+        if b.venue_profile != Branch.VenueProfile.QUICK_SERVICE:
+            b.venue_profile = Branch.VenueProfile.QUICK_SERVICE
+            b.save(update_fields=["venue_profile"])
+        apply_preset(b, profile=Branch.VenueProfile.QUICK_SERVICE)
 
         # Counter Cashier & Kitchen staff
         for email, full_name, role in [

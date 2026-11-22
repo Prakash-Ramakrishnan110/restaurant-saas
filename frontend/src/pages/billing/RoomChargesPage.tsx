@@ -80,8 +80,8 @@ export const RoomChargesPage: React.FC = () => {
             Front Desk Room Charges Folio
           </h1>
           <p className="text-sm text-muted-foreground">
-            Daily verified room charge invoices ready for Front Desk / PMS posting and night audit
-            (H-05).
+            Daily verified room charge invoices ready for Front Desk posting and daily
+            reconciliation.
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -96,7 +96,7 @@ export const RoomChargesPage: React.FC = () => {
             className="border-border hover:bg-muted"
           >
             <Printer className="w-4 h-4 mr-2" />
-            Print Night Audit
+            Print Daily Sheet
           </Button>
         </div>
       </div>
@@ -133,24 +133,26 @@ export const RoomChargesPage: React.FC = () => {
       </div>
 
       {/* Filter and Search Bar */}
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 bg-muted/30 p-4 rounded-xl border border-border">
-        <div className="relative flex-1 sm:w-80">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-muted/30 p-4 rounded-xl border border-border">
+        <div className="relative w-full sm:w-80">
           <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
           <input
             type="text"
-            placeholder="Search room number, invoice # or guest..."
+            aria-label="Search room number, invoice, or guest"
+            placeholder="Search room, invoice # or guest..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-9 pr-3 py-1.5 text-sm bg-background border border-input rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF6A00]"
+            className="w-full min-h-[44px] pl-9 pr-3 py-2 text-sm bg-background border border-input rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF6A00]"
           />
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           {(["TODAY", "7D", "30D"] as const).map((r) => (
             <button
               key={r}
+              type="button"
               onClick={() => setDateRange(r)}
-              className={`px-3 py-1 text-xs font-semibold rounded-lg border transition-colors ${
+              className={`min-h-[44px] px-3 py-1.5 text-xs font-semibold rounded-lg border transition-colors ${
                 dateRange === r
                   ? "bg-[#0B1F3B] text-white border-[#0B1F3B] dark:bg-white dark:text-[#0B1F3B]"
                   : "bg-background text-muted-foreground border-border hover:bg-muted"
@@ -222,8 +224,7 @@ export const RoomChargesPage: React.FC = () => {
       </div>
 
       <div className="p-3 bg-muted/40 rounded-lg text-xs text-muted-foreground text-center">
-        DEMO RECEIPT - NOT A TAX INVOICE | All figures in integer paise without floating-point
-        rounding.
+        DEMO FOLIO SUMMARY | Server-verified rupee and paisa amounts with exact rounding.
       </div>
     </div>
   );

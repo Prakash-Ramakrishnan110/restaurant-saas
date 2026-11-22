@@ -244,7 +244,7 @@ export const KDSPage: React.FC = () => {
                 setSourceFilter("ALL");
                 setSearchQuery("");
               }}
-              className="h-8 px-2.5 rounded-lg text-xs font-semibold text-[#FF6A00] hover:bg-[#FF6A00]/10 transition-colors"
+              className="h-9 px-2.5 rounded-lg text-xs font-semibold text-[#C2410C] dark:text-[#FF6A00] hover:bg-[#FF6A00]/10 transition-colors"
             >
               Reset
             </button>

@@ -513,6 +513,7 @@ export const StockOverviewPage: React.FC = () => {
                 Reason
               </label>
               <select
+                aria-label="Stock adjustment reason"
                 value={quickReason}
                 onChange={(e) => setQuickReason(e.target.value)}
                 className="w-full px-3 py-2 text-sm rounded-xl border border-input bg-background min-h-[48px]"
@@ -553,6 +554,7 @@ export const StockOverviewPage: React.FC = () => {
           >
             <h2 className="text-lg font-bold text-foreground">Add Stock Item</h2>
             <input
+              aria-label="Stock item name in English"
               required
               placeholder="Item Name (English)"
               value={newName}
@@ -560,6 +562,7 @@ export const StockOverviewPage: React.FC = () => {
               className="w-full px-3 py-2 text-sm rounded-lg border border-input bg-background min-h-[44px]"
             />
             <input
+              aria-label="Stock item name in Tamil"
               placeholder="Item Name (Tamil / தமிழ்)"
               value={newNameTa}
               onChange={(e) => setNewNameTa(e.target.value)}
@@ -567,6 +570,7 @@ export const StockOverviewPage: React.FC = () => {
             />
             <div className="grid grid-cols-2 gap-2">
               <select
+                aria-label="Stock item type"
                 value={newType}
                 onChange={(e) => setNewType(e.target.value)}
                 className="px-3 py-2 text-sm rounded-lg border border-input bg-background min-h-[44px]"
@@ -578,6 +582,7 @@ export const StockOverviewPage: React.FC = () => {
                 <option value="SUPPLY">Supply</option>
               </select>
               <select
+                aria-label="Base measurement unit"
                 value={newBaseUnit}
                 onChange={(e) => setNewBaseUnit(e.target.value)}
                 className="px-3 py-2 text-sm rounded-lg border border-input bg-background min-h-[44px]"
@@ -588,6 +593,7 @@ export const StockOverviewPage: React.FC = () => {
               </select>
             </div>
             <select
+              aria-label="Stock item category"
               value={newCategory}
               onChange={(e) => setNewCategory(e.target.value)}
               className="w-full px-3 py-2 text-sm rounded-lg border border-input bg-background min-h-[44px]"

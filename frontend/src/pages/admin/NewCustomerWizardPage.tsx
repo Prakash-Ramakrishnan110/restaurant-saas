@@ -278,14 +278,15 @@ export const NewCustomerWizardPage: React.FC = () => {
       {/* Header & Quick Actions matching Tenants Directory */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-4 border-b border-border">
         <div>
-          <span className="text-xs font-bold text-[#FF6A00] uppercase tracking-wider">
-            Tenants Management
+          <span className="text-xs font-bold text-[#0B1F3B] dark:text-[#FF6A00] uppercase tracking-wider">
+            Customers Management
           </span>
           <h1 className="text-2xl sm:text-3xl font-extrabold font-heading text-foreground mt-0.5 flex items-center gap-2">
-            <PlusCircle className="h-7 w-7 text-[#FF6A00]" /> New Customer Provisioning
+            <PlusCircle className="h-7 w-7 text-[#C2410C] dark:text-[#FF6A00]" /> New Customer
+            Provisioning
           </h1>
           <p className="text-xs text-muted-foreground mt-1">
-            Provision a new restaurant tenant, initial outlets, venue presets, and administrator
+            Provision a new restaurant account, initial outlets, venue workflow, and administrator
             credentials.
           </p>
         </div>
@@ -328,11 +329,11 @@ export const NewCustomerWizardPage: React.FC = () => {
           <div className="p-4 border-b border-border bg-muted/20 space-y-3">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
               <div>
-                <span className="text-[11px] font-bold text-[#FF6A00] uppercase tracking-wider">
+                <span className="text-xs font-bold text-[#0B1F3B] dark:text-[#FF6A00] uppercase tracking-wider">
                   Step {currentStep} of 5
                 </span>
                 <h2 className="text-sm font-bold text-foreground uppercase tracking-wider mt-0.5">
-                  {currentStep === 1 && "Business Information & Operational Preset"}
+                  {currentStep === 1 && "Business Information & Venue Profile"}
                   {currentStep === 2 && "Owner Account & Authentication"}
                   {currentStep === 3 && "Subscription Plan & Trial Duration"}
                   {currentStep === 4 && "Branches & Outlets Configuration"}
@@ -417,13 +418,13 @@ export const NewCustomerWizardPage: React.FC = () => {
               </div>
             </div>
 
-            {/* Operating Model & Workflow Preset */}
+            {/* Operating Model & Venue Profile */}
             <div>
               <div className="flex items-center justify-between mb-2">
                 <label className="block text-xs font-bold text-foreground">
-                  Operating Model &amp; Workflow Preset *
+                  Operating Model &amp; Venue Profile *
                 </label>
-                <span className="text-[11px] text-muted-foreground">
+                <span className="text-xs text-muted-foreground">
                   Shapes table layout, POS tickets, and kitchen routing
                 </span>
               </div>
@@ -454,27 +455,25 @@ export const NewCustomerWizardPage: React.FC = () => {
                         <div className="flex items-center justify-between gap-2">
                           <div className="flex items-center gap-2">
                             <Icon
-                              className={`h-4 w-4 ${isSelected ? "text-[#FF6A00]" : "text-muted-foreground"}`}
+                              className={`h-4 w-4 ${isSelected ? "text-[#C2410C] dark:text-[#FF6A00]" : "text-muted-foreground"}`}
                             />
                             <span className="text-xs font-black text-foreground">{bt.label}</span>
                           </div>
                           <span
-                            className={`inline-block px-2 py-0.5 rounded-md text-[10px] font-bold border ${getBusinessTypeColor(
+                            className={`inline-block px-2 py-0.5 rounded-md text-xs font-bold border ${getBusinessTypeColor(
                               bt.id
                             )}`}
                           >
                             {bt.pill}
                           </span>
                         </div>
-                        <p className="text-[11px] text-muted-foreground leading-relaxed">
-                          {bt.desc}
-                        </p>
+                        <p className="text-xs text-muted-foreground leading-relaxed">{bt.desc}</p>
                       </div>
 
-                      <div className="mt-3 pt-2 border-t border-border/50 flex items-center justify-between text-[11px]">
-                        <span className="text-muted-foreground font-mono">preset: {bt.id}</span>
+                      <div className="mt-3 pt-2 border-t border-border/50 flex items-center justify-between text-xs">
+                        <span className="text-muted-foreground font-mono">model: {bt.id}</span>
                         {isSelected && (
-                          <span className="text-[#FF6A00] font-bold flex items-center gap-1">
+                          <span className="text-[#0B1F3B] dark:text-[#FF6A00] font-bold flex items-center gap-1">
                             <Check className="h-3.5 w-3.5" /> Selected
                           </span>
                         )}

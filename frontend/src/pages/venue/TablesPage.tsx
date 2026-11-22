@@ -51,7 +51,7 @@ export interface DiningTableItem {
   table_type: string;
   is_combinable: boolean;
   is_active: boolean;
-  status: "AVAILABLE" | "OCCUPIED" | "RESERVED" | "BILLING" | "DIRTY";
+  status: "AVAILABLE" | "OCCUPIED" | "RESERVED" | "CLEANING" | "BLOCKED";
   section: {
     id: string;
     name: string;
@@ -306,16 +306,16 @@ export const TablesPage: React.FC = () => {
     AVAILABLE: "bg-emerald-500/10 text-emerald-600 border-emerald-500/30",
     OCCUPIED: "bg-blue-500/10 text-blue-600 border-blue-500/30",
     RESERVED: "bg-purple-500/10 text-purple-600 border-purple-500/30",
-    BILLING: "bg-amber-500/10 text-amber-700 border-amber-500/30",
-    DIRTY: "bg-slate-500/10 text-slate-600 border-slate-500/30",
+    CLEANING: "bg-amber-500/10 text-amber-700 border-amber-500/30",
+    BLOCKED: "bg-slate-500/10 text-slate-600 border-slate-500/30",
   };
 
   const allowedTransitions: Record<string, string[]> = {
-    AVAILABLE: ["OCCUPIED", "RESERVED"],
-    OCCUPIED: ["BILLING", "AVAILABLE"],
-    BILLING: ["DIRTY", "AVAILABLE"],
-    DIRTY: ["AVAILABLE"],
+    AVAILABLE: ["OCCUPIED", "RESERVED", "BLOCKED"],
+    OCCUPIED: ["CLEANING", "AVAILABLE"],
+    CLEANING: ["AVAILABLE"],
     RESERVED: ["OCCUPIED", "AVAILABLE"],
+    BLOCKED: ["AVAILABLE"],
   };
 
   const activeCount = tables.filter((t) => t.is_active).length;
@@ -452,6 +452,7 @@ export const TablesPage: React.FC = () => {
           <div>
             <label className="font-semibold block mb-1 text-muted-foreground">Area</label>
             <select
+              aria-label="Filter tables by area"
               value={selectedAreaId}
               onChange={(e) => setSelectedAreaId(e.target.value)}
               className="w-full rounded-md border border-input bg-card p-2 min-h-[40px]"
@@ -468,6 +469,7 @@ export const TablesPage: React.FC = () => {
           <div>
             <label className="font-semibold block mb-1 text-muted-foreground">Section</label>
             <select
+              aria-label="Filter tables by section"
               value={selectedSectionId}
               onChange={(e) => setSelectedSectionId(e.target.value)}
               className="w-full rounded-md border border-input bg-card p-2 min-h-[40px]"
@@ -484,6 +486,7 @@ export const TablesPage: React.FC = () => {
           <div>
             <label className="font-semibold block mb-1 text-muted-foreground">Status</label>
             <select
+              aria-label="Filter tables by status"
               value={selectedStatus}
               onChange={(e) => setSelectedStatus(e.target.value)}
               className="w-full rounded-md border border-input bg-card p-2 min-h-[40px]"
@@ -492,8 +495,8 @@ export const TablesPage: React.FC = () => {
               <option value="AVAILABLE">Available</option>
               <option value="OCCUPIED">Occupied</option>
               <option value="RESERVED">Reserved</option>
-              <option value="BILLING">Billing</option>
-              <option value="DIRTY">Dirty</option>
+              <option value="CLEANING">Cleaning</option>
+              <option value="BLOCKED">Blocked</option>
             </select>
           </div>
 
@@ -502,6 +505,7 @@ export const TablesPage: React.FC = () => {
             <div className="relative">
               <Search className="w-4 h-4 text-muted-foreground absolute left-3 top-3" />
               <input
+                aria-label="Search tables"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder={t("tables.searchPlaceholder")}

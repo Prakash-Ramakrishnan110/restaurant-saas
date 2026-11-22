@@ -1458,6 +1458,7 @@ class Command(BaseCommand):
                 "Lucknowi Galouti Kebab",
                 "கலௌதி கபாப்",
                 "Mouth-melting minced lamb infused with 32 royal spices",
+                "32 அரச மசாலாக்களுடன் மென்மையாக சமைக்கப்பட்ட ஆட்டுக்கறி கபாப்",
                 59000,
                 FoodType.NON_VEG,
                 18,
@@ -1468,6 +1469,7 @@ class Command(BaseCommand):
                 "Shahi Awadhi Dum Biryani",
                 "அவதி தம் பிரியாணி",
                 "Aged basmati and tender meat cooked under sealed dough purdah",
+                "அசல் பாஸ்மதி அரிசி மற்றும் மென்மையான கறியுடன் தம் முறையில் சமைத்த பிரியாணி",
                 65000,
                 FoodType.NON_VEG,
                 22,
@@ -1478,6 +1480,7 @@ class Command(BaseCommand):
                 "Zaffrani Gosht Korma",
                 "ஜாப்ரானி கோஷ்ட் கோர்மா",
                 "Slow braised mutton in rich almond saffron gravy",
+                "பாதாம் மற்றும் குங்குமப்பூ குழம்பில் மெதுவாக சமைக்கப்பட்ட மட்டன் கோர்மா",
                 69000,
                 FoodType.NON_VEG,
                 20,
@@ -1488,26 +1491,31 @@ class Command(BaseCommand):
                 "Shahi Tukda Gold",
                 "ஷாஃபி துக்டா",
                 "Crispy fried brioche soaked in saffron rabri with edible gold foil",
+                "குங்குமப்பூ பாலேட்டில் ஊறவைக்கப்பட்ட மொறுமொறுப்பான இனிப்பு ரொட்டி",
                 29000,
                 FoodType.VEG,
                 10,
                 True,
             ),
         ]
-        for cat, name, name_ta, desc, price, food, prep, best in fine_dining_items:
-            m_itm, _ = MenuItem.objects.get_or_create(
+        for cat, name, name_ta, desc, desc_ta, price, food, prep, best in fine_dining_items:
+            m_itm, created = MenuItem.objects.get_or_create(
                 tenant=t7,
                 category=cat,
                 name=name,
                 defaults={
                     "name_ta": name_ta,
                     "description": desc,
+                    "description_ta": desc_ta,
                     "base_price_paise": price,
                     "food_type": food,
                     "prep_minutes": prep,
                     "is_bestseller": best,
                 },
             )
+            if not created and not m_itm.description_ta:
+                m_itm.description_ta = desc_ta
+                m_itm.save(update_fields=["description_ta"])
             _attach_image_if_missing(t7, m_itm, food)
 
     def _seed_orders(self, t1, b1, t3, b3):

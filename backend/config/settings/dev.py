@@ -31,6 +31,12 @@ REST_FRAMEWORK["DEFAULT_THROTTLE_RATES"] = {  # noqa: F405
     "public_order_track": "10000/minute",
 }
 
+PUBLIC_QR_ORDER_LIMITS = {  # noqa: F405
+    **PUBLIC_QR_ORDER_LIMITS,  # noqa: F405
+    "MAX_OPEN_QR_ORDERS_PER_SESSION": 15,
+    "MAX_QR_ORDERS_PER_10_MIN": 50,
+}
+
 DATABASES["default"]["CONN_MAX_AGE"] = 60  # noqa: F405
 
 PASSWORD_HASHERS = [

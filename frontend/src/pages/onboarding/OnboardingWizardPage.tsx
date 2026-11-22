@@ -581,12 +581,13 @@ export const OnboardingWizardPage: React.FC = () => {
                   {t("onboarding.timezone")}
                 </label>
                 <select
+                  aria-label="Timezone"
                   value={timezone}
                   onChange={(e) => setTimezone(e.target.value)}
                   className="w-full rounded-md border border-input bg-card px-3 py-2 text-sm text-foreground shadow-sm focus:ring-2 focus:ring-[#FF6A00] min-h-[44px]"
                 >
                   <option value="Asia/Kolkata">Asia/Kolkata (IST +5:30)</option>
-                  <option value="Asia/Dubai">Asia/Dubai (GST +4:00)</option>
+                  <option value="Asia/Dubai">Asia/Dubai (UTC+04:00)</option>
                   <option value="Asia/Singapore">Asia/Singapore (SGT +8:00)</option>
                   <option value="Europe/London">Europe/London (GMT/BST)</option>
                   <option value="UTC">UTC</option>
@@ -598,6 +599,7 @@ export const OnboardingWizardPage: React.FC = () => {
                   {t("onboarding.docLanguage")}
                 </label>
                 <select
+                  aria-label="Document language"
                   value={docLanguage}
                   onChange={(e) => setDocLanguage(e.target.value as "EN" | "EN_TA")}
                   className="w-full rounded-md border border-input bg-card px-3 py-2 text-sm text-foreground shadow-sm focus:ring-2 focus:ring-[#FF6A00] min-h-[44px]"
@@ -1031,6 +1033,7 @@ export const OnboardingWizardPage: React.FC = () => {
                     {t("onboarding.inviteRole")}
                   </label>
                   <select
+                    aria-label="Staff role"
                     value={staffRole}
                     onChange={(e) => setStaffRole(e.target.value)}
                     className="w-full rounded-md border border-input bg-card px-3 py-2 text-sm text-foreground shadow-sm focus:ring-2 focus:ring-[#FF6A00] min-h-[44px]"

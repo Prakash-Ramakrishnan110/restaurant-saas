@@ -308,6 +308,7 @@ export const StaffPage: React.FC = () => {
               {t("staff.filterRole")}
             </label>
             <select
+              aria-label="Filter staff by role"
               value={roleFilter}
               onChange={(e) => setRoleFilter(e.target.value)}
               className="w-full rounded-md border border-input bg-card p-2 min-h-[40px]"
@@ -326,6 +327,7 @@ export const StaffPage: React.FC = () => {
               {t("staff.filterActive")}
             </label>
             <select
+              aria-label="Filter staff by status"
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
               className="w-full rounded-md border border-input bg-card p-2 min-h-[40px]"
@@ -341,6 +343,7 @@ export const StaffPage: React.FC = () => {
               {t("staff.filterBranch")}
             </label>
             <select
+              aria-label="Filter staff by branch"
               value={branchFilter}
               onChange={(e) => setBranchFilter(e.target.value)}
               className="w-full rounded-md border border-input bg-card p-2 min-h-[40px]"
@@ -425,7 +428,7 @@ export const StaffPage: React.FC = () => {
                   </td>
                   <td className="p-3.5">
                     <span
-                      className={`px-2 py-0.5 text-[10px] font-bold rounded-full border ${
+                      className={`px-2 py-0.5 text-xs font-bold rounded-full border ${
                         staff.is_active
                           ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/30"
                           : "bg-muted text-muted-foreground border-border"
@@ -462,6 +465,8 @@ export const StaffPage: React.FC = () => {
                           size="sm"
                           onClick={() => handleOpenEdit(staff)}
                           className="h-8 px-2"
+                          aria-label={`Edit ${staff.user.full_name}`}
+                          title={`Edit ${staff.user.full_name}`}
                         >
                           <Edit2 className="w-3.5 h-3.5" />
                         </Button>
@@ -469,7 +474,8 @@ export const StaffPage: React.FC = () => {
                           variant="ghost"
                           size="sm"
                           onClick={() => setDeactivateTarget(staff)}
-                          className="h-8 px-2 text-amber-600 hover:bg-amber-50"
+                          className="h-8 px-2 text-amber-700 hover:bg-amber-50"
+                          aria-label={`${staff.is_active ? "Deactivate" : "Activate"} ${staff.user.full_name}`}
                           title={staff.is_active ? "Deactivate staff" : "Activate staff"}
                         >
                           <Power className="w-3.5 h-3.5" />
@@ -480,6 +486,7 @@ export const StaffPage: React.FC = () => {
                             size="sm"
                             onClick={() => setDeleteTarget(staff)}
                             className="h-8 px-2 text-destructive hover:bg-destructive/10"
+                            aria-label={`Delete ${staff.user.full_name}`}
                             title="Delete staff member"
                           >
                             <Trash2 className="w-3.5 h-3.5" />

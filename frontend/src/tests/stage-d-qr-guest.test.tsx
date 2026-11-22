@@ -56,7 +56,7 @@ describe("Stage D: QR Guest Features & Feedback Inbox", () => {
             food_rating: 5,
             service_rating: 4,
             comment: "Great biryani!",
-            suggestion_type: "TASTE",
+            suggestion_type: "FOOD",
             is_hidden: false,
             is_resolved: false,
             owner_note: "",

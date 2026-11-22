@@ -289,6 +289,7 @@ export const StaffApp: React.FC = () => {
               <Route path="/change-password" element={<ChangePasswordPage />} />
               <Route path="/suspended" element={<SuspendedPage />} />
               <Route path="/403" element={<ForbiddenPage />} />
+              <Route path="/forbidden" element={<ForbiddenPage />} />
               <Route path="/q/:token" element={<PublicQRPage />} />
               <Route path="/q/:token/o/:trackingToken" element={<PublicOrderTrackerPage />} />
 
@@ -312,7 +313,7 @@ export const StaffApp: React.FC = () => {
               <Route
                 path="/pos"
                 element={
-                  <ProtectedRoute>
+                  <ProtectedRoute requiredPermission="order.create">
                     <FloorPOSPage />
                   </ProtectedRoute>
                 }
@@ -320,7 +321,7 @@ export const StaffApp: React.FC = () => {
               <Route
                 path="/orders/floor"
                 element={
-                  <ProtectedRoute>
+                  <ProtectedRoute requiredPermission="order.create">
                     <FloorPOSPage />
                   </ProtectedRoute>
                 }
@@ -328,7 +329,7 @@ export const StaffApp: React.FC = () => {
               <Route
                 path="/orders"
                 element={
-                  <ProtectedRoute>
+                  <ProtectedRoute requiredPermission="order.create">
                     <LiveOrdersPage />
                   </ProtectedRoute>
                 }
@@ -336,7 +337,7 @@ export const StaffApp: React.FC = () => {
               <Route
                 path="/orders/live"
                 element={
-                  <ProtectedRoute>
+                  <ProtectedRoute requiredPermission="order.create">
                     <LiveOrdersPage />
                   </ProtectedRoute>
                 }
@@ -344,7 +345,7 @@ export const StaffApp: React.FC = () => {
               <Route
                 path="/orders/ready"
                 element={
-                  <ProtectedRoute>
+                  <ProtectedRoute requiredPermission="order.create">
                     <ReadyToServePage />
                   </ProtectedRoute>
                 }
@@ -352,7 +353,7 @@ export const StaffApp: React.FC = () => {
               <Route
                 path="/serve"
                 element={
-                  <ProtectedRoute>
+                  <ProtectedRoute requiredPermission="order.create">
                     <ReadyToServePage />
                   </ProtectedRoute>
                 }
@@ -360,7 +361,7 @@ export const StaffApp: React.FC = () => {
               <Route
                 path="/room-service"
                 element={
-                  <ProtectedRoute>
+                  <ProtectedRoute requiredPermission="order.create">
                     <RoomServicePage />
                   </ProtectedRoute>
                 }
@@ -368,7 +369,7 @@ export const StaffApp: React.FC = () => {
               <Route
                 path="/takeaway"
                 element={
-                  <ProtectedRoute>
+                  <ProtectedRoute requiredPermission="order.create">
                     <TakeawayPage />
                   </ProtectedRoute>
                 }
@@ -376,7 +377,7 @@ export const StaffApp: React.FC = () => {
               <Route
                 path="/kds"
                 element={
-                  <ProtectedRoute>
+                  <ProtectedRoute requiredPermission="menu.availability">
                     <KDSPage />
                   </ProtectedRoute>
                 }
@@ -384,7 +385,7 @@ export const StaffApp: React.FC = () => {
               <Route
                 path="/orders/kds"
                 element={
-                  <ProtectedRoute>
+                  <ProtectedRoute requiredPermission="menu.availability">
                     <KDSPage />
                   </ProtectedRoute>
                 }
@@ -442,7 +443,7 @@ export const StaffApp: React.FC = () => {
               <Route
                 path="/reports/sales"
                 element={
-                  <ProtectedRoute>
+                  <ProtectedRoute requiredPermission="report.view">
                     <SalesReportsPage />
                   </ProtectedRoute>
                 }
@@ -450,7 +451,7 @@ export const StaffApp: React.FC = () => {
               <Route
                 path="/reports/items"
                 element={
-                  <ProtectedRoute>
+                  <ProtectedRoute requiredPermission="report.view">
                     <ItemReportsPage />
                   </ProtectedRoute>
                 }
@@ -458,7 +459,7 @@ export const StaffApp: React.FC = () => {
               <Route
                 path="/reports/payments"
                 element={
-                  <ProtectedRoute>
+                  <ProtectedRoute requiredPermission="report.view">
                     <PaymentReportsPage />
                   </ProtectedRoute>
                 }
@@ -466,7 +467,7 @@ export const StaffApp: React.FC = () => {
               <Route
                 path="/reports/exceptions"
                 element={
-                  <ProtectedRoute>
+                  <ProtectedRoute requiredPermission="report.view">
                     <ExceptionsReportPage />
                   </ProtectedRoute>
                 }
@@ -474,7 +475,7 @@ export const StaffApp: React.FC = () => {
               <Route
                 path="/reports/staff"
                 element={
-                  <ProtectedRoute>
+                  <ProtectedRoute requiredPermission="report.view">
                     <StaffReportPage />
                   </ProtectedRoute>
                 }
@@ -482,7 +483,7 @@ export const StaffApp: React.FC = () => {
               <Route
                 path="/reports/outlets"
                 element={
-                  <ProtectedRoute>
+                  <ProtectedRoute requiredPermission="report.view">
                     <OutletComparisonPage />
                   </ProtectedRoute>
                 }
@@ -490,7 +491,7 @@ export const StaffApp: React.FC = () => {
               <Route
                 path="/inventory"
                 element={
-                  <ProtectedRoute>
+                  <ProtectedRoute requiredPermission="inventory.view">
                     <StockOverviewPage />
                   </ProtectedRoute>
                 }
@@ -498,7 +499,7 @@ export const StaffApp: React.FC = () => {
               <Route
                 path="/inventory/recipes"
                 element={
-                  <ProtectedRoute>
+                  <ProtectedRoute requiredPermission="inventory.manage">
                     <RecipesPage />
                   </ProtectedRoute>
                 }
@@ -506,7 +507,7 @@ export const StaffApp: React.FC = () => {
               <Route
                 path="/inventory/purchases"
                 element={
-                  <ProtectedRoute>
+                  <ProtectedRoute requiredPermission="inventory.manage">
                     <SuppliersPurchasesPage />
                   </ProtectedRoute>
                 }
@@ -514,7 +515,7 @@ export const StaffApp: React.FC = () => {
               <Route
                 path="/inventory/wastage"
                 element={
-                  <ProtectedRoute>
+                  <ProtectedRoute requiredPermission="inventory.waste">
                     <WastagePage />
                   </ProtectedRoute>
                 }
@@ -522,7 +523,7 @@ export const StaffApp: React.FC = () => {
               <Route
                 path="/inventory/reports"
                 element={
-                  <ProtectedRoute>
+                  <ProtectedRoute requiredPermission="inventory.view">
                     <InventoryReportsPage />
                   </ProtectedRoute>
                 }
@@ -530,7 +531,7 @@ export const StaffApp: React.FC = () => {
               <Route
                 path="/inventory/receive"
                 element={
-                  <ProtectedRoute>
+                  <ProtectedRoute requiredPermission="inventory.receive">
                     <ReceiveStockPage />
                   </ProtectedRoute>
                 }
@@ -538,7 +539,7 @@ export const StaffApp: React.FC = () => {
               <Route
                 path="/inventory/counts"
                 element={
-                  <ProtectedRoute>
+                  <ProtectedRoute requiredPermission="inventory.count">
                     <StockCountsPage />
                   </ProtectedRoute>
                 }
@@ -546,7 +547,7 @@ export const StaffApp: React.FC = () => {
               <Route
                 path="/inventory/settings"
                 element={
-                  <ProtectedRoute>
+                  <ProtectedRoute requiredPermission="inventory.manage">
                     <InventorySettingsPage />
                   </ProtectedRoute>
                 }
@@ -554,7 +555,7 @@ export const StaffApp: React.FC = () => {
               <Route
                 path="/activity"
                 element={
-                  <ProtectedRoute>
+                  <ProtectedRoute requiredPermission="audit.view">
                     <ActivityLogPage />
                   </ProtectedRoute>
                 }
@@ -562,7 +563,7 @@ export const StaffApp: React.FC = () => {
               <Route
                 path="/menu/options"
                 element={
-                  <ProtectedRoute>
+                  <ProtectedRoute requiredPermission="menu.manage">
                     <MenuOptionsPage />
                   </ProtectedRoute>
                 }
@@ -570,7 +571,7 @@ export const StaffApp: React.FC = () => {
               <Route
                 path="/settings/sound"
                 element={
-                  <ProtectedRoute>
+                  <ProtectedRoute requiredPermission="business.view">
                     <SoundSettingsPage />
                   </ProtectedRoute>
                 }
@@ -578,7 +579,7 @@ export const StaffApp: React.FC = () => {
               <Route
                 path="/settings/devices"
                 element={
-                  <ProtectedRoute>
+                  <ProtectedRoute requiredPermission="business.view">
                     <DeviceSettingsPage />
                   </ProtectedRoute>
                 }
@@ -682,7 +683,7 @@ export const StaffApp: React.FC = () => {
               <Route
                 path="/onboarding"
                 element={
-                  <ProtectedRoute>
+                  <ProtectedRoute requiredPermission="business.manage">
                     <OnboardingWizardPage />
                   </ProtectedRoute>
                 }
@@ -690,7 +691,7 @@ export const StaffApp: React.FC = () => {
               <Route
                 path="/branches"
                 element={
-                  <ProtectedRoute>
+                  <ProtectedRoute requiredPermission="branch.view">
                     <BranchesPage />
                   </ProtectedRoute>
                 }
@@ -698,7 +699,7 @@ export const StaffApp: React.FC = () => {
               <Route
                 path="/venue"
                 element={
-                  <ProtectedRoute>
+                  <ProtectedRoute requiredPermission="area.view">
                     <VenueLayoutHubPage />
                   </ProtectedRoute>
                 }
@@ -706,7 +707,7 @@ export const StaffApp: React.FC = () => {
               <Route
                 path="/venue/layout"
                 element={
-                  <ProtectedRoute>
+                  <ProtectedRoute requiredPermission="area.view">
                     <VenueLayoutHubPage />
                   </ProtectedRoute>
                 }
@@ -714,7 +715,7 @@ export const StaffApp: React.FC = () => {
               <Route
                 path="/venue/branches"
                 element={
-                  <ProtectedRoute>
+                  <ProtectedRoute requiredPermission="branch.view">
                     <BranchesPage />
                   </ProtectedRoute>
                 }
@@ -722,7 +723,7 @@ export const StaffApp: React.FC = () => {
               <Route
                 path="/venue/areas"
                 element={
-                  <ProtectedRoute>
+                  <ProtectedRoute requiredPermission="area.view">
                     <AreasPage />
                   </ProtectedRoute>
                 }
@@ -730,7 +731,7 @@ export const StaffApp: React.FC = () => {
               <Route
                 path="/venue/tables"
                 element={
-                  <ProtectedRoute>
+                  <ProtectedRoute requiredPermission="table.manage">
                     <TablesPage />
                   </ProtectedRoute>
                 }
@@ -738,7 +739,7 @@ export const StaffApp: React.FC = () => {
               <Route
                 path="/venue/rooms"
                 element={
-                  <ProtectedRoute>
+                  <ProtectedRoute requiredPermission="table.manage">
                     <RoomsPage />
                   </ProtectedRoute>
                 }
@@ -746,7 +747,7 @@ export const StaffApp: React.FC = () => {
               <Route
                 path="/venue/counters"
                 element={
-                  <ProtectedRoute>
+                  <ProtectedRoute requiredPermission="table.manage">
                     <CountersPage />
                   </ProtectedRoute>
                 }
@@ -754,7 +755,7 @@ export const StaffApp: React.FC = () => {
               <Route
                 path="/venue/floor"
                 element={
-                  <ProtectedRoute>
+                  <ProtectedRoute requiredPermission="table.manage">
                     <FloorPlanPage />
                   </ProtectedRoute>
                 }
@@ -762,7 +763,7 @@ export const StaffApp: React.FC = () => {
               <Route
                 path="/venue/floor-plan"
                 element={
-                  <ProtectedRoute>
+                  <ProtectedRoute requiredPermission="table.manage">
                     <FloorPlanPage />
                   </ProtectedRoute>
                 }
@@ -770,7 +771,7 @@ export const StaffApp: React.FC = () => {
               <Route
                 path="/qr"
                 element={
-                  <ProtectedRoute>
+                  <ProtectedRoute requiredPermission="qr.view">
                     <BrandingSettingsPage initialTab="qr" />
                   </ProtectedRoute>
                 }
@@ -778,7 +779,7 @@ export const StaffApp: React.FC = () => {
               <Route
                 path="/staff"
                 element={
-                  <ProtectedRoute>
+                  <ProtectedRoute requiredPermission="staff.view">
                     <StaffPage />
                   </ProtectedRoute>
                 }
@@ -786,7 +787,7 @@ export const StaffApp: React.FC = () => {
               <Route
                 path="/customers"
                 element={
-                  <ProtectedRoute>
+                  <ProtectedRoute requiredPermission="business.view">
                     <CustomersPage />
                   </ProtectedRoute>
                 }
@@ -794,7 +795,7 @@ export const StaffApp: React.FC = () => {
               <Route
                 path="/customers/feedback"
                 element={
-                  <ProtectedRoute>
+                  <ProtectedRoute requiredPermission="business.view">
                     <FeedbackPage />
                   </ProtectedRoute>
                 }
@@ -802,7 +803,7 @@ export const StaffApp: React.FC = () => {
               <Route
                 path="/team/roles"
                 element={
-                  <ProtectedRoute>
+                  <ProtectedRoute requiredPermission="staff.view">
                     <RolesGuidePage />
                   </ProtectedRoute>
                 }
@@ -810,7 +811,7 @@ export const StaffApp: React.FC = () => {
               <Route
                 path="/menu"
                 element={
-                  <ProtectedRoute>
+                  <ProtectedRoute requiredPermission="menu.view">
                     <MenuPage />
                   </ProtectedRoute>
                 }
@@ -818,7 +819,7 @@ export const StaffApp: React.FC = () => {
               <Route
                 path="/menu/translations"
                 element={
-                  <ProtectedRoute>
+                  <ProtectedRoute requiredPermission="menu.manage">
                     <MenuTranslationsPage />
                   </ProtectedRoute>
                 }
@@ -826,7 +827,7 @@ export const StaffApp: React.FC = () => {
               <Route
                 path="/menu/availability"
                 element={
-                  <ProtectedRoute>
+                  <ProtectedRoute requiredPermission="menu.availability">
                     <MenuAvailabilityPage />
                   </ProtectedRoute>
                 }
@@ -834,7 +835,7 @@ export const StaffApp: React.FC = () => {
               <Route
                 path="/settings/venue"
                 element={
-                  <ProtectedRoute>
+                  <ProtectedRoute requiredPermission="business.view">
                     <VenueSettingsPage />
                   </ProtectedRoute>
                 }
@@ -842,7 +843,7 @@ export const StaffApp: React.FC = () => {
               <Route
                 path="/settings/branding"
                 element={
-                  <ProtectedRoute>
+                  <ProtectedRoute requiredPermission="business.manage">
                     <BrandingSettingsPage />
                   </ProtectedRoute>
                 }
@@ -858,7 +859,7 @@ export const StaffApp: React.FC = () => {
               <Route
                 path="/settings/plan"
                 element={
-                  <ProtectedRoute>
+                  <ProtectedRoute requiredPermission="business.manage">
                     <PlanBillingPage />
                   </ProtectedRoute>
                 }

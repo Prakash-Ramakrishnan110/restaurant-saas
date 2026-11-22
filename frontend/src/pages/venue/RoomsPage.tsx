@@ -26,7 +26,7 @@ interface RoomTable {
   label: string;
   table_type: string;
   capacity: number;
-  status: "AVAILABLE" | "OCCUPIED" | "RESERVED" | "BLOCKED" | "CLEANING" | "MAINTENANCE";
+  status: "AVAILABLE" | "OCCUPIED" | "RESERVED" | "BLOCKED" | "CLEANING";
   section: string;
   section_name?: string;
 }
@@ -175,7 +175,7 @@ export const RoomsPage: React.FC = () => {
             Hotel Rooms & Suites
           </h1>
           <p className="text-sm text-muted-foreground">
-            Manage room occupancy, housekeeping turnaround, and room-service ordering (H-03, H-05).
+            Manage room occupancy, housekeeping turnaround, and room-service ordering.
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -240,33 +240,33 @@ export const RoomsPage: React.FC = () => {
             {stats.occupied}
           </div>
         </div>
-        <div className="p-4 rounded-xl border border-amber-200 dark:border-amber-900 bg-amber-500/10">
-          <span className="text-xs font-semibold text-amber-700 dark:text-amber-400 uppercase">
+        <div className="p-4 rounded-xl border border-border bg-muted/40">
+          <span className="text-xs font-semibold text-foreground uppercase">
             Housekeeping / Other
           </span>
-          <div className="text-2xl font-bold text-amber-700 dark:text-amber-400 mt-1">
-            {stats.other}
-          </div>
+          <div className="text-2xl font-bold text-foreground mt-1">{stats.other}</div>
         </div>
       </div>
 
       {/* Filters Bar */}
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 bg-muted/30 p-4 rounded-xl border border-border">
-        <div className="flex items-center gap-3 w-full sm:w-auto">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-muted/30 p-4 rounded-xl border border-border">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full sm:w-auto">
           <div className="relative flex-1 sm:w-64">
             <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
             <input
               type="text"
+              aria-label="Search room number"
               placeholder="Search room number..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-9 pr-3 py-1.5 text-sm bg-background border border-input rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF6A00]"
+              className="w-full min-h-[44px] pl-9 pr-3 py-2 text-sm bg-background border border-input rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF6A00]"
             />
           </div>
           <select
+            aria-label="Filter rooms by floor or wing"
             value={selectedSection}
             onChange={(e) => setSelectedSection(e.target.value)}
-            className="px-3 py-1.5 text-sm bg-background border border-input rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF6A00]"
+            className="min-h-[44px] px-3 py-2 text-sm bg-background border border-input rounded-lg focus:outline-none focus:ring-2 focus:ring-[#FF6A00]"
           >
             <option value="ALL">All Floors / Wings</option>
             {sections.map((sec) => (
@@ -277,12 +277,13 @@ export const RoomsPage: React.FC = () => {
           </select>
         </div>
 
-        <div className="flex items-center gap-2 w-full sm:w-auto overflow-x-auto">
+        <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
           {["ALL", "AVAILABLE", "OCCUPIED", "CLEANING"].map((st) => (
             <button
               key={st}
+              type="button"
               onClick={() => setStatusFilter(st)}
-              className={`px-3 py-1 text-xs font-semibold rounded-lg border transition-colors ${
+              className={`min-h-[44px] px-3 py-1.5 text-xs font-semibold rounded-lg border transition-colors whitespace-nowrap ${
                 statusFilter === st
                   ? "bg-[#0B1F3B] text-white border-[#0B1F3B] dark:bg-white dark:text-[#0B1F3B]"
                   : "bg-background text-muted-foreground border-border hover:bg-muted"
@@ -367,30 +368,34 @@ export const RoomsPage: React.FC = () => {
                       </button>
                     )}
                     <button
+                      type="button"
                       onClick={() =>
                         handleUpdateStatus(
                           room.id,
                           room.status === "CLEANING" ? "AVAILABLE" : "CLEANING"
                         )
                       }
-                      className="px-2 py-1 text-xs font-medium rounded bg-muted hover:bg-muted/80 text-muted-foreground hover:text-foreground"
+                      aria-label={`Toggle housekeeping for ${room.label}`}
+                      className="min-h-[44px] min-w-[44px] px-2.5 py-1.5 text-xs font-medium rounded bg-muted hover:bg-muted/80 text-muted-foreground hover:text-foreground flex items-center justify-center"
                       title="Toggle Housekeeping"
                     >
-                      <Sparkles className="w-3.5 h-3.5" />
+                      <Sparkles className="w-4 h-4" />
                     </button>
                     <button
+                      type="button"
                       onClick={() => setDeleteTarget(room)}
-                      className="px-2 py-1 text-xs font-medium rounded bg-muted hover:bg-destructive/10 text-muted-foreground hover:text-destructive"
+                      aria-label={`Delete ${room.label}`}
+                      className="min-h-[44px] min-w-[44px] px-2.5 py-1.5 text-xs font-medium rounded bg-muted hover:bg-destructive/10 text-muted-foreground hover:text-destructive flex items-center justify-center"
                       title="Delete Room"
                     >
-                      <Trash2 className="w-3.5 h-3.5" />
+                      <Trash2 className="w-4 h-4" />
                     </button>
                   </div>
 
                   <Button
                     size="sm"
                     variant="outline"
-                    className="text-xs h-7 px-2 border-[#FF6A00]/40 text-[#FF6A00] hover:bg-[#FF6A00]/10"
+                    className="text-xs min-h-[44px] px-3 border-[#C2410C]/40 text-[#C2410C] dark:text-[#FF6A00] hover:bg-[#FF6A00]/10"
                     onClick={() => navigate(`/room-service?room=${encodeURIComponent(room.label)}`)}
                   >
                     <UtensilsCrossed className="w-3.5 h-3.5 mr-1" />
@@ -416,6 +421,7 @@ export const RoomsPage: React.FC = () => {
               </label>
               <input
                 type="text"
+                aria-label="Room number or label"
                 required
                 placeholder="e.g. Room 204 or Suite 401"
                 value={newRoomLabel}
@@ -429,6 +435,7 @@ export const RoomsPage: React.FC = () => {
                 Floor / Wing Section
               </label>
               <select
+                aria-label="Floor or wing section"
                 required
                 value={newRoomSection}
                 onChange={(e) => setNewRoomSection(e.target.value)}

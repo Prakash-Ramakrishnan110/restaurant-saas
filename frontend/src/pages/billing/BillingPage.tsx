@@ -44,8 +44,27 @@ export const BillingPage: React.FC = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { activeTenant } = useAuth();
+  const usesTables = React.useMemo(() => {
+    const tenant = activeTenant as
+      | (typeof activeTenant & {
+          uses_tables?: boolean;
+          business_type?: string;
+          venue_profile?: string;
+        })
+      | null;
+    if (!tenant) return true;
+    return !(
+      tenant.uses_tables === false ||
+      tenant.business_type === "TEA_SHOP" ||
+      tenant.business_type === "BAKERY" ||
+      tenant.business_type === "FOOD_COURT" ||
+      tenant.business_type === "FOOD_TRUCK_COURT" ||
+      tenant.business_type === "QUICK_SERVICE" ||
+      tenant.venue_profile === "QUICK_SERVICE"
+    );
+  }, [activeTenant]);
 
-  // Sessions and Active Selection
+  // Active Bills and Selection
   const [sessions, setSessions] = useState<TableSessionInfo[]>([]);
   const [billRequests, setBillRequests] = useState<ServiceRequest[]>([]);
   const prevBillReqIdsRef = React.useRef<Set<string> | null>(null);
@@ -126,7 +145,7 @@ export const BillingPage: React.FC = () => {
         (s) => s.status === "OPEN"
       );
       const pendingBillReqs = unwrapList<ServiceRequest>(reqRes.data).filter(
-        (r) => r.request_type === "REQUEST_BILL"
+        (r) => r.request_type === "BILL"
       );
       const nextReqIds = new Set(pendingBillReqs.map((r) => r.id));
       if (prevBillReqIdsRef.current !== null) {
@@ -149,7 +168,9 @@ export const BillingPage: React.FC = () => {
         loadSessionBill(targetId);
       }
     } catch {
-      setErrorMessage("Failed to load active dining sessions.");
+      setErrorMessage(
+        usesTables ? "Failed to load active tables." : "Failed to load counter queue."
+      );
     }
   };
 
@@ -183,7 +204,7 @@ export const BillingPage: React.FC = () => {
       const wholeRupees = Math.trunc(res.data.total_paise / 100);
       setAmountTendered(String(wholeRupees));
     } catch {
-      setErrorMessage("Could not calculate bill for this session.");
+      setErrorMessage("Could not load bill details.");
     }
   };
 
@@ -260,7 +281,9 @@ export const BillingPage: React.FC = () => {
             Billing & Settlement
           </h1>
           <p className="text-xs text-muted-foreground mt-0.5">
-            Table checkout, bill settlement, and thermal receipts.
+            {usesTables
+              ? "Table checkout, bill settlement, and thermal receipts."
+              : "Counter checkout, bill settlement, and thermal receipts."}
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -270,7 +293,7 @@ export const BillingPage: React.FC = () => {
             className="text-xs"
             onClick={() => navigate("/orders/floor")}
           >
-            Floor POS
+            {usesTables ? "Floor POS" : "Counter Orders"}
           </Button>
           <Button
             variant="outline"
@@ -320,8 +343,8 @@ export const BillingPage: React.FC = () => {
                           </span>
                         )}
                       </div>
-                      <p className="text-[11px] text-muted-foreground mt-0.5">
-                        {ord.table_number ? `Table ${ord.table_number}` : "Counter"} •{" "}
+                      <p className="text-xs text-muted-foreground mt-0.5">
+                        {usesTables && ord.table_number ? `Table ${ord.table_number}` : "Counter"} •{" "}
                         {ord.order_number}
                       </p>
                     </div>
@@ -335,7 +358,7 @@ export const BillingPage: React.FC = () => {
                         key={m}
                         type="button"
                         onClick={() => setOrderPaymentMethods((prev) => ({ ...prev, [ord.id]: m }))}
-                        className={`flex-1 py-1.5 rounded text-[11px] font-semibold border transition-colors ${
+                        className={`flex-1 min-h-[44px] py-1.5 rounded text-xs font-semibold border transition-colors ${
                           method === m
                             ? "bg-[#0B1F3B] text-white border-[#0B1F3B]"
                             : "bg-card text-foreground border-border"
@@ -349,7 +372,7 @@ export const BillingPage: React.FC = () => {
                     size="sm"
                     disabled={settlingOrderId === ord.id}
                     onClick={() => handleSettleAwaitingOrder(ord)}
-                    className="w-full min-h-[40px] bg-[#FF6A00] hover:bg-[#E55F00] text-[#0B1F3B] font-bold text-xs"
+                    className="w-full min-h-[48px] bg-[#FF6A00] hover:bg-[#E55F00] text-[#0B1F3B] font-bold text-xs"
                   >
                     {settlingOrderId === ord.id ? "Processing..." : "Mark Paid & Send to Kitchen"}
                   </Button>
@@ -362,13 +385,20 @@ export const BillingPage: React.FC = () => {
 
       {/* Main Grid: 2 Columns */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        {/* Left Column: Active Dining Sessions (5 cols) */}
+        {/* Left Column: Open Bills Queue (5 cols) */}
         <div className="lg:col-span-5 space-y-3">
           <div className="flex items-center justify-between">
             <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
-              Active Dining Sessions ({sessions.length})
+              {usesTables
+                ? `Active Tables (${sessions.length})`
+                : `Open Counter Bills (${sessions.length})`}
             </span>
-            <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={fetchSessions}>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="min-h-[36px] text-xs"
+              onClick={fetchSessions}
+            >
               Refresh
             </Button>
           </div>
@@ -377,9 +407,13 @@ export const BillingPage: React.FC = () => {
             {sessions.length === 0 ? (
               <div className="p-8 text-center border border-dashed border-border rounded-xl bg-card/40 text-muted-foreground">
                 <Users className="h-8 w-8 mx-auto mb-2 text-muted-foreground/40" />
-                <p className="text-xs font-semibold">No active dining sessions.</p>
-                <p className="text-[11px] text-muted-foreground/70 mt-1">
-                  Open a table session in Floor POS to generate bills.
+                <p className="text-xs font-semibold">
+                  {usesTables ? "No open tables awaiting billing." : "No open counter bills."}
+                </p>
+                <p className="text-xs text-muted-foreground/80 mt-1">
+                  {usesTables
+                    ? "Seat guests and place orders in Floor POS to generate bills."
+                    : "Place orders in Counter Orders to settle bills here."}
                 </p>
               </div>
             ) : (
@@ -398,29 +432,31 @@ export const BillingPage: React.FC = () => {
                     <div className="space-y-1">
                       <div className="flex items-center gap-2">
                         <span className="font-extrabold text-sm text-foreground">
-                          {sess.table_label
+                          {usesTables && sess.table_label
                             ? `Table ${sess.table_label}`
-                            : typeof sess.table === "object" && sess.table?.label
+                            : usesTables && typeof sess.table === "object" && sess.table?.label
                               ? `Table ${sess.table.label}`
                               : "Direct Counter"}
                         </span>
-                        <Badge variant="outline" className="text-[10px] py-0 px-1.5 font-mono">
+                        <Badge variant="outline" className="text-xs py-0 px-1.5 font-mono">
                           {sess.session_code}
                         </Badge>
                         {sess.table_label &&
                           billRequests.some((r) => r.table_label === sess.table_label) && (
-                            <Badge className="bg-[#FF6A00] text-[#0B1F3B] text-[10px] py-0 px-1.5 font-bold">
+                            <Badge className="bg-[#FF6A00] text-[#0B1F3B] text-xs py-0 px-1.5 font-bold">
                               Bill Requested
                             </Badge>
                           )}
                       </div>
-                      <p className="text-[11px] text-muted-foreground">
+                      <p className="text-xs text-muted-foreground">
                         Party of {sess.party_size || 2} • {sess.orders_count || 0} order(s)
                       </p>
                     </div>
                     <ChevronRight
                       className={`h-4 w-4 ${
-                        isSelected ? "text-[#FF6A00]" : "text-muted-foreground/40"
+                        isSelected
+                          ? "text-[#C2410C] dark:text-[#FF6A00]"
+                          : "text-muted-foreground/40"
                       }`}
                     />
                   </div>
@@ -435,9 +471,13 @@ export const BillingPage: React.FC = () => {
           {!billData ? (
             <div className="h-full min-h-[350px] flex flex-col items-center justify-center p-8 border border-dashed border-border rounded-2xl bg-card/20 text-muted-foreground text-center">
               <Receipt className="h-10 w-10 text-muted-foreground/30 mb-3" />
-              <p className="text-sm font-semibold">Select a dining session to begin checkout.</p>
-              <p className="text-xs text-muted-foreground/70 mt-1 max-w-sm">
-                Totals and line items are authoritative server calculations.
+              <p className="text-sm font-semibold">
+                {usesTables
+                  ? "Select an active table to begin checkout."
+                  : "Select an open order to begin checkout."}
+              </p>
+              <p className="text-xs text-muted-foreground/80 mt-1 max-w-sm">
+                Totals and line items are calculated accurately on the server.
               </p>
             </div>
           ) : (
@@ -446,11 +486,11 @@ export const BillingPage: React.FC = () => {
               <div className="rounded-xl border border-border bg-card p-5 space-y-4">
                 <div className="flex items-center justify-between pb-3 border-b border-border">
                   <div>
-                    <span className="text-[11px] uppercase font-bold text-muted-foreground">
-                      Session Bill
+                    <span className="text-xs uppercase font-bold text-muted-foreground">
+                      Order Bill
                     </span>
                     <h2 className="text-lg font-black font-heading text-foreground">
-                      {billData.table_label !== "N/A"
+                      {usesTables && billData.table_label !== "N/A"
                         ? `Table ${billData.table_label}`
                         : "Counter Checkout"}
                     </h2>
@@ -488,7 +528,9 @@ export const BillingPage: React.FC = () => {
                       className="flex items-center justify-between text-xs py-1 border-b border-border/40 last:border-none"
                     >
                       <div className="flex items-center gap-2">
-                        <span className="font-bold text-[#FF6A00]">{it.quantity}×</span>
+                        <span className="font-bold text-[#0B1F3B] dark:text-[#FF6A00]">
+                          {it.quantity}×
+                        </span>
                         <span className="semibold text-foreground">{it.item_name}</span>
                       </div>
                       <span className="font-extrabold font-mono text-foreground">
@@ -518,7 +560,7 @@ export const BillingPage: React.FC = () => {
                   )}
                   <div className="flex justify-between text-base font-extrabold text-foreground pt-2 border-t border-border">
                     <span>Grand Total:</span>
-                    <span className="font-mono text-xl text-[#FF6A00]">
+                    <span className="font-mono text-xl text-foreground">
                       {formatRupees(grandTotalPaise)}
                     </span>
                   </div>
@@ -531,18 +573,19 @@ export const BillingPage: React.FC = () => {
                   <span className="font-bold uppercase text-muted-foreground">
                     Guest Loyalty &amp; Phone Lookup
                   </span>
-                  <span className="text-[11px] text-muted-foreground">
+                  <span className="text-xs text-muted-foreground">
                     Earn 1 pt / ₹100 • Redeem 1 pt = ₹1
                   </span>
                 </div>
                 <div className="flex items-center gap-2">
                   <Input
                     type="text"
+                    aria-label="Enter guest phone or name"
                     data-testid="billing-guest-phone-input"
                     placeholder="Enter guest phone or name..."
                     value={guestSearchPhone}
                     onChange={(e) => setGuestSearchPhone(e.target.value)}
-                    className="h-9 text-xs"
+                    className="h-10 text-xs"
                   />
                   <Button
                     type="button"
@@ -647,6 +690,7 @@ export const BillingPage: React.FC = () => {
                       <div className="w-36">
                         <Input
                           type="number"
+                          aria-label="Amount tendered in rupees"
                           value={amountTendered}
                           onChange={(e) => setAmountTendered(e.target.value)}
                           className="h-8 font-mono text-right text-sm font-bold"
@@ -690,18 +734,17 @@ export const BillingPage: React.FC = () => {
               <h2 className="font-black text-sm uppercase">
                 {activeTenant?.tenant_name || "ServeMyFood"}
               </h2>
-              <p className="text-[10px] text-gray-600 font-bold">
-                DEMO RECEIPT - NOT A TAX INVOICE
-              </p>
-              <p className="text-[10px] text-gray-500">Invoice: {settledInvoice?.invoice_number}</p>
-              <p className="text-[10px] text-gray-500">
-                Table: {settledInvoice?.table_label} • {new Date().toLocaleTimeString()}
+              <p className="text-xs text-gray-600 font-bold">DEMO ORDER SUMMARY</p>
+              <p className="text-xs text-gray-600">Invoice: {settledInvoice?.invoice_number}</p>
+              <p className="text-xs text-gray-600">
+                {usesTables ? `Table: ${settledInvoice?.table_label}` : "Counter Order"} •{" "}
+                {new Date().toLocaleTimeString()}
               </p>
             </div>
 
             <div className="py-2 border-b border-dashed border-gray-400 space-y-1">
               {(billData?.items || settledInvoice?.items || []).map((it: any, i: number) => (
-                <div key={i} className="flex justify-between text-[11px]">
+                <div key={i} className="flex justify-between text-xs">
                   <span>
                     {it.quantity}x {it.item_name}
                   </span>
@@ -712,7 +755,7 @@ export const BillingPage: React.FC = () => {
               ))}
             </div>
 
-            <div className="py-1 text-[11px] space-y-0.5">
+            <div className="py-1 text-xs space-y-0.5">
               <div className="flex justify-between">
                 <span>Subtotal:</span>
                 <span>{formatRupees(settledInvoice?.subtotal_paise || 0)}</span>
@@ -721,13 +764,13 @@ export const BillingPage: React.FC = () => {
                 <span>NET TOTAL:</span>
                 <span>{formatRupees(settledInvoice?.total_paise || 0)}</span>
               </div>
-              <div className="flex justify-between text-[10px] text-gray-600 pt-1">
+              <div className="flex justify-between text-xs text-gray-600 pt-1">
                 <span>Paid via {settledInvoice?.payment_method}:</span>
                 <span>{formatRupees(settledInvoice?.amount_tendered_paise || 0)}</span>
               </div>
             </div>
 
-            <div className="text-center pt-2 border-t border-dashed border-gray-400 text-[10px] text-gray-600">
+            <div className="text-center pt-2 border-t border-dashed border-gray-400 text-xs text-gray-600">
               <p>Thank you! Visit again.</p>
               <p>Powered by ServeMyFood</p>
             </div>
@@ -752,11 +795,11 @@ export const BillingPage: React.FC = () => {
         <DialogContent className="sm:max-w-lg">
           <DialogHeader>
             <DialogTitle className="text-base font-extrabold flex items-center gap-2">
-              <Split className="h-4 w-4 text-[#FF6A00]" />
-              Split Bill & Table Merge —{" "}
-              {billData?.table_label && billData.table_label !== "N/A"
+              <Split className="h-4 w-4 text-[#C2410C] dark:text-[#FF6A00]" />
+              {usesTables ? "Split Bill & Table Merge — " : "Split Bill — "}
+              {usesTables && billData?.table_label && billData.table_label !== "N/A"
                 ? `Table ${billData.table_label}`
-                : "Session"}
+                : "Counter Order"}
             </DialogTitle>
           </DialogHeader>
 
@@ -817,10 +860,10 @@ export const BillingPage: React.FC = () => {
                     </div>
                   ))}
                 </div>
-                <p className="text-[11px] text-muted-foreground">
-                  Integer paise remainder is assigned to Share 1 so shares sum to{" "}
-                  <strong className="text-foreground">{formatRupees(grandTotalPaise)}</strong> with
-                  zero rounding drift.
+                <p className="text-xs text-muted-foreground">
+                  Rounding remainder is assigned to Share 1 so shares sum to{" "}
+                  <strong className="text-foreground">{formatRupees(grandTotalPaise)}</strong>{" "}
+                  accurately.
                 </p>
               </div>
             ) : (
@@ -869,7 +912,7 @@ export const BillingPage: React.FC = () => {
                     <div className="p-3 rounded-lg bg-muted/30 border border-border space-y-1">
                       <div className="flex justify-between font-bold">
                         <span>Split Bill A (Selected):</span>
-                        <span className="font-mono text-[#FF6A00]">
+                        <span className="font-mono text-[#0B1F3B] dark:text-[#FF6A00]">
                           {formatRupees(selectedPaise)}
                         </span>
                       </div>
@@ -883,16 +926,16 @@ export const BillingPage: React.FC = () => {
               </div>
             )}
 
-            {/* Move Items or Merge into Another Open Table Session */}
-            {sessions.filter((s) => s.id !== selectedSessionId).length > 0 && (
+            {/* Move Items or Merge into Another Open Order (Dine-in tables only) */}
+            {usesTables && sessions.filter((s) => s.id !== selectedSessionId).length > 0 && (
               <div className="pt-3 border-t border-border space-y-2">
                 <div className="font-bold text-foreground flex items-center gap-1.5">
-                  <ArrowRightLeft className="h-3.5 w-3.5 text-[#FF6A00]" />
+                  <ArrowRightLeft className="h-3.5 w-3.5 text-[#C2410C] dark:text-[#FF6A00]" />
                   Combine or Move to Another Open Table
                 </div>
                 <div className="flex items-center gap-2">
                   <select
-                    aria-label="Target Open Session"
+                    aria-label="Target Open Table"
                     value={mergeTargetSessionId}
                     onChange={(e) => setMergeTargetSessionId(e.target.value)}
                     className="flex-1 h-9 px-2.5 text-xs rounded-md border border-input bg-background"
@@ -945,7 +988,7 @@ export const BillingPage: React.FC = () => {
                       await ordersApi.mergeTableSessions(selectedSessionId, {
                         target_session_id: mergeTargetSessionId,
                       });
-                      setOpsNotice("Tables merged into target session.");
+                      setOpsNotice("Tables merged successfully.");
                       setSplitModalOpen(false);
                       setSelectedSessionId(mergeTargetSessionId);
                       await fetchSessions();

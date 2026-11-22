@@ -1,5 +1,11 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
-import { apiClient, refreshAccessToken, setAccessToken, setActiveTenantId } from "../api/client";
+import {
+  apiClient,
+  getAccessToken,
+  refreshAccessToken,
+  setAccessToken,
+  setActiveTenantId,
+} from "../api/client";
 
 export interface UserProfile {
   id: string;
@@ -92,15 +98,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   // Initial silent authentication via refresh cookie
   useEffect(() => {
+    let active = true;
     const initAuth = async () => {
       const hasSession = localStorage.getItem("servemyfood_has_session");
       if (!hasSession) {
-        setIsLoading(false);
+        if (active) setIsLoading(false);
         return;
       }
 
       try {
-        const access = await refreshAccessToken();
+        const access = getAccessToken() || (await refreshAccessToken());
+        if (!active) return;
         if (access) {
           await fetchProfile();
         } else {
@@ -108,15 +116,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           localStorage.removeItem("servemyfood_has_session");
         }
       } catch {
+        if (!active) return;
         // Not logged in or expired refresh token
         setAccessToken(null);
         localStorage.removeItem("servemyfood_has_session");
       } finally {
-        setIsLoading(false);
+        if (active) setIsLoading(false);
       }
     };
 
     initAuth();
+    return () => {
+      active = false;
+    };
   }, [fetchProfile]);
 
   const login = async (email: string, password: string) => {

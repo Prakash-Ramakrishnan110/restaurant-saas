@@ -133,6 +133,7 @@ export const WastagePage: React.FC = () => {
         <div>
           <label className="text-xs font-semibold text-muted-foreground block mb-1">Item *</label>
           <select
+            aria-label="Wasted stock item"
             required
             value={itemId}
             onChange={(e) => setItemId(e.target.value)}
@@ -150,6 +151,7 @@ export const WastagePage: React.FC = () => {
             Quantity *
           </label>
           <input
+            aria-label="Wasted quantity"
             type="number"
             step="0.001"
             min="0.001"
@@ -162,6 +164,7 @@ export const WastagePage: React.FC = () => {
         <div>
           <label className="text-xs font-semibold text-muted-foreground block mb-1">Reason *</label>
           <select
+            aria-label="Wastage reason"
             value={reasonCode}
             onChange={(e) => setReasonCode(e.target.value)}
             className="w-full px-3 py-2 text-sm rounded-lg border border-input bg-background min-h-[44px]"
@@ -185,6 +188,7 @@ export const WastagePage: React.FC = () => {
         </div>
         <div className="md:col-span-4">
           <input
+            aria-label="Optional wastage notes"
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
             placeholder="Optional notes..."

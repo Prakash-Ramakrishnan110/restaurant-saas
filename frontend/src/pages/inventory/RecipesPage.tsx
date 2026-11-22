@@ -134,6 +134,7 @@ export const RecipesPage: React.FC = () => {
           className="p-5 rounded-xl border border-border bg-card grid grid-cols-1 md:grid-cols-5 gap-3"
         >
           <select
+            aria-label="Select menu dish"
             value={selectedMenuId}
             onChange={(e) => setSelectedMenuId(e.target.value)}
             className="px-3 py-2 text-sm rounded-lg border border-input bg-background min-h-[44px]"
@@ -145,6 +146,7 @@ export const RecipesPage: React.FC = () => {
             ))}
           </select>
           <select
+            aria-label="Select ingredient"
             value={selectedIngId}
             onChange={(e) => setSelectedIngId(e.target.value)}
             className="px-3 py-2 text-sm rounded-lg border border-input bg-background min-h-[44px]"
@@ -156,6 +158,7 @@ export const RecipesPage: React.FC = () => {
             ))}
           </select>
           <input
+            aria-label="Quantity per portion"
             type="number"
             step="0.001"
             min="0.001"
@@ -165,6 +168,7 @@ export const RecipesPage: React.FC = () => {
             className="px-3 py-2 text-sm rounded-lg border border-input bg-background min-h-[44px]"
           />
           <input
+            aria-label="Waste percentage"
             type="number"
             step="0.1"
             min="0"

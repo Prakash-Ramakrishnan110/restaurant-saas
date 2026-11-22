@@ -536,18 +536,20 @@ export const MenuPage: React.FC = () => {
             <div className="relative flex-1 w-full">
               <Search className="w-4 h-4 text-muted-foreground absolute left-3 top-2.5" />
               <Input
+                aria-label="Search menu items"
                 placeholder="Search items by name, tamil name, or description..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-9 h-9 text-xs"
+                className="pl-9 h-10 text-xs"
               />
             </div>
 
             <div className="flex items-center gap-2 w-full sm:w-auto">
               <select
+                aria-label="Filter menu items by diet type"
                 value={selectedFoodType}
                 onChange={(e) => setSelectedFoodType(e.target.value)}
-                className="h-9 px-2.5 rounded-md border border-input bg-background text-xs focus:ring-1 focus:ring-[#FF6A00]"
+                className="h-10 px-2.5 rounded-md border border-input bg-background text-xs focus:ring-1 focus:ring-[#FF6A00]"
               >
                 <option value="ALL">All Types</option>
                 <option value="VEG">Veg Only</option>
@@ -556,9 +558,10 @@ export const MenuPage: React.FC = () => {
               </select>
 
               <select
+                aria-label="Filter menu items by active status"
                 value={selectedStatus}
                 onChange={(e) => setSelectedStatus(e.target.value)}
-                className="h-9 px-2.5 rounded-md border border-input bg-background text-xs focus:ring-1 focus:ring-[#FF6A00]"
+                className="h-10 px-2.5 rounded-md border border-input bg-background text-xs focus:ring-1 focus:ring-[#FF6A00]"
               >
                 <option value="ALL">All Status</option>
                 <option value="ACTIVE">Active</option>

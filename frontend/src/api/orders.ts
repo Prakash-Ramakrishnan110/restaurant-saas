@@ -264,7 +264,7 @@ export interface ServiceRequest {
   table_id?: string;
   table_session_id?: string;
   table_label: string;
-  request_type: "WATER" | "NAPKINS" | "CALL_WAITER" | "BILL" | "REQUEST_BILL" | "CUTLERY";
+  request_type: "WATER" | "NAPKINS" | "CALL_WAITER" | "BILL" | "CUTLERY";
   status: "PENDING" | "ACKNOWLEDGED" | "RESOLVED";
   created_at: string;
   acknowledged_at?: string;
@@ -353,7 +353,7 @@ export const ordersApi = {
 
   requestServiceCall: (
     tableId: string,
-    requestType: "CALL_WAITER" | "WATER" | "REQUEST_BILL" | "CUTLERY"
+    requestType: "CALL_WAITER" | "WATER" | "BILL" | "CUTLERY"
   ) =>
     apiClient.post<ServiceRequest>("/orders/service-requests/", {
       table_id: tableId,
