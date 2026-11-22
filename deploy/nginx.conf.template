@@ -62,8 +62,8 @@ server {
     }
 
     location ~ ^/(video|fonts|brand)/ {
-        root /app/web/marketing;
-        try_files $uri =404;
+        root /app/web;
+        try_files /frontend$uri /marketing$uri =404;
         expires 7d;
     }
 
