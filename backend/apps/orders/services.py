@@ -1212,7 +1212,13 @@ def get_outlets_report(
         wastage_paise = sum(abs(int(v or 0)) for v in waste_movements)
 
         gross_margin_paise = net_paise - cogs_paise
-        margin_pct = round((gross_margin_paise * 100.0) / net_paise, 1) if net_paise > 0 else 0.0
+        if net_paise > 0:
+            m_sign = -1 if gross_margin_paise < 0 else 1
+            margin_pct = (
+                m_sign * ((abs(gross_margin_paise) * 1000 + net_paise // 2) // net_paise)
+            ) / 10
+        else:
+            margin_pct = 0.0
 
         tot_gross += gross_paise
         tot_refunds += refunds_paise
@@ -1243,7 +1249,11 @@ def get_outlets_report(
 
     outlets.sort(key=lambda x: x["net_sales_paise"], reverse=True)
     tot_margin = tot_net - tot_cogs
-    tot_margin_pct = round((tot_margin * 100.0) / tot_net, 1) if tot_net > 0 else 0.0
+    if tot_net > 0:
+        t_sign = -1 if tot_margin < 0 else 1
+        tot_margin_pct = (t_sign * ((abs(tot_margin) * 1000 + tot_net // 2) // tot_net)) / 10
+    else:
+        tot_margin_pct = 0.0
 
     return {
         "start_date": start_date.isoformat(),

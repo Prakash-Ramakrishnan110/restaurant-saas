@@ -292,6 +292,7 @@ def get_public_qr_code(token: str) -> Any | None:
     return (
         QRCode.unscoped.select_related(
             "tenant",
+            "tenant__business_settings",
             "branch__capabilities",
             "table__section__service_area",
             "service_area",

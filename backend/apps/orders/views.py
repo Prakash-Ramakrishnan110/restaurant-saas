@@ -254,7 +254,9 @@ class OrderViewSet(viewsets.ModelViewSet):
     def transition(self, request: Request, pk: str | None = None) -> Response:
         order = self.get_object()
         membership = getattr(request, "membership", None)
-        next_status = str(request.data.get("status") or request.data.get("next_status") or "").strip()
+        next_status = str(
+            request.data.get("status") or request.data.get("next_status") or ""
+        ).strip()
         reason = str(request.data.get("reason", "")).strip()
         if not next_status:
             return Response(

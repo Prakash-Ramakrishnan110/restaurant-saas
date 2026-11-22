@@ -172,15 +172,20 @@ class PublicQRMenuView(APIView):
             from django.db.models import F
 
             today = timezone.localdate()
-            scan_row, created_scan = QRDailyScan.objects.get_or_create(
+            updated_scans = QRDailyScan.objects.filter(
                 tenant=tenant,
                 branch=qr.branch,
                 qr_code=qr,
                 scan_date=today,
-                defaults={"scan_count": 1},
-            )
-            if not created_scan:
-                QRDailyScan.objects.filter(pk=scan_row.pk).update(scan_count=F("scan_count") + 1)
+            ).update(scan_count=F("scan_count") + 1)
+            if not updated_scans:
+                QRDailyScan.objects.create(
+                    tenant=tenant,
+                    branch=qr.branch,
+                    qr_code=qr,
+                    scan_date=today,
+                    scan_count=1,
+                )
 
             active_session = (
                 TableSession.objects.filter(table=qr.table, status=SessionStatus.OPEN).first()

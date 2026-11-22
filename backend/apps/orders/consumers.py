@@ -10,6 +10,7 @@ from django.utils import timezone
 from rest_framework_simplejwt.tokens import AccessToken
 
 from apps.accounts.models import Membership, User
+from apps.core.context import reset_current_tenant, set_current_tenant
 from apps.tenants.models import Branch
 
 CANONICAL_STREAM_EVENTS = {
@@ -41,16 +42,23 @@ def _authenticate_branch_stream_sync(token_str: str, branch_id: str) -> tuple[in
     except Exception:
         return 4401, None
 
-    branch = Branch.unscoped.filter(id=branch_id, is_active=True).first()
-    if branch is None:
-        return 4403, None
-
-    membership = Membership.objects.filter(
+    branch = None
+    membership = None
+    for candidate_membership in Membership.objects.filter(
         user=user,
-        tenant_id=branch.tenant_id,
         is_active=True,
-    ).first()
-    if membership is None:
+    ).select_related("tenant"):
+        token = set_current_tenant(candidate_membership.tenant)
+        try:
+            found_branch = Branch.objects.filter(id=branch_id, is_active=True).first()
+            if found_branch is not None:
+                branch = found_branch
+                membership = candidate_membership
+                break
+        finally:
+            reset_current_tenant(token)
+
+    if branch is None or membership is None:
         return 4403, None
 
     if (

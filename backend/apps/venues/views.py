@@ -548,10 +548,9 @@ class TableSessionViewSet(
     @action(detail=True, methods=["post"], url_path="close")
     def close(self, request: Request, pk: str | None = None) -> Response:
         session = self.get_object()
-        if (
-            session.orders.exists()
-            and not HasTenantPermission(Permission.BILLING_MANAGE)().has_permission(request, self)
-        ):
+        if session.orders.exists() and not HasTenantPermission(
+            Permission.BILLING_MANAGE
+        )().has_permission(request, self):
             raise ValidationError(
                 {"detail": "Only a Cashier or Manager can close a table with active orders."},
                 code="CASHIER_REQUIRED",
@@ -605,16 +604,25 @@ class StaffSectionAssignmentViewSet(
         qs = StaffSectionAssignment.objects.all().select_related("membership__user", "section")
         tenant = getattr(self.request, "tenant", None)
         user = self.request.user
-        if (
-            tenant
-            and user.is_authenticated
-            and not HasTenantPermission(Permission.STAFF_VIEW)().has_permission(self.request, self)
-        ):
-            from apps.accounts.models import Membership
+        membership = getattr(self.request, "membership", None)
+        if tenant and user.is_authenticated:
+            if membership is None:
+                from apps.accounts.models import Membership
 
-            membership = Membership.objects.filter(user=user, tenant=tenant, is_active=True).first()
-            if membership:
-                qs = qs.filter(membership=membership)
+                membership = Membership.objects.filter(
+                    user=user, tenant=tenant, is_active=True
+                ).first()
+            if membership is not None:
+                if not HasTenantPermission(Permission.STAFF_VIEW)().has_permission(
+                    self.request, self
+                ):
+                    qs = qs.filter(membership=membership)
+                elif membership.role != "OWNER" and membership.branches.exists():
+                    qs = qs.filter(
+                        section__service_area__branch_id__in=membership.branches.values_list(
+                            "id", flat=True
+                        )
+                    )
         return qs
 
     def perform_create(self, serializer: Any) -> None:

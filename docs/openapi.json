@@ -4645,6 +4645,32 @@
                 }
             }
         },
+        "/api/v1/menu/availability/outlets/": {
+            "get": {
+                "operationId": "menu_availability_outlets_retrieve",
+                "description": "Return active outlets accessible for availability management.",
+                "tags": [
+                    "menu"
+                ],
+                "security": [
+                    {
+                        "jwtAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/BranchItemAvailability"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
         "/api/v1/menu/availability/toggle/": {
             "post": {
                 "operationId": "menu_availability_toggle_create",
@@ -6914,6 +6940,63 @@
         "/api/v1/orders/{id}/serve/": {
             "post": {
                 "operationId": "orders_serve_create",
+                "description": "Production ViewSet for placing, tracking, serving, and cancelling orders.",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        },
+                        "description": "A UUID string identifying this order.",
+                        "required": true
+                    }
+                ],
+                "tags": [
+                    "orders"
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/OrderRequest"
+                            }
+                        },
+                        "application/x-www-form-urlencoded": {
+                            "schema": {
+                                "$ref": "#/components/schemas/OrderRequest"
+                            }
+                        },
+                        "multipart/form-data": {
+                            "schema": {
+                                "$ref": "#/components/schemas/OrderRequest"
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "jwtAuth": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Order"
+                                }
+                            }
+                        },
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/v1/orders/{id}/transition/": {
+            "post": {
+                "operationId": "orders_transition_create",
                 "description": "Production ViewSet for placing, tracking, serving, and cancelling orders.",
                 "parameters": [
                     {

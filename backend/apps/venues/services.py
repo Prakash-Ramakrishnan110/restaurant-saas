@@ -559,8 +559,7 @@ def close_session(
     session.save(update_fields=["status", "closed_at", "updated_at"])
 
     if session.table:
-        has_orders = session.orders.exists()
-        session.table.status = TableStatus.CLEANING if has_orders else TableStatus.AVAILABLE
+        session.table.status = TableStatus.CLEANING
         session.table.save(update_fields=["status", "updated_at"])
 
     log_audit_event(

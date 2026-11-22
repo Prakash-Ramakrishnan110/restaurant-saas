@@ -809,6 +809,7 @@ def test_stage_a_endpoints_reports_paste_and_transfers(inv_env: dict[str, Any]) 
             "order_number": "PO-STAGEA-001",
             "supplier": sup_id,
             "notes": "Weekly order",
+            "lines": [{"item": item_id, "quantity_ordered": "10", "unit_cost_paise": 500}],
         },
         format="json",
     )
