@@ -77,9 +77,9 @@ class HealthCheckView(APIView):
             "url": str(getattr(settings, "REDIS_URL", "redis://127.0.0.1:6379/1")).split("@")[-1],
         }
 
-        overall_status = "ok" if (db_ok and redis_ok) else "degraded"
+        overall_status = "ok" if (db_ok and redis_ok) else ("degraded" if db_ok else "error")
         status_code = (
-            status.HTTP_200_OK if (db_ok and redis_ok) else status.HTTP_503_SERVICE_UNAVAILABLE
+            status.HTTP_200_OK if db_ok else status.HTTP_503_SERVICE_UNAVAILABLE
         )
 
         return Response(
