@@ -627,8 +627,16 @@ export const PublicQRPage: React.FC = () => {
   if (menu.ordering_mode === "DISABLED") {
     return (
       <div className="min-h-screen bg-background text-foreground flex flex-col">
-        <header className="bg-[#0B1F3B] text-white px-4 py-3 flex items-center justify-between">
-          <span className="font-bold text-base truncate">{menu.display_name}</span>
+        <header
+          className="bg-[#0B1F3B] text-white flex items-center justify-between"
+          style={{
+            paddingTop: "max(0.75rem, env(safe-area-inset-top))",
+            paddingBottom: "0.75rem",
+            paddingLeft: "max(1rem, env(safe-area-inset-left))",
+            paddingRight: "max(1rem, env(safe-area-inset-right))",
+          }}
+        >
+          <span className="font-bold text-base truncate min-w-0 pr-2">{menu.display_name}</span>
           <button
             type="button"
             onClick={() => setLang((p) => (p === "en" ? "ta" : "en"))}
@@ -658,7 +666,15 @@ export const PublicQRPage: React.FC = () => {
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col pb-28">
       {/* Restaurant Header */}
-      <header className="bg-[#0B1F3B] text-white px-4 py-3.5 shadow-sm">
+      <header
+        className="bg-[#0B1F3B] text-white shadow-sm"
+        style={{
+          paddingTop: "max(0.875rem, env(safe-area-inset-top))",
+          paddingBottom: "0.875rem",
+          paddingLeft: "max(1rem, env(safe-area-inset-left))",
+          paddingRight: "max(1rem, env(safe-area-inset-right))",
+        }}
+      >
         <div className="max-w-lg mx-auto flex items-center justify-between gap-3">
           <div className="flex items-center gap-3 min-w-0">
             {menu.logo_url ? (
@@ -675,13 +691,14 @@ export const PublicQRPage: React.FC = () => {
                 {getInitials(menu.display_name)}
               </div>
             )}
-            <div className="min-w-0">
+            <div className="min-w-0 flex-1 overflow-hidden">
               <h1 className="font-extrabold text-base leading-tight truncate">
                 {menu.display_name}
               </h1>
-              <div className="flex flex-wrap items-center gap-2 mt-1 min-w-0">
+              <div className="flex flex-wrap items-center gap-1.5 mt-1 min-w-0">
                 <span
-                  className="inline-block px-2 py-0.5 rounded text-xs font-bold whitespace-nowrap shrink-0"
+                  data-testid="qr-target-badge"
+                  className="inline-block max-w-full truncate px-2 py-0.5 rounded text-xs font-bold"
                   style={{ backgroundColor: brandTheme.bg, color: brandTheme.text }}
                 >
                   {formatTargetBadge(menu)}

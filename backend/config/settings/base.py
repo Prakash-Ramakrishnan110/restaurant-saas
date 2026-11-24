@@ -134,9 +134,7 @@ if not _db_url:
         POSTGRES_HOST_PORT = env.int("POSTGRES_HOST_PORT", default=5436)
         _db_url = f"postgres://{env.str('DB_USER', 'postgres')}:{env.str('DB_PASSWORD', 'postgres')}@{env.str('DB_HOST', '127.0.0.1')}:{env.int('DB_PORT', POSTGRES_HOST_PORT)}/{env.str('DB_NAME', 'fusion_saas')}"
 
-DATABASES = {
-    "default": env.db_url_config(_db_url)
-}
+DATABASES = {"default": env.db_url_config(_db_url)}
 
 # Redis & Channels Layer
 REDIS_URL = (

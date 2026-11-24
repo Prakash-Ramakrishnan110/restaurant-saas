@@ -491,7 +491,10 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
       <OfflineBanner />
 
       {/* Top Application Bar */}
-      <header className="sticky top-0 z-30 shrink-0 border-b border-border bg-card/95 backdrop-blur px-2 sm:px-6 py-2 flex items-center justify-between gap-1 min-w-0">
+      <header
+        className="sticky top-0 z-30 shrink-0 border-b border-border bg-card/95 backdrop-blur px-2 sm:px-6 flex items-center justify-between gap-1 min-w-0"
+        style={{ paddingTop: "max(0.5rem, env(safe-area-inset-top))", paddingBottom: "0.5rem" }}
+      >
         <div className="flex items-center gap-1.5 sm:gap-4 min-w-0">
           <button
             type="button"

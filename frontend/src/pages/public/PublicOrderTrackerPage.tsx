@@ -12,12 +12,59 @@ import {
   Banknote,
   Printer,
   Download,
+  Volume2,
+  VolumeX,
+  Maximize2,
+  Minimize2,
+  BellRing,
 } from "lucide-react";
-import { publicQrApi, PublicOrderTrackerResponse } from "../../api/publicQr";
+import {
+  publicQrApi,
+  PublicOrderReceiptResponse,
+  PublicOrderTrackerResponse,
+} from "../../api/publicQr";
 import { formatRupees } from "../../utils/currency";
+import { playReadyAlert } from "../../utils/soundAlerts";
 import { PUBLIC_QR_COPY, CustomerLang, getCustomerInitialLang } from "./publicQrStrings";
 
 const TERMINAL_STATUSES = new Set(["BILLED", "COMPLETED", "CANCELLED"]);
+
+interface WakeLockSentinelLike {
+  release: () => Promise<void>;
+}
+
+interface NavigatorWithWakeLock {
+  wakeLock?: {
+    request: (type: "screen") => Promise<WakeLockSentinelLike>;
+  };
+}
+
+interface HttpErrorShape {
+  response?: {
+    status?: number;
+    data?: {
+      detail?: string;
+      error?: {
+        message?: string;
+      };
+    };
+  };
+}
+
+function getHttpStatus(err: unknown): number | undefined {
+  if (typeof err === "object" && err !== null && "response" in err) {
+    return (err as HttpErrorShape).response?.status;
+  }
+  return undefined;
+}
+
+function getHttpErrorMessage(err: unknown): string | undefined {
+  if (typeof err === "object" && err !== null && "response" in err) {
+    const resp = (err as HttpErrorShape).response;
+    return resp?.data?.detail || resp?.data?.error?.message;
+  }
+  return undefined;
+}
 
 function getStepIndex(status: string): number {
   switch (status) {
@@ -41,10 +88,17 @@ export const PublicOrderTrackerPage: React.FC = () => {
   const { token, trackingToken } = useParams<{ token: string; trackingToken: string }>();
   const [lang, setLang] = useState<CustomerLang>(() => getCustomerInitialLang());
   const [order, setOrder] = useState<PublicOrderTrackerResponse | null>(null);
+  const [receipt, setReceipt] = useState<PublicOrderReceiptResponse | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [notFound, setNotFound] = useState<boolean>(false);
   const [error, setError] = useState<boolean>(false);
+  const [soundMuted, setSoundMuted] = useState<boolean>(false);
+  const [isFullscreen, setIsFullscreen] = useState<boolean>(false);
   const timerRef = useRef<number | null>(null);
+  const tokenBannerRef = useRef<HTMLDivElement | null>(null);
+  const prevStatusRef = useRef<string | null>(null);
+  const readyAlertedRef = useRef<boolean>(false);
+  const wakeLockRef = useRef<WakeLockSentinelLike | null>(null);
 
   const [foodRating, setFoodRating] = useState<number>(5);
   const [serviceRating, setServiceRating] = useState<number>(5);
@@ -81,11 +135,23 @@ export const PublicOrderTrackerPage: React.FC = () => {
     if (!trackingToken) return;
     try {
       const res = await publicQrApi.trackOrder(trackingToken);
-      setOrder(res.data);
+      const data = res.data;
+      setOrder(data);
       setNotFound(false);
       setError(false);
-    } catch (err: any) {
-      if (err?.response?.status === 404) {
+
+      if (data.show_bill) {
+        try {
+          const receiptRes = await publicQrApi.getReceipt(trackingToken);
+          setReceipt(receiptRes.data);
+        } catch {
+          setReceipt(null);
+        }
+      } else {
+        setReceipt(null);
+      }
+    } catch (err: unknown) {
+      if (getHttpStatus(err) === 404) {
         setNotFound(true);
       } else {
         setError(true);
@@ -98,6 +164,88 @@ export const PublicOrderTrackerPage: React.FC = () => {
   useEffect(() => {
     fetchStatus();
   }, [fetchStatus]);
+
+  // Ready alert: play ascending chime + vibrate once when order becomes READY
+  useEffect(() => {
+    if (!order) return;
+    const prev = prevStatusRef.current;
+    prevStatusRef.current = order.status;
+
+    if (order.status === "READY" && !readyAlertedRef.current) {
+      readyAlertedRef.current = true;
+      if (!soundMuted) {
+        playReadyAlert(order.token_number ? `Token ${order.token_number}` : undefined, {
+          bypassMuteSetting: true,
+          withVoice: false,
+        });
+      }
+      try {
+        if (typeof navigator !== "undefined" && typeof navigator.vibrate === "function") {
+          navigator.vibrate([200, 100, 200, 100, 300]);
+        }
+      } catch {
+        // Vibration unsupported or blocked
+      }
+    } else if (prev && prev !== order.status && order.status !== "READY") {
+      // Allow re-alert if an order were ever moved back and marked READY again
+      readyAlertedRef.current = false;
+    }
+  }, [order, soundMuted]);
+
+  // Screen Wake Lock while tracking an active order (re-acquired on tab visibility)
+  useEffect(() => {
+    const isActive = Boolean(order && !TERMINAL_STATUSES.has(order.status) && !notFound);
+    const nav = (typeof navigator !== "undefined" ? navigator : undefined) as unknown as
+      NavigatorWithWakeLock | undefined;
+
+    const releaseLock = () => {
+      if (wakeLockRef.current) {
+        wakeLockRef.current.release().catch(() => {});
+        wakeLockRef.current = null;
+      }
+    };
+
+    if (!isActive || !nav?.wakeLock) {
+      releaseLock();
+      return;
+    }
+
+    let cancelled = false;
+    const requestLock = async () => {
+      if (cancelled || document.visibilityState !== "visible") return;
+      try {
+        if (!wakeLockRef.current && nav.wakeLock) {
+          wakeLockRef.current = await nav.wakeLock.request("screen");
+        }
+      } catch {
+        // Wake Lock rejected or unsupported in headless/battery saver
+      }
+    };
+
+    requestLock();
+    const onVisibility = () => {
+      if (document.visibilityState === "visible") {
+        wakeLockRef.current = null;
+        requestLock();
+      }
+    };
+    document.addEventListener("visibilitychange", onVisibility);
+
+    return () => {
+      cancelled = true;
+      document.removeEventListener("visibilitychange", onVisibility);
+      releaseLock();
+    };
+  }, [order, notFound]);
+
+  // Track fullscreen changes cleanly
+  useEffect(() => {
+    const onFsChange = () => {
+      setIsFullscreen(Boolean(document.fullscreenElement));
+    };
+    document.addEventListener("fullscreenchange", onFsChange);
+    return () => document.removeEventListener("fullscreenchange", onFsChange);
+  }, []);
 
   // Visibility-aware polling: 5s visible, 30s hidden, stop on terminal or 404
   useEffect(() => {
@@ -123,6 +271,62 @@ export const PublicOrderTrackerPage: React.FC = () => {
     };
   }, [fetchStatus, order, notFound]);
 
+  const handleToggleFullscreen = async () => {
+    try {
+      if (document.fullscreenElement) {
+        await document.exitFullscreen();
+      } else if (tokenBannerRef.current?.requestFullscreen) {
+        await tokenBannerRef.current.requestFullscreen();
+      } else if (document.documentElement.requestFullscreen) {
+        await document.documentElement.requestFullscreen();
+      }
+    } catch {
+      // Fullscreen blocked or unsupported
+    }
+  };
+
+  const handleDownloadHtmlReceipt = () => {
+    if (!receipt) return;
+    const esc = (s: string) =>
+      s.replace(
+        /[&<>"']/g,
+        (c) =>
+          ({
+            "&": "&amp;",
+            "<": "&lt;",
+            ">": "&gt;",
+            '"': "&quot;",
+            "'": "&#39;",
+          })[c] || c
+      );
+    const rowsHtml = receipt.items
+      .map(
+        (it) =>
+          `<tr><td>${it.quantity} x ${esc(it.item_name)}${it.variant_name ? ` (${esc(it.variant_name)})` : ""}</td><td style="text-align:right">${esc(formatRupees(it.subtotal_paise))}</td></tr>`
+      )
+      .join("");
+    const logoHtml = receipt.logo_url
+      ? `<img src="${esc(receipt.logo_url)}" alt="" style="width:48px;height:48px;border-radius:8px;object-fit:cover;margin-bottom:6px;" />`
+      : "";
+    const metaLine = [
+      receipt.branch_name ? esc(receipt.branch_name) : "",
+      receipt.invoice_number ? esc(receipt.invoice_number) : esc(receipt.order_number),
+      receipt.target_label ? esc(receipt.target_label) : "",
+    ]
+      .filter(Boolean)
+      .join(" • ");
+    const html = `<!doctype html><html><head><meta charset="utf-8"><title>${esc(receipt.order_number)}</title><style>body{font-family:sans-serif;max-width:380px;margin:24px auto;padding:16px;border:1px solid #ddd;border-radius:12px}.demo{background:#FFF3E0;color:#0B1F3B;font-weight:800;font-size:11px;text-align:center;padding:6px;border-radius:6px;margin-bottom:10px;letter-spacing:.04em}table{width:100%;border-collapse:collapse;margin:12px 0}td{padding:6px 0;border-bottom:1px solid #eee;font-size:14px}.tot{font-weight:bold;font-size:16px;display:flex;justify-content:space-between;padding-top:8px}</style></head><body><div class="demo">${esc(receipt.demo_notice || "DEMO RECEIPT - NOT A TAX INVOICE")}</div><div style="text-align:center">${logoHtml}<h2 style="margin:4px 0">${esc(receipt.display_name || "ServeMyFood")}</h2><div style="color:#666;font-size:12px">${metaLine}</div></div><table>${rowsHtml}</table><div class="tot"><span>Total</span><span>${esc(formatRupees(receipt.total_paise))}</span></div></body></html>`;
+    const blob = new Blob([html], { type: "text/html;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `receipt-${receipt.invoice_number || receipt.order_number}.html`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
   const menuPath = token ? `/q/${encodeURIComponent(token)}` : "/";
 
   const steps = [
@@ -133,22 +337,32 @@ export const PublicOrderTrackerPage: React.FC = () => {
   ];
 
   const activeStep = order ? getStepIndex(order.status) : -1;
+  const canFullscreen = typeof document !== "undefined" && Boolean(document.fullscreenEnabled);
+  const isCounterOrder = order?.order_workflow === "COUNTER_TOKEN" || order?.token_number !== null;
 
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col">
-      {/* Top Bar */}
-      <header className="print:hidden sticky top-0 z-20 bg-[#0B1F3B] text-white px-4 py-3 flex items-center justify-between shadow-sm">
+      {/* Top Bar with notch/safe-area & touch targets */}
+      <header
+        className="print:hidden sticky top-0 z-20 bg-[#0B1F3B] text-white flex items-center justify-between gap-2 shadow-sm"
+        style={{
+          paddingTop: "max(0.75rem, env(safe-area-inset-top))",
+          paddingBottom: "0.75rem",
+          paddingLeft: "max(1rem, env(safe-area-inset-left))",
+          paddingRight: "max(1rem, env(safe-area-inset-right))",
+        }}
+      >
         <Link
           to={menuPath}
-          className="inline-flex items-center gap-2 text-sm font-semibold text-white hover:text-[#FF6A00] min-h-[44px] px-2 -ml-2 rounded-lg"
+          className="inline-flex items-center gap-2 text-sm font-semibold text-white hover:text-[#FF6A00] min-h-[56px] sm:min-h-[44px] px-2 -ml-2 rounded-lg min-w-0 truncate"
         >
-          <ArrowLeft className="h-4 w-4" />
-          <span>{copy.backToMenu}</span>
+          <ArrowLeft className="h-4 w-4 shrink-0" />
+          <span className="truncate">{copy.backToMenu}</span>
         </Link>
         <button
           type="button"
           onClick={() => setLang((prev) => (prev === "en" ? "ta" : "en"))}
-          className="px-4 py-2 rounded-lg bg-white/15 hover:bg-white/25 text-white text-xs font-bold min-h-[56px] sm:min-h-[44px]"
+          className="px-4 py-2 rounded-lg bg-white/15 hover:bg-white/25 text-white text-xs font-bold min-h-[56px] sm:min-h-[44px] shrink-0"
         >
           {copy.langToggleLabel}
         </button>
@@ -185,31 +399,114 @@ export const PublicOrderTrackerPage: React.FC = () => {
           </div>
         ) : order ? (
           <>
-            {/* Header Summary */}
-            <div className="print:hidden rounded-2xl border border-border bg-card p-5 space-y-2 shadow-sm">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-semibold text-muted-foreground">
+            {/* Header Summary + Sound Alert Toggle */}
+            <div className="print:hidden rounded-2xl border border-border bg-card p-5 space-y-3 shadow-sm">
+              <div className="flex items-center justify-between gap-2 flex-wrap">
+                <span className="text-xs font-semibold text-muted-foreground break-words">
                   {copy.orderNumber} #{order.order_number}
                 </span>
-                {order.target_label && (
-                  <span className="px-2.5 py-1 rounded-full bg-muted text-foreground text-xs font-bold">
-                    {order.target_label}
-                  </span>
-                )}
+                <div className="flex items-center gap-2 flex-wrap">
+                  {order.target_label && (
+                    <span className="px-2.5 py-1 rounded-full bg-muted text-foreground text-xs font-bold">
+                      {order.target_label}
+                    </span>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => setSoundMuted((m) => !m)}
+                    aria-label={soundMuted ? copy.soundMutedLabel : copy.soundOnLabel}
+                    className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border border-border bg-background hover:bg-muted text-xs font-semibold min-h-[36px]"
+                  >
+                    {soundMuted ? (
+                      <VolumeX className="h-3.5 w-3.5 text-muted-foreground" />
+                    ) : (
+                      <Volume2 className="h-3.5 w-3.5 text-[#0B1F3B] dark:text-[#FF6A00]" />
+                    )}
+                    <span>{soundMuted ? copy.soundMutedLabel : copy.soundOnLabel}</span>
+                  </button>
+                </div>
               </div>
 
-              {/* Big Token Banner if token_number exists */}
+              {/* Big Counter Token Banner (1.5) */}
               {order.token_number !== null && (
-                <div className="mt-2 rounded-xl bg-[#0B1F3B] text-white p-4 text-center">
-                  <div className="text-xs uppercase tracking-wider text-white/80 font-semibold">
+                <div
+                  ref={tokenBannerRef}
+                  data-testid="counter-token-banner"
+                  className={`mt-2 rounded-2xl bg-[#0B1F3B] text-white text-center relative ${
+                    isFullscreen
+                      ? "flex flex-col items-center justify-center min-h-screen p-8"
+                      : "p-5"
+                  }`}
+                >
+                  <div className="text-xs sm:text-sm uppercase tracking-wider text-white/80 font-semibold">
                     {copy.tokenNumber}
                   </div>
-                  <div className="mt-2 inline-flex items-center justify-center rounded-xl bg-[#FF6A00] text-[#0B1F3B] px-5 py-1.5 text-3xl font-extrabold tracking-tight">
+                  <div
+                    className={`mt-2 inline-flex items-center justify-center rounded-2xl bg-[#FF6A00] text-[#0B1F3B] font-extrabold tracking-tight ${
+                      isFullscreen
+                        ? "px-10 py-6 text-[22vw] leading-none"
+                        : "px-6 py-2.5 text-5xl sm:text-6xl leading-none"
+                    }`}
+                  >
                     #{order.token_number}
                   </div>
+                  {canFullscreen && (
+                    <div className="mt-3">
+                      <button
+                        type="button"
+                        onClick={handleToggleFullscreen}
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/15 hover:bg-white/25 text-white text-xs font-semibold min-h-[40px]"
+                      >
+                        {isFullscreen ? (
+                          <>
+                            <Minimize2 className="h-3.5 w-3.5" />
+                            <span>{copy.exitFullscreenLabel}</span>
+                          </>
+                        ) : (
+                          <>
+                            <Maximize2 className="h-3.5 w-3.5" />
+                            <span>{copy.fullscreenLabel}</span>
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
+
+            {/* Ready Alert Banner + Pickup Code (1.4 & 1.5) */}
+            {order.status === "READY" && (
+              <div
+                role="status"
+                aria-live="polite"
+                data-testid="order-ready-banner"
+                className="print:hidden rounded-2xl border-2 border-emerald-600 bg-emerald-50 dark:bg-emerald-950/40 p-5 text-center space-y-2 shadow-sm"
+              >
+                <div className="inline-flex items-center justify-center w-11 h-11 rounded-full bg-emerald-600 text-white mx-auto animate-bounce motion-reduce:animate-none">
+                  <BellRing className="h-5 w-5" />
+                </div>
+                <p className="text-lg font-extrabold text-emerald-900 dark:text-emerald-200">
+                  {copy.readyAlertTitle}
+                </p>
+                <p className="text-sm text-emerald-800 dark:text-emerald-300">
+                  {isCounterOrder ? copy.readyAlertCounterBody : copy.readyAlertTableBody}
+                </p>
+                {order.pickup_code && (
+                  <div
+                    data-testid="customer-pickup-code"
+                    className="mt-2 inline-block rounded-xl bg-background border border-emerald-500 px-5 py-2.5"
+                  >
+                    <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                      {copy.pickupCodeLabel}
+                    </div>
+                    <div className="text-2xl font-mono font-black tracking-widest text-foreground">
+                      {order.pickup_code}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
 
             {/* Status Card */}
             {order.status === "AWAITING_PAYMENT" ? (
@@ -250,7 +547,7 @@ export const PublicOrderTrackerPage: React.FC = () => {
                 )}
 
                 {/* 4-Step Progress Line */}
-                <ol className="grid grid-cols-4 gap-2 pt-2" aria-label="Order progress">
+                <ol className="grid grid-cols-4 gap-1 sm:gap-2 pt-2" aria-label="Order progress">
                   {steps.map((step, idx) => {
                     const Icon = step.icon;
                     const done = activeStep >= idx;
@@ -258,10 +555,10 @@ export const PublicOrderTrackerPage: React.FC = () => {
                     return (
                       <li
                         key={step.label}
-                        className="flex flex-col items-center text-center gap-1.5"
+                        className="flex flex-col items-center text-center gap-1.5 min-w-0"
                       >
                         <div
-                          className={`w-10 h-10 rounded-full flex items-center justify-center border-2 transition-colors ${
+                          className={`w-10 h-10 rounded-full flex items-center justify-center border-2 transition-colors shrink-0 ${
                             done
                               ? "bg-[#FF6A00] border-[#FF6A00] text-[#0B1F3B]"
                               : "bg-muted border-border text-muted-foreground"
@@ -270,7 +567,7 @@ export const PublicOrderTrackerPage: React.FC = () => {
                           <Icon className="h-4 w-4" />
                         </div>
                         <span
-                          className={`text-xs leading-tight font-semibold ${
+                          className={`text-[11px] sm:text-xs leading-tight font-semibold break-words w-full ${
                             done ? "text-foreground" : "text-muted-foreground"
                           }`}
                         >
@@ -283,112 +580,142 @@ export const PublicOrderTrackerPage: React.FC = () => {
               </div>
             )}
 
-            {/* Items Ordered / Printable Bill */}
-            <div
-              data-testid="customer-printable-bill"
-              className="rounded-2xl border border-border bg-card p-5 space-y-3 shadow-sm print:border-0 print:shadow-none"
-            >
-              {(order.display_name || order.order_number) && (
-                <div className="flex items-center gap-3 pb-3 border-b border-border">
-                  {order.logo_url && (
-                    <img
-                      src={order.logo_url}
-                      alt={order.display_name || "Restaurant logo"}
-                      className="w-10 h-10 rounded-lg object-cover bg-white shrink-0"
-                    />
-                  )}
-                  <div className="min-w-0">
-                    <div className="font-extrabold text-sm text-foreground break-words">
-                      {order.display_name || "ServeMyFood"}
-                    </div>
-                    <div className="text-xs text-muted-foreground break-words">
-                      {order.branch_name ? `${order.branch_name} • ` : ""}#{order.order_number}
-                      {order.target_label ? ` • ${order.target_label}` : ""}
-                    </div>
+            {/* Official Printable Bill / Receipt (strictly post-payment via server receipt endpoint) */}
+            {order.show_bill && receipt ? (
+              <div
+                data-testid="customer-printable-bill"
+                className="rounded-2xl border border-border bg-card p-5 space-y-3 shadow-sm print:border-0 print:shadow-none"
+              >
+                <div className="rounded-lg bg-amber-100 dark:bg-amber-950/60 border border-amber-300 dark:border-amber-700 px-3 py-2 text-center">
+                  <div className="text-xs font-extrabold tracking-wide text-[#0B1F3B] dark:text-amber-100">
+                    {receipt.demo_notice || copy.demoReceiptNotice}
                   </div>
+                  {lang === "ta" && (
+                    <div className="text-[11px] font-semibold text-[#0B1F3B]/80 dark:text-amber-200 mt-0.5">
+                      {copy.demoReceiptNoticeTa}
+                    </div>
+                  )}
                 </div>
-              )}
-              <div className="flex items-center justify-between gap-2 flex-wrap">
-                <h2 className="text-sm font-bold text-foreground">{copy.itemsOrdered}</h2>
-                <div className="print:hidden flex items-center gap-2">
-                  <button
-                    type="button"
-                    onClick={() => window.print()}
-                    className="min-h-[36px] px-3 rounded-lg bg-[#FF6A00] text-[#0B1F3B] text-xs font-bold flex items-center gap-1.5"
-                  >
-                    <Printer className="h-3.5 w-3.5" />
-                    <span>{lang === "ta" ? "PDF / பில்" : "Save PDF / Print"}</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      const esc = (s: string) =>
-                        s.replace(
-                          /[&<>"']/g,
-                          (c) =>
-                            ({
-                              "&": "&amp;",
-                              "<": "&lt;",
-                              ">": "&gt;",
-                              '"': "&quot;",
-                              "'": "&#39;",
-                            })[c] || c
-                        );
-                      const rowsHtml = order.items
-                        .map(
-                          (it) =>
-                            `<tr><td>${it.quantity} x ${esc(it.item_name)}${it.variant_name ? ` (${esc(it.variant_name)})` : ""}</td><td style="text-align:right">${esc(formatRupees(it.subtotal_paise))}</td></tr>`
-                        )
-                        .join("");
-                      const logoHtml = order.logo_url
-                        ? `<img src="${esc(order.logo_url)}" alt="" style="width:48px;height:48px;border-radius:8px;object-fit:cover;margin-bottom:6px;" />`
-                        : "";
-                      const html = `<!doctype html><html><head><meta charset="utf-8"><title>${esc(order.order_number)}</title><style>body{font-family:sans-serif;max-width:380px;margin:24px auto;padding:16px;border:1px solid #ddd;border-radius:12px}table{width:100%;border-collapse:collapse;margin:12px 0}td{padding:6px 0;border-bottom:1px solid #eee;font-size:14px}.tot{font-weight:bold;font-size:16px;display:flex;justify-content:space-between;padding-top:8px}</style></head><body><div style="text-align:center">${logoHtml}<h2 style="margin:4px 0">${esc(order.display_name || "ServeMyFood")}</h2><div style="color:#666;font-size:12px">${esc(order.branch_name || "")} • ${esc(order.order_number)}${order.target_label ? ` • ${esc(order.target_label)}` : ""}</div></div><table>${rowsHtml}</table><div class="tot"><span>Total</span><span>${esc(formatRupees(order.total_paise))}</span></div></body></html>`;
-                      const blob = new Blob([html], { type: "text/html;charset=utf-8" });
-                      const url = URL.createObjectURL(blob);
-                      const a = document.createElement("a");
-                      a.href = url;
-                      a.download = `bill-${order.order_number}.html`;
-                      document.body.appendChild(a);
-                      a.click();
-                      document.body.removeChild(a);
-                      URL.revokeObjectURL(url);
-                    }}
-                    className="min-h-[36px] px-3 rounded-lg border border-border bg-background hover:bg-muted text-xs font-bold flex items-center gap-1.5"
-                  >
-                    <Download className="h-3.5 w-3.5" />
-                    <span>{lang === "ta" ? "HTML பதிவிறக்கு" : "Download HTML"}</span>
-                  </button>
-                </div>
-              </div>
-              <ul className="divide-y divide-border">
-                {order.items.map((it, idx) => (
-                  <li key={idx} className="py-2.5 flex items-start justify-between gap-3 text-sm">
-                    <div className="space-y-0.5">
-                      <div className="font-semibold text-foreground">
-                        {it.quantity} × {it.item_name}
-                        {it.variant_name ? ` (${it.variant_name})` : ""}
+
+                {(receipt.display_name || receipt.order_number) && (
+                  <div className="flex items-center gap-3 pb-3 border-b border-border">
+                    {receipt.logo_url && (
+                      <img
+                        src={receipt.logo_url}
+                        alt={receipt.display_name || "Restaurant logo"}
+                        className="w-10 h-10 rounded-lg object-cover bg-white shrink-0"
+                      />
+                    )}
+                    <div className="min-w-0">
+                      <div className="font-extrabold text-sm text-foreground break-words">
+                        {receipt.display_name || "ServeMyFood"}
                       </div>
-                      {it.options && it.options.length > 0 && (
-                        <div className="text-xs text-muted-foreground">
-                          {it.options.map((o) => o.name).join(", ")}
+                      <div className="text-xs text-muted-foreground break-words">
+                        {receipt.branch_name ? `${receipt.branch_name} • ` : ""}
+                        {receipt.invoice_number
+                          ? `${copy.invoiceNumberLabel} ${receipt.invoice_number}`
+                          : `#${receipt.order_number}`}
+                        {receipt.target_label ? ` • ${receipt.target_label}` : ""}
+                      </div>
+                      {receipt.payment_method && (
+                        <div className="text-xs font-semibold text-emerald-700 dark:text-emerald-300 mt-0.5">
+                          {copy.paymentMethodLabel}: {receipt.payment_method}
                         </div>
                       )}
-                      {it.notes && (
-                        <div className="text-xs text-muted-foreground italic">"{it.notes}"</div>
-                      )}
                     </div>
-                    <div className="font-semibold text-foreground whitespace-nowrap">
-                      {formatRupees(it.subtotal_paise)}
-                    </div>
-                  </li>
-                ))}
-              </ul>
-              <div className="pt-3 border-t border-border flex items-center justify-between text-base font-extrabold">
-                <span>{copy.totalLabel}</span>
-                <span>{formatRupees(order.total_paise)}</span>
+                  </div>
+                )}
+
+                <div className="flex items-center justify-between gap-2 flex-wrap">
+                  <h2 className="text-sm font-bold text-foreground">{copy.officialReceiptTitle}</h2>
+                  <div className="print:hidden flex items-center gap-2 flex-wrap">
+                    <button
+                      type="button"
+                      onClick={() => window.print()}
+                      className="min-h-[44px] sm:min-h-[36px] px-3 rounded-lg bg-[#FF6A00] text-[#0B1F3B] text-xs font-bold flex items-center gap-1.5"
+                    >
+                      <Printer className="h-3.5 w-3.5" />
+                      <span>{lang === "ta" ? "PDF / பில்" : "Save PDF / Print"}</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleDownloadHtmlReceipt}
+                      className="min-h-[44px] sm:min-h-[36px] px-3 rounded-lg border border-border bg-background hover:bg-muted text-xs font-bold flex items-center gap-1.5"
+                    >
+                      <Download className="h-3.5 w-3.5" />
+                      <span>{lang === "ta" ? "HTML பதிவிறக்கு" : "Download HTML"}</span>
+                    </button>
+                  </div>
+                </div>
+
+                <ul className="divide-y divide-border">
+                  {receipt.items.map((it, idx) => (
+                    <li key={idx} className="py-2.5 flex items-start justify-between gap-3 text-sm">
+                      <div className="space-y-0.5 min-w-0">
+                        <div className="font-semibold text-foreground break-words">
+                          {it.quantity} × {it.item_name}
+                          {it.variant_name ? ` (${it.variant_name})` : ""}
+                        </div>
+                        {it.options && it.options.length > 0 && (
+                          <div className="text-xs text-muted-foreground">
+                            {it.options.map((o) => o.name).join(", ")}
+                          </div>
+                        )}
+                      </div>
+                      <div className="font-semibold text-foreground whitespace-nowrap shrink-0">
+                        {formatRupees(it.subtotal_paise)}
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+
+                <div className="pt-3 border-t border-border flex items-center justify-between text-base font-extrabold">
+                  <span>{copy.totalLabel}</span>
+                  <span>{formatRupees(receipt.total_paise)}</span>
+                </div>
               </div>
-            </div>
+            ) : (
+              /* Unpaid Order Summary (No printable receipt/download before payment) */
+              <div
+                data-testid="customer-order-summary"
+                className="print:hidden rounded-2xl border border-border bg-card p-5 space-y-3 shadow-sm"
+              >
+                <h2 className="text-sm font-bold text-foreground">{copy.itemsOrdered}</h2>
+                <ul className="divide-y divide-border">
+                  {order.items.map((it, idx) => (
+                    <li key={idx} className="py-2.5 flex items-start justify-between gap-3 text-sm">
+                      <div className="space-y-0.5 min-w-0">
+                        <div className="font-semibold text-foreground break-words">
+                          {it.quantity} × {it.item_name}
+                          {it.variant_name ? ` (${it.variant_name})` : ""}
+                        </div>
+                        {it.options && it.options.length > 0 && (
+                          <div className="text-xs text-muted-foreground">
+                            {it.options.map((o) => o.name).join(", ")}
+                          </div>
+                        )}
+                        {it.notes && (
+                          <div className="text-xs text-muted-foreground italic">"{it.notes}"</div>
+                        )}
+                      </div>
+                      <div className="font-semibold text-foreground whitespace-nowrap shrink-0">
+                        {formatRupees(it.subtotal_paise)}
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+                <div className="pt-3 border-t border-border flex items-center justify-between text-base font-extrabold">
+                  <span>{copy.totalLabel}</span>
+                  <span>{formatRupees(order.total_paise)}</span>
+                </div>
+                <p
+                  data-testid="bill-pending-notice"
+                  className="text-xs text-muted-foreground bg-muted/60 rounded-lg px-3 py-2"
+                >
+                  {copy.billPendingNotice}
+                </p>
+              </div>
+            )}
 
             {/* Verified Order Feedback */}
             {(order.status === "SERVED" || order.status === "COMPLETED") && trackingToken && (
@@ -509,9 +836,9 @@ export const PublicOrderTrackerPage: React.FC = () => {
                             comment: feedbackComment.trim(),
                           });
                           setFeedbackSubmitted(true);
-                        } catch (err: any) {
+                        } catch (err: unknown) {
                           setFeedbackError(
-                            err?.response?.data?.detail ||
+                            getHttpErrorMessage(err) ||
                               (lang === "ta"
                                 ? "கருத்து அனுப்ப முடியவில்லை."
                                 : "Could not submit feedback.")

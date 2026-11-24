@@ -1059,6 +1059,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/menu/availability/outlets/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description Return active outlets accessible for availability management. */
+        get: operations["menu_availability_outlets_retrieve"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/menu/availability/toggle/": {
         parameters: {
             query?: never;
@@ -1638,6 +1655,23 @@ export interface paths {
         put?: never;
         /** @description Production ViewSet for placing, tracking, serving, and cancelling orders. */
         post: operations["orders_serve_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/orders/{id}/transition/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** @description Production ViewSet for placing, tracking, serving, and cancelling orders. */
+        post: operations["orders_transition_create"];
         delete?: never;
         options?: never;
         head?: never;
@@ -2326,6 +2360,23 @@ export interface paths {
         put?: never;
         /** @description Stage D3: Verified-order guest feedback (private to OWNER/BRANCH_MANAGER, never public). */
         post: operations["public_orders_feedback_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/public/orders/{tracking_token}/receipt/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description Server-enforced public paid receipt endpoint (blocks unpaid orders with 403). */
+        get: operations["public_orders_receipt_retrieve"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -5546,6 +5597,50 @@ export interface components {
             language?: string;
             consent: boolean;
             website?: string;
+        };
+        PublicOrderReceiptResponse: {
+            demo_notice: string;
+            display_name: string;
+            logo_url: string;
+            branch_name: string;
+            order_number: string;
+            invoice_number: string;
+            target_label: string;
+            token_number: number | null;
+            payment_status: string;
+            payment_method: string;
+            settled_at: string | null;
+            subtotal_paise: number;
+            discount_paise: number;
+            total_paise: number;
+            items: {
+                [key: string]: unknown;
+            }[];
+        };
+        PublicOrderTrackerResponse: {
+            display_name: string;
+            logo_url: string;
+            branch_name: string;
+            order_number: string;
+            order_workflow: string;
+            status: string;
+            status_key: string;
+            payment_status: string;
+            payment_timing: string;
+            target_label: string;
+            token_number: number | null;
+            pickup_code: string | null;
+            rejected_reason: string;
+            show_bill: boolean;
+            total_paise: number;
+            placed_at: string | null;
+            ready_at: string | null;
+            served_at: string | null;
+            completed_at: string | null;
+            cancelled_at: string | null;
+            items: {
+                [key: string]: unknown;
+            }[];
         };
         PublicQRDetail: {
             tenant_name: string;
@@ -9130,6 +9225,25 @@ export interface operations {
             };
         };
     };
+    menu_availability_outlets_retrieve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BranchItemAvailability"];
+                };
+            };
+        };
+    };
     menu_availability_toggle_create: {
         parameters: {
             query?: never;
@@ -10556,6 +10670,34 @@ export interface operations {
             };
         };
     };
+    orders_transition_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description A UUID string identifying this order. */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["OrderRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["OrderRequest"];
+                "multipart/form-data": components["schemas"]["OrderRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Order"];
+                };
+            };
+        };
+    };
     orders_billing_invoices_retrieve: {
         parameters: {
             query?: never;
@@ -11776,8 +11918,16 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description No response body */
             200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PublicOrderTrackerResponse"];
+                };
+            };
+            /** @description Order not found or expired */
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -11798,6 +11948,41 @@ export interface operations {
         responses: {
             /** @description No response body */
             200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    public_orders_receipt_retrieve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                tracking_token: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PublicOrderReceiptResponse"];
+                };
+            };
+            /** @description Receipt is only available after payment */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Order not found or expired */
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };

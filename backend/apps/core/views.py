@@ -78,9 +78,7 @@ class HealthCheckView(APIView):
         }
 
         overall_status = "ok" if (db_ok and redis_ok) else ("degraded" if db_ok else "error")
-        status_code = (
-            status.HTTP_200_OK if db_ok else status.HTTP_503_SERVICE_UNAVAILABLE
-        )
+        status_code = status.HTTP_200_OK if db_ok else status.HTTP_503_SERVICE_UNAVAILABLE
 
         return Response(
             {

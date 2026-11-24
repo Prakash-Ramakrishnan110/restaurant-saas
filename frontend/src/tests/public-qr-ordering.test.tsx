@@ -7,6 +7,7 @@ import { PublicOrderTrackerPage } from "../pages/public/PublicOrderTrackerPage";
 import { publicQrApi, PublicQRMenuResponse, PublicOrderTrackerResponse } from "../api/publicQr";
 import { PUBLIC_QR_COPY } from "../pages/public/publicQrStrings";
 import { formatRupees } from "../utils/currency";
+import { playReadyAlert, setSoundEnabled } from "../utils/soundAlerts";
 
 vi.mock("../api/publicQr", () => ({
   publicQrApi: {
@@ -14,6 +15,7 @@ vi.mock("../api/publicQr", () => ({
     openSession: vi.fn(),
     createOrder: vi.fn(),
     trackOrder: vi.fn(),
+    getReceipt: vi.fn(),
   },
 }));
 
@@ -270,5 +272,153 @@ describe("Customer Phone QR Ordering", () => {
     expect(
       rejectedAxe.violations.filter((v) => v.impact === "serious" || v.impact === "critical")
     ).toEqual([]);
+  });
+
+  it("gates printable receipt behind show_bill, triggers READY alert/vibrate/pickup code, and passes axe in EN/TA", async () => {
+    const startMock = vi.fn();
+    const stopMock = vi.fn();
+    class MockAudioContext {
+      currentTime = 0;
+      state = "running";
+      destination = {};
+      resume = vi.fn().mockResolvedValue(undefined);
+      createOscillator() {
+        return {
+          type: "sine",
+          frequency: { setValueAtTime: vi.fn() },
+          connect: vi.fn(),
+          start: startMock,
+          stop: stopMock,
+        };
+      }
+      createGain() {
+        return {
+          gain: { setValueAtTime: vi.fn(), exponentialRampToValueAtTime: vi.fn() },
+          connect: vi.fn(),
+        };
+      }
+    }
+    vi.stubGlobal("AudioContext", MockAudioContext);
+    const vibrateMock = vi.fn();
+    Object.defineProperty(navigator, "vibrate", { value: vibrateMock, configurable: true });
+
+    // Unit test for playReadyAlert respecting sound toggle
+    setSoundEnabled(false);
+    playReadyAlert("Token #42");
+    expect(startMock).not.toHaveBeenCalled();
+
+    setSoundEnabled(true);
+    playReadyAlert("Token #42", { bypassMuteSetting: true });
+    expect(startMock).toHaveBeenCalledTimes(3);
+
+    startMock.mockClear();
+
+    const counterUnpaid: PublicOrderTrackerResponse = {
+      display_name: "Chai Corner",
+      branch_name: "Anna Nagar",
+      order_number: "ORD-4088",
+      order_workflow: "COUNTER_TOKEN",
+      status: "PREPARING",
+      status_key: "ORDER_PREPARING",
+      payment_status: "UNPAID",
+      payment_timing: "PAY_LATER",
+      target_label: "Token #42",
+      token_number: 42,
+      pickup_code: null,
+      rejected_reason: "",
+      show_bill: false,
+      total_paise: 12000,
+      placed_at: new Date().toISOString(),
+      ready_at: null,
+      served_at: null,
+      completed_at: null,
+      cancelled_at: null,
+      items: [
+        {
+          item_name: "Masala Dosa",
+          variant_name: "",
+          options: [],
+          quantity: 1,
+          notes: "",
+          unit_price_paise: 12000,
+          subtotal_paise: 12000,
+        },
+      ],
+    };
+
+    // Unpaid view: order summary shown, printable receipt blocked
+    vi.mocked(publicQrApi.trackOrder).mockResolvedValueOnce({ data: counterUnpaid } as any);
+    const unpaidView = renderTrackerPage("tok-cnt", "trk-cnt-1");
+    await waitFor(() => {
+      expect(screen.getByTestId("counter-token-banner")).toBeInTheDocument();
+      expect(screen.getByTestId("customer-order-summary")).toBeInTheDocument();
+      expect(screen.getByTestId("bill-pending-notice")).toBeInTheDocument();
+    });
+    expect(screen.queryByTestId("customer-printable-bill")).not.toBeInTheDocument();
+    expect(publicQrApi.getReceipt).not.toHaveBeenCalled();
+    unpaidView.unmount();
+
+    // Paid + READY view: ready alert plays, pickup code shows, receipt fetches & displays DEMO RECEIPT
+    vi.mocked(publicQrApi.trackOrder).mockResolvedValueOnce({
+      data: {
+        ...counterUnpaid,
+        status: "READY",
+        status_key: "ORDER_READY",
+        payment_status: "PAID",
+        pickup_code: "4088",
+        show_bill: true,
+        ready_at: new Date().toISOString(),
+      },
+    } as any);
+    vi.mocked(publicQrApi.getReceipt).mockResolvedValueOnce({
+      data: {
+        demo_notice: "DEMO RECEIPT - NOT A TAX INVOICE",
+        display_name: "Chai Corner",
+        logo_url: "",
+        branch_name: "Anna Nagar",
+        order_number: "ORD-4088",
+        invoice_number: "INV-202611-0008",
+        target_label: "Token #42",
+        token_number: 42,
+        payment_status: "PAID",
+        payment_method: "UPI",
+        settled_at: new Date().toISOString(),
+        subtotal_paise: 12000,
+        discount_paise: 0,
+        total_paise: 12000,
+        items: [
+          {
+            item_name: "Masala Dosa",
+            variant_name: "",
+            options: [],
+            quantity: 1,
+            unit_price_paise: 12000,
+            subtotal_paise: 12000,
+          },
+        ],
+      },
+    } as any);
+
+    const readyPaidView = renderTrackerPage("tok-cnt", "trk-cnt-2");
+    await waitFor(() => {
+      expect(screen.getByTestId("order-ready-banner")).toBeInTheDocument();
+      expect(screen.getByTestId("customer-pickup-code")).toHaveTextContent("4088");
+      expect(screen.getByTestId("customer-printable-bill")).toBeInTheDocument();
+      expect(screen.getByText("DEMO RECEIPT - NOT A TAX INVOICE")).toBeInTheDocument();
+    });
+    expect(startMock).toHaveBeenCalledTimes(3);
+    expect(vibrateMock).toHaveBeenCalled();
+
+    // Switch to Tamil and verify zero serious axe violations
+    fireEvent.click(screen.getByRole("button", { name: "தமிழ்" }));
+    expect(screen.getByText("உங்கள் ஆர்டர் தயார்!")).toBeInTheDocument();
+
+    const readyAxe = await axe(readyPaidView.container);
+    expect(
+      readyAxe.violations.filter((v) => v.impact === "serious" || v.impact === "critical")
+    ).toEqual([]);
+    readyPaidView.unmount();
+
+    vi.unstubAllGlobals();
   });
 });

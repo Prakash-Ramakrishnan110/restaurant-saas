@@ -133,6 +133,52 @@ export function playWaiterCallAlert(tableOrTarget?: string): void {
 }
 
 /**
+ * Triggers a 3-note ascending chime (C5 -> E5 -> G5) when an order is ready for pickup/serving.
+ */
+export function playReadyAlert(
+  targetOrToken?: string,
+  options?: { bypassMuteSetting?: boolean; withVoice?: boolean }
+): void {
+  if (typeof window === "undefined") return;
+  if (!options?.bypassMuteSetting && !isSoundEnabled()) return;
+
+  try {
+    const AudioCtxClass =
+      window.AudioContext || (window as unknown as WindowWithWebkitAudio).webkitAudioContext;
+    if (!AudioCtxClass) return;
+
+    const audioCtx = new AudioCtxClass();
+    if (audioCtx.state === "suspended" && typeof audioCtx.resume === "function") {
+      audioCtx.resume().catch(() => {});
+    }
+    const volume = getSoundVolume();
+    const notes = [523.25, 659.25, 783.99]; // C5 -> E5 -> G5
+
+    notes.forEach((freq, idx) => {
+      const startTime = audioCtx.currentTime + idx * 0.12;
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = "triangle";
+      osc.frequency.setValueAtTime(freq, startTime);
+      gain.gain.setValueAtTime(volume * 0.45, startTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, startTime + 0.24);
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start(startTime);
+      osc.stop(startTime + 0.24);
+    });
+  } catch {
+    // AudioContext blocked or not supported
+  }
+
+  if (options?.withVoice && targetOrToken) {
+    setTimeout(() => {
+      speakText(`Order ready for ${targetOrToken}`);
+    }, 450);
+  }
+}
+
+/**
  * Test button helper for settings or sound toggle.
  */
 export function testSoundAlert(): void {

@@ -1,5 +1,6 @@
 import hashlib
 import json
+import re
 import secrets
 from datetime import timedelta
 from typing import Any
@@ -10,7 +11,8 @@ from django.db import IntegrityError, transaction
 from django.db.models import Prefetch
 from django.http import Http404
 from django.utils import timezone
-from rest_framework import status
+from drf_spectacular.utils import OpenApiResponse, extend_schema, inline_serializer
+from rest_framework import serializers, status
 from rest_framework.permissions import AllowAny
 from rest_framework.request import Request
 from rest_framework.response import Response
@@ -28,6 +30,7 @@ from apps.menu.models import (
     Option,
 )
 from apps.orders.models import (
+    BillInvoice,
     FeedbackSuggestionType,
     Order,
     OrderFeedback,
@@ -619,9 +622,8 @@ class PublicQROrderCreateView(APIView):
             tracking_token = secrets.token_urlsafe(16)
             guest_label = str(request.data.get("guest_label") or "").strip()[:20]
             dining_preference = str(request.data.get("dining_preference") or "").strip().upper()
-            can_takeaway = (
-                target_type != QRTargetType.ROOM
-                and (capabilities is None or bool(capabilities.allows_takeaway))
+            can_takeaway = target_type != QRTargetType.ROOM and (
+                capabilities is None or bool(capabilities.allows_takeaway)
             )
             if (
                 dining_preference == "TAKEAWAY"
@@ -688,48 +690,113 @@ class PublicQROrderCreateView(APIView):
             reset_current_tenant(ctx_token)
 
 
+def _resolve_tracked_order(tracking_token: str) -> Order:
+    """Resolve an active public order by 128-bit tracking_token or raise generic 404."""
+    if not tracking_token or len(tracking_token) > 64:
+        raise Http404("Order not found.")
+
+    order = (
+        Order.unscoped.select_related(
+            "branch",
+            "branch__tenant",
+            "branch__tenant__business_settings",
+            "branch__capabilities",
+            "table_session__table",
+        )
+        .prefetch_related("items")
+        .filter(tracking_token=tracking_token)
+        .first()
+    )
+    if not order:
+        raise Http404("Order not found.")
+
+    limits = get_qr_limits()
+    if order.status in (OrderStatus.COMPLETED, OrderStatus.CANCELLED):
+        ref_time = order.completed_at or order.cancelled_at or order.updated_at
+        if ref_time and (timezone.now() - ref_time) > timedelta(
+            hours=limits["TRACKING_EXPIRE_HOURS"]
+        ):
+            raise Http404("Order tracking has expired.")
+
+    return order
+
+
+def _derive_order_target_and_branding(order: Order) -> tuple[str, str, str]:
+    """Return (display_name, logo_url, target_label) for public order views."""
+    tenant = order.branch.tenant
+    business_settings = getattr(tenant, "business_settings", None)
+    display_name = (
+        business_settings.legal_name
+        if business_settings and business_settings.legal_name
+        else tenant.name
+    )
+    logo_url = business_settings.logo_url if business_settings else ""
+
+    target_label = ""
+    if order.table_session and order.table_session.table:
+        target_label = order.table_session.table.label
+    elif order.token_number is not None:
+        target_label = f"Token #{order.token_number}"
+
+    return display_name, logo_url, target_label
+
+
+def _compute_pickup_code(order: Order) -> str | None:
+    """Return 4-digit pickup code strictly when READY for counter or parcel orders."""
+    is_counter_or_parcel = order.order_workflow == OrderWorkflow.COUNTER_TOKEN or "[PARCEL]" in (
+        order.notes or ""
+    )
+    if not is_counter_or_parcel or order.status != OrderStatus.READY:
+        return None
+    digits = re.sub(r"\D", "", order.order_number or "")
+    return digits[-4:] if digits else "1234"
+
+
 class PublicOrderTrackerView(APIView):
     """Public read-only order status tracker by random 128-bit tracking_token."""
 
     permission_classes = [AllowAny]
     throttle_classes = [PublicOrderTrackThrottle]
 
+    @extend_schema(
+        responses={
+            200: inline_serializer(
+                name="PublicOrderTrackerResponse",
+                fields={
+                    "display_name": serializers.CharField(),
+                    "logo_url": serializers.CharField(),
+                    "branch_name": serializers.CharField(),
+                    "order_number": serializers.CharField(),
+                    "order_workflow": serializers.CharField(),
+                    "status": serializers.CharField(),
+                    "status_key": serializers.CharField(),
+                    "payment_status": serializers.CharField(),
+                    "payment_timing": serializers.CharField(),
+                    "target_label": serializers.CharField(),
+                    "token_number": serializers.IntegerField(allow_null=True),
+                    "pickup_code": serializers.CharField(allow_null=True),
+                    "rejected_reason": serializers.CharField(),
+                    "show_bill": serializers.BooleanField(),
+                    "total_paise": serializers.IntegerField(),
+                    "placed_at": serializers.CharField(allow_null=True),
+                    "ready_at": serializers.CharField(allow_null=True),
+                    "served_at": serializers.CharField(allow_null=True),
+                    "completed_at": serializers.CharField(allow_null=True),
+                    "cancelled_at": serializers.CharField(allow_null=True),
+                    "items": serializers.ListField(child=serializers.DictField()),
+                },
+            ),
+            404: OpenApiResponse(description="Order not found or expired"),
+        }
+    )
     def get(self, request: Request, tracking_token: str) -> Response:
-        order = (
-            Order.unscoped.select_related(
-                "branch", "branch__tenant", "branch__capabilities", "table_session__table"
-            )
-            .prefetch_related("items")
-            .filter(tracking_token=tracking_token)
-            .first()
-        )
-        if not order:
-            raise Http404("Order not found.")
-
-        limits = get_qr_limits()
-        if order.status in (OrderStatus.COMPLETED, OrderStatus.CANCELLED):
-            ref_time = order.completed_at or order.cancelled_at or order.updated_at
-            if ref_time and (timezone.now() - ref_time) > timedelta(
-                hours=limits["TRACKING_EXPIRE_HOURS"]
-            ):
-                raise Http404("Order tracking has expired.")
-
+        order = _resolve_tracked_order(tracking_token)
         capabilities = getattr(order.branch, "capabilities", None)
         payment_timing = capabilities.payment_timing if capabilities else PaymentTiming.PAY_LATER
-        tenant = order.branch.tenant
-        business_settings = getattr(tenant, "business_settings", None)
-        display_name = (
-            business_settings.legal_name
-            if business_settings and business_settings.legal_name
-            else tenant.name
-        )
-        logo_url = business_settings.logo_url if business_settings else ""
+        display_name, logo_url, target_label = _derive_order_target_and_branding(order)
 
-        target_label = ""
-        if order.table_session and order.table_session.table:
-            target_label = order.table_session.table.label
-        elif order.token_number is not None:
-            target_label = f"Token #{order.token_number}"
+        # Bill & printable receipt unlock strictly after server-confirmed payment.
+        show_bill = order.payment_status == OrderPaymentStatus.PAID
 
         return Response(
             {
@@ -737,13 +804,16 @@ class PublicOrderTrackerView(APIView):
                 "logo_url": logo_url,
                 "branch_name": order.branch.name,
                 "order_number": order.order_number,
+                "order_workflow": order.order_workflow,
                 "status": order.status,
                 "status_key": _status_message_key(order, payment_timing),
                 "payment_status": order.payment_status,
                 "payment_timing": payment_timing,
                 "target_label": target_label,
                 "token_number": order.token_number,
+                "pickup_code": _compute_pickup_code(order),
                 "rejected_reason": order.rejected_reason,
+                "show_bill": show_bill,
                 "total_paise": order.total_paise,
                 "placed_at": order.placed_at.isoformat() if order.placed_at else None,
                 "ready_at": order.ready_at.isoformat() if order.ready_at else None,
@@ -761,6 +831,107 @@ class PublicOrderTrackerView(APIView):
                         "subtotal_paise": it.subtotal_paise,
                     }
                     for it in order.items.all()
+                ],
+            },
+            status=status.HTTP_200_OK,
+        )
+
+
+class PublicOrderReceiptView(APIView):
+    """Server-enforced public paid receipt endpoint (blocks unpaid orders with 403)."""
+
+    permission_classes = [AllowAny]
+    throttle_classes = [PublicOrderTrackThrottle]
+
+    @extend_schema(
+        responses={
+            200: inline_serializer(
+                name="PublicOrderReceiptResponse",
+                fields={
+                    "demo_notice": serializers.CharField(),
+                    "display_name": serializers.CharField(),
+                    "logo_url": serializers.CharField(),
+                    "branch_name": serializers.CharField(),
+                    "order_number": serializers.CharField(),
+                    "invoice_number": serializers.CharField(),
+                    "target_label": serializers.CharField(),
+                    "token_number": serializers.IntegerField(allow_null=True),
+                    "payment_status": serializers.CharField(),
+                    "payment_method": serializers.CharField(),
+                    "settled_at": serializers.CharField(allow_null=True),
+                    "subtotal_paise": serializers.IntegerField(),
+                    "discount_paise": serializers.IntegerField(),
+                    "total_paise": serializers.IntegerField(),
+                    "items": serializers.ListField(child=serializers.DictField()),
+                },
+            ),
+            403: OpenApiResponse(description="Receipt is only available after payment"),
+            404: OpenApiResponse(description="Order not found or expired"),
+        }
+    )
+    def get(self, request: Request, tracking_token: str) -> Response:
+        order = _resolve_tracked_order(tracking_token)
+        if not is_tenant_allowed(order.branch.tenant):
+            raise Http404("Order not found.")
+
+        if order.payment_status != OrderPaymentStatus.PAID:
+            raise BusinessRuleError(
+                "BILL_NOT_PAID",
+                "Receipt is only available after payment is completed.",
+                status_code=403,
+            )
+
+        display_name, logo_url, target_label = _derive_order_target_and_branding(order)
+        items = list(order.items.all())
+        subtotal_paise = sum(it.subtotal_paise for it in items)
+
+        invoice = None
+        if order.table_session_id:
+            invoice = (
+                BillInvoice.unscoped.filter(
+                    tenant=order.tenant,
+                    table_session_id=order.table_session_id,
+                    is_settled=True,
+                )
+                .order_by("-settled_at")
+                .first()
+            )
+
+        invoice_number = invoice.invoice_number if invoice else ""
+        payment_method = invoice.payment_method if invoice else ""
+        settled_at = (
+            invoice.settled_at.isoformat()
+            if invoice and invoice.settled_at
+            else (order.completed_at.isoformat() if order.completed_at else None)
+        )
+
+        # Strip notes, customer names, phone numbers, and staff data per public endpoint rules.
+        return Response(
+            {
+                "demo_notice": "DEMO RECEIPT - NOT A TAX INVOICE",
+                "display_name": display_name,
+                "logo_url": logo_url,
+                "branch_name": order.branch.name,
+                "order_number": order.order_number,
+                "invoice_number": invoice_number,
+                "target_label": target_label,
+                "token_number": order.token_number,
+                "payment_status": order.payment_status,
+                "payment_method": payment_method,
+                "settled_at": settled_at,
+                "subtotal_paise": subtotal_paise,
+                "discount_paise": 0,
+                "total_paise": subtotal_paise,
+                "items": [
+                    {
+                        "item_name": it.item_name,
+                        "variant_name": it.variant_name,
+                        "options": it.options_snapshot,
+                        "quantity": it.quantity,
+                        "unit_price_paise": it.unit_price_paise,
+                        "subtotal_paise": it.subtotal_paise,
+                    }
+                    for it in items
                 ],
             },
             status=status.HTTP_200_OK,

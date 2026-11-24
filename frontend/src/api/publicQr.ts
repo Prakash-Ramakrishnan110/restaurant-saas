@@ -122,13 +122,16 @@ export interface PublicOrderTrackerResponse {
   logo_url?: string;
   branch_name?: string;
   order_number: string;
+  order_workflow?: string;
   status: string;
   status_key: string;
   payment_status: string;
   payment_timing: PaymentTiming;
   target_label: string;
   token_number: number | null;
+  pickup_code?: string | null;
   rejected_reason: string;
+  show_bill?: boolean;
   total_paise: number;
   placed_at: string | null;
   ready_at: string | null;
@@ -136,6 +139,33 @@ export interface PublicOrderTrackerResponse {
   completed_at: string | null;
   cancelled_at: string | null;
   items: PublicOrderTrackerItem[];
+}
+
+export interface PublicOrderReceiptItem {
+  item_name: string;
+  variant_name: string;
+  options: Array<{ name: string; price_delta_paise: number }>;
+  quantity: number;
+  unit_price_paise: number;
+  subtotal_paise: number;
+}
+
+export interface PublicOrderReceiptResponse {
+  demo_notice: string;
+  display_name?: string;
+  logo_url?: string;
+  branch_name?: string;
+  order_number: string;
+  invoice_number?: string;
+  target_label: string;
+  token_number: number | null;
+  payment_status: string;
+  payment_method?: string;
+  settled_at: string | null;
+  subtotal_paise: number;
+  discount_paise: number;
+  total_paise: number;
+  items: PublicOrderReceiptItem[];
 }
 
 export const publicQrApi = {
@@ -162,6 +192,11 @@ export const publicQrApi = {
   trackOrder: (trackingToken: string) =>
     publicHttp.get<PublicOrderTrackerResponse>(
       `/public/orders/${encodeURIComponent(trackingToken)}/`
+    ),
+
+  getReceipt: (trackingToken: string) =>
+    publicHttp.get<PublicOrderReceiptResponse>(
+      `/public/orders/${encodeURIComponent(trackingToken)}/receipt/`
     ),
 
   reorderPreview: (

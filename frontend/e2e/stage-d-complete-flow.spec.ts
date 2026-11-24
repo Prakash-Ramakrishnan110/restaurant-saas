@@ -50,8 +50,11 @@ test.describe.serial("Complete QR Guest + Waiter + Kitchen + Cashier Flow", () =
     const tblList = tblRaw.results || tblRaw;
     const tableQr =
       tblList
-        .map((t: any) => qrList.find((q: any) => q.is_active && q.target_type === "TABLE" && q.table === t.id))
-        .find(Boolean) || qrList.find((q: any) => q.is_active && q.target_type === "TABLE" && q.table);
+        .map((t: any) =>
+          qrList.find((q: any) => q.is_active && q.target_type === "TABLE" && q.table === t.id)
+        )
+        .find(Boolean) ||
+      qrList.find((q: any) => q.is_active && q.target_type === "TABLE" && q.table);
     expect(tableQr).toBeTruthy();
     qrToken = tableQr.public_token;
     branchId = tableQr.branch;
@@ -78,7 +81,9 @@ test.describe.serial("Complete QR Guest + Waiter + Kitchen + Cashier Flow", () =
       const openSess = (await sessRes.json()).results || (await sessRes.json()) || [];
       for (const s of openSess) {
         const ordersRes = await ctx.get(`orders/?session_id=${s.id}`);
-        const ords = ordersRes.ok() ? (await ordersRes.json()).results || (await ordersRes.json()) : [];
+        const ords = ordersRes.ok()
+          ? (await ordersRes.json()).results || (await ordersRes.json())
+          : [];
         if (ords.length > 0) {
           await ctx.post(`orders/billing/session/${s.id}/settle/`, {
             data: { payment_method: "CASH", amount_tendered_paise: 999999, discount_paise: 0 },
@@ -138,7 +143,10 @@ test.describe.serial("Complete QR Guest + Waiter + Kitchen + Cashier Flow", () =
     }
 
     // Open Cart and place Order #1 with guest_label
-    await page.getByRole("button", { name: /View Cart|My cart/i }).first().click();
+    await page
+      .getByRole("button", { name: /View Cart|My cart/i })
+      .first()
+      .click();
     const guestInput = page.locator("#guest-label");
     if (await guestInput.isVisible()) {
       await guestInput.fill("Arun");
@@ -147,14 +155,10 @@ test.describe.serial("Complete QR Guest + Waiter + Kitchen + Cashier Flow", () =
     await page.waitForURL(/\/q\/.*\/o\/.*/);
     firstTrackingPath = new URL(page.url()).pathname;
 
-    // Verify printable bill exists and print media hides non-bill elements
-    await expect(page.getByTestId("customer-printable-bill")).toBeVisible();
-    await expect(page.getByRole("button", { name: /Save PDF \/ Print/i })).toBeVisible();
-    await page.emulateMedia({ media: "print" });
-    await expect(page.locator("header")).toBeHidden();
-    await expect(page.locator("footer")).toBeHidden();
-    await expect(page.getByTestId("customer-printable-bill")).toBeVisible();
-    await page.emulateMedia({ media: "screen" });
+    // Verify order summary is shown while unpaid, and printable bill is server-gated until payment
+    await expect(page.getByTestId("customer-order-summary")).toBeVisible();
+    await expect(page.getByTestId("customer-printable-bill")).toHaveCount(0);
+    await expect(page.getByRole("button", { name: /Save PDF \/ Print/i })).toHaveCount(0);
 
     // Re-open QR menu, reorder into the SAME table session, and send all 4 service requests
     await page.goto(`/q/${encodeURIComponent(qrToken)}`);
@@ -192,7 +196,10 @@ test.describe.serial("Complete QR Guest + Waiter + Kitchen + Cashier Flow", () =
 
     // Check Floor POS at 390px mobile via mobile bottom nav / menu
     await page.getByRole("button", { name: "Toggle navigation menu" }).click();
-    await page.getByRole("link", { name: /Floor POS|Tables and Orders/i }).first().click();
+    await page
+      .getByRole("link", { name: /Floor POS|Tables and Orders/i })
+      .first()
+      .click();
     await page.waitForURL(/\/pos/);
     const overflow = await page.evaluate(
       () => document.documentElement.scrollWidth - document.documentElement.clientWidth
@@ -200,14 +207,20 @@ test.describe.serial("Complete QR Guest + Waiter + Kitchen + Cashier Flow", () =
     expect(overflow).toBeLessThanOrEqual(2);
 
     // Select the active occupied table and check Current / Last Bill modal
-    await page.getByRole("button", { name: new RegExp(`^${tableLabel}\\b`, "i") }).first().click();
+    await page
+      .getByRole("button", { name: new RegExp(`^${tableLabel}\\b`, "i") })
+      .first()
+      .click();
     await page.getByRole("button", { name: /Current \/ Last Bill/i }).click();
     await expect(page.getByText(/Current Running Bill/i)).toBeVisible();
     await page.getByRole("button", { name: "Close" }).first().click();
 
     // Bump KDS tickets to READY using desktop sidebar navigation
     await page.setViewportSize({ width: 1280, height: 800 });
-    await page.getByRole("link", { name: /Kitchen KDS/i }).first().click();
+    await page
+      .getByRole("link", { name: /Kitchen KDS/i })
+      .first()
+      .click();
     await page.waitForURL(/\/kds/);
     for (let i = 0; i < 6; i++) {
       const startBtn = page.getByRole("button", { name: /Start Preparing/i }).first();
@@ -226,7 +239,10 @@ test.describe.serial("Complete QR Guest + Waiter + Kitchen + Cashier Flow", () =
     }
 
     // Serve ready orders and resolve guest requests on /serve
-    await page.getByRole("link", { name: /Ready to Serve/i }).first().click();
+    await page
+      .getByRole("link", { name: /Ready to Serve/i })
+      .first()
+      .click();
     await page.waitForURL(/\/serve/);
     await page.waitForTimeout(500);
     for (let i = 0; i < 6; i++) {
@@ -261,11 +277,34 @@ test.describe.serial("Complete QR Guest + Waiter + Kitchen + Cashier Flow", () =
     }
 
     // Settle the combined table bill in Cashier Billing
-    await page.getByRole("link", { name: /Cashier Billing/i }).first().click();
+    await page
+      .getByRole("link", { name: /Cashier Billing/i })
+      .first()
+      .click();
     await page.waitForURL(/\/billing/);
-    await page.getByText(new RegExp(`Table ${tableLabel}`, "i")).first().click();
+    await page
+      .getByText(new RegExp(`Table ${tableLabel}`, "i"))
+      .first()
+      .click();
     await page.getByRole("button", { name: /Settle & Print Receipt/i }).click();
     await expect(page.getByText(/Payment Settled|Receipt/i).first()).toBeVisible();
+
+    // After payment, customer tracker unlocks the official printable DEMO RECEIPT
+    if (firstTrackingPath) {
+      const receiptPage = await browser.newPage({ viewport: { width: 390, height: 844 } });
+      await receiptPage.goto(firstTrackingPath);
+      await expect(receiptPage.getByTestId("customer-printable-bill")).toBeVisible({
+        timeout: 15000,
+      });
+      await expect(receiptPage.getByText("DEMO RECEIPT - NOT A TAX INVOICE")).toBeVisible();
+      await expect(receiptPage.getByRole("button", { name: /Save PDF \/ Print/i })).toBeVisible();
+      await receiptPage.emulateMedia({ media: "print" });
+      await expect(receiptPage.locator("header")).toBeHidden();
+      await expect(receiptPage.locator("footer")).toBeHidden();
+      await expect(receiptPage.getByTestId("customer-printable-bill")).toBeVisible();
+      await receiptPage.emulateMedia({ media: "screen" });
+      await receiptPage.close();
+    }
 
     await context.close();
   });

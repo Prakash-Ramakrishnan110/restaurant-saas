@@ -3,6 +3,7 @@ from rest_framework.routers import DefaultRouter
 
 from apps.orders.public_views import (
     PublicOrderFeedbackView,
+    PublicOrderReceiptView,
     PublicOrderTrackerView,
     PublicQRMenuView,
     PublicQROrderCreateView,
@@ -86,6 +87,11 @@ urlpatterns = [
         "public/orders/<str:tracking_token>/",
         PublicOrderTrackerView.as_view(),
         name="public-order-tracker",
+    ),
+    path(
+        "public/orders/<str:tracking_token>/receipt/",
+        PublicOrderReceiptView.as_view(),
+        name="public-order-receipt",
     ),
     path(
         "public/orders/<str:tracking_token>/feedback/",

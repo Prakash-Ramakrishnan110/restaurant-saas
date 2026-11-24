@@ -76,6 +76,20 @@ export const PUBLIC_QR_COPY: Record<
     orderExpiredBody: string;
     totalLabel: string;
     itemsOrdered: string;
+    billPendingNotice: string;
+    officialReceiptTitle: string;
+    demoReceiptNotice: string;
+    demoReceiptNoticeTa: string;
+    invoiceNumberLabel: string;
+    paymentMethodLabel: string;
+    readyAlertTitle: string;
+    readyAlertCounterBody: string;
+    readyAlertTableBody: string;
+    pickupCodeLabel: string;
+    fullscreenLabel: string;
+    exitFullscreenLabel: string;
+    soundOnLabel: string;
+    soundMutedLabel: string;
     minSelectionError: (groupName: string, min: number) => string;
     genericOrderError: string;
     soldOutError: string;
@@ -154,6 +168,21 @@ export const PUBLIC_QR_COPY: Record<
     orderExpiredBody: "This order has finished. Scan the table QR code to view the menu.",
     totalLabel: "Total",
     itemsOrdered: "Items in your order",
+    billPendingNotice:
+      "Your receipt and print/download options will appear once payment is completed.",
+    officialReceiptTitle: "Paid Receipt",
+    demoReceiptNotice: "DEMO RECEIPT - NOT A TAX INVOICE",
+    demoReceiptNoticeTa: "மாதிரி ரசீது - வரி பில் அல்ல",
+    invoiceNumberLabel: "Receipt #",
+    paymentMethodLabel: "Paid via",
+    readyAlertTitle: "Your order is ready!",
+    readyAlertCounterBody: "Please collect your order at the counter.",
+    readyAlertTableBody: "Our staff will bring your food to your table shortly.",
+    pickupCodeLabel: "Pickup code",
+    fullscreenLabel: "Full screen",
+    exitFullscreenLabel: "Exit full screen",
+    soundOnLabel: "Alert sound on",
+    soundMutedLabel: "Alert sound muted",
     minSelectionError: (groupName, min) => `Please choose at least ${min} for ${groupName}.`,
     genericOrderError: "Could not send your order. Please try again.",
     soldOutError: "Some dishes just sold out. Please check your order and try again.",
@@ -233,6 +262,21 @@ export const PUBLIC_QR_COPY: Record<
       "இந்த ஆர்டர் முடிந்துவிட்டது. மெனுவைப் பார்க்க QR குறியீட்டை ஸ்கேன் செய்யவும்.",
     totalLabel: "மொத்தம்",
     itemsOrdered: "உங்கள் ஆர்டர் உணவுகள்",
+    billPendingNotice:
+      "பணம் செலுத்திய பிறகு உங்கள் ரசீது மற்றும் அச்சு / பதிவிறக்க வசதி இங்கே தோன்றும்.",
+    officialReceiptTitle: "பணம் செலுத்திய ரசீது",
+    demoReceiptNotice: "DEMO RECEIPT - NOT A TAX INVOICE",
+    demoReceiptNoticeTa: "மாதிரி ரசீது - வரி பில் அல்ல",
+    invoiceNumberLabel: "ரசீது எண்",
+    paymentMethodLabel: "செலுத்திய முறை",
+    readyAlertTitle: "உங்கள் ஆர்டர் தயார்!",
+    readyAlertCounterBody: "தயவுசெய்து கவுண்டரில் உங்கள் ஆர்டரைப் பெற்றுக்கொள்ளவும்.",
+    readyAlertTableBody: "எங்கள் பணியாளர் விரைவில் உங்கள் மேசைக்கு உணவைக் கொண்டு வருவார்.",
+    pickupCodeLabel: "பிக்அப் குறியீடு",
+    fullscreenLabel: "முழு திரை",
+    exitFullscreenLabel: "முழு திரையிலிருந்து வெளியேறு",
+    soundOnLabel: "அலார ஒலி இயக்கத்தில்",
+    soundMutedLabel: "அலார ஒலி நிறுத்தப்பட்டது",
     minSelectionError: (groupName, min) => `${groupName}: குறைந்தது ${min} தேர்வு செய்யவும்.`,
     genericOrderError: "ஆர்டரை அனுப்ப முடியவில்லை. மீண்டும் முயற்சிக்கவும்.",
     soldOutError:

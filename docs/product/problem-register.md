@@ -86,10 +86,12 @@ Rule: a new idea is added here first, gets an ID, and is built only when its pha
 | ID | Problem | Answer | Phase | Status |
 |---|---|---|---|---|
 | G-01 | Do not want to install an app | QR opens a web page | P2 | done |
-| G-02 | Want to know when food is ready | Order tracking page | P2 | done |
+| G-02 | Want to know when food is ready | Order tracking page with READY audio chime, vibration alert, Wake Lock, and Counter big-token / pickup code | P2 / Stage 1 | done |
 | G-03 | Want Tamil or English | Language switch | P2 | done |
 | G-04 | Worried about phone number privacy | Collect only with consent; no personal data spoken aloud | P2 | done |
 | G-05 | Want to pay by UPI | Online payment through the restaurant's own account | P2 | not started |
+| G-06 | Customer could print/download bill before paying | Server-enforced `/public/orders/<tracking_token>/receipt/` (`403` pre-payment; unlocks `DEMO RECEIPT - NOT A TAX INVOICE` after payment) | Stage 1 | done |
+| B-01 | FloorPOS counter token uses local React state (`useState(101)`) instead of server sequence | Replace with server `next_token()` or Stage 2 counter flow | Backlog | not started |
 
 ## 6. What we do NOT promise yet
 - Any tax rate, tax invoice format, service charge rule or liquor rule (ADVICE items).
