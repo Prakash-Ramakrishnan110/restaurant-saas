@@ -94,6 +94,8 @@ class PublicOrderTrackThrottle(AnonRateThrottle):
 
 
 def _resolve_active_qr(token: str) -> Any:
+    if not token or len(token) > 64:
+        raise Http404("QR code is invalid or deactivated.")
     qr = get_public_qr_code(token)
     if not qr or not qr.is_active or not qr.branch.is_active:
         raise Http404("QR code is invalid or deactivated.")
@@ -1234,6 +1236,124 @@ class PublicQRServiceRequestView(APIView):
                     "guest_status_label": "Sent",
                 },
                 status=status.HTTP_201_CREATED,
+            )
+        finally:
+            reset_current_tenant(ctx_token)
+
+
+class PublicTokenTVView(APIView):
+    """Stage 2: Public read-only live Token TV board scoped strictly to a branch QR token (zero PII)."""
+
+    permission_classes = [AllowAny]
+    throttle_classes = [PublicQRIPThrottle, PublicQRTokenThrottle]
+
+    @extend_schema(
+        responses={
+            200: inline_serializer(
+                name="PublicTokenTVResponse",
+                fields={
+                    "display_name": serializers.CharField(),
+                    "branch_name": serializers.CharField(),
+                    "logo_url": serializers.CharField(),
+                    "brand_primary_color": serializers.CharField(),
+                    "qr_token": serializers.CharField(),
+                    "server_time": serializers.CharField(),
+                    "now_calling": serializers.DictField(allow_null=True),
+                    "ready_tokens": serializers.ListField(child=serializers.DictField()),
+                    "preparing_tokens": serializers.ListField(child=serializers.DictField()),
+                },
+            ),
+            404: OpenApiResponse(description="Token TV display not found or deactivated"),
+        }
+    )
+    def get(self, request: Request, token: str) -> Response:
+        qr = _resolve_active_qr(token)
+        tenant = qr.branch.tenant
+        ctx_token = set_current_tenant(tenant)
+        try:
+            business_settings = getattr(tenant, "business_settings", None)
+            display_name = (
+                business_settings.legal_name
+                if business_settings and business_settings.legal_name
+                else tenant.name
+            )
+            logo_url = business_settings.logo_url if business_settings else ""
+            brand_color = (
+                business_settings.brand_primary_color
+                if business_settings and business_settings.brand_primary_color
+                else "#FF6A00"
+            )
+
+            now = timezone.now()
+            window_start = now - timedelta(hours=18)
+
+            active_orders = list(
+                Order.unscoped.filter(
+                    tenant=tenant,
+                    branch=qr.branch,
+                    token_number__isnull=False,
+                    placed_at__gte=window_start,
+                    status__in=[
+                        OrderStatus.PLACED,
+                        OrderStatus.PREPARING,
+                        OrderStatus.READY,
+                    ],
+                )
+                .only(
+                    "id",
+                    "order_number",
+                    "token_number",
+                    "status",
+                    "placed_at",
+                    "ready_at",
+                    "last_called_at",
+                    "call_count",
+                )
+                .order_by("-placed_at")[:60]
+            )
+
+            ready_list: list[dict[str, Any]] = []
+            preparing_list: list[dict[str, Any]] = []
+            for o in active_orders:
+                entry = {
+                    "token_number": o.token_number,
+                    "order_number": o.order_number,
+                    "status": o.status,
+                    "call_count": int(o.call_count or 0),
+                    "last_called_at": o.last_called_at.isoformat() if o.last_called_at else None,
+                    "ready_at": o.ready_at.isoformat() if o.ready_at else None,
+                }
+                if o.status == OrderStatus.READY:
+                    ready_list.append(entry)
+                else:
+                    preparing_list.append(entry)
+
+            # Sort ready tokens with most recently called / marked ready first
+            ready_list.sort(
+                key=lambda x: (
+                    x["last_called_at"] or x["ready_at"] or "",
+                    x["call_count"],
+                    x["token_number"] or 0,
+                ),
+                reverse=True,
+            )
+            preparing_list.sort(key=lambda x: x["token_number"] or 0)
+
+            now_calling = ready_list[0] if ready_list else None
+
+            return Response(
+                {
+                    "display_name": display_name,
+                    "branch_name": qr.branch.name,
+                    "logo_url": logo_url or "",
+                    "brand_primary_color": brand_color,
+                    "qr_token": qr.public_token,
+                    "server_time": now.isoformat(),
+                    "now_calling": now_calling,
+                    "ready_tokens": ready_list[:24],
+                    "preparing_tokens": preparing_list[:24],
+                },
+                status=status.HTTP_200_OK,
             )
         finally:
             reset_current_tenant(ctx_token)

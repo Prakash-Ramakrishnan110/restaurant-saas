@@ -9,6 +9,7 @@ from apps.orders.public_views import (
     PublicQROrderCreateView,
     PublicQRReorderPreviewView,
     PublicQRServiceRequestView,
+    PublicTokenTVView,
 )
 from apps.venues.views import (
     BranchCapabilitiesView,
@@ -97,6 +98,11 @@ urlpatterns = [
         "public/orders/<str:tracking_token>/feedback/",
         PublicOrderFeedbackView.as_view(),
         name="public-order-feedback",
+    ),
+    path(
+        "public/tv/<str:token>/",
+        PublicTokenTVView.as_view(),
+        name="public-token-tv",
     ),
     path("", include(router.urls)),
 ]

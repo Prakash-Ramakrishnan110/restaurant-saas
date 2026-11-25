@@ -377,13 +377,31 @@ export const KDSPage: React.FC = () => {
                     </Button>
                   )}
                   {t.status === "READY" && (
-                    <Button
-                      onClick={() => handleBump(t.id)}
-                      variant="outline"
-                      className="w-full h-10 font-bold text-xs text-foreground gap-1.5"
-                    >
-                      Serve Food
-                    </Button>
+                    <div className="flex gap-2">
+                      {t.token_number != null && (
+                        <Button
+                          onClick={async () => {
+                            try {
+                              await ordersApi.callToken(t.id);
+                              await fetchTickets();
+                            } catch {
+                              // ignore
+                            }
+                          }}
+                          data-testid={`kds-call-token-${t.token_number}`}
+                          className="h-11 font-bold text-xs bg-[#FF6A00] hover:bg-[#E55F00] text-[#0B1F3B] gap-1.5"
+                        >
+                          <Volume2 className="h-4 w-4" /> Call #{t.token_number}
+                        </Button>
+                      )}
+                      <Button
+                        onClick={() => handleBump(t.id)}
+                        variant="outline"
+                        className="flex-1 h-11 font-bold text-xs text-foreground gap-1.5"
+                      >
+                        Serve Food
+                      </Button>
+                    </div>
                   )}
                 </div>
               </div>

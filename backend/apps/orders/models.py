@@ -132,6 +132,8 @@ class Order(BranchOwnedModel):
     )
     placed_at = models.DateTimeField(default=timezone.now, db_index=True)
     ready_at = models.DateTimeField(null=True, blank=True)
+    last_called_at = models.DateTimeField(null=True, blank=True)
+    call_count = models.PositiveIntegerField(default=0)
     served_at = models.DateTimeField(null=True, blank=True)
     guest_label = models.CharField(max_length=20, blank=True, default="")
     notes = models.TextField(blank=True, default="")
@@ -226,6 +228,7 @@ class OrderEventType(models.TextChoices):
     CREATED = "CREATED", "Order Created"
     STATUS_CHANGED = "STATUS_CHANGED", "Status Changed"
     ITEM_FIRED = "ITEM_FIRED", "Item Fired"
+    TOKEN_CALLED = "TOKEN_CALLED", "Token Called"
     CANCELLED = "CANCELLED", "Order Cancelled"
     COMPLETED = "COMPLETED", "Order Completed"
 

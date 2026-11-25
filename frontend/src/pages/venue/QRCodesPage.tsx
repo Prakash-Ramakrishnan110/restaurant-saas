@@ -649,6 +649,21 @@ export const QRCodesPage: React.FC<QRCodesPageProps> = ({ embedded = false }) =>
                                     <span>Preview &amp; Customize Standee</span>
                                   </DropdownMenuItem>
 
+                                  {qr.public_token && (
+                                    <DropdownMenuItem
+                                      asChild
+                                      className="cursor-pointer py-1.5 px-2 text-xs"
+                                    >
+                                      <a
+                                        href={`/tv/${qr.public_token}`}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                      >
+                                        <span>Open Token TV Screen</span>
+                                      </a>
+                                    </DropdownMenuItem>
+                                  )}
+
                                   <DropdownMenuItem
                                     onClick={() => handlePlainDownload(qr, "png")}
                                     className="cursor-pointer py-1.5 px-2 text-xs"

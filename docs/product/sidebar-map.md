@@ -163,7 +163,7 @@ Suspend, reactivate, extend trial, change plan, reset owner password, add an int
 ## Changes by venue type
 | Venue | Changes |
 |---|---|
-| Tea shop, bakery, food court | Counter Orders and Counters & Tokens replace Tables, Floor Plan and Reservations. The word "table" never appears. |
+| Tea shop, bakery, food court | Counter Orders and Counters & Tokens replace Tables, Floor Plan and Reservations. The word "table" never appears. Counters & Tokens also launches the unauthenticated public Token TV display screen (`/tv/<qr_token>`). |
 | Cafe | Tables, simple flow, kitchen screen optional. |
 | Restaurant, fine dining | Full table service, sections, waiter assignment, courses only if switched on. |
 | Hotel | Floors & Outlets, Rooms, Room Service, Room Charges, Events & Banquets, outlet comparison. |

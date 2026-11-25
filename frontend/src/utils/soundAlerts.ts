@@ -91,17 +91,22 @@ export function playChime(frequency1 = 587.33, frequency2 = 880.0, duration = 0.
 /**
  * Announces a voice message using Web Speech API if enabled.
  */
-export function speakText(text: string): void {
-  if (!isSoundEnabled() || !isVoiceEnabled() || typeof window === "undefined") return;
+export function speakText(
+  text: string,
+  lang: "en-US" | "ta-IN" = "en-US",
+  bypassMuteSetting = false
+): void {
+  if (typeof window === "undefined") return;
+  if (!bypassMuteSetting && (!isSoundEnabled() || !isVoiceEnabled())) return;
   if (!("speechSynthesis" in window)) return;
 
   try {
     window.speechSynthesis.cancel(); // Stop prior speeches
     const utterance = new SpeechSynthesisUtterance(text);
-    utterance.rate = 1.05;
-    utterance.pitch = 1.1;
+    utterance.rate = 1.0;
+    utterance.pitch = 1.05;
     utterance.volume = getSoundVolume();
-    utterance.lang = "en-US";
+    utterance.lang = lang;
     window.speechSynthesis.speak(utterance);
   } catch {
     // Speech synthesis error or blocked
@@ -175,6 +180,30 @@ export function playReadyAlert(
     setTimeout(() => {
       speakText(`Order ready for ${targetOrToken}`);
     }, 450);
+  }
+}
+
+/**
+ * Announces a counter token call with 3-note chime and optional EN/TA SpeechSynthesis.
+ */
+export function playTokenCallAlert(
+  tokenNumber: number,
+  lang: "EN" | "TA" = "EN",
+  options?: { bypassMuteSetting?: boolean; withVoice?: boolean }
+): void {
+  playReadyAlert(`Token ${tokenNumber}`, {
+    bypassMuteSetting: options?.bypassMuteSetting,
+    withVoice: false,
+  });
+  if (options?.withVoice !== false) {
+    const phrase =
+      lang === "TA"
+        ? `டோக்கன் எண் ${tokenNumber}, கவுண்டரில் தயார்`
+        : `Token number ${tokenNumber}, ready at counter`;
+    const speechLang = lang === "TA" ? "ta-IN" : "en-US";
+    setTimeout(() => {
+      speakText(phrase, speechLang, Boolean(options?.bypassMuteSetting));
+    }, 420);
   }
 }
 

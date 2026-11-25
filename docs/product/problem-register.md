@@ -42,7 +42,7 @@ Rule: a new idea is added here first, gets an ID, and is built only when its pha
 
 | ID | Problem | ServeMyFood answer | Sidebar item | Phase | Status |
 |---|---|---|---|---|---|
-| R-01 | Long counter queues, lost token slips | Counter orders with printed or shown token numbers | Daily work > Counter Orders | P1 | partial |
+| R-01 | Long counter queues, lost token slips | Counter orders with printed or shown token numbers, Token TV board, and Call announcements | Daily work > Counter Orders | P1 / Stage 2 | done |
 | R-02 | Wrong orders and lost paper slips | Orders go straight to a kitchen screen | Daily work > Kitchen | P1 | partial |
 | R-03 | Customers ask for dishes that are finished | Sold-out switches per outlet | Today's Availability | NOW | done |
 | R-04 | The owner cannot see daily sales | Sales dashboard from real invoices | Dashboard | P1 | not started |
@@ -91,7 +91,7 @@ Rule: a new idea is added here first, gets an ID, and is built only when its pha
 | G-04 | Worried about phone number privacy | Collect only with consent; no personal data spoken aloud | P2 | done |
 | G-05 | Want to pay by UPI | Online payment through the restaurant's own account | P2 | not started |
 | G-06 | Customer could print/download bill before paying | Server-enforced `/public/orders/<tracking_token>/receipt/` (`403` pre-payment; unlocks `DEMO RECEIPT - NOT A TAX INVOICE` after payment) | Stage 1 | done |
-| B-01 | FloorPOS counter token uses local React state (`useState(101)`) instead of server sequence | Replace with server `next_token()` or Stage 2 counter flow | Backlog | not started |
+| B-01 | FloorPOS counter token uses local React state (`useState(101)`) instead of server sequence | Replace with server `next_token()` in `create_order` and printable `TokenSlipModal` | Stage 2 | done |
 
 ## 6. What we do NOT promise yet
 - Any tax rate, tax invoice format, service charge rule or liquor rule (ADVICE items).

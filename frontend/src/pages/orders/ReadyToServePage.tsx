@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { CheckCircle2, RefreshCw, Utensils, Zap, Clock, Bell, Check } from "lucide-react";
+import { CheckCircle2, RefreshCw, Utensils, Zap, Clock, Bell, Check, Volume2 } from "lucide-react";
 import { ordersApi, Order, ServiceRequest } from "../../api/orders";
 import { apiClient } from "../../api/client";
 import { useAuth } from "../../context/AuthContext";
@@ -14,6 +14,7 @@ export const ReadyToServePage: React.FC = () => {
   const [serviceRequests, setServiceRequests] = useState<ServiceRequest[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [servingId, setServingId] = useState<string | null>(null);
+  const [callingId, setCallingId] = useState<string | null>(null);
   const [mySectionIds, setMySectionIds] = useState<string[]>([]);
   const [tableSectionMap, setTableSectionMap] = useState<Record<string, string>>({});
   const [sectionScope, setSectionScope] = useState<"MINE" | "ALL">("MINE");
@@ -90,6 +91,19 @@ export const ReadyToServePage: React.FC = () => {
       alert("Failed to mark order as served: " + message);
     } finally {
       setServingId(null);
+    }
+  };
+
+  const handleCallToken = async (orderId: string, tokenNum: number) => {
+    try {
+      setCallingId(orderId);
+      await ordersApi.callToken(orderId);
+      playOrderAlert(`Token #${tokenNum}`);
+      await fetchReadyOrders();
+    } catch {
+      // ignore transient error
+    } finally {
+      setCallingId(null);
     }
   };
 
@@ -277,24 +291,40 @@ export const ReadyToServePage: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Big Touch-Friendly Button (56px) */}
-                <Button
-                  onClick={() => handleMarkServed(ord.id)}
-                  disabled={servingId === ord.id}
-                  className="w-full min-h-[56px] text-sm font-bold bg-emerald-600 hover:bg-emerald-700 text-white shadow-md transition-transform active:scale-[0.98]"
-                >
-                  {servingId === ord.id ? (
-                    <div className="flex items-center gap-2">
-                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                      Updating...
-                    </div>
-                  ) : (
-                    <div className="flex items-center justify-center gap-2">
-                      <CheckCircle2 className="h-5 w-5" />
-                      Mark Served to Guest
-                    </div>
+                {/* Big Touch-Friendly Buttons (56px) */}
+                <div className="flex flex-col sm:flex-row gap-2">
+                  {(ord.token_number || ord.daily_token) && (
+                    <Button
+                      type="button"
+                      onClick={() =>
+                        handleCallToken(ord.id, Number(ord.token_number || ord.daily_token))
+                      }
+                      disabled={callingId === ord.id}
+                      data-testid="call-token-btn"
+                      className="sm:w-auto min-h-[56px] px-4 text-sm font-bold bg-[#FF6A00] hover:bg-[#E55F00] text-[#0B1F3B] gap-2"
+                    >
+                      <Volume2 className="h-5 w-5" />
+                      Call #{ord.token_number || ord.daily_token}
+                    </Button>
                   )}
-                </Button>
+                  <Button
+                    onClick={() => handleMarkServed(ord.id)}
+                    disabled={servingId === ord.id}
+                    className="flex-1 min-h-[56px] text-sm font-bold bg-emerald-600 hover:bg-emerald-700 text-white shadow-md transition-transform active:scale-[0.98]"
+                  >
+                    {servingId === ord.id ? (
+                      <div className="flex items-center gap-2">
+                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                        Updating...
+                      </div>
+                    ) : (
+                      <div className="flex items-center justify-center gap-2">
+                        <CheckCircle2 className="h-5 w-5" />
+                        Mark Served to Guest
+                      </div>
+                    )}
+                  </Button>
+                </div>
               </CardContent>
             </Card>
           ))}

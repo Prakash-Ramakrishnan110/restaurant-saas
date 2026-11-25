@@ -4075,6 +4075,41 @@ paths:
               schema:
                 $ref: '#/components/schemas/Order'
           description: ''
+  /api/v1/orders/{id}/call/:
+    post:
+      operationId: orders_call_create
+      description: Production ViewSet for placing, tracking, serving, and cancelling
+        orders.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this order.
+        required: true
+      tags:
+      - orders
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OrderRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/OrderRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/OrderRequest'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Order'
+          description: ''
   /api/v1/orders/{id}/cancel/:
     post:
       operationId: orders_cancel_create
@@ -5827,6 +5862,31 @@ paths:
               schema:
                 $ref: '#/components/schemas/PublicQROpenSessionResponse'
           description: ''
+  /api/v1/public/tv/{token}/:
+    get:
+      operationId: public_tv_retrieve
+      description: 'Stage 2: Public read-only live Token TV board scoped strictly
+        to a branch QR token (zero PII).'
+      parameters:
+      - in: path
+        name: token
+        schema:
+          type: string
+        required: true
+      tags:
+      - public
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicTokenTVResponse'
+          description: ''
+        '404':
+          description: Token TV display not found or deactivated
   /api/v1/qr-codes/:
     get:
       operationId: qr_codes_list
@@ -8946,6 +9006,7 @@ components:
       - CREATED
       - STATUS_CHANGED
       - ITEM_FIRED
+      - TOKEN_CALLED
       - CANCELLED
       - COMPLETED
       type: string
@@ -8953,6 +9014,7 @@ components:
         * `CREATED` - Order Created
         * `STATUS_CHANGED` - Status Changed
         * `ITEM_FIRED` - Item Fired
+        * `TOKEN_CALLED` - Token Called
         * `CANCELLED` - Order Cancelled
         * `COMPLETED` - Order Completed
     FoodTypeEnum:
@@ -9535,6 +9597,18 @@ components:
         placed_at:
           type: string
           format: date-time
+        ready_at:
+          type: string
+          format: date-time
+          nullable: true
+        last_called_at:
+          type: string
+          format: date-time
+          nullable: true
+        call_count:
+          type: integer
+          maximum: 2147483647
+          minimum: 0
         elapsed_minutes:
           type: integer
           readOnly: true
@@ -9574,6 +9648,18 @@ components:
         placed_at:
           type: string
           format: date-time
+        ready_at:
+          type: string
+          format: date-time
+          nullable: true
+        last_called_at:
+          type: string
+          format: date-time
+          nullable: true
+        call_count:
+          type: integer
+          maximum: 2147483647
+          minimum: 0
         notes:
           type: string
     LanguageEnum:
@@ -10170,6 +10256,14 @@ components:
           type: string
           format: date-time
           nullable: true
+        last_called_at:
+          type: string
+          format: date-time
+          nullable: true
+        call_count:
+          type: integer
+          maximum: 2147483647
+          minimum: 0
         served_at:
           type: string
           format: date-time
@@ -10481,6 +10575,14 @@ components:
           type: string
           format: date-time
           nullable: true
+        last_called_at:
+          type: string
+          format: date-time
+          nullable: true
+        call_count:
+          type: integer
+          maximum: 2147483647
+          minimum: 0
         served_at:
           type: string
           format: date-time
@@ -11703,6 +11805,14 @@ components:
           type: string
           format: date-time
           nullable: true
+        last_called_at:
+          type: string
+          format: date-time
+          nullable: true
+        call_count:
+          type: integer
+          maximum: 2147483647
+          minimum: 0
         served_at:
           type: string
           format: date-time
@@ -12383,6 +12493,45 @@ components:
       - session_code
       - session_token
       - status
+    PublicTokenTVResponse:
+      type: object
+      properties:
+        display_name:
+          type: string
+        branch_name:
+          type: string
+        logo_url:
+          type: string
+        brand_primary_color:
+          type: string
+        qr_token:
+          type: string
+        server_time:
+          type: string
+        now_calling:
+          type: object
+          additionalProperties: {}
+          nullable: true
+        ready_tokens:
+          type: array
+          items:
+            type: object
+            additionalProperties: {}
+        preparing_tokens:
+          type: array
+          items:
+            type: object
+            additionalProperties: {}
+      required:
+      - branch_name
+      - brand_primary_color
+      - display_name
+      - logo_url
+      - now_calling
+      - preparing_tokens
+      - qr_token
+      - ready_tokens
+      - server_time
     PurchaseOrder:
       type: object
       description: Omits all cost/value/margin fields completely when caller lacks

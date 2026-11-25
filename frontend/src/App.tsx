@@ -9,6 +9,11 @@ const PublicOrderTrackerPage = React.lazy(() =>
     default: m.PublicOrderTrackerPage,
   }))
 );
+const PublicTokenTVPage = React.lazy(() =>
+  import("./pages/public/PublicTokenTVPage").then((m) => ({
+    default: m.PublicTokenTVPage,
+  }))
+);
 const StaffApp = React.lazy(() => import("./StaffApp"));
 
 export const App: React.FC = () => {
@@ -29,6 +34,7 @@ export const App: React.FC = () => {
         <Routes>
           <Route path="/q/:token" element={<PublicQRPage />} />
           <Route path="/q/:token/o/:trackingToken" element={<PublicOrderTrackerPage />} />
+          <Route path="/tv/:token" element={<PublicTokenTVPage />} />
           <Route path="*" element={<StaffApp />} />
         </Routes>
       </React.Suspense>

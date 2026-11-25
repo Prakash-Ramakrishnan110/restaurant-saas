@@ -168,6 +168,27 @@ export interface PublicOrderReceiptResponse {
   items: PublicOrderReceiptItem[];
 }
 
+export interface PublicTokenTVTokenItem {
+  token_number: number;
+  order_number: string;
+  status: string;
+  call_count: number;
+  last_called_at: string | null;
+  ready_at: string | null;
+}
+
+export interface PublicTokenTVResponse {
+  display_name: string;
+  branch_name: string;
+  logo_url: string;
+  brand_primary_color: string;
+  qr_token: string;
+  server_time: string;
+  now_calling: PublicTokenTVTokenItem | null;
+  ready_tokens: PublicTokenTVTokenItem[];
+  preparing_tokens: PublicTokenTVTokenItem[];
+}
+
 export const publicQrApi = {
   getMenu: (token: string) =>
     publicHttp.get<PublicQRMenuResponse>(`/public/qr/${encodeURIComponent(token)}/menu/`),
@@ -245,4 +266,7 @@ export const publicQrApi = {
       `/public/orders/${encodeURIComponent(trackingToken)}/feedback/`,
       payload
     ),
+
+  getTokenTV: (token: string) =>
+    publicHttp.get<PublicTokenTVResponse>(`/public/tv/${encodeURIComponent(token)}/`),
 };

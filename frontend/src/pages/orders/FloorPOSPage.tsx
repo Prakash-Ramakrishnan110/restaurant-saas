@@ -41,6 +41,7 @@ import {
   loadFloorReadCache,
   enqueueOfflineOrder,
 } from "../../utils/offlineQueue";
+import { TokenSlipModal, TokenSlipOrderData } from "../../components/orders/TokenSlipModal";
 
 interface DiningTableItem {
   id: string;
@@ -117,6 +118,8 @@ export const FloorPOSPage: React.FC = () => {
   const [selectedTable, setSelectedTable] = useState<DiningTableItem | null>(null);
   const [selectedSessionId, setSelectedSessionId] = useState<string | null>(null);
   const [counterToken, setCounterToken] = useState<number>(101);
+  const [lastTokenSlipOrder, setLastTokenSlipOrder] = useState<TokenSlipOrderData | null>(null);
+  const [tokenSlipOpen, setTokenSlipOpen] = useState<boolean>(false);
   const [selectedCategory, setSelectedCategory] = useState<string>("ALL");
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [selectedFoodType, setSelectedFoodType] = useState<string>("ALL");
@@ -391,7 +394,7 @@ export const FloorPOSPage: React.FC = () => {
     }));
     const orderPayload = {
       table_session_id: usesTables ? selectedSessionId : null,
-      token_number: !usesTables ? counterToken : null,
+      token_number: null,
       order_workflow: (usesTables ? "TABLE_SERVICE" : "COUNTER_TOKEN") as
         "TABLE_SERVICE" | "COUNTER_TOKEN",
       notes: orderNotes,
@@ -404,7 +407,10 @@ export const FloorPOSPage: React.FC = () => {
         client_order_id: clientOrderId,
         tenant_id: activeTenant?.tenant_id || "default",
         table_label: usesTables ? selectedTable?.label : `Token #${counterToken}`,
-        payload: orderPayload,
+        payload: {
+          ...orderPayload,
+          token_number: !usesTables ? counterToken : null,
+        },
       });
       setSuccessToast("Offline: Order queued and will sync automatically when online.");
       setCart([]);
@@ -415,16 +421,32 @@ export const FloorPOSPage: React.FC = () => {
     }
 
     try {
-      await ordersApi.createOrder(orderPayload);
+      const createdRes = await ordersApi.createOrder(orderPayload);
+      const assignedToken = createdRes.data?.token_number;
 
       setSuccessToast(
         usesTables
           ? `Order fired to kitchen for Table ${selectedTable?.label}!`
-          : `Counter Order fired for Token #${counterToken}!`
+          : `Counter Order fired for Token #${assignedToken ?? counterToken}!`
       );
+      if (!usesTables && createdRes.data) {
+        setLastTokenSlipOrder({
+          order_number: createdRes.data.order_number,
+          token_number: assignedToken ?? counterToken,
+          placed_at: createdRes.data.placed_at,
+          items:
+            createdRes.data.items ||
+            cart.map((c) => ({ item_name: c.name, quantity: c.quantity, notes: c.notes })),
+        });
+        setTokenSlipOpen(true);
+      }
       setCart([]);
       setOrderNotes("");
-      if (!usesTables) setCounterToken((prev) => prev + 1);
+      if (!usesTables) {
+        setCounterToken((prev) =>
+          typeof assignedToken === "number" ? assignedToken + 1 : prev + 1
+        );
+      }
       await fetchData();
     } catch (err: any) {
       if (!err?.response) {
@@ -656,6 +678,17 @@ export const FloorPOSPage: React.FC = () => {
               >
                 + Next Token Sequence
               </Button>
+              {lastTokenSlipOrder && (
+                <Button
+                  type="button"
+                  onClick={() => setTokenSlipOpen(true)}
+                  data-testid="open-last-token-slip-btn"
+                  className="w-full min-h-[44px] bg-[#FF6A00] hover:bg-[#E55F00] text-[#0B1F3B] font-bold text-xs gap-1.5"
+                >
+                  <Receipt className="h-4 w-4" />
+                  Print Last Token Slip (#{lastTokenSlipOrder.token_number})
+                </Button>
+              )}
             </div>
           )}
         </div>
@@ -1220,6 +1253,13 @@ export const FloorPOSPage: React.FC = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <TokenSlipModal
+        open={tokenSlipOpen}
+        onOpenChange={setTokenSlipOpen}
+        restaurantName={activeTenant?.tenant_name || "ServeMyFood"}
+        order={lastTokenSlipOrder}
+      />
     </div>
   );
 };

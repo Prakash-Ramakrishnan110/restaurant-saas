@@ -7,11 +7,16 @@ import {
   PackageCheck,
   ShieldCheck,
   AlertCircle,
+  Volume2,
+  Printer,
 } from "lucide-react";
 import { apiClient } from "../../api/client";
+import { ordersApi } from "../../api/orders";
 import { unwrapList, ListResponse } from "../../api/pagination";
+import { useOptionalAuth } from "../../context/AuthContext";
 import { Button } from "../../components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../../components/ui/dialog";
+import { TokenSlipModal } from "../../components/orders/TokenSlipModal";
 
 interface OrderItem {
   id: string;
@@ -24,6 +29,7 @@ interface TakeawayOrder {
   id: string;
   order_number: string;
   order_workflow: string;
+  token_number?: number | null;
   status: "PLACED" | "CONFIRMED" | "PREPARING" | "READY" | "SERVED" | "COMPLETED" | "CANCELLED";
   table_label?: string;
   guest_notes?: string;
@@ -35,7 +41,10 @@ interface TakeawayOrder {
 }
 
 export const TakeawayPage: React.FC = () => {
+  const auth = useOptionalAuth();
+  const activeTenant = auth?.activeTenant ?? null;
   const [orders, setOrders] = useState<TakeawayOrder[]>([]);
+  const [slipOrder, setSlipOrder] = useState<TakeawayOrder | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
@@ -308,12 +317,45 @@ export const TakeawayPage: React.FC = () => {
                 </div>
 
                 {/* Bottom Actions */}
-                <div className="pt-3 border-t border-border">
+                <div className="pt-3 border-t border-border space-y-2">
+                  <div className="flex gap-2">
+                    {ord.token_number != null && (
+                      <>
+                        <Button
+                          size="sm"
+                          type="button"
+                          onClick={async () => {
+                            try {
+                              await ordersApi.callToken(ord.id);
+                              await fetchOrders();
+                            } catch {
+                              // ignore
+                            }
+                          }}
+                          className="flex-1 min-h-[44px] bg-[#FF6A00] hover:bg-[#E55F00] text-[#0B1F3B] font-bold text-xs gap-1"
+                        >
+                          <Volume2 className="w-3.5 h-3.5" />
+                          Call #{ord.token_number}
+                        </Button>
+                        <Button
+                          size="sm"
+                          type="button"
+                          variant="outline"
+                          onClick={() => setSlipOrder(ord)}
+                          className="min-h-[44px] px-3 font-semibold text-xs gap-1"
+                          aria-label={`Print Token Slip #${ord.token_number}`}
+                        >
+                          <Printer className="w-3.5 h-3.5" />
+                          Slip
+                        </Button>
+                      </>
+                    )}
+                  </div>
                   {ord.status === "PLACED" && (
                     <Button
                       size="sm"
                       onClick={() => handleUpdateStatus(ord.id, "PREPARING")}
-                      className="w-full bg-[#0B1F3B] text-white hover:bg-[#0B1F3B]/90 font-semibold text-xs"
+                      className="w-full min-h-[44px] bg-[#0B1F3B] text-white hover:bg-[#0B1F3B]/90 font-semibold text-xs"
                     >
                       Start Packing
                     </Button>
@@ -322,7 +364,7 @@ export const TakeawayPage: React.FC = () => {
                     <Button
                       size="sm"
                       onClick={() => handleUpdateStatus(ord.id, "READY")}
-                      className="w-full bg-[#FF6A00] text-[#0B1F3B] hover:bg-[#FF6A00]/90 font-semibold text-xs"
+                      className="w-full min-h-[44px] bg-[#FF6A00] text-[#0B1F3B] hover:bg-[#FF6A00]/90 font-semibold text-xs"
                     >
                       <CheckCircle2 className="w-3.5 h-3.5 mr-1.5" />
                       Mark Packed &amp; Ready
@@ -332,7 +374,7 @@ export const TakeawayPage: React.FC = () => {
                     <Button
                       size="sm"
                       onClick={() => handleOpenVerifyModal(ord)}
-                      className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs"
+                      className="w-full min-h-[44px] bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs"
                     >
                       <ShieldCheck className="w-3.5 h-3.5 mr-1.5" />
                       Verify Code &amp; Hand Over
@@ -409,6 +451,13 @@ export const TakeawayPage: React.FC = () => {
           )}
         </DialogContent>
       </Dialog>
+
+      <TokenSlipModal
+        open={!!slipOrder}
+        onOpenChange={(open) => !open && setSlipOrder(null)}
+        restaurantName={activeTenant?.tenant_name || "ServeMyFood"}
+        order={slipOrder}
+      />
     </div>
   );
 };

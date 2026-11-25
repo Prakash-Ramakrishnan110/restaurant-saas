@@ -46,6 +46,7 @@ from apps.orders.serializers import (
 from apps.orders.services import (
     approve_qr_order,
     calculate_bill,
+    call_order_token,
     close_shift,
     create_invoice_refund,
     create_order,
@@ -86,6 +87,7 @@ class OrderViewSet(viewsets.ModelViewSet):
         "approve": Permission.ORDER_CREATE,
         "reject": Permission.ORDER_CREATE,
         "transition": Permission.ORDER_CREATE,
+        "call": Permission.MENU_VIEW,
     }
 
     def get_queryset(self):
@@ -208,6 +210,28 @@ class OrderViewSet(viewsets.ModelViewSet):
         order = self.get_object()
         transition_order_status(order, OrderStatus.SERVED, user_membership=membership)
         return Response({"status": "SERVED", "order_id": str(order.id)})
+
+    @extend_schema(responses={200: OrderSerializer})
+    @action(detail=True, methods=["post"], url_path="call")
+    def call(self, request: Request, pk: str | None = None) -> Response:
+        if getattr(request.user, "is_platform_admin", False):
+            raise PermissionDenied("Platform admins cannot operate restaurant orders.")
+        membership = getattr(request, "membership", None)
+        role = getattr(membership, "role", "")
+        if role not in {"OWNER", "BRANCH_MANAGER", "CASHIER", "WAITER", "KITCHEN"}:
+            raise PermissionDenied("You do not have permission to call order tokens.")
+
+        order = self.get_object()
+        if (
+            membership
+            and role != "OWNER"
+            and membership.branches.exists()
+            and not membership.branches.filter(id=order.branch_id).exists()
+        ):
+            raise NotFound("Order not found.")
+
+        updated = call_order_token(order, user_membership=membership)
+        return Response(OrderSerializer(updated).data, status=status.HTTP_200_OK)
 
     @action(detail=True, methods=["post"], url_path="fire-mains")
     def fire_mains(self, request: Request, pk: str | None = None) -> Response:

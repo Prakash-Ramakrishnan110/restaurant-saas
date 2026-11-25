@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Zap, Plus, Edit2, Power, Bell, CheckCircle2, Clock, Sparkles } from "lucide-react";
+import { Zap, Plus, Edit2, Power, Bell, CheckCircle2, Clock, Sparkles, Tv } from "lucide-react";
 import { PageHeader } from "../../components/app/PageHeader";
 import { Card, CardHeader, CardTitle, CardContent } from "../../components/ui/card";
 import { Button } from "../../components/ui/button";
@@ -12,6 +12,8 @@ import {
 } from "../../components/ui/dialog";
 import { ConfirmDialog } from "../../components/ui/confirm-dialog";
 import { apiClient } from "../../api/client";
+import { ordersApi, Order } from "../../api/orders";
+import { unwrapList } from "../../api/pagination";
 import { useAuth } from "../../context/AuthContext";
 import { useTranslation } from "react-i18next";
 import { mapBackendErrorCode } from "../../lib/errorMapper";
@@ -51,21 +53,19 @@ export const CountersPage: React.FC = () => {
   const [counterName, setCounterName] = useState<string>("");
   const [activeBranchId, setActiveBranchId] = useState<string>("");
 
-  // Live Token Queue State
-  const [callingToken, setCallingToken] = useState<number>(101);
-  const [liveTokens, setLiveTokens] = useState<LiveTokenItem[]>([
-    { number: 101, status: "READY", counter_name: "Counter 1", timestamp: "Just now" },
-    { number: 102, status: "PREPARING", counter_name: "Counter 1", timestamp: "2 mins ago" },
-    { number: 103, status: "PREPARING", counter_name: "Counter 2", timestamp: "5 mins ago" },
-  ]);
+  // Live Token Queue State (driven by real server orders)
+  const [liveOrders, setLiveOrders] = useState<Order[]>([]);
+  const [tvQrToken, setTvQrToken] = useState<string>("");
 
   const fetchData = async () => {
     setLoading(true);
     setErrorMessage(null);
     try {
-      const [branchRes, areaRes] = await Promise.all([
+      const [branchRes, areaRes, ordRes, qrRes] = await Promise.all([
         apiClient.get<any>("/branches/"),
         apiClient.get<any>("/service-areas/"),
+        ordersApi.getOrders().catch(() => ({ data: [] })),
+        apiClient.get<any>("/qr-codes/").catch(() => ({ data: { results: [] } })),
       ]);
 
       const branches = branchRes.data?.results || branchRes.data || [];
@@ -74,6 +74,20 @@ export const CountersPage: React.FC = () => {
 
       const items: CounterItem[] = areaRes.data?.results || areaRes.data || [];
       setCounters(items);
+
+      const allOrders = unwrapList<Order>(ordRes.data).filter(
+        (o) => o.token_number != null && ["PLACED", "PREPARING", "READY"].includes(o.status)
+      );
+      setLiveOrders(allOrders);
+
+      const qrs = qrRes.data?.results || qrRes.data || [];
+      const activeQr = Array.isArray(qrs)
+        ? qrs.find((q: any) => q.is_active && (q.target_type === "COUNTER" || !q.target_type)) ||
+          qrs.find((q: any) => q.is_active)
+        : null;
+      if (activeQr?.public_token) {
+        setTvQrToken(String(activeQr.public_token));
+      }
     } catch (err: any) {
       setErrorMessage(mapBackendErrorCode(err));
     } finally {
@@ -153,22 +167,38 @@ export const CountersPage: React.FC = () => {
     }
   };
 
-  const handleCallNextToken = () => {
-    const nextNum = callingToken + 1;
-    setCallingToken(nextNum);
-    setLiveTokens([
-      {
-        number: nextNum,
-        status: "READY",
-        counter_name: counters[0]?.name || "Main Counter",
-        timestamp: "Just now",
-      },
-      ...liveTokens.slice(0, 4),
-    ]);
+  const readyOrders = liveOrders.filter((o) => o.status === "READY");
+  const calledOrder =
+    readyOrders
+      .slice()
+      .sort((a, b) =>
+        String(b.last_called_at || b.ready_at || "").localeCompare(
+          String(a.last_called_at || a.ready_at || "")
+        )
+      )[0] ||
+    liveOrders[0] ||
+    null;
+
+  const handleCallNextToken = async () => {
+    const target =
+      liveOrders.find((o) => o.status === "READY") ||
+      liveOrders.find((o) => o.status === "PREPARING" || o.status === "PLACED");
+    if (!target) return;
+    try {
+      await ordersApi.callToken(target.id);
+      await fetchData();
+    } catch (err: any) {
+      setErrorMessage(mapBackendErrorCode(err));
+    }
   };
 
-  const handleMarkCollected = (num: number) => {
-    setLiveTokens(liveTokens.map((t) => (t.number === num ? { ...t, status: "COLLECTED" } : t)));
+  const handleMarkCollected = async (orderId: string) => {
+    try {
+      await ordersApi.serveOrder(orderId);
+      await fetchData();
+    } catch (err: any) {
+      setErrorMessage(mapBackendErrorCode(err));
+    }
   };
 
   return (
@@ -178,16 +208,30 @@ export const CountersPage: React.FC = () => {
         description={t("counters.subtitle")}
         breadcrumbs={[{ label: "Dashboard", href: "/dashboard" }, { label: t("counters.title") }]}
         actions={
-          canManage && (
-            <Button
-              onClick={handleOpenAdd}
-              disabled={loading || !activeBranchId}
-              className="bg-[#FF6A00] hover:bg-[#E55F00] text-navy font-bold min-h-[44px]"
-            >
-              <Plus className="w-4 h-4 mr-1.5" />
-              {t("counters.addCounter")}
-            </Button>
-          )
+          <div className="flex flex-wrap items-center gap-2">
+            {tvQrToken && (
+              <a
+                href={`/tv/${tvQrToken}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                data-testid="open-token-tv-link"
+                className="inline-flex items-center gap-1.5 px-3.5 min-h-[44px] rounded-md border border-border bg-card hover:bg-muted text-xs font-bold text-foreground"
+              >
+                <Tv className="w-4 h-4 text-[#FF6A00]" />
+                Open Token TV
+              </a>
+            )}
+            {canManage && (
+              <Button
+                onClick={handleOpenAdd}
+                disabled={loading || !activeBranchId}
+                className="bg-[#FF6A00] hover:bg-[#E55F00] text-navy font-bold min-h-[44px]"
+              >
+                <Plus className="w-4 h-4 mr-1.5" />
+                {t("counters.addCounter")}
+              </Button>
+            )}
+          </div>
         }
       />
 
@@ -212,16 +256,19 @@ export const CountersPage: React.FC = () => {
           <CardContent className="py-6 text-center">
             <div className="inline-flex items-center justify-center p-6 rounded-2xl bg-card border border-border shadow-md">
               <span className="text-5xl font-black font-mono tracking-tight text-[#FF6A00]">
-                #{callingToken}
+                {calledOrder?.token_number != null ? `#${calledOrder.token_number}` : "--"}
               </span>
             </div>
             <p className="text-xs text-muted-foreground mt-3 font-medium">
-              Ready for Customer Handover
+              {calledOrder
+                ? `${calledOrder.order_number || ""} • Ready for Handover`
+                : "No active counter tokens in queue"}
             </p>
           </CardContent>
           <div className="p-4 border-t border-border/60">
             <Button
               onClick={handleCallNextToken}
+              disabled={liveOrders.length === 0}
               className="w-full bg-[#FF6A00] hover:bg-[#E55F00] text-navy font-bold min-h-[48px]"
             >
               <Sparkles className="w-4 h-4 mr-2" />
@@ -239,51 +286,55 @@ export const CountersPage: React.FC = () => {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-2.5">
-              {liveTokens.map((tok) => (
-                <div
-                  key={tok.number}
-                  className="flex items-center justify-between p-3.5 rounded-xl border border-border bg-card hover:bg-muted/10 transition"
-                >
-                  <div className="flex items-center gap-3">
-                    <span className="text-lg font-black font-mono text-foreground">
-                      #{tok.number}
-                    </span>
-                    <div>
-                      <span className="text-xs font-semibold text-foreground block">
-                        {tok.counter_name}
+            {liveOrders.length === 0 ? (
+              <div className="py-10 text-center text-xs text-muted-foreground">
+                Active counter orders will appear here as they are placed.
+              </div>
+            ) : (
+              <div className="space-y-2.5">
+                {liveOrders.map((tok) => (
+                  <div
+                    key={tok.id}
+                    className="flex items-center justify-between p-3.5 rounded-xl border border-border bg-card hover:bg-muted/10 transition"
+                  >
+                    <div className="flex items-center gap-3">
+                      <span className="text-lg font-black font-mono text-foreground">
+                        #{tok.token_number}
                       </span>
-                      <span className="text-[11px] text-muted-foreground">{tok.timestamp}</span>
+                      <div>
+                        <span className="text-xs font-semibold text-foreground block">
+                          {tok.order_number || "Counter Order"}
+                        </span>
+                        <span className="text-[11px] text-muted-foreground">
+                          {tok.placed_at ? new Date(tok.placed_at).toLocaleTimeString() : ""}
+                        </span>
+                      </div>
                     </div>
-                  </div>
 
-                  <div className="flex items-center gap-2">
-                    <span
-                      className={`px-2.5 py-1 rounded-full text-[11px] font-bold border ${
-                        tok.status === "READY"
-                          ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/30"
-                          : tok.status === "COLLECTED"
-                            ? "bg-muted text-muted-foreground border-border"
+                    <div className="flex items-center gap-2">
+                      <span
+                        className={`px-2.5 py-1 rounded-full text-[11px] font-bold border ${
+                          tok.status === "READY"
+                            ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/30"
                             : "bg-amber-500/10 text-amber-600 border-amber-500/30"
-                      }`}
-                    >
-                      {tok.status}
-                    </span>
-                    {tok.status !== "COLLECTED" && (
+                        }`}
+                      >
+                        {tok.status}
+                      </span>
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => handleMarkCollected(tok.number)}
+                        onClick={() => handleMarkCollected(tok.id)}
                         className="h-8 px-2 text-xs font-semibold"
                       >
                         <CheckCircle2 className="w-3.5 h-3.5 mr-1" />
                         Handed Over
                       </Button>
-                    )}
+                    </div>
                   </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>

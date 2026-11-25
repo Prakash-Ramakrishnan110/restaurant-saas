@@ -14,6 +14,7 @@ import {
   Volume2,
   Check,
   Ban,
+  Printer,
 } from "lucide-react";
 import { ordersApi, Order } from "../../api/orders";
 import { useAuth } from "../../context/AuthContext";
@@ -22,6 +23,7 @@ import { formatRupees } from "../../utils/currency";
 import { playOrderAlert } from "../../utils/soundAlerts";
 import { Button } from "../../components/ui/button";
 import { Card, CardContent } from "../../components/ui/card";
+import { TokenSlipModal } from "../../components/orders/TokenSlipModal";
 import {
   Dialog,
   DialogContent,
@@ -67,9 +69,10 @@ function getLocalDateString(offsetDays = 0): string {
 
 export const LiveOrdersPage: React.FC = () => {
   const navigate = useNavigate();
-  const { activeRole } = useAuth();
+  const { activeRole, activeTenant } = useAuth();
   const isWaiter = activeRole === "WAITER";
   const [orders, setOrders] = useState<Order[]>([]);
+  const [slipOrder, setSlipOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [filterStatus, setFilterStatus] = useState<string>("ALL");
   const [selectedDate, setSelectedDate] = useState<string>(() => getLocalDateString(0));
@@ -592,6 +595,41 @@ export const LiveOrdersPage: React.FC = () => {
                 </div>
               )}
 
+              {selectedOrder.token_number != null && (
+                <div className="flex items-center gap-2">
+                  {["PLACED", "PREPARING", "READY"].includes(selectedOrder.status) && (
+                    <Button
+                      variant="outline"
+                      onClick={async () => {
+                        setActionLoading(true);
+                        try {
+                          const res = await ordersApi.callToken(selectedOrder.id);
+                          setSelectedOrder(res.data);
+                          await fetchOrders();
+                        } catch {
+                          // ignore
+                        } finally {
+                          setActionLoading(false);
+                        }
+                      }}
+                      disabled={actionLoading}
+                      className="flex-1 min-h-[44px] text-xs font-bold gap-1.5"
+                    >
+                      <Volume2 className="h-4 w-4 text-[#FF6A00]" />
+                      Call Token #{selectedOrder.token_number}
+                    </Button>
+                  )}
+                  <Button
+                    variant="outline"
+                    onClick={() => setSlipOrder(selectedOrder)}
+                    className="flex-1 min-h-[44px] text-xs font-bold gap-1.5"
+                  >
+                    <Printer className="h-4 w-4" />
+                    Token Slip
+                  </Button>
+                </div>
+              )}
+
               {selectedOrder.status === "READY" && (
                 <Button
                   onClick={() => handleMarkServed(selectedOrder.id)}
@@ -714,6 +752,13 @@ export const LiveOrdersPage: React.FC = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <TokenSlipModal
+        open={!!slipOrder}
+        onOpenChange={(open) => !open && setSlipOrder(null)}
+        restaurantName={activeTenant?.tenant_name || "ServeMyFood"}
+        order={slipOrder}
+      />
     </div>
   );
 };

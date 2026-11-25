@@ -16,6 +16,7 @@ from apps.tenants.models import Branch
 CANONICAL_STREAM_EVENTS = {
     "order.created",
     "order.status_changed",
+    "order.token_called",
     "table.updated",
     "menu.availability_changed",
     "stock.alert",

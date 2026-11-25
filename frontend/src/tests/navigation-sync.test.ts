@@ -46,6 +46,7 @@ describe("Sidebar Map & Navigation Synchronization", () => {
     expect(workingRoutes).toContain("/venue/areas");
     expect(workingRoutes).toContain("/venue/tables");
     expect(workingRoutes).toContain("/venue/counters");
+    expect(sidebarContent).toContain("/tv/<qr_token>");
     expect(workingRoutes).toContain("/qr");
     expect(workingRoutes).toContain("/staff");
     expect(workingRoutes).toContain("/settings/branding");

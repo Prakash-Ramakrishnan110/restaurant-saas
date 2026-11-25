@@ -69,6 +69,8 @@ export interface Order {
   placed_at?: string;
   created_at?: string;
   ready_at?: string;
+  last_called_at?: string | null;
+  call_count?: number;
   served_at?: string;
   notes?: string;
   items?: OrderItem[];
@@ -298,6 +300,8 @@ export const ordersApi = {
 
   serveOrder: (orderId: string) =>
     apiClient.post<{ status: string; order_id: string }>(`/orders/${orderId}/serve/`),
+
+  callToken: (orderId: string) => apiClient.post<Order>(`/orders/${orderId}/call/`, {}),
 
   fireMains: (orderId: string) =>
     apiClient.post<{ fired_count: number; order_id: string }>(`/orders/${orderId}/fire-mains/`),

@@ -135,6 +135,10 @@ def transition_order_status(
     now = timezone.now()
     if new_status == OrderStatus.READY:
         order.ready_at = now
+        if order.token_number is not None:
+            order.last_called_at = now
+            if order.call_count < 1:
+                order.call_count = 1
     elif new_status == OrderStatus.SERVED:
         order.served_at = now
     elif new_status == OrderStatus.COMPLETED:
@@ -182,6 +186,80 @@ def transition_order_status(
                 "order_number": order.order_number,
                 "from_status": from_status,
                 "status": new_status,
+            },
+        )
+    except Exception:
+        pass
+    return order
+
+
+@transaction.atomic
+def call_order_token(
+    order: Order,
+    *,
+    user_membership: Membership | None = None,
+) -> Order:
+    """Marks/re-announces a counter token order as actively called for Token TV."""
+    if order.token_number is None:
+        raise BusinessRuleError(
+            "NO_TOKEN_ASSIGNED",
+            "Only orders with a counter token number can be called on Token TV.",
+            status_code=400,
+        )
+    if order.status not in (OrderStatus.PLACED, OrderStatus.PREPARING, OrderStatus.READY):
+        raise BusinessRuleError(
+            "INVALID_ORDER_STATE",
+            f"Cannot call token while order is in '{order.status}' state.",
+            status_code=400,
+        )
+
+    now = timezone.now()
+    from_status = order.status
+    if order.status in (OrderStatus.PLACED, OrderStatus.PREPARING):
+        order.status = OrderStatus.READY
+        if order.ready_at is None:
+            order.ready_at = now
+    order.call_count = (order.call_count or 0) + 1
+    order.last_called_at = now
+    order.save(update_fields=["status", "ready_at", "call_count", "last_called_at", "updated_at"])
+
+    OrderEvent.objects.create(
+        tenant=order.tenant,
+        branch=order.branch,
+        order=order,
+        event_type=OrderEventType.TOKEN_CALLED,
+        from_status=from_status,
+        to_status=order.status,
+        user=user_membership,
+        notes=f"Token #{order.token_number} called (#{order.call_count})",
+    )
+    log_audit_event(
+        action="order.token_called",
+        entity_type="Order",
+        entity_id=str(order.id),
+        actor=user_membership.user if user_membership else None,
+        tenant=order.tenant,
+        after_state={
+            "order_number": order.order_number,
+            "token_number": order.token_number,
+            "call_count": order.call_count,
+            "status": order.status,
+        },
+    )
+    try:
+        from apps.orders.consumers import broadcast_branch_event
+
+        broadcast_branch_event(
+            order.tenant_id,
+            order.branch_id,
+            "order.token_called",
+            {
+                "order_id": str(order.id),
+                "order_number": order.order_number,
+                "token_number": order.token_number,
+                "call_count": order.call_count,
+                "last_called_at": now.isoformat(),
+                "status": order.status,
             },
         )
     except Exception:
@@ -276,6 +354,11 @@ def create_order(
 
         # Lock branch to serialize order sequence generation concurrently
         Branch.objects.select_for_update().only("id").get(pk=branch.pk)
+
+        if order_workflow == OrderWorkflow.COUNTER_TOKEN and token_number is None:
+            from apps.venues.services import next_token
+
+            token_number = next_token(branch)
 
         order_count = Order.objects.filter(tenant=branch.tenant, branch=branch).count() + 1
         today_str = timezone.now().strftime("%Y%m")

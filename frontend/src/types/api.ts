@@ -1593,6 +1593,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/orders/{id}/call/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** @description Production ViewSet for placing, tracking, serving, and cancelling orders. */
+        post: operations["orders_call_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/orders/{id}/cancel/": {
         parameters: {
             query?: never;
@@ -2480,6 +2497,23 @@ export interface paths {
         put?: never;
         /** @description Public unauthenticated endpoint for diner to open or rejoin a table session. */
         post: operations["public_qr_session_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/public/tv/{token}/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description Stage 2: Public read-only live Token TV board scoped strictly to a branch QR token (zero PII). */
+        get: operations["public_tv_retrieve"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -4024,11 +4058,12 @@ export interface components {
          * @description * `CREATED` - Order Created
          *     * `STATUS_CHANGED` - Status Changed
          *     * `ITEM_FIRED` - Item Fired
+         *     * `TOKEN_CALLED` - Token Called
          *     * `CANCELLED` - Order Cancelled
          *     * `COMPLETED` - Order Completed
          * @enum {string}
          */
-        EventTypeEnum: "CREATED" | "STATUS_CHANGED" | "ITEM_FIRED" | "CANCELLED" | "COMPLETED";
+        EventTypeEnum: "CREATED" | "STATUS_CHANGED" | "ITEM_FIRED" | "TOKEN_CALLED" | "CANCELLED" | "COMPLETED";
         /**
          * @description * `VEG` - Vegetarian
          *     * `NON_VEG` - Non-Vegetarian
@@ -4269,6 +4304,11 @@ export interface components {
             status?: components["schemas"]["Status92cEnum"];
             /** Format: date-time */
             placed_at?: string;
+            /** Format: date-time */
+            ready_at?: string | null;
+            /** Format: date-time */
+            last_called_at?: string | null;
+            call_count?: number;
             readonly elapsed_minutes: number;
             notes?: string;
             readonly items: components["schemas"]["OrderItem"][];
@@ -4283,6 +4323,11 @@ export interface components {
             status?: components["schemas"]["Status92cEnum"];
             /** Format: date-time */
             placed_at?: string;
+            /** Format: date-time */
+            ready_at?: string | null;
+            /** Format: date-time */
+            last_called_at?: string | null;
+            call_count?: number;
             notes?: string;
         };
         /**
@@ -4525,6 +4570,9 @@ export interface components {
             /** Format: date-time */
             ready_at?: string | null;
             /** Format: date-time */
+            last_called_at?: string | null;
+            call_count?: number;
+            /** Format: date-time */
             served_at?: string | null;
             /** Format: date-time */
             completed_at?: string | null;
@@ -4659,6 +4707,9 @@ export interface components {
             placed_at?: string;
             /** Format: date-time */
             ready_at?: string | null;
+            /** Format: date-time */
+            last_called_at?: string | null;
+            call_count?: number;
             /** Format: date-time */
             served_at?: string | null;
             /** Format: date-time */
@@ -5377,6 +5428,9 @@ export interface components {
             /** Format: date-time */
             ready_at?: string | null;
             /** Format: date-time */
+            last_called_at?: string | null;
+            call_count?: number;
+            /** Format: date-time */
             served_at?: string | null;
             /** Format: date-time */
             completed_at?: string | null;
@@ -5666,6 +5720,23 @@ export interface components {
             session_token: string;
             status: string;
             guest_count: number;
+        };
+        PublicTokenTVResponse: {
+            display_name: string;
+            branch_name: string;
+            logo_url: string;
+            brand_primary_color: string;
+            qr_token: string;
+            server_time: string;
+            now_calling: {
+                [key: string]: unknown;
+            } | null;
+            ready_tokens: {
+                [key: string]: unknown;
+            }[];
+            preparing_tokens: {
+                [key: string]: unknown;
+            }[];
         };
         /** @description Omits all cost/value/margin fields completely when caller lacks inventory.costs. */
         PurchaseOrder: {
@@ -10558,6 +10629,34 @@ export interface operations {
             };
         };
     };
+    orders_call_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description A UUID string identifying this order. */
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["OrderRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["OrderRequest"];
+                "multipart/form-data": components["schemas"]["OrderRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Order"];
+                };
+            };
+        };
+    };
     orders_cancel_create: {
         parameters: {
             query?: never;
@@ -12143,6 +12242,34 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["PublicQROpenSessionResponse"];
                 };
+            };
+        };
+    };
+    public_tv_retrieve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                token: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PublicTokenTVResponse"];
+                };
+            };
+            /** @description Token TV display not found or deactivated */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };
