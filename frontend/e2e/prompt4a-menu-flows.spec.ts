@@ -104,7 +104,7 @@ async function setupMenuRoutes(page: any, role: string = "OWNER") {
     });
   });
 
-  await page.route("**/api/v1/branches/", async (route: any) => {
+  await page.route(/\/api\/v1\/(branches|menu\/availability\/outlets)\//, async (route: any) => {
     await route.fulfill({
       status: 200,
       contentType: "application/json",
@@ -278,6 +278,19 @@ async function setupMenuRoutes(page: any, role: string = "OWNER") {
   });
 
   await page.route("**/api/v1/menu/availability/**", async (route: any) => {
+    if (route.request().url().includes("/outlets/")) {
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({
+          results: [
+            { id: "br-1", name: "Indiranagar Main", is_active: true },
+            { id: "br-2", name: "Koramangala Outlet", is_active: true },
+          ],
+        }),
+      });
+      return;
+    }
     await route.fulfill({
       status: 200,
       contentType: "application/json",

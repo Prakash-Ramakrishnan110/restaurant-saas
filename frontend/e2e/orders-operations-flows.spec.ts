@@ -21,10 +21,12 @@ async function setupOperationsMock(
       "menu.availability",
       "order.create",
       "order.view",
+      "billing.manage",
+      "report.view",
     ],
     WAITER: ["table.view", "menu.view", "order.create", "order.view"],
     KITCHEN: ["menu.view", "menu.availability", "order.view"],
-    CASHIER: ["menu.view", "order.create", "order.view", "business.view"],
+    CASHIER: ["menu.view", "order.create", "order.view", "billing.manage", "business.view"],
   };
 
   await page.addInitScript(() => {
@@ -562,7 +564,7 @@ test.describe("Production Operational & Sidebar Suite", () => {
 
     // Seat Guests Modal opens for available table
     await expect(page.getByText("Seat Guests at Table T1")).toBeVisible();
-    await page.getByRole("button", { name: "Open Dining Session" }).click();
+    await page.getByRole("button", { name: "Seat Guests" }).click();
 
     // Menu Item add to cart
     await expect(page.getByRole("heading", { name: "Paneer Tikka Angare" })).toBeVisible();
@@ -730,7 +732,7 @@ test.describe("Production Operational & Sidebar Suite", () => {
   }) => {
     await setupOperationsMock(page, "WAITER", false);
 
-    await page.route("**/api/v1/orders/", async (route: any) => {
+    await page.route(/\/api\/v1\/orders\/?(\?.*)?$/, async (route: any) => {
       if (route.request().method() === "GET") {
         await route.fulfill({
           status: 200,

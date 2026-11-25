@@ -731,7 +731,7 @@ export const StaffApp: React.FC = () => {
               <Route
                 path="/venue/tables"
                 element={
-                  <ProtectedRoute requiredPermission="table.manage">
+                  <ProtectedRoute requiredPermission="table.view">
                     <TablesPage />
                   </ProtectedRoute>
                 }

@@ -48,7 +48,15 @@ const permissionsByRole: Record<string, string[]> = {
   ],
   WAITER: ["table.view", "menu.view", "order.create", "order.view"],
   KITCHEN: ["menu.view", "menu.availability", "order.view"],
-  CASHIER: ["table.view", "table.session_close", "menu.view", "order.create", "order.view", "business.view"],
+  CASHIER: [
+    "table.view",
+    "table.session_close",
+    "menu.view",
+    "order.create",
+    "order.view",
+    "billing.manage",
+    "business.view",
+  ],
 };
 
 async function setupDemoMockRoutes(page: any, state: DemoState) {

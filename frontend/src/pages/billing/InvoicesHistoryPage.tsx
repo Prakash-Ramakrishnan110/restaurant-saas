@@ -579,7 +579,9 @@ export const InvoicesHistoryPage: React.FC = () => {
                 <div className="font-black text-base uppercase tracking-wider">
                   {activeTenant?.tenant_name || "ServeMyFood Restaurant"}
                 </div>
-                <div className="text-xs text-gray-600 font-sans font-bold">DEMO ORDER SUMMARY</div>
+                <div className="text-xs text-gray-600 font-sans font-bold">
+                  DEMO RECEIPT - NOT A TAX INVOICE
+                </div>
                 <div className="text-[10px] text-gray-500">{reprintInvoice?.invoice_number}</div>
                 <div className="text-[10px] text-gray-500">
                   {reprintInvoice?.created_at &&

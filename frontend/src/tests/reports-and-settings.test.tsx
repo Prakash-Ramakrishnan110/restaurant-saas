@@ -159,7 +159,7 @@ describe("P1 Reports & Operational Settings Suites", () => {
     renderWithProviders(<DeviceSettingsPage />);
     expect(screen.getByText(/Printers & Devices/i)).toBeInTheDocument();
     expect(screen.getByText(/Network Thermal ESC\/POS Printer/i)).toBeInTheDocument();
-    expect(screen.getByText(/DEMO ORDER SUMMARY/i)).toBeInTheDocument();
+    expect(screen.getByText(/DEMO RECEIPT - NOT A TAX INVOICE/i)).toBeInTheDocument();
   });
 
   it("PlatformPlansPage renders SaaS tiers with integer pricing and feature checks", async () => {

@@ -91,8 +91,8 @@ test.describe("Waiter Seating Live Stack Flow (No Stubs)", () => {
     });
     await expect(modalHeading).toBeVisible({ timeout: 5000 });
 
-    // Click "Open Dining Session"
-    const openBtn = page.getByRole("button", { name: /Open Dining Session/i });
+    // Click "Seat Guests"
+    const openBtn = page.getByRole("button", { name: /Seat Guests/i });
     await expect(openBtn).toBeVisible();
     await openBtn.click();
 

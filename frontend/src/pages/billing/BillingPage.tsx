@@ -734,7 +734,7 @@ export const BillingPage: React.FC = () => {
               <h2 className="font-black text-sm uppercase">
                 {activeTenant?.tenant_name || "ServeMyFood"}
               </h2>
-              <p className="text-xs text-gray-600 font-bold">DEMO ORDER SUMMARY</p>
+              <p className="text-xs text-gray-600 font-bold">DEMO RECEIPT - NOT A TAX INVOICE</p>
               <p className="text-xs text-gray-600">Invoice: {settledInvoice?.invoice_number}</p>
               <p className="text-xs text-gray-600">
                 {usesTables ? `Table: ${settledInvoice?.table_label}` : "Counter Order"} •{" "}

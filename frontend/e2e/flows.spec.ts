@@ -191,7 +191,7 @@ test.describe("ServeMyFood 8 Core E2E Flows", () => {
             },
           ],
           active_role: "WAITER",
-          permissions: ["table.view"],
+          permissions: ["table.view", "order.create", "order.view", "menu.view"],
           must_change_password: !passwordChanged,
         }),
       });
@@ -221,6 +221,14 @@ test.describe("ServeMyFood 8 Core E2E Flows", () => {
         status: 200,
         contentType: "application/json",
         body: JSON.stringify({ plan: "STARTER", usage: {}, limits: {} }),
+      });
+    });
+
+    await page.route("**/api/v1/business/", async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({ business_type: "CASUAL_DINING", uses_tables: true }),
       });
     });
 
@@ -311,6 +319,14 @@ test.describe("ServeMyFood 8 Core E2E Flows", () => {
         status: 200,
         contentType: "application/json",
         body: JSON.stringify({ plan: "STARTER", usage: {}, limits: {} }),
+      });
+    });
+
+    await page.route("**/api/v1/business/", async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({ business_type: "CASUAL_DINING", uses_tables: true }),
       });
     });
 
