@@ -373,7 +373,7 @@ export const PublicTokenTVPage: React.FC = () => {
                   darkMode ? "text-white" : "text-[#0B1F3B]"
                 }`}
               >
-                <Clock className="h-6 w-6 text-[#D97706]" />
+                <Clock className={`h-6 w-6 ${darkMode ? "text-amber-400" : "text-amber-700"}`} />
                 <span>{t.preparingTitle}</span>
               </h2>
               <span
