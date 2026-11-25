@@ -284,8 +284,9 @@ def record_branch_notification_event(
     elapsed_minutes: int | None = None,
 ) -> BranchNotificationEvent:
     """Append an atomic branch-sequenced notification event containing zero PII or prices."""
+    current_t = get_current_tenant()
     tok = None
-    if get_current_tenant() is None:
+    if current_t is None or current_t.pk != branch.tenant_id:
         tok = set_current_tenant(branch.tenant)
     try:
         Branch.objects.select_for_update().only("id").get(pk=branch.pk)
