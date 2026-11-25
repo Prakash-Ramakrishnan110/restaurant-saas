@@ -610,3 +610,43 @@ class OrderFeedback(BranchOwnedModel):
 
     class Meta:
         ordering = ["-created_at"]
+
+
+class BranchNotificationEvent(BranchOwnedModel):
+    """Per-branch sequenced operational sound/visual notification feed (strictly zero PII)."""
+
+    seq = models.BigIntegerField(db_index=True)
+    event_type = models.CharField(max_length=40, db_index=True)
+    order = models.ForeignKey(
+        Order,
+        null=True,
+        blank=True,
+        on_delete=models.CASCADE,
+        related_name="notification_events",
+    )
+    service_request = models.ForeignKey(
+        ServiceRequest,
+        null=True,
+        blank=True,
+        on_delete=models.CASCADE,
+        related_name="notification_events",
+    )
+    target_label = models.CharField(max_length=64, blank=True, default="")
+    token_number = models.PositiveIntegerField(null=True, blank=True)
+    target_roles = models.JSONField(default=list, blank=True)
+    payload = models.JSONField(default=dict, blank=True)
+
+    class Meta:
+        ordering = ["seq"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["branch", "seq"],
+                name="unique_branch_notification_seq",
+            )
+        ]
+        indexes = [
+            models.Index(fields=["tenant", "branch", "seq"]),
+        ]
+
+    def __str__(self) -> str:
+        return f"[{self.seq}] {self.event_type} ({self.target_label or self.branch_id})"

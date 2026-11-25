@@ -1,4 +1,12 @@
 import { apiClient } from "./client";
+import type { BranchSoundDefaultsResponse, SoundEvent } from "../sound/types";
+
+export interface BranchEventFeedResponse {
+  branch_id: string;
+  latest_seq: number;
+  server_time: string;
+  events: SoundEvent[];
+}
 
 export interface OrderItemPayload {
   menu_item_id: string;
@@ -422,4 +430,15 @@ export const ordersApi = {
       `/orders/billing/session/${sessionId}/merge/`,
       data
     ),
+
+  getEventFeed: (params?: { since?: number; branch_id?: string }) =>
+    apiClient.get<BranchEventFeedResponse>("/events/", { params }),
+
+  getSoundDefaults: (branch_id?: string) =>
+    apiClient.get<BranchSoundDefaultsResponse>("/events/sound-defaults/", {
+      params: branch_id ? { branch_id } : undefined,
+    }),
+
+  updateSoundDefaults: (data: Partial<BranchSoundDefaultsResponse> & { branch_id?: string }) =>
+    apiClient.patch<BranchSoundDefaultsResponse>("/events/sound-defaults/", data),
 };

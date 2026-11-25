@@ -32,6 +32,7 @@ import {
   Building2,
   Globe,
   MessageSquare,
+  Volume2,
 } from "lucide-react";
 
 export interface NavItem {
@@ -247,6 +248,11 @@ export function getNavigationGroups(ctx: NavigationContext): NavGroup[] {
       path: "/settings/venue",
       icon: Sliders,
       permission: "business.view",
+    },
+    {
+      label: "Sound & Alerts",
+      path: "/settings/sound",
+      icon: Volume2,
     },
     ...(!isManager
       ? [

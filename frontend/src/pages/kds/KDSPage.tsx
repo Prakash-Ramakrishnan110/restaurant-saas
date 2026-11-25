@@ -5,10 +5,8 @@ import { unwrapList } from "../../api/pagination";
 import { useAuth } from "../../context/AuthContext";
 import { Badge } from "../../components/ui/badge";
 import { Button } from "../../components/ui/button";
-
-interface WindowWithWebkitAudio extends Window {
-  webkitAudioContext?: typeof AudioContext;
-}
+import { soundEngine } from "../../sound/engine";
+import { isSoundEnabled, setSoundEnabled as persistSoundEnabled } from "../../utils/soundAlerts";
 
 // Readable ticket age: "7m", "2h 5m", "3d 4h" (raw minutes like 9921m are unreadable)
 const formatElapsed = (minutes: number): string => {
@@ -25,31 +23,12 @@ export const KDSPage: React.FC = () => {
   const [sourceFilter, setSourceFilter] = useState<"ALL" | "QR" | "POS">("ALL");
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [sortOrder, setSortOrder] = useState<"OLDEST" | "NEWEST">("OLDEST");
-  const [soundEnabled, setSoundEnabled] = useState<boolean>(true);
+  const [soundEnabled, setSoundEnabled] = useState<boolean>(() => isSoundEnabled());
   const previousTicketCount = useRef<number>(0);
 
-  // Play Web Audio chime on new incoming tickets
-  const playChime = () => {
+  const triggerKdsChime = () => {
     if (!soundEnabled) return;
-    try {
-      const AudioCtxClass =
-        window.AudioContext || (window as unknown as WindowWithWebkitAudio).webkitAudioContext;
-      if (!AudioCtxClass) return;
-      const audioCtx = new AudioCtxClass();
-      const osc = audioCtx.createOscillator();
-      const gain = audioCtx.createGain();
-      osc.type = "sine";
-      osc.frequency.setValueAtTime(587.33, audioCtx.currentTime); // D5
-      osc.frequency.setValueAtTime(880.0, audioCtx.currentTime + 0.15); // A5
-      gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.4);
-      osc.connect(gain);
-      gain.connect(audioCtx.destination);
-      osc.start();
-      osc.stop(audioCtx.currentTime + 0.4);
-    } catch {
-      // AudioContext unavailable or blocked
-    }
+    soundEngine.playTone("new-order");
   };
 
   const fetchTickets = async () => {
@@ -61,7 +40,7 @@ export const KDSPage: React.FC = () => {
 
       // Check if new tickets arrived to sound alert
       if (newTickets.length > previousTicketCount.current && previousTicketCount.current > 0) {
-        playChime();
+        triggerKdsChime();
       }
       previousTicketCount.current = newTickets.length;
       setTickets(newTickets);
@@ -162,7 +141,9 @@ export const KDSPage: React.FC = () => {
               size="sm"
               onClick={() => {
                 setSoundEnabled(true);
-                playChime();
+                persistSoundEnabled(true);
+                void soundEngine.unlock();
+                triggerKdsChime();
               }}
               className="h-8 px-2.5 text-xs font-semibold gap-1.5"
               data-testid="start-sound-btn"
@@ -174,7 +155,11 @@ export const KDSPage: React.FC = () => {
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => setSoundEnabled(!soundEnabled)}
+              onClick={() => {
+                const next = !soundEnabled;
+                setSoundEnabled(next);
+                persistSoundEnabled(next);
+              }}
               className="h-8 w-8 p-0"
               title={soundEnabled ? "Audio alert on" : "Audio muted"}
             >

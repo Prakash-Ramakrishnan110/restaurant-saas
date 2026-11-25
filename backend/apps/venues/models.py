@@ -61,6 +61,7 @@ class BranchCapabilities(TenantOwnedModel):
         choices=OrderWorkflow.choices,
         default=OrderWorkflow.TABLE_SERVICE,
     )
+    sound_defaults = models.JSONField(default=dict, blank=True)
 
     class Meta:
         verbose_name_plural = "Branch capabilities"

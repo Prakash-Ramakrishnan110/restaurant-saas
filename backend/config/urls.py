@@ -14,6 +14,8 @@ from rest_framework.routers import DefaultRouter
 
 from apps.core.views import HealthCheckView
 from apps.orders.views import (
+    BranchEventFeedView,
+    BranchSoundDefaultsView,
     CustomerViewSet,
     ExceptionsReportView,
     ExportMyDataView,
@@ -48,6 +50,8 @@ api_v1_patterns: list[Any] = [
     path("subscriptions/", include("apps.subscriptions.urls")),
     path("menu/", include("apps.menu.urls")),
     path("orders/", include("apps.orders.urls")),
+    path("events/", BranchEventFeedView.as_view(), name="branch-events-feed"),
+    path("events/sound-defaults/", BranchSoundDefaultsView.as_view(), name="branch-sound-defaults"),
     path("inventory/", include("apps.inventory.urls")),
     path("reports/today/", TodayReportView.as_view(), name="reports-today"),
     path("reports/range/", RangeReportView.as_view(), name="reports-range"),

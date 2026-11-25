@@ -1,8 +1,10 @@
+import uuid
+from datetime import timedelta
 from typing import Any
 
-from django.db.models import Q
+from django.db.models import Exists, OuterRef, Q
 from django.utils import timezone
-from drf_spectacular.utils import extend_schema
+from drf_spectacular.utils import OpenApiResponse, extend_schema, inline_serializer
 from rest_framework import filters, serializers, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.exceptions import NotFound, PermissionDenied, ValidationError
@@ -12,9 +14,11 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from apps.accounts.models import Membership
+from apps.audit.services import log_audit_event
 from apps.core.exceptions import BusinessRuleError
 from apps.orders.models import (
     BillInvoice,
+    BranchNotificationEvent,
     CashierShiftCloseout,
     CourseType,
     Customer,
@@ -44,6 +48,7 @@ from apps.orders.serializers import (
     SettleBillSerializer,
 )
 from apps.orders.services import (
+    DEFAULT_BRANCH_SOUND_SETTINGS,
     approve_qr_order,
     calculate_bill,
     call_order_token,
@@ -60,6 +65,7 @@ from apps.orders.services import (
     merge_table_sessions,
     move_session_items,
     preview_split_bill,
+    record_branch_notification_event,
     record_cash_movement,
     reject_qr_order,
     settle_bill,
@@ -69,7 +75,7 @@ from apps.orders.services import (
 from apps.rbac.constants import Permission
 from apps.rbac.permissions import ActionPermission, HasTenantPermission
 from apps.tenants.models import Branch
-from apps.venues.models import DiningTable, TableSession
+from apps.venues.models import BranchCapabilities, DiningTable, TableSession
 
 
 class OrderViewSet(viewsets.ModelViewSet):
@@ -950,6 +956,18 @@ class ServiceRequestViewSet(viewsets.ModelViewSet):
             request_type=request.data.get("request_type", ServiceRequestType.CALL_WAITER),
             status=ServiceRequestStatus.PENDING,
         )
+        req_type = str(srv_req.request_type or ServiceRequestType.CALL_WAITER)
+        record_branch_notification_event(
+            branch=table.branch,
+            event_type=(
+                "guest_request_bill"
+                if req_type == ServiceRequestType.BILL
+                else "guest_request_service"
+            ),
+            service_request=srv_req,
+            target_label=table.label,
+            request_type=req_type,
+        )
 
         out_serializer = ServiceRequestSerializer(srv_req)
         return Response(out_serializer.data, status=status.HTTP_201_CREATED)
@@ -1400,3 +1418,290 @@ class OrderFeedbackViewSet(viewsets.ReadOnlyModelViewSet):
         resp = HttpResponse(buf.getvalue(), content_type="text/csv")
         resp["Content-Disposition"] = 'attachment; filename="guest-feedback.csv"'
         return resp
+
+
+FOOD_SERVICE_ROLES = {"OWNER", "BRANCH_MANAGER", "CASHIER", "WAITER", "KITCHEN"}
+
+
+def _resolve_event_branch(
+    request: Request, explicit_branch_id: str | None = None, *, body_ref: bool = False
+) -> tuple[Any, Any, Branch]:
+    """Validate food-service membership and resolve accessible branch cleanly."""
+    if getattr(request.user, "is_platform_admin", False):
+        raise PermissionDenied("Platform admins cannot access restaurant event streams.")
+    tenant = getattr(request, "tenant", None)
+    membership = getattr(request, "membership", None)
+    role = getattr(membership, "role", "")
+    if not tenant or not membership or role not in FOOD_SERVICE_ROLES:
+        raise PermissionDenied("Your role does not have access to branch sound events.")
+
+    branch_id = (
+        explicit_branch_id
+        or request.query_params.get("branch_id")
+        or request.headers.get("X-Branch-ID")
+    )
+    if branch_id:
+        try:
+            uuid.UUID(str(branch_id))
+        except (ValueError, TypeError):
+            if body_ref:
+                raise BusinessRuleError(
+                    "INVALID_REFERENCE", "Invalid branch reference.", status_code=400
+                ) from None
+            raise NotFound("Branch not found.") from None
+        branch = Branch.objects.filter(tenant=tenant, id=branch_id, is_active=True).first()
+        if not branch:
+            if body_ref:
+                raise BusinessRuleError(
+                    "INVALID_REFERENCE", "Invalid branch reference.", status_code=400
+                ) from None
+            raise NotFound("Branch not found.")
+        if (
+            role != "OWNER"
+            and membership.branches.exists()
+            and not membership.branches.filter(id=branch.id).exists()
+        ):
+            if body_ref:
+                raise BusinessRuleError(
+                    "INVALID_REFERENCE", "Invalid branch reference.", status_code=400
+                ) from None
+            raise NotFound("Branch not found.")
+        return tenant, membership, branch
+
+    branch_qs = Branch.objects.filter(tenant=tenant, is_active=True)
+    if role != "OWNER" and membership.branches.exists():
+        branch_qs = branch_qs.filter(id__in=membership.branches.values_list("id", flat=True))
+    branch = branch_qs.order_by("name").first()
+    if not branch:
+        raise NotFound("No active branch found.")
+    return tenant, membership, branch
+
+
+class BranchEventFeedView(APIView):
+    """Stage 3: GET /api/v1/events/?since=<seq> returning role-filtered, zero-PII notification events."""
+
+    permission_classes = [IsAuthenticated]
+
+    @extend_schema(
+        responses={
+            200: inline_serializer(
+                name="BranchEventFeedResponse",
+                fields={
+                    "branch_id": serializers.CharField(),
+                    "latest_seq": serializers.IntegerField(),
+                    "server_time": serializers.CharField(),
+                    "events": serializers.ListField(child=serializers.DictField()),
+                },
+            ),
+            403: OpenApiResponse(description="Role not permitted"),
+            404: OpenApiResponse(description="Branch not found"),
+        }
+    )
+    def get(self, request: Request) -> Response:
+        tenant, membership, branch = _resolve_event_branch(request)
+        role = membership.role
+        raw_since = request.query_params.get("since", "0")
+        try:
+            since_seq = max(0, int(raw_since))
+        except (ValueError, TypeError):
+            since_seq = 0
+
+        now = timezone.now()
+        # Check for overdue kitchen tickets (>20 min) without an alert in the last 120s in 1 query
+        if role in {"KITCHEN", "BRANCH_MANAGER", "OWNER"}:
+            cutoff = now - timedelta(minutes=20)
+            two_min_ago = now - timedelta(seconds=120)
+            recent_late_subq = BranchNotificationEvent.objects.filter(
+                tenant=tenant,
+                branch=branch,
+                event_type="ticket_late",
+                created_at__gte=two_min_ago,
+                order_id=OuterRef("pk"),
+            )
+            late_orders = list(
+                Order.objects.filter(
+                    tenant=tenant,
+                    branch=branch,
+                    status__in=[OrderStatus.PLACED, OrderStatus.PREPARING],
+                    placed_at__lte=cutoff,
+                )
+                .filter(~Exists(recent_late_subq))
+                .select_related("table_session__table")
+                .only(
+                    "id",
+                    "branch",
+                    "order_number",
+                    "order_workflow",
+                    "token_number",
+                    "placed_at",
+                    "table_session__table__label",
+                )[:5]
+            )
+            for lo in late_orders:
+                elapsed = int((now - lo.placed_at).total_seconds() // 60)
+                t_label = (
+                    f"Token {lo.token_number}"
+                    if lo.token_number is not None
+                    else (
+                        lo.table_session.table.label
+                        if lo.table_session and lo.table_session.table
+                        else lo.order_number
+                    )
+                )
+                record_branch_notification_event(
+                    branch=branch,
+                    event_type="ticket_late",
+                    order=lo,
+                    target_label=t_label,
+                    token_number=lo.token_number,
+                    elapsed_minutes=elapsed,
+                )
+
+        recent_events = list(
+            BranchNotificationEvent.objects.filter(
+                tenant=tenant,
+                branch=branch,
+                seq__gt=since_seq,
+            ).order_by("seq")[:50]
+        )
+
+        latest_seq = recent_events[-1].seq if recent_events else since_seq
+        filtered: list[dict[str, Any]] = []
+        for ev in recent_events:
+            roles_list = ev.target_roles or []
+            if role not in roles_list:
+                continue
+            payload = ev.payload or {}
+            filtered.append(
+                {
+                    "seq": ev.seq,
+                    "event_id": str(ev.id),
+                    "event_type": ev.event_type,
+                    "order_id": payload.get("order_id"),
+                    "service_request_id": payload.get("service_request_id"),
+                    "target_label": ev.target_label,
+                    "token_number": ev.token_number,
+                    "dishes": payload.get("dishes", []),
+                    "total_items": payload.get("total_items", 0),
+                    "request_type": payload.get("request_type", ""),
+                    "is_recall": bool(payload.get("is_recall", False)),
+                    "elapsed_minutes": payload.get("elapsed_minutes"),
+                    "created_at": ev.created_at.isoformat(),
+                }
+            )
+
+        return Response(
+            {
+                "branch_id": str(branch.id),
+                "latest_seq": latest_seq,
+                "server_time": now.isoformat(),
+                "events": filtered,
+            },
+            status=status.HTTP_200_OK,
+        )
+
+
+class BranchSoundDefaultsView(APIView):
+    """Stage 3: GET (staff) & PATCH (OWNER / BRANCH_MANAGER only) branch-wide sound defaults."""
+
+    permission_classes = [IsAuthenticated]
+
+    def _merged_defaults(self, branch: Branch) -> dict[str, Any]:
+        caps = BranchCapabilities.objects.filter(tenant=branch.tenant, branch=branch).first()
+        saved = dict(getattr(caps, "sound_defaults", None) or {})
+        merged_events = {**DEFAULT_BRANCH_SOUND_SETTINGS["events"]}
+        for k, v in (saved.get("events") or {}).items():
+            if k in merged_events and isinstance(v, dict):
+                merged_events[k] = {**merged_events[k], **v}
+        return {
+            "branch_id": str(branch.id),
+            "voice_language": saved.get(
+                "voice_language", DEFAULT_BRANCH_SOUND_SETTINGS["voice_language"]
+            ),
+            "dish_announcement_level": saved.get(
+                "dish_announcement_level", DEFAULT_BRANCH_SOUND_SETTINGS["dish_announcement_level"]
+            ),
+            "speech_rate": saved.get("speech_rate", DEFAULT_BRANCH_SOUND_SETTINGS["speech_rate"]),
+            "events": merged_events,
+        }
+
+    @extend_schema(responses={200: serializers.DictField()})
+    def get(self, request: Request) -> Response:
+        _tenant, _membership, branch = _resolve_event_branch(request)
+        return Response(self._merged_defaults(branch), status=status.HTTP_200_OK)
+
+    @extend_schema(responses={200: serializers.DictField()})
+    def patch(self, request: Request) -> Response:
+        raw_body_branch = request.data.get("branch_id")
+        tenant, membership, branch = _resolve_event_branch(
+            request,
+            explicit_branch_id=str(raw_body_branch) if raw_body_branch is not None else None,
+            body_ref=(raw_body_branch is not None),
+        )
+        if membership.role not in {"OWNER", "BRANCH_MANAGER"}:
+            raise PermissionDenied(
+                "Only Owners and Branch Managers can update branch sound defaults."
+            )
+
+        caps, _created = BranchCapabilities.objects.get_or_create(tenant=tenant, branch=branch)
+        before_state = dict(caps.sound_defaults or {})
+        current = self._merged_defaults(branch)
+        allowed_langs = {"EN", "TA", "AUTO"}
+        allowed_levels = {"OFF", "SUMMARY", "FULL"}
+
+        vlang = str(request.data.get("voice_language", current["voice_language"])).upper()
+        if vlang not in allowed_langs:
+            raise BusinessRuleError("INVALID_VALUE", "Invalid voice_language.", status_code=400)
+
+        level = str(
+            request.data.get("dish_announcement_level", current["dish_announcement_level"])
+        ).upper()
+        if level not in allowed_levels:
+            raise BusinessRuleError(
+                "INVALID_VALUE", "Invalid dish_announcement_level.", status_code=400
+            )
+
+        try:
+            rate = float(request.data.get("speech_rate", current["speech_rate"]))
+        except (ValueError, TypeError):
+            raise BusinessRuleError(
+                "INVALID_VALUE", "Invalid speech_rate.", status_code=400
+            ) from None
+        rate = max(0.7, min(1.4, round(rate, 2)))
+
+        next_events = dict(current["events"])
+        incoming_events = request.data.get("events")
+        if isinstance(incoming_events, dict):
+            for k, v in incoming_events.items():
+                if k in next_events and isinstance(v, dict):
+                    updated_entry = dict(next_events[k])
+                    if "chime" in v:
+                        updated_entry["chime"] = bool(v["chime"])
+                    if "voice" in v:
+                        updated_entry["voice"] = bool(v["voice"])
+                    if "nag" in v:
+                        updated_entry["nag"] = bool(v["nag"])
+                    if "repeat_seconds" in v:
+                        updated_entry["repeat_seconds"] = max(0, min(600, int(v["repeat_seconds"])))
+                    next_events[k] = updated_entry
+
+        next_defaults = {
+            "voice_language": vlang,
+            "dish_announcement_level": level,
+            "speech_rate": rate,
+            "events": next_events,
+        }
+        caps.sound_defaults = next_defaults
+        caps.save(update_fields=["sound_defaults"])
+
+        log_audit_event(
+            action="branch.sound_defaults.updated",
+            entity_type="BranchCapabilities",
+            entity_id=str(caps.id),
+            actor=request.user,
+            tenant=tenant,
+            before_state=before_state,
+            after_state=next_defaults,
+            request=request,
+        )
+        return Response({"branch_id": str(branch.id), **next_defaults}, status=status.HTTP_200_OK)

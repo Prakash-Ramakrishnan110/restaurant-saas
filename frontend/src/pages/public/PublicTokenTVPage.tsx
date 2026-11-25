@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { PublicTokenTVResponse, publicQrApi } from "../../api/publicQr";
 import { playTokenCallAlert } from "../../utils/soundAlerts";
+import { soundEngine } from "../../sound/engine";
 
 const COPY = {
   EN: {
@@ -57,6 +58,29 @@ export const PublicTokenTVPage: React.FC = () => {
   const [voiceActive, setVoiceActive] = useState(true);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [flashCall, setFlashCall] = useState(false);
+  const [audioUnlocked, setAudioUnlocked] = useState<boolean>(() => soundEngine.isUnlocked());
+  const [showSoundOffBar, setShowSoundOffBar] = useState<boolean>(false);
+
+  useEffect(() => {
+    const unsub = soundEngine.subscribe((snap) => {
+      if (snap.unlocked) {
+        setAudioUnlocked(true);
+        setShowSoundOffBar(false);
+      }
+    });
+    return unsub;
+  }, []);
+
+  useEffect(() => {
+    if (audioUnlocked) {
+      setShowSoundOffBar(false);
+      return;
+    }
+    const timer = window.setTimeout(() => {
+      setShowSoundOffBar(true);
+    }, 60000);
+    return () => window.clearTimeout(timer);
+  }, [audioUnlocked]);
 
   const lastCallSigRef = useRef<string | null>(null);
   const soundActiveRef = useRef(soundActive);
@@ -205,11 +229,16 @@ export const PublicTokenTVPage: React.FC = () => {
             onClick={() => {
               const nextSound = !soundActive;
               setSoundActive(nextSound);
-              if (nextSound && data?.now_calling) {
-                playTokenCallAlert(data.now_calling.token_number, lang, {
-                  bypassMuteSetting: true,
-                  withVoice: voiceActive,
-                });
+              if (nextSound) {
+                void soundEngine.unlock();
+                setAudioUnlocked(true);
+                setShowSoundOffBar(false);
+                if (data?.now_calling) {
+                  playTokenCallAlert(data.now_calling.token_number, lang, {
+                    bypassMuteSetting: true,
+                    withVoice: voiceActive,
+                  });
+                }
               }
             }}
             data-testid="tv-sound-toggle"
@@ -286,6 +315,36 @@ export const PublicTokenTVPage: React.FC = () => {
       </header>
 
       <main className="p-4 sm:p-8 max-w-7xl mx-auto space-y-6">
+        {showSoundOffBar && (
+          <div
+            role="alert"
+            data-testid="tv-sound-off-warning-bar"
+            className="rounded-2xl border-2 border-red-600 bg-red-600 text-white px-5 py-3 flex flex-wrap items-center justify-between gap-3 shadow-lg"
+          >
+            <div className="flex items-center gap-2 text-sm sm:text-base font-extrabold">
+              <VolumeX className="h-5 w-5 shrink-0" />
+              <span>
+                {lang === "TA"
+                  ? "ஒலி நிறுத்தப்பட்டுள்ளது. ஆர்டர்கள் கேட்காது."
+                  : "Sound is off. Orders will not be heard."}
+              </span>
+            </div>
+            <button
+              type="button"
+              onClick={() => {
+                void soundEngine.unlock();
+                setSoundActive(true);
+                setAudioUnlocked(true);
+                setShowSoundOffBar(false);
+              }}
+              data-testid="tv-start-sound-btn"
+              className="min-h-[56px] px-5 rounded-xl bg-white text-[#0B1F3B] font-extrabold text-sm"
+            >
+              {lang === "TA" ? "ஒலியைத் தொடங்கு" : "Start Sound"}
+            </button>
+          </div>
+        )}
+
         {/* NOW CALLING HERO */}
         {data?.now_calling && (
           <section

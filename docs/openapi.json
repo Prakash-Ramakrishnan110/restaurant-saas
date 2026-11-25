@@ -822,6 +822,61 @@ paths:
                 type: object
                 additionalProperties: {}
           description: ''
+  /api/v1/events/:
+    get:
+      operationId: events_retrieve
+      description: 'Stage 3: GET /api/v1/events/?since=<seq> returning role-filtered,
+        zero-PII notification events.'
+      tags:
+      - events
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BranchEventFeedResponse'
+          description: ''
+        '403':
+          description: Role not permitted
+        '404':
+          description: Branch not found
+  /api/v1/events/sound-defaults/:
+    get:
+      operationId: events_sound_defaults_retrieve
+      description: 'Stage 3: GET (staff) & PATCH (OWNER / BRANCH_MANAGER only) branch-wide
+        sound defaults.'
+      tags:
+      - events
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+                description: Unspecified response body
+          description: ''
+    patch:
+      operationId: events_sound_defaults_partial_update
+      description: 'Stage 3: GET (staff) & PATCH (OWNER / BRANCH_MANAGER only) branch-wide
+        sound defaults.'
+      tags:
+      - events
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+                description: Unspecified response body
+          description: ''
   /api/v1/health/:
     get:
       operationId: health_retrieve
@@ -8060,6 +8115,25 @@ components:
       - created_at
       - id
       - updated_at
+    BranchEventFeedResponse:
+      type: object
+      properties:
+        branch_id:
+          type: string
+        latest_seq:
+          type: integer
+        server_time:
+          type: string
+        events:
+          type: array
+          items:
+            type: object
+            additionalProperties: {}
+      required:
+      - branch_id
+      - events
+      - latest_seq
+      - server_time
     BranchItemAvailability:
       type: object
       properties:

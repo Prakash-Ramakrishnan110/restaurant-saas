@@ -3,6 +3,7 @@ import zoneinfo
 from typing import Any
 
 from django.db import transaction
+from django.db.models import Max
 from django.utils import timezone
 from rest_framework.exceptions import ValidationError
 
@@ -13,6 +14,7 @@ from apps.core.exceptions import BusinessRuleError
 from apps.menu.models import BranchItemAvailability, ItemOptionGroup, ItemVariant, MenuItem, Option
 from apps.orders.models import (
     BillInvoice,
+    BranchNotificationEvent,
     CashierShiftCloseout,
     CashMovement,
     CashMovementType,
@@ -190,7 +192,131 @@ def transition_order_status(
         )
     except Exception:
         pass
+    if new_status == OrderStatus.READY:
+        t_type, t_label = _safe_target_label_for_order(order)
+        ev_type = "token_ready" if t_type == "TOKEN" else "table_ready"
+        record_branch_notification_event(
+            branch=order.branch,
+            event_type=ev_type,
+            order=order,
+            target_label=t_label,
+            token_number=order.token_number,
+        )
     return order
+
+
+EVENT_ROLE_CATALOG: dict[str, list[str]] = {
+    "new_order": ["KITCHEN", "BRANCH_MANAGER", "OWNER"],
+    "qr_needs_approval": ["WAITER", "CASHIER", "BRANCH_MANAGER", "OWNER"],
+    "pay_first_waiting": ["CASHIER", "BRANCH_MANAGER", "OWNER"],
+    "table_ready": ["WAITER", "BRANCH_MANAGER", "OWNER"],
+    "token_ready": ["CASHIER", "WAITER", "BRANCH_MANAGER", "OWNER"],
+    "guest_request_service": ["WAITER", "BRANCH_MANAGER", "OWNER"],
+    "guest_request_bill": ["CASHIER", "WAITER", "BRANCH_MANAGER", "OWNER"],
+    "ticket_late": ["KITCHEN", "BRANCH_MANAGER", "OWNER"],
+    "payment_received": ["CASHIER", "BRANCH_MANAGER", "OWNER"],
+}
+
+DEFAULT_BRANCH_SOUND_SETTINGS: dict[str, Any] = {
+    "voice_language": "AUTO",
+    "dish_announcement_level": "SUMMARY",
+    "speech_rate": 1.0,
+    "events": {
+        "new_order": {"chime": True, "voice": True, "repeat_seconds": 60, "nag": False},
+        "qr_needs_approval": {"chime": True, "voice": True, "repeat_seconds": 90, "nag": True},
+        "pay_first_waiting": {"chime": True, "voice": True, "repeat_seconds": 0, "nag": False},
+        "table_ready": {"chime": True, "voice": True, "repeat_seconds": 45, "max_repeats": 3},
+        "token_ready": {"chime": True, "voice": True, "repeat_seconds": 0, "nag": False},
+        "guest_request_service": {
+            "chime": True,
+            "voice": True,
+            "repeat_seconds": 90,
+            "nag": True,
+        },
+        "guest_request_bill": {"chime": True, "voice": True, "repeat_seconds": 90, "nag": True},
+        "ticket_late": {"chime": True, "voice": True, "repeat_seconds": 120, "nag": True},
+        "payment_received": {"chime": True, "voice": False, "repeat_seconds": 0, "nag": False},
+    },
+}
+
+
+def _safe_target_label_for_order(order: Order) -> tuple[str, str]:
+    """Return (target_type, safe_target_label) without any customer PII or notes."""
+    if order.token_number is not None or order.order_workflow == OrderWorkflow.COUNTER_TOKEN:
+        tok = order.token_number or 0
+        return "TOKEN", f"Token {tok}"
+    if order.table_session and order.table_session.table:
+        return "TABLE", str(order.table_session.table.label)
+    return "ORDER", str(order.order_number or "Order")
+
+
+def _safe_dishes_for_order(order: Order) -> tuple[list[dict[str, Any]], int]:
+    """Return up to 8 safe {name, name_ta, qty} entries and total line count (no prices or notes)."""
+    items = list(order.items.select_related("menu_item").all())
+    dishes: list[dict[str, Any]] = []
+    for it in items[:8]:
+        name_ta = ""
+        if getattr(it, "menu_item", None) is not None:
+            name_ta = str(getattr(it.menu_item, "name_ta", "") or "")
+        dishes.append(
+            {
+                "name": str(it.item_name or "")[:80],
+                "name_ta": name_ta[:80],
+                "qty": int(it.quantity or 1),
+            }
+        )
+    return dishes, len(items)
+
+
+@transaction.atomic
+def record_branch_notification_event(
+    *,
+    branch: Branch,
+    event_type: str,
+    order: Order | None = None,
+    service_request: Any | None = None,
+    target_label: str = "",
+    token_number: int | None = None,
+    dishes: list[dict[str, Any]] | None = None,
+    total_items: int | None = None,
+    request_type: str = "",
+    is_recall: bool = False,
+    elapsed_minutes: int | None = None,
+) -> BranchNotificationEvent:
+    """Append an atomic branch-sequenced notification event containing zero PII or prices."""
+    Branch.unscoped.select_for_update().only("id").get(pk=branch.pk)
+    last_seq = (
+        BranchNotificationEvent.unscoped.filter(branch=branch).aggregate(m=Max("seq"))["m"] or 0
+    )
+    safe_dishes = [
+        {
+            "name": str(d.get("name", ""))[:80],
+            "name_ta": str(d.get("name_ta", ""))[:80],
+            "qty": int(d.get("qty", 1)),
+        }
+        for d in (dishes or [])[:8]
+    ]
+    payload: dict[str, Any] = {
+        "order_id": str(order.id) if order else None,
+        "service_request_id": str(service_request.id) if service_request else None,
+        "dishes": safe_dishes,
+        "total_items": int(total_items if total_items is not None else len(safe_dishes)),
+        "request_type": str(request_type or "")[:32],
+        "is_recall": bool(is_recall),
+        "elapsed_minutes": elapsed_minutes,
+    }
+    return BranchNotificationEvent.unscoped.create(
+        tenant=branch.tenant,
+        branch=branch,
+        seq=last_seq + 1,
+        event_type=event_type,
+        order=order,
+        service_request=service_request,
+        target_label=str(target_label or "")[:64],
+        token_number=token_number,
+        target_roles=EVENT_ROLE_CATALOG.get(event_type, ["BRANCH_MANAGER", "OWNER"]),
+        payload=payload,
+    )
 
 
 @transaction.atomic
@@ -264,6 +390,14 @@ def call_order_token(
         )
     except Exception:
         pass
+    record_branch_notification_event(
+        branch=order.branch,
+        event_type="token_ready",
+        order=order,
+        target_label=f"Token {order.token_number}",
+        token_number=order.token_number,
+        is_recall=(order.call_count > 1),
+    )
     return order
 
 
@@ -353,7 +487,7 @@ def create_order(
             groups_by_item.setdefault(str(link.item_id), []).append(link.group)
 
         # Lock branch to serialize order sequence generation concurrently
-        Branch.objects.select_for_update().only("id").get(pk=branch.pk)
+        Branch.unscoped.select_for_update().only("id").get(pk=branch.pk)
 
         if order_workflow == OrderWorkflow.COUNTER_TOKEN and token_number is None:
             from apps.venues.services import next_token
@@ -521,6 +655,35 @@ def create_order(
             )
         except Exception:
             pass
+
+        t_type, t_label = _safe_target_label_for_order(order)
+        safe_dishes, total_count = _safe_dishes_for_order(order)
+        if initial_status == OrderStatus.PENDING_APPROVAL:
+            record_branch_notification_event(
+                branch=branch,
+                event_type="qr_needs_approval",
+                order=order,
+                target_label=t_label,
+                token_number=order.token_number,
+            )
+        elif initial_status == OrderStatus.AWAITING_PAYMENT:
+            record_branch_notification_event(
+                branch=branch,
+                event_type="pay_first_waiting",
+                order=order,
+                target_label=t_label,
+                token_number=order.token_number,
+            )
+        elif initial_status == OrderStatus.PLACED:
+            record_branch_notification_event(
+                branch=branch,
+                event_type="new_order",
+                order=order,
+                target_label=t_label,
+                token_number=order.token_number,
+                dishes=safe_dishes,
+                total_items=total_count,
+            )
 
         return order
     finally:
@@ -742,6 +905,15 @@ def settle_bill(
                 customer_obj.lifetime_points_redeemed += points_to_redeem
             customer_obj.save()
 
+        session_label = (
+            table_session.table.label if table_session.table else f"Bill {invoice.invoice_number}"
+        )
+        record_branch_notification_event(
+            branch=table_session.branch,
+            event_type="payment_received",
+            target_label=session_label,
+        )
+
         return invoice
     finally:
         if token is not None:
@@ -850,6 +1022,25 @@ def settle_order_bill(
                 notes=f"Settled on counter invoice {invoice.invoice_number}",
             )
         _schedule_order_stock_deduction(order)
+        t_type, t_label = _safe_target_label_for_order(order)
+        if old_st == OrderStatus.AWAITING_PAYMENT:
+            safe_dishes, total_count = _safe_dishes_for_order(order)
+            record_branch_notification_event(
+                branch=order.branch,
+                event_type="new_order",
+                order=order,
+                target_label=t_label,
+                token_number=order.token_number,
+                dishes=safe_dishes,
+                total_items=total_count,
+            )
+        record_branch_notification_event(
+            branch=order.branch,
+            event_type="payment_received",
+            order=order,
+            target_label=t_label,
+            token_number=order.token_number,
+        )
         return invoice
     finally:
         if token is not None:
@@ -1487,6 +1678,26 @@ def approve_qr_order(
         after_state={"status": next_status},
         request=request,
     )
+    t_type, t_label = _safe_target_label_for_order(order)
+    if next_status == OrderStatus.PLACED:
+        safe_dishes, total_count = _safe_dishes_for_order(order)
+        record_branch_notification_event(
+            branch=order.branch,
+            event_type="new_order",
+            order=order,
+            target_label=t_label,
+            token_number=order.token_number,
+            dishes=safe_dishes,
+            total_items=total_count,
+        )
+    elif next_status == OrderStatus.AWAITING_PAYMENT:
+        record_branch_notification_event(
+            branch=order.branch,
+            event_type="pay_first_waiting",
+            order=order,
+            target_label=t_label,
+            token_number=order.token_number,
+        )
     return order
 
 

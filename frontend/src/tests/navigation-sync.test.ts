@@ -129,6 +129,7 @@ describe("Sidebar Map & Navigation Synchronization", () => {
     expect(allPaths).toContain("/staff");
     expect(allPaths).toContain("/settings/branding");
     expect(allPaths).toContain("/settings/venue");
+    expect(allPaths).toContain("/settings/sound");
     expect(allPaths).toContain("/settings/plan");
 
     // Must not see platform admin
@@ -308,7 +309,6 @@ describe("Sidebar Map & Navigation Synchronization", () => {
       "/team/assignments",
       "/my-shift",
       "/settings/approvals",
-      "/settings/sound",
       "/settings/devices",
       "/settings/taxes",
       "/settings/payments",

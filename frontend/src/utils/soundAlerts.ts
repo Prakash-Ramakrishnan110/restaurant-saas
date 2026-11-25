@@ -1,95 +1,46 @@
-// Sound alerts and speech synthesis utility for new orders and waiter calls
-
-interface WindowWithWebkitAudio extends Window {
-  webkitAudioContext?: typeof AudioContext;
-}
-
-const STORAGE_KEY_SOUND = "smf_sound_enabled";
-const STORAGE_KEY_VOICE = "smf_voice_enabled";
-const STORAGE_KEY_VOLUME = "smf_sound_volume";
+import { soundEngine } from "../sound/engine";
+import { ToneKey } from "../sound/types";
 
 export function isSoundEnabled(): boolean {
-  if (typeof window === "undefined") return false;
-  const stored = localStorage.getItem(STORAGE_KEY_SOUND);
-  return stored === null ? true : stored === "true";
+  return soundEngine.getPreferences().soundEnabled;
 }
 
 export function setSoundEnabled(enabled: boolean): void {
-  if (typeof window === "undefined") return;
-  localStorage.setItem(STORAGE_KEY_SOUND, String(enabled));
+  soundEngine.updatePreferences({ soundEnabled: enabled });
 }
 
 export function isVoiceEnabled(): boolean {
-  if (typeof window === "undefined") return false;
-  const stored = localStorage.getItem(STORAGE_KEY_VOICE);
-  return stored === null ? true : stored === "true";
+  return soundEngine.getPreferences().voiceEnabled;
 }
 
 export function setVoiceEnabled(enabled: boolean): void {
-  if (typeof window === "undefined") return;
-  localStorage.setItem(STORAGE_KEY_VOICE, String(enabled));
+  soundEngine.updatePreferences({ voiceEnabled: enabled });
 }
 
 export function getSoundVolume(): number {
-  if (typeof window === "undefined") return 0.7;
-  const stored = localStorage.getItem(STORAGE_KEY_VOLUME);
-  if (!stored) return 0.7;
-  const parsed = parseFloat(stored);
-  return isNaN(parsed) ? 0.7 : Math.min(1, Math.max(0, parsed));
+  return soundEngine.getPreferences().volume;
 }
 
 export function setSoundVolume(volume: number): void {
-  if (typeof window === "undefined") return;
-  localStorage.setItem(STORAGE_KEY_VOLUME, String(Math.min(1, Math.max(0, volume))));
+  soundEngine.updatePreferences({ volume: Math.min(1, Math.max(0, volume)) });
+}
+
+function resolveToneKeyForFrequency(frequency1: number, frequency2: number): ToneKey {
+  if (frequency1 >= 640 && frequency2 >= 950) return "request";
+  if (frequency1 <= 530) return "ready";
+  return "new-order";
 }
 
 /**
- * Plays a pleasant dual-tone restaurant chime using the Web Audio API.
+ * Plays a short chime routed through the central sound engine.
  */
-export function playChime(frequency1 = 587.33, frequency2 = 880.0, duration = 0.45): void {
-  if (!isSoundEnabled() || typeof window === "undefined") return;
-
-  try {
-    const AudioCtxClass =
-      window.AudioContext || (window as unknown as WindowWithWebkitAudio).webkitAudioContext;
-    if (!AudioCtxClass) return;
-
-    const audioCtx = new AudioCtxClass();
-    const volume = getSoundVolume();
-
-    // First tone
-    const osc1 = audioCtx.createOscillator();
-    const gain1 = audioCtx.createGain();
-    osc1.type = "sine";
-    osc1.frequency.setValueAtTime(frequency1, audioCtx.currentTime);
-    gain1.gain.setValueAtTime(volume * 0.4, audioCtx.currentTime);
-    gain1.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration * 0.5);
-
-    osc1.connect(gain1);
-    gain1.connect(audioCtx.destination);
-    osc1.start();
-    osc1.stop(audioCtx.currentTime + duration * 0.5);
-
-    // Second higher tone
-    const osc2 = audioCtx.createOscillator();
-    const gain2 = audioCtx.createGain();
-    osc2.type = "sine";
-    osc2.frequency.setValueAtTime(frequency2, audioCtx.currentTime + 0.12);
-    gain2.gain.setValueAtTime(0, audioCtx.currentTime);
-    gain2.gain.setValueAtTime(volume * 0.5, audioCtx.currentTime + 0.12);
-    gain2.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
-
-    osc2.connect(gain2);
-    gain2.connect(audioCtx.destination);
-    osc2.start(audioCtx.currentTime + 0.12);
-    osc2.stop(audioCtx.currentTime + duration);
-  } catch {
-    // AudioContext blocked or not supported
-  }
+export function playChime(frequency1 = 587.33, frequency2 = 880.0, _duration = 0.45): void {
+  if (!isSoundEnabled()) return;
+  soundEngine.playTone(resolveToneKeyForFrequency(frequency1, frequency2));
 }
 
 /**
- * Announces a voice message using Web Speech API if enabled.
+ * Announces a short phrase via the central sound engine / SpeechSynthesis.
  */
 export function speakText(
   text: string,
@@ -98,18 +49,18 @@ export function speakText(
 ): void {
   if (typeof window === "undefined") return;
   if (!bypassMuteSetting && (!isSoundEnabled() || !isVoiceEnabled())) return;
-  if (!("speechSynthesis" in window)) return;
+  if (!("speechSynthesis" in window) || typeof SpeechSynthesisUtterance === "undefined") return;
 
   try {
-    window.speechSynthesis.cancel(); // Stop prior speeches
+    window.speechSynthesis.cancel();
     const utterance = new SpeechSynthesisUtterance(text);
-    utterance.rate = 1.0;
+    utterance.rate = soundEngine.getPreferences().speechRate || 1.0;
     utterance.pitch = 1.05;
     utterance.volume = getSoundVolume();
     utterance.lang = lang;
     window.speechSynthesis.speak(utterance);
   } catch {
-    // Speech synthesis error or blocked
+    // Speech synthesis unavailable or blocked
   }
 }
 
@@ -117,11 +68,11 @@ export function speakText(
  * Triggers audio alert and voice announcement for a newly received order.
  */
 export function playOrderAlert(tableOrTarget?: string): void {
-  playChime(587.33, 880.0, 0.5); // D5 -> A5
+  playChime(587.33, 880.0, 0.5);
   if (tableOrTarget) {
     setTimeout(() => {
       speakText(`New order for ${tableOrTarget}`);
-    }, 400);
+    }, 350);
   }
 }
 
@@ -129,16 +80,16 @@ export function playOrderAlert(tableOrTarget?: string): void {
  * Triggers audio alert for digital waiter call.
  */
 export function playWaiterCallAlert(tableOrTarget?: string): void {
-  playChime(659.25, 987.77, 0.6); // E5 -> B5 (gentle bell)
+  playChime(659.25, 987.77, 0.6);
   if (tableOrTarget) {
     setTimeout(() => {
       speakText(`Service call from ${tableOrTarget}`);
-    }, 450);
+    }, 350);
   }
 }
 
 /**
- * Triggers a 3-note ascending chime (C5 -> E5 -> G5) when an order is ready for pickup/serving.
+ * Triggers the ascending ready chime (and optional speech) via the central sound engine.
  */
 export function playReadyAlert(
   targetOrToken?: string,
@@ -147,54 +98,27 @@ export function playReadyAlert(
   if (typeof window === "undefined") return;
   if (!options?.bypassMuteSetting && !isSoundEnabled()) return;
 
-  try {
-    const AudioCtxClass =
-      window.AudioContext || (window as unknown as WindowWithWebkitAudio).webkitAudioContext;
-    if (!AudioCtxClass) return;
-
-    const audioCtx = new AudioCtxClass();
-    if (audioCtx.state === "suspended" && typeof audioCtx.resume === "function") {
-      audioCtx.resume().catch(() => {});
-    }
-    const volume = getSoundVolume();
-    const notes = [523.25, 659.25, 783.99]; // C5 -> E5 -> G5
-
-    notes.forEach((freq, idx) => {
-      const startTime = audioCtx.currentTime + idx * 0.12;
-      const osc = audioCtx.createOscillator();
-      const gain = audioCtx.createGain();
-      osc.type = "triangle";
-      osc.frequency.setValueAtTime(freq, startTime);
-      gain.gain.setValueAtTime(volume * 0.45, startTime);
-      gain.gain.exponentialRampToValueAtTime(0.001, startTime + 0.24);
-      osc.connect(gain);
-      gain.connect(audioCtx.destination);
-      osc.start(startTime);
-      osc.stop(startTime + 0.24);
-    });
-  } catch {
-    // AudioContext blocked or not supported
-  }
+  soundEngine.playTone("ready", { preferSynth: !soundEngine.isUnlocked() });
 
   if (options?.withVoice && targetOrToken) {
     setTimeout(() => {
-      speakText(`Order ready for ${targetOrToken}`);
-    }, 450);
+      speakText(`Order ready for ${targetOrToken}`, "en-US", Boolean(options?.bypassMuteSetting));
+    }, 380);
   }
 }
 
 /**
- * Announces a counter token call with 3-note chime and optional EN/TA SpeechSynthesis.
+ * Announces a counter token call with chime + EN/TA SpeechSynthesis routed via sound engine.
  */
 export function playTokenCallAlert(
   tokenNumber: number,
   lang: "EN" | "TA" = "EN",
   options?: { bypassMuteSetting?: boolean; withVoice?: boolean }
 ): void {
-  playReadyAlert(`Token ${tokenNumber}`, {
-    bypassMuteSetting: options?.bypassMuteSetting,
-    withVoice: false,
-  });
+  if (typeof window === "undefined") return;
+  if (!options?.bypassMuteSetting && !isSoundEnabled()) return;
+
+  soundEngine.playTone("token-ready");
   if (options?.withVoice !== false) {
     const phrase =
       lang === "TA"
@@ -203,7 +127,7 @@ export function playTokenCallAlert(
     const speechLang = lang === "TA" ? "ta-IN" : "en-US";
     setTimeout(() => {
       speakText(phrase, speechLang, Boolean(options?.bypassMuteSetting));
-    }, 420);
+    }, 380);
   }
 }
 
@@ -211,5 +135,6 @@ export function playTokenCallAlert(
  * Test button helper for settings or sound toggle.
  */
 export function testSoundAlert(): void {
+  void soundEngine.unlock();
   playOrderAlert("Table 1");
 }

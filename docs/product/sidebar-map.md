@@ -105,7 +105,7 @@ Never show an item that has no working page. Hidden items are listed here with t
 | Branding & Business | /settings/branding | O edit, M view | NOW |
 | Venue Switches | /settings/venue | O edit, M view | NOW |
 | Approvals & Limits (who can void, discount, cancel, and the limits) | /settings/approvals | O | P1 |
-| Sound & Alerts | /settings/sound | all staff | P1 |
+| Sound & Alerts | /settings/sound | all staff | NOW (Stage 3) |
 | Printers & Devices | /settings/devices | O M | P1 |
 | Taxes & Invoices | /settings/taxes | O | ADVICE |
 | Online Payments | /settings/payments | O | P2 |

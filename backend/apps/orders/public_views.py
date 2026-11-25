@@ -42,7 +42,7 @@ from apps.orders.models import (
     ServiceRequestStatus,
     ServiceRequestType,
 )
-from apps.orders.services import create_order
+from apps.orders.services import create_order, record_branch_notification_event
 from apps.subscriptions.services import is_tenant_allowed
 from apps.tenants.services import get_public_qr_code
 from apps.venues.constants import (
@@ -1227,6 +1227,17 @@ class PublicQRServiceRequestView(APIView):
                 table_session=session,
                 request_type=req_type,
                 status=ServiceRequestStatus.PENDING,
+            )
+            record_branch_notification_event(
+                branch=qr.branch,
+                event_type=(
+                    "guest_request_bill"
+                    if req_type == ServiceRequestType.BILL
+                    else "guest_request_service"
+                ),
+                service_request=srv,
+                target_label=qr.table.label if qr.table else "Guest",
+                request_type=req_type,
             )
             return Response(
                 {

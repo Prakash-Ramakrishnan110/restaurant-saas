@@ -345,6 +345,41 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/events/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description Stage 3: GET /api/v1/events/?since=<seq> returning role-filtered, zero-PII notification events. */
+        get: operations["events_retrieve"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/events/sound-defaults/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description Stage 3: GET (staff) & PATCH (OWNER / BRANCH_MANAGER only) branch-wide sound defaults. */
+        get: operations["events_sound_defaults_retrieve"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** @description Stage 3: GET (staff) & PATCH (OWNER / BRANCH_MANAGER only) branch-wide sound defaults. */
+        patch: operations["events_sound_defaults_partial_update"];
+        trace?: never;
+    };
     "/api/v1/health/": {
         parameters: {
             query?: never;
@@ -3644,6 +3679,14 @@ export interface components {
             readonly created_at: string;
             /** Format: date-time */
             readonly updated_at: string;
+        };
+        BranchEventFeedResponse: {
+            branch_id: string;
+            latest_seq: number;
+            server_time: string;
+            events: {
+                [key: string]: unknown;
+            }[];
         };
         BranchItemAvailability: {
             /** Format: uuid */
@@ -7392,6 +7435,81 @@ export interface operations {
         };
     };
     entitlements_retrieve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+        };
+    };
+    events_retrieve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BranchEventFeedResponse"];
+                };
+            };
+            /** @description Role not permitted */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Branch not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    events_sound_defaults_retrieve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+        };
+    };
+    events_sound_defaults_partial_update: {
         parameters: {
             query?: never;
             header?: never;

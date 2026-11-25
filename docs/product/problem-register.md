@@ -64,7 +64,7 @@ Rule: a new idea is added here first, gets an ID, and is built only when its pha
 | C-01 | Wrong totals and slow billing | Server-calculated totals, one bill per table | Billing | P1 | partial |
 | C-02 | Reprint of a lost bill | Bills history with a "Duplicate" mark | Bills | P1 | partial |
 | K-01 | Orders arrive late or in the wrong order | Kitchen board with waiting timers | Kitchen | P1 | partial |
-| K-02 | Not hearing new orders | Chime and voice alert with a visual alert always shown | Sound & Alerts | P1 | not started |
+| K-02 | Not hearing new orders | Chime and EN/TA voice alert engine (zero PII), per-branch sound feed, 60s sound-off warning bar, disconnect tone, and visual alert banner always shown | Settings > Sound & Alerts | P1 / Stage 3 | done |
 
 ## 4. Fusion Engine platform admin (A)
 
