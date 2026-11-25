@@ -284,39 +284,46 @@ def record_branch_notification_event(
     elapsed_minutes: int | None = None,
 ) -> BranchNotificationEvent:
     """Append an atomic branch-sequenced notification event containing zero PII or prices."""
-    Branch.unscoped.select_for_update().only("id").get(pk=branch.pk)
-    last_seq = (
-        BranchNotificationEvent.unscoped.filter(branch=branch).aggregate(m=Max("seq"))["m"] or 0
-    )
-    safe_dishes = [
-        {
-            "name": str(d.get("name", ""))[:80],
-            "name_ta": str(d.get("name_ta", ""))[:80],
-            "qty": int(d.get("qty", 1)),
+    tok = None
+    if get_current_tenant() is None:
+        tok = set_current_tenant(branch.tenant)
+    try:
+        Branch.objects.select_for_update().only("id").get(pk=branch.pk)
+        last_seq = (
+            BranchNotificationEvent.objects.filter(branch=branch).aggregate(m=Max("seq"))["m"] or 0
+        )
+        safe_dishes = [
+            {
+                "name": str(d.get("name", ""))[:80],
+                "name_ta": str(d.get("name_ta", ""))[:80],
+                "qty": int(d.get("qty", 1)),
+            }
+            for d in (dishes or [])[:8]
+        ]
+        payload: dict[str, Any] = {
+            "order_id": str(order.id) if order else None,
+            "service_request_id": str(service_request.id) if service_request else None,
+            "dishes": safe_dishes,
+            "total_items": int(total_items if total_items is not None else len(safe_dishes)),
+            "request_type": str(request_type or "")[:32],
+            "is_recall": bool(is_recall),
+            "elapsed_minutes": elapsed_minutes,
         }
-        for d in (dishes or [])[:8]
-    ]
-    payload: dict[str, Any] = {
-        "order_id": str(order.id) if order else None,
-        "service_request_id": str(service_request.id) if service_request else None,
-        "dishes": safe_dishes,
-        "total_items": int(total_items if total_items is not None else len(safe_dishes)),
-        "request_type": str(request_type or "")[:32],
-        "is_recall": bool(is_recall),
-        "elapsed_minutes": elapsed_minutes,
-    }
-    return BranchNotificationEvent.unscoped.create(
-        tenant=branch.tenant,
-        branch=branch,
-        seq=last_seq + 1,
-        event_type=event_type,
-        order=order,
-        service_request=service_request,
-        target_label=str(target_label or "")[:64],
-        token_number=token_number,
-        target_roles=EVENT_ROLE_CATALOG.get(event_type, ["BRANCH_MANAGER", "OWNER"]),
-        payload=payload,
-    )
+        return BranchNotificationEvent.objects.create(
+            tenant=branch.tenant,
+            branch=branch,
+            seq=last_seq + 1,
+            event_type=event_type,
+            order=order,
+            service_request=service_request,
+            target_label=str(target_label or "")[:64],
+            token_number=token_number,
+            target_roles=EVENT_ROLE_CATALOG.get(event_type, ["BRANCH_MANAGER", "OWNER"]),
+            payload=payload,
+        )
+    finally:
+        if tok is not None:
+            reset_current_tenant(tok)
 
 
 @transaction.atomic
@@ -487,7 +494,7 @@ def create_order(
             groups_by_item.setdefault(str(link.item_id), []).append(link.group)
 
         # Lock branch to serialize order sequence generation concurrently
-        Branch.unscoped.select_for_update().only("id").get(pk=branch.pk)
+        Branch.objects.select_for_update().only("id").get(pk=branch.pk)
 
         if order_workflow == OrderWorkflow.COUNTER_TOKEN and token_number is None:
             from apps.venues.services import next_token

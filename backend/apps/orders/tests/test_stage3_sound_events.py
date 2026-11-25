@@ -13,6 +13,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 
 from apps.accounts.models import Membership
 from apps.audit.models import AuditLog
+from apps.core.context import reset_current_tenant, set_current_tenant
 from apps.menu.constants import FoodType
 from apps.menu.models import MenuCategory, MenuItem
 from apps.orders.models import OrderSource, OrderStatus, OrderWorkflow
@@ -38,7 +39,7 @@ def _auth_client(user: Any, tenant: Tenant | None = None) -> APIClient:
 
 
 @pytest.fixture
-def stage3_env(db: Any) -> dict[str, Any]:
+def stage3_env(db: Any) -> Any:
     plan = Plan.objects.create(
         name="Stage 3 Plan",
         slug="stage3-plan",
@@ -103,19 +104,23 @@ def stage3_env(db: Any) -> dict[str, Any]:
         email="padmin_s3@fusion.in", password="Password123!", is_platform_admin=True
     )
 
-    return {
-        "tenant": tenant,
-        "branch_a": branch_a,
-        "branch_b": branch_b,
-        "tbl": tbl,
-        "session": session,
-        "dosa": dosa,
-        "idli": idli,
-        "other_tenant": other_tenant,
-        "other_branch": other_branch,
-        "role_users": role_users,
-        "platform_admin": padmin,
-    }
+    tok = set_current_tenant(tenant)
+    try:
+        yield {
+            "tenant": tenant,
+            "branch_a": branch_a,
+            "branch_b": branch_b,
+            "tbl": tbl,
+            "session": session,
+            "dosa": dosa,
+            "idli": idli,
+            "other_tenant": other_tenant,
+            "other_branch": other_branch,
+            "role_users": role_users,
+            "platform_admin": padmin,
+        }
+    finally:
+        reset_current_tenant(tok)
 
 
 @pytest.mark.django_db

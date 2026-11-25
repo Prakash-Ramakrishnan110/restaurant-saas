@@ -1,5 +1,7 @@
+import json
 import uuid
 from datetime import timedelta
+from decimal import Decimal, InvalidOperation
 from typing import Any
 
 from django.db.models import Exists, OuterRef, Q
@@ -1662,12 +1664,13 @@ class BranchSoundDefaultsView(APIView):
             )
 
         try:
-            rate = float(request.data.get("speech_rate", current["speech_rate"]))
-        except (ValueError, TypeError):
+            rate_dec = Decimal(str(request.data.get("speech_rate", current["speech_rate"])))
+        except (InvalidOperation, ValueError, TypeError):
             raise BusinessRuleError(
                 "INVALID_VALUE", "Invalid speech_rate.", status_code=400
             ) from None
-        rate = max(0.7, min(1.4, round(rate, 2)))
+        clamped_dec = max(Decimal("0.7"), min(Decimal("1.4"), rate_dec.quantize(Decimal("0.01"))))
+        rate = json.loads(str(clamped_dec))
 
         next_events = dict(current["events"])
         incoming_events = request.data.get("events")
