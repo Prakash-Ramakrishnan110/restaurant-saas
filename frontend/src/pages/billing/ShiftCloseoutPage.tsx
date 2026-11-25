@@ -262,36 +262,42 @@ export const ShiftCloseoutPage: React.FC = () => {
   const isShiftLocked = Boolean(closeoutResult?.is_locked || activeShift?.is_locked);
 
   return (
-    <div className="p-6 max-w-5xl mx-auto space-y-6 font-sans">
+    <div className="p-4 sm:p-6 max-w-5xl mx-auto space-y-5 font-sans">
       {/* Header */}
-      <div className="flex items-center justify-between pb-4 border-b border-border">
-        <div className="flex items-center gap-3">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-4 border-b border-border">
+        <div className="flex items-start gap-2.5 min-w-0">
           <Button
             variant="ghost"
             size="sm"
             onClick={() => navigate("/billing")}
-            className="h-8 w-8 p-0"
+            className="h-9 w-9 p-0 shrink-0 mt-0.5"
+            aria-label="Back to billing"
           >
             <ArrowLeft className="h-4 w-4" />
           </Button>
-          <div>
-            <h1 className="text-xl font-extrabold font-heading text-foreground flex items-center gap-2">
-              <ShieldCheck className="h-5 w-5 text-emerald-600" /> Cashier Shift Closeout (Z-Report)
+          <div className="min-w-0">
+            <h1 className="text-lg sm:text-xl font-extrabold font-heading text-foreground flex items-center gap-2 leading-snug">
+              <ShieldCheck className="h-5 w-5 text-emerald-600 shrink-0" />
+              <span>Cashier Shift Closeout (Z-Report)</span>
             </h1>
-            <p className="text-xs text-muted-foreground">
+            <p className="text-xs text-muted-foreground mt-0.5">
               Blind cash drawer reconciliation to prevent theft and accounting discrepancies.
             </p>
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2 shrink-0 pl-11 sm:pl-0 sm:justify-end">
           {isShiftLocked && (
-            <Badge className="bg-amber-500/15 text-amber-700 dark:text-amber-300 border-amber-500/30 text-xs font-bold gap-1">
-              <Lock className="h-3 w-3" /> SHIFT LOCKED
+            <Badge className="bg-amber-500/15 text-amber-700 dark:text-amber-300 border-amber-500/30 text-xs font-bold gap-1 whitespace-nowrap shrink-0 px-3 py-1">
+              <Lock className="h-3 w-3 shrink-0" /> SHIFT LOCKED
             </Badge>
           )}
-          <Badge variant="outline" className="text-xs font-bold">
-            {invoiceList.length} Invoices Today
+          <Badge
+            variant="outline"
+            data-testid="invoices-today-badge"
+            className="text-xs font-bold whitespace-nowrap shrink-0 px-3 py-1 bg-muted/40"
+          >
+            {invoiceList.length} {invoiceList.length === 1 ? "Invoice" : "Invoices"} Today
           </Badge>
         </div>
       </div>
@@ -304,8 +310,8 @@ export const ShiftCloseoutPage: React.FC = () => {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Blind Count Form */}
-        <div className="rounded-xl border border-border bg-card p-5 space-y-4 shadow-sm">
-          <div className="flex items-center justify-between">
+        <div className="rounded-xl border border-border bg-card p-4 sm:p-5 space-y-4 shadow-sm">
+          <div className="flex flex-wrap items-center justify-between gap-2">
             <h2 className="text-sm font-extrabold text-foreground uppercase tracking-wider">
               Cash Drawer Blind Count
             </h2>
@@ -313,7 +319,7 @@ export const ShiftCloseoutPage: React.FC = () => {
               type="button"
               variant="outline"
               size="sm"
-              className="h-7 text-xs gap-1"
+              className="min-h-[36px] text-xs gap-1.5 whitespace-nowrap shrink-0"
               onClick={() => setShowDenomHelper((prev) => !prev)}
             >
               <Calculator className="h-3.5 w-3.5 text-[#FF6A00]" />
