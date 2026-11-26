@@ -44,7 +44,8 @@ try {
     }
 
     Run-MarketingGate -Id 4 -Name "Playwright A11y, Responsive, Animation, Form & 3rd-Party Checks" -OutFile "playwright.txt" -Action {
-        docker compose exec -T redis redis-cli DEL ":1:lead:ip:127.0.0.1" 2>$null | Out-Null
+        docker exec fusion_redis redis-cli -a devredispassword DEL ":1:lead:ip:127.0.0.1" 2>$null | Out-Null
+        docker compose exec -T redis redis-cli -a devredispassword DEL ":1:lead:ip:127.0.0.1" 2>$null | Out-Null
         npx playwright test
     }
 

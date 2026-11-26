@@ -9,11 +9,19 @@ interface LegalPageProps {
 
 const EFFECTIVE_DATE = "November 19, 2026";
 
-export const LegalPage: React.FC<LegalPageProps> = ({ kind }) => {
+export const LegalPage: React.FC<LegalPageProps> = ({ kind, lang }) => {
+  const isTa = lang === "ta";
   if (kind === "privacy") {
     return (
       <section className="py-12 lg:py-20 mx-auto max-w-[820px] px-5 sm:px-8 text-[#0B1F3B]">
         <article className="space-y-8 text-[16px] leading-[1.7] text-[#0B1F3B]/85">
+          {isTa && (
+            <div className="rounded-[14px] border border-[#E6E1D8] bg-[#FFF3E0]/70 p-4 text-[14px] text-[#0B1F3B]">
+              <strong>தமிழ் சுருக்கம்:</strong> டெமோ கோரிக்கைக்காக நீங்கள் வழங்கும் பெயர், தொலைபேசி
+              எண் மற்றும் கடை விவரங்கள் டெமோ தொடர்புக்கு மட்டுமே பயன்படுத்தப்படும்; மூன்றாம் நபருக்கு
+              விற்கப்படாது. விரிவான விதிமுறைகள் கீழே கொடுக்கப்பட்டுள்ளன.
+            </div>
+          )}
           <header className="space-y-3 border-b border-[#E6E1D8] pb-6">
             <p className="text-[13px] font-semibold uppercase tracking-wide text-[#0B1F3B]/70">
               Effective Date: {EFFECTIVE_DATE}
@@ -191,6 +199,12 @@ export const LegalPage: React.FC<LegalPageProps> = ({ kind }) => {
   return (
     <section className="py-12 lg:py-20 mx-auto max-w-[820px] px-5 sm:px-8 text-[#0B1F3B]">
       <article className="space-y-8 text-[16px] leading-[1.7] text-[#0B1F3B]/85">
+        {isTa && (
+          <div className="rounded-[14px] border border-[#E6E1D8] bg-[#FFF3E0]/70 p-4 text-[14px] text-[#0B1F3B]">
+            <strong>தமிழ் சுருக்கம்:</strong> ServeMyFood வணிகப் பயன்பாட்டிற்கான இணைய மென்பொருள்.
+            இன்று நேரலையில் உள்ள வசதிகள் மற்றும் பயன்பாட்டு நிபந்தனைகள் கீழே விவரிக்கப்பட்டுள்ளன.
+          </div>
+        )}
         <header className="space-y-3 border-b border-[#E6E1D8] pb-6">
           <p className="text-[13px] font-semibold uppercase tracking-wide text-[#0B1F3B]/70">
             Effective Date: {EFFECTIVE_DATE}
@@ -229,23 +243,24 @@ export const LegalPage: React.FC<LegalPageProps> = ({ kind }) => {
             customer QR self-ordering, direct online guest UPI checkout, kitchen stock and recipe
             tracking, staff shifts/attendance, and hotel room service posting — are under
             development, are not guaranteed by any specific release date, and do not form part of
-            your current service entitlement unless explicitly activated in your plan.
+            your current service scope unless explicitly activated in your plan.
           </p>
         </section>
 
         <section className="space-y-3">
           <h2 className="font-display font-semibold text-[22px] text-[#0B1F3B]">
-            3. Billing, Receipts &amp; Tax Compliance Disclaimer
+            3. Billing, Receipts &amp; Statutory Compliance Disclaimer
           </h2>
           <p>
             {SITE_CONFIG.productName} currently provides operational order tickets, bill summaries,
             and payment recording (cash, UPI, or card recorded at the counter).{" "}
             <strong>
-              {SITE_CONFIG.productName} does not currently generate GST-compliant tax invoices
+              {SITE_CONFIG.productName} does not currently generate statutory compliance invoices
             </strong>{" "}
-            and does not act as a payment gateway or tax advisor. You are solely responsible for
-            issuing compliant statutory tax invoices where required by law, maintaining accounting
-            records, filing GST returns, and complying with FSSAI and local municipal regulations.
+            and does not act as a payment gateway or accounting advisor. Demo receipts are labelled
+            DEMO RECEIPT. You are solely responsible for issuing statutory invoices where required
+            by law, maintaining accounting records, filing statutory returns, and complying with
+            FSSAI and local municipal regulations.
           </p>
         </section>
 
@@ -314,7 +329,7 @@ export const LegalPage: React.FC<LegalPageProps> = ({ kind }) => {
             {SITE_CONFIG.productName} requires an active internet connection for live order
             synchronization between devices. The website and software are provided on an
             &ldquo;as is&rdquo; and &ldquo;as available&rdquo; basis. While we strive for reliable
-            operation, we do not warrant uninterrupted, error-free, or 100% continuous uptime.
+            operation, we do not warrant uninterrupted, error-free, or continuous uptime.
           </p>
         </section>
 

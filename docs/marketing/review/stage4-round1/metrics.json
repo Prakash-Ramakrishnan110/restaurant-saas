@@ -1,0 +1,223 @@
+{
+  "home": {
+    "axeViolations": [
+      {
+        "id": "color-contrast",
+        "impact": "serious"
+      }
+    ],
+    "widths": {
+      "320": {
+        "overflow": false,
+        "smallControls": [],
+        "brokenImgs": []
+      },
+      "360": {
+        "overflow": false,
+        "smallControls": [],
+        "brokenImgs": []
+      },
+      "390": {
+        "overflow": false,
+        "smallControls": [],
+        "brokenImgs": []
+      },
+      "768": {
+        "overflow": false,
+        "smallControls": [],
+        "brokenImgs": []
+      },
+      "1440": {
+        "overflow": false,
+        "smallControls": [],
+        "brokenImgs": []
+      }
+    }
+  },
+  "home-ta": {
+    "axeViolations": [
+      {
+        "id": "color-contrast",
+        "impact": "serious"
+      },
+      {
+        "id": "label-content-name-mismatch",
+        "impact": "serious"
+      }
+    ],
+    "widths": {
+      "320": {
+        "overflow": false,
+        "smallControls": [],
+        "brokenImgs": []
+      },
+      "360": {
+        "overflow": false,
+        "smallControls": [],
+        "brokenImgs": []
+      },
+      "390": {
+        "overflow": false,
+        "smallControls": [],
+        "brokenImgs": []
+      },
+      "768": {
+        "overflow": false,
+        "smallControls": [],
+        "brokenImgs": []
+      },
+      "1440": {
+        "overflow": false,
+        "smallControls": [],
+        "brokenImgs": []
+      }
+    }
+  },
+  "hardware": {
+    "axeViolations": [
+      {
+        "id": "color-contrast",
+        "impact": "serious"
+      },
+      {
+        "id": "heading-order",
+        "impact": "moderate"
+      }
+    ],
+    "widths": {
+      "320": {
+        "overflow": false,
+        "smallControls": [],
+        "brokenImgs": []
+      },
+      "360": {
+        "overflow": false,
+        "smallControls": [],
+        "brokenImgs": []
+      },
+      "390": {
+        "overflow": false,
+        "smallControls": [],
+        "brokenImgs": []
+      },
+      "768": {
+        "overflow": false,
+        "smallControls": [],
+        "brokenImgs": []
+      },
+      "1440": {
+        "overflow": false,
+        "smallControls": [],
+        "brokenImgs": []
+      }
+    }
+  },
+  "hardware-ta": {
+    "axeViolations": [
+      {
+        "id": "color-contrast",
+        "impact": "serious"
+      },
+      {
+        "id": "heading-order",
+        "impact": "moderate"
+      },
+      {
+        "id": "label-content-name-mismatch",
+        "impact": "serious"
+      }
+    ],
+    "widths": {
+      "320": {
+        "overflow": false,
+        "smallControls": [],
+        "brokenImgs": []
+      },
+      "360": {
+        "overflow": false,
+        "smallControls": [],
+        "brokenImgs": []
+      },
+      "390": {
+        "overflow": false,
+        "smallControls": [],
+        "brokenImgs": []
+      },
+      "768": {
+        "overflow": false,
+        "smallControls": [],
+        "brokenImgs": []
+      },
+      "1440": {
+        "overflow": false,
+        "smallControls": [],
+        "brokenImgs": []
+      }
+    }
+  },
+  "tea-shops": {
+    "axeViolations": [],
+    "widths": {
+      "320": {
+        "overflow": false,
+        "smallControls": [],
+        "brokenImgs": []
+      },
+      "360": {
+        "overflow": false,
+        "smallControls": [],
+        "brokenImgs": []
+      },
+      "390": {
+        "overflow": false,
+        "smallControls": [],
+        "brokenImgs": []
+      },
+      "768": {
+        "overflow": false,
+        "smallControls": [],
+        "brokenImgs": []
+      },
+      "1440": {
+        "overflow": false,
+        "smallControls": [],
+        "brokenImgs": []
+      }
+    }
+  },
+  "tea-shops-ta": {
+    "axeViolations": [
+      {
+        "id": "label-content-name-mismatch",
+        "impact": "serious"
+      }
+    ],
+    "widths": {
+      "320": {
+        "overflow": false,
+        "smallControls": [],
+        "brokenImgs": []
+      },
+      "360": {
+        "overflow": false,
+        "smallControls": [],
+        "brokenImgs": []
+      },
+      "390": {
+        "overflow": false,
+        "smallControls": [],
+        "brokenImgs": []
+      },
+      "768": {
+        "overflow": false,
+        "smallControls": [],
+        "brokenImgs": []
+      },
+      "1440": {
+        "overflow": false,
+        "smallControls": [],
+        "brokenImgs": []
+      }
+    }
+  }
+}

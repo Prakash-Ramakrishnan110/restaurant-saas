@@ -15,6 +15,8 @@ const PAGES = [
   { name: "restaurants-ta", url: "/ta/restaurants/" },
   { name: "hotels-en", url: "/hotels/" },
   { name: "hotels-ta", url: "/ta/hotels/" },
+  { name: "hardware-en", url: "/hardware/" },
+  { name: "hardware-ta", url: "/ta/hardware/" },
   { name: "book-demo-en", url: "/book-demo/" },
   { name: "book-demo-ta", url: "/ta/book-demo/" },
 ];
@@ -128,5 +130,64 @@ test.describe("ServeMyFood Marketing Static Site Verification", () => {
     await page.fill("#lead-phone", uniquePhone);
     await page.getByRole("button", { name: /Book a free demo/i }).click();
     await expect(page.getByRole("status")).toContainText("Demo request received");
+  });
+
+  test("Stage 4: Hardware validator rules, LIVE comparison section, and Tea Shop Token TV clip H", async ({
+    page,
+  }) => {
+    const { validateHardwareKits } = await import("../scripts/validate_hardware.mjs");
+    // READY kit lacking owner approval, photo, or contents MUST fail validation
+    const badKits = [
+      {
+        id: "counter-token-tv",
+        status: "READY",
+        ownerApproved: false,
+        photo: "",
+        contentsEn: [],
+        contentsTa: [],
+      },
+    ];
+    const errs = validateHardwareKits(
+      badKits,
+      path.resolve(import.meta.dirname, "../assets/photos/hardware")
+    );
+    expect(errs.length).toBeGreaterThanOrEqual(3);
+
+    // Home page comparison section shows LIVE rows and separate Coming soon group
+    await page.goto("/", { waitUntil: "networkidle" });
+    const cmp = page.getByTestId("comparison-section");
+    await expect(cmp).toBeVisible();
+    await expect(cmp).toContainText("Paper slips and WhatsApp versus ServeMyFood");
+    await expect(cmp).toContainText("Orders reach the kitchen at once");
+    await expect(cmp).toContainText("Sold-out in one tap");
+    await expect(cmp).toContainText("Token on a TV");
+    await expect(cmp).toContainText("Separate logins");
+    await expect(cmp).toContainText("Sales at a glance");
+    await expect(page.getByTestId("comparison-coming-soon")).toBeVisible();
+
+    // Hardware page omits tested-devices-table while docs/help/printers-tested.md has 0 rows
+    await page.goto("/hardware/", { waitUntil: "networkidle" });
+    await expect(page.getByTestId("hardware-section")).toBeVisible();
+    await expect(page.getByTestId("tested-devices-table")).toHaveCount(0);
+
+    // Tea shop page shows real Token TV section & Clip H video with zero "table" wording
+    await page.goto("/tea-shops/", { waitUntil: "networkidle" });
+    await expect(page.getByTestId("tea-shop-token-tv-section")).toBeVisible();
+    const clipH = page.getByTestId("clip-h-video");
+    await expect(clipH).toHaveAttribute("preload", "none");
+    expect(await clipH.getAttribute("autoplay")).toBeNull();
+    expect(await clipH.evaluate((v: HTMLVideoElement) => v.muted)).toBe(true);
+    const bodyText = await page.evaluate(() => document.body.innerText || "");
+    expect(/\btable\b/i.test(bodyText)).toBe(false);
+
+    // Tamil comparison & Tamil tea-shop zero-table rules
+    await page.goto("/ta/", { waitUntil: "networkidle" });
+    await expect(page.getByTestId("comparison-section")).toContainText(
+      "காகிதச் சீட்டு மற்றும் வாட்ஸ்அப் எதிர் ServeMyFood"
+    );
+    await page.goto("/ta/tea-shops/", { waitUntil: "networkidle" });
+    const taBody = await page.evaluate(() => document.body.innerText || "");
+    expect(/\btable\b/i.test(taBody)).toBe(false);
+    expect(/மேஜை|மேசை/.test(taBody)).toBe(false);
   });
 });

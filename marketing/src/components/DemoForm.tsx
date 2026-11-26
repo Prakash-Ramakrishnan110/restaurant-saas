@@ -154,7 +154,7 @@ export const DemoForm: React.FC<DemoFormProps> = ({ lang, onNavigate, hideQuickL
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <label htmlFor="lead-name" className="block text-xs font-bold text-[#0B1F3B] mb-1">
+            <label htmlFor="lead-name" className="block text-xs font-bold text-[#0B1F3B] mb-1.5">
               {lang === "ta" ? "உங்கள் பெயர் *" : "Your name *"}
             </label>
             <input
@@ -163,12 +163,12 @@ export const DemoForm: React.FC<DemoFormProps> = ({ lang, onNavigate, hideQuickL
               required
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="w-full h-10 rounded-lg border border-[#0B1F3B]/25 px-3 text-sm text-[#0B1F3B]"
+              className="w-full h-12 rounded-lg border border-[#0B1F3B]/25 px-3.5 text-sm text-[#0B1F3B]"
             />
           </div>
 
           <div>
-            <label htmlFor="lead-phone" className="block text-xs font-bold text-[#0B1F3B] mb-1">
+            <label htmlFor="lead-phone" className="block text-xs font-bold text-[#0B1F3B] mb-1.5">
               {lang === "ta" ? "மொபைல் எண் (10 இலக்கம்) *" : "Mobile number (10 digits) *"}
             </label>
             <input
@@ -178,21 +178,21 @@ export const DemoForm: React.FC<DemoFormProps> = ({ lang, onNavigate, hideQuickL
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
               placeholder="9876543210"
-              className="w-full h-10 rounded-lg border border-[#0B1F3B]/25 px-3 text-sm text-[#0B1F3B]"
+              className="w-full h-12 rounded-lg border border-[#0B1F3B]/25 px-3.5 text-sm text-[#0B1F3B]"
             />
           </div>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <label htmlFor="lead-type" className="block text-xs font-bold text-[#0B1F3B] mb-1">
+            <label htmlFor="lead-type" className="block text-xs font-bold text-[#0B1F3B] mb-1.5">
               {lang === "ta" ? "வணிக வகை *" : "Business type *"}
             </label>
             <select
               id="lead-type"
               value={businessType}
               onChange={(e) => setBusinessType(e.target.value)}
-              className="w-full h-10 rounded-lg border border-[#0B1F3B]/25 bg-white px-3 text-sm text-[#0B1F3B]"
+              className="w-full h-12 rounded-lg border border-[#0B1F3B]/25 bg-white px-3.5 text-sm text-[#0B1F3B]"
             >
               {BUSINESS_OPTIONS.map((opt) => (
                 <option key={opt.value} value={opt.value}>
@@ -203,7 +203,7 @@ export const DemoForm: React.FC<DemoFormProps> = ({ lang, onNavigate, hideQuickL
           </div>
 
           <div>
-            <label htmlFor="lead-city" className="block text-xs font-bold text-[#0B1F3B] mb-1">
+            <label htmlFor="lead-city" className="block text-xs font-bold text-[#0B1F3B] mb-1.5">
               {lang === "ta" ? "நகரம் *" : "City *"}
             </label>
             <input
@@ -212,13 +212,13 @@ export const DemoForm: React.FC<DemoFormProps> = ({ lang, onNavigate, hideQuickL
               required
               value={city}
               onChange={(e) => setCity(e.target.value)}
-              className="w-full h-10 rounded-lg border border-[#0B1F3B]/25 px-3 text-sm text-[#0B1F3B]"
+              className="w-full h-12 rounded-lg border border-[#0B1F3B]/25 px-3.5 text-sm text-[#0B1F3B]"
             />
           </div>
         </div>
 
         <div>
-          <label htmlFor="lead-message" className="block text-xs font-bold text-[#0B1F3B] mb-1">
+          <label htmlFor="lead-message" className="block text-xs font-bold text-[#0B1F3B] mb-1.5">
             {lang === "ta" ? "குறிப்பு (விருப்பம்)" : "Message (optional)"}
           </label>
           <textarea
@@ -226,34 +226,37 @@ export const DemoForm: React.FC<DemoFormProps> = ({ lang, onNavigate, hideQuickL
             rows={3}
             value={message}
             onChange={(e) => setMessage(e.target.value)}
-            className="w-full rounded-lg border border-[#0B1F3B]/25 p-3 text-sm text-[#0B1F3B]"
+            className="w-full rounded-lg border border-[#0B1F3B]/25 p-3.5 text-sm text-[#0B1F3B]"
           />
         </div>
 
-        <label className="flex items-start gap-2.5 text-xs text-slate-700 cursor-pointer">
-          <input
-            type="checkbox"
-            checked={consent}
-            onChange={(e) => setConsent(e.target.checked)}
-            className="mt-0.5 h-4 w-4 accent-[#FF6A00]"
-          />
-          <span>
-            {lang === "ta" ? "டெமோவுக்காக என்னைத் தொடர்பு கொள்ள சம்மதிக்கிறேன். " : "I agree to be contacted about a ServeMyFood demo. Read our "}
-            <a
-              href={privacyHref}
-              onClick={(e) => {
-                if (onNavigate && !e.metaKey && !e.ctrlKey) {
-                  e.preventDefault();
-                  onNavigate(privacyHref);
-                }
-              }}
-              className="inline-flex items-center min-h-[48px] px-1 font-bold text-[#0B1F3B] underline"
-            >
-              {lang === "ta" ? "தனியுரிமைக் கொள்கை" : "Privacy notice"}
-            </a>
-            .
-          </span>
-        </label>
+        <div className="flex flex-wrap items-center gap-x-2 gap-y-1 pt-1">
+          <label className="inline-flex items-center gap-2.5 min-h-[48px] text-xs text-slate-700 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={consent}
+              onChange={(e) => setConsent(e.target.checked)}
+              className="h-5 w-5 shrink-0 accent-[#0B1F3B]"
+            />
+            <span>
+              {lang === "ta"
+                ? "டெமோவுக்காக என்னைத் தொடர்பு கொள்ள சம்மதிக்கிறேன்."
+                : "I agree to be contacted about a ServeMyFood demo."}
+            </span>
+          </label>
+          <a
+            href={privacyHref}
+            onClick={(e) => {
+              if (onNavigate && !e.metaKey && !e.ctrlKey) {
+                e.preventDefault();
+                onNavigate(privacyHref);
+              }
+            }}
+            className="inline-flex items-center min-h-[48px] px-1 text-xs font-bold text-[#0B1F3B] underline underline-offset-4"
+          >
+            {lang === "ta" ? "தனியுரிமைக் கொள்கை" : "Privacy notice"}
+          </a>
+        </div>
 
         <button
           type="submit"
@@ -290,7 +293,7 @@ export const DemoForm: React.FC<DemoFormProps> = ({ lang, onNavigate, hideQuickL
             href={`tel:${SITE_CONFIG.contactPhone.replace(/[^\d+]/g, "")}`}
             className="inline-flex items-center gap-2 min-h-[48px] rounded-[12px] border border-[#0B1F3B]/25 bg-white px-4 py-2.5 text-xs font-bold text-[#0B1F3B] hover:bg-slate-100"
           >
-            <Phone className="h-4 w-4 text-[#FF6A00]" />
+            <Phone className="h-4 w-4 text-[#0B1F3B]" />
             <span>{SITE_CONFIG.contactPhone}</span>
           </a>
         </div>

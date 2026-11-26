@@ -367,7 +367,7 @@ export const StepScreenPreview: React.FC<{ stepIndex: number }> = ({ stepIndex }
         <div className="rounded-[14px] bg-white p-4 text-[#0B1F3B] space-y-3">
           <div className="flex items-center justify-between border-b border-[#E6E1D8] pb-2.5">
             <div className="flex items-center gap-2">
-              <Smartphone className="h-4 w-4 text-[#FF6A00]" aria-hidden="true" />
+              <Smartphone className="h-4 w-4 text-[#0B1F3B]" aria-hidden="true" />
               <span className="font-bold text-[15px]">Waiter POS — Table T4</span>
             </div>
             <span className="rounded-full bg-[#FFF3E0] px-2.5 py-0.5 text-[12px] font-semibold">
@@ -400,7 +400,7 @@ export const StepScreenPreview: React.FC<{ stepIndex: number }> = ({ stepIndex }
         <div className="rounded-[14px] bg-[#F8FAFC] p-4 text-[#0B1F3B] space-y-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <Flame className="h-4 w-4 text-[#FF6A00]" aria-hidden="true" />
+              <Flame className="h-4 w-4 text-[#0B1F3B]" aria-hidden="true" />
               <span className="font-bold text-[15px]">Kitchen Display</span>
             </div>
             <span className="rounded-full bg-[#1D9E75]/15 px-2.5 py-0.5 text-[12px] font-semibold text-[#0B1F3B]">
@@ -463,7 +463,7 @@ export const StepScreenPreview: React.FC<{ stepIndex: number }> = ({ stepIndex }
         <div className="rounded-[14px] bg-white p-4 text-[#0B1F3B] space-y-3">
           <div className="flex items-center justify-between border-b border-[#E6E1D8] pb-2.5">
             <div className="flex items-center gap-2">
-              <Receipt className="h-4 w-4 text-[#FF6A00]" aria-hidden="true" />
+              <Receipt className="h-4 w-4 text-[#0B1F3B]" aria-hidden="true" />
               <span className="font-bold text-[15px]">Cashier Billing — Table T4</span>
             </div>
             <span className="text-[12px] font-semibold text-[#0B1F3B]/70">Sample receipt</span>
@@ -479,7 +479,7 @@ export const StepScreenPreview: React.FC<{ stepIndex: number }> = ({ stepIndex }
             </div>
           </div>
           <div className="grid grid-cols-3 gap-2">
-            <div className="rounded-[10px] border-2 border-[#FF6A00] bg-[#FFF3E0] py-2 text-center text-[13px] font-bold">
+            <div className="rounded-[10px] border-2 border-[#0B1F3B] bg-[#FFF3E0] py-2 text-center text-[13px] font-bold">
               Cash
             </div>
             <div className="rounded-[10px] border border-[#E6E1D8] py-2 text-center text-[13px] font-semibold">

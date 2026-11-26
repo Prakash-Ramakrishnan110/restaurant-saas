@@ -1,10 +1,22 @@
 import fs from "node:fs";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
+import { parseHardwareKitsFromTs, validateHardwareKits } from "./validate_hardware.mjs";
 
 const rootDir = path.resolve(import.meta.dirname, "..");
 const distDir = path.join(rootDir, "dist");
 const ssrDir = path.join(rootDir, "dist-ssr");
+
+// Always enforce READY hardware kit rules (cannot be bypassed by MARKETING_ALLOW_DRAFT)
+const hardwareSource = fs.readFileSync(path.join(rootDir, "content/hardware.ts"), "utf-8");
+const hardwareErrors = validateHardwareKits(
+  parseHardwareKitsFromTs(hardwareSource),
+  path.join(rootDir, "assets/photos/hardware")
+);
+if (hardwareErrors.length > 0) {
+  console.error("HARDWARE BUILD GATE FAILED:\n- " + hardwareErrors.join("\n- "));
+  process.exit(1);
+}
 
 const allowDraft = process.env.MARKETING_ALLOW_DRAFT === "1";
 
@@ -38,7 +50,7 @@ if (cssMatch) {
 const scriptTagMatch = template.match(/<script type="module"[^>]*src="(\/assets\/index-[^"]+\.js)"[^>]*><\/script>/);
 if (scriptTagMatch) {
   const entrySrc = scriptTagMatch[1];
-  const lazyLoader = `<script>(function(){var s=false;function l(){if(s)return;s=true;import("${entrySrc}");}["pointerdown","keydown","touchstart","focusin"].forEach(function(e){window.addEventListener(e,l,{capture:true,once:true,passive:true});});window.addEventListener("load",function(){setTimeout(l,5500);});})();</script>`;
+  const lazyLoader = `<script>(function(){var s=false;function l(){if(s)return;s=true;import("${entrySrc}");}if(window.matchMedia&&window.matchMedia("(prefers-reduced-motion: reduce)").matches){l();}["pointerdown","keydown","touchstart","focusin"].forEach(function(e){window.addEventListener(e,l,{capture:true,once:true,passive:true});});window.addEventListener("load",function(){setTimeout(l,5500);});})();</script>`;
   template = template.replace(scriptTagMatch[0], lazyLoader);
 }
 const ssrModule = await import(pathToFileURL(path.join(ssrDir, "entry-server.js")).href);
@@ -109,6 +121,22 @@ const routeList = [
     lang: "ta",
     title: "ஹோட்டல் உணவகங்களுக்கான ServeMyFood — கிளை மற்றும் சமையலறை மேலாண்மை",
     desc: "உங்கள் ஹோட்டல் உணவகம் மற்றும் சமையலறையை ஒரே இடத்தில் இயக்குங்கள். அறை சேவை விரைவில்.",
+  },
+  {
+    url: "/hardware/",
+    enUrl: "/hardware/",
+    taUrl: "/ta/hardware/",
+    lang: "en",
+    title: "Devices & Hardware Guide — ServeMyFood",
+    desc: "Run ServeMyFood in a browser on your own phone, tablet, laptop, or TV screen.",
+  },
+  {
+    url: "/ta/hardware/",
+    enUrl: "/hardware/",
+    taUrl: "/ta/hardware/",
+    lang: "ta",
+    title: "சாதனங்கள் மற்றும் உபகரண வழிகாட்டி — ServeMyFood",
+    desc: "உங்களிடம் உள்ள போன், டேப்லெட், லேப்டாப் அல்லது டிவி திரையின் உலாவியில் ServeMyFood-ஐ இயக்குங்கள்.",
   },
   {
     url: "/book-demo/",
@@ -188,6 +216,7 @@ for (const route of routeList) {
   const appHtml = ssrModule.render(route.url === "/404.html" ? "/missing-page" : route.url);
   const headTags = [
     `<meta name="description" content="${route.desc}" />`,
+    `<meta name="theme-color" content="#0B1F3B" />`,
     `<link rel="preload" as="font" type="font/woff2" href="/fonts/poppins-700.woff2" crossorigin />`,
     `<link rel="canonical" href="${baseUrl}${route.url}" />`,
     `<link rel="alternate" hreflang="en" href="${baseUrl}${route.enUrl}" />`,

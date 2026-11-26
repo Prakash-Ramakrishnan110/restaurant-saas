@@ -37,10 +37,16 @@
 @layer base {
   html {
     scroll-behavior: smooth;
+    scroll-padding-top: 88px;
   }
 
   :focus-visible {
-    outline: 3px solid #ff6a00;
+    outline: 3px solid #0b1f3b;
+    outline-offset: 2px;
+  }
+
+  .bg-\[\#0B1F3B\] :focus-visible {
+    outline: 3px solid #ffffff;
     outline-offset: 2px;
   }
 }
@@ -78,6 +84,10 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
   .animate-step-in,
   .animate-chip-slide {
     animation: none;

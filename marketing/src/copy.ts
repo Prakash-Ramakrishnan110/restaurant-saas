@@ -87,7 +87,7 @@ export const HOME_COPY = {
       },
       {
         q: "What is not ready yet?",
-        a: "Official compliance invoices are not ready yet (demo receipts are labelled DEMO RECEIPT). Customer self-ordering, online UPI checkout, stock tracking, staff attendance and hotel room charges are marked Coming soon.",
+        a: "Official compliance invoices are not ready yet (demo receipts are labelled DEMO RECEIPT). Direct online UPI checkout, staff attendance and hotel room charges are marked Coming soon.",
       },
     ],
     demoBandTitle: "Ready to see ServeMyFood with your own menu?",
@@ -179,7 +179,7 @@ export const HOME_COPY = {
       },
       {
         q: "இன்னும் தயாராகாத வசதிகள் எவை?",
-        a: "வரி ரசீதுகள் இன்னும் தயாராகவில்லை. வாடிக்கையாளர் QR ஆர்டர், ஆன்லைன் UPI, இருப்பு கணக்கு, பணியாளர் வருகை மற்றும் ஹோட்டல் அறை கணக்கு ஆகியவை விரைவில் வரும்.",
+        a: "அதிகாரப்பூர்வ கணக்கு ரசீதுகள் இன்னும் தயாராகவில்லை (டெமோ ரசீதுகளில் DEMO RECEIPT என இருக்கும்). ஆன்லைன் UPI, பணியாளர் வருகை மற்றும் ஹோட்டல் அறை கணக்கு ஆகியவை விரைவில் வரும்.",
       },
     ],
     demoBandTitle: "உங்கள் மெனுவுடன் ServeMyFood-ஐ பார்க்க தயாரா?",

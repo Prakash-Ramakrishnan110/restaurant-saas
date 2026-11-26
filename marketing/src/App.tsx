@@ -3,6 +3,7 @@ import "./index.css";
 import { Layout } from "./components/Layout";
 import { HomePage } from "./pages/HomePage";
 import { VenuePage } from "./pages/VenuePage";
+import { HardwarePage } from "./pages/HardwarePage";
 import { BookDemoPage } from "./pages/BookDemoPage";
 import { LegalPage } from "./pages/LegalPage";
 import { NotFoundPage } from "./pages/NotFoundPage";
@@ -47,6 +48,7 @@ export const App: React.FC<AppProps> = ({ initialPath }) => {
       {(page === "tea-shops" || page === "restaurants" || page === "hotels") && (
         <VenuePage venue={page} lang={lang} onNavigate={navigate} />
       )}
+      {page === "hardware" && <HardwarePage lang={lang} onNavigate={navigate} />}
       {page === "book-demo" && <BookDemoPage lang={lang} onNavigate={navigate} />}
       {(page === "privacy" || page === "terms") && <LegalPage kind={page} lang={lang} />}
       {page === "404" && <NotFoundPage lang={lang} onNavigate={navigate} />}

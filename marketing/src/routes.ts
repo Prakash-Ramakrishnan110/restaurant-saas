@@ -5,6 +5,7 @@ export type PageId =
   | "tea-shops"
   | "restaurants"
   | "hotels"
+  | "hardware"
   | "book-demo"
   | "privacy"
   | "terms"
@@ -64,6 +65,17 @@ export const ROUTES: RouteMeta[] = [
       "Run your hotel dining room, cafe and kitchen screen in one place. Room service and room charges are coming soon.",
     descTa:
       "உங்கள் ஹோட்டல் உணவகம் மற்றும் சமையலறையை ஒரே இடத்தில் இயக்குங்கள். அறை சேவை விரைவில்.",
+  },
+  {
+    page: "hardware",
+    enPath: "/hardware/",
+    taPath: "/ta/hardware/",
+    titleEn: "Devices & Hardware Guide — ServeMyFood",
+    titleTa: "சாதனங்கள் மற்றும் உபகரண வழிகாட்டி — ServeMyFood",
+    descEn:
+      "Run ServeMyFood in a browser on your own phone, tablet, laptop, or TV screen.",
+    descTa:
+      "உங்களிடம் உள்ள போன், டேப்லெட், லேப்டாப் அல்லது டிவி திரையின் உலாவியில் ServeMyFood-ஐ இயக்குங்கள்.",
   },
   {
     page: "book-demo",

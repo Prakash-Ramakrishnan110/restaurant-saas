@@ -17,3 +17,11 @@ Place real venue photos in `marketing/assets/photos/` using the exact filenames 
 4. `venue-hotel.webp` (or `.jpg`)
    - **Slot**: Venues section — **Hotel** card.
    - **Subject**: Real hotel dining hall or multi-area restaurant interior.
+
+## Hardware Kit Photos (`marketing/assets/photos/hardware/`)
+
+Place real owner-verified hardware kit photos inside `marketing/assets/photos/hardware/` before switching any kit in `marketing/content/hardware.ts` to `status: "READY"` and `ownerApproved: true`. The build fails if a `READY` kit is missing its photo, contents list, or `ownerApproved: true`.
+
+1. `counter-kit.webp` — Counter phone/tablet, kitchen screen, and Token TV display.
+2. `table-service-kit.webp` — Waiter phone, kitchen tablet, cashier screen, and printed QR cards.
+3. `byod-kit.webp` — Existing shop phone, tablet, and laptop running ServeMyFood in a browser.

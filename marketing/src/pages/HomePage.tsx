@@ -1,132 +1,174 @@
 import React, { useEffect, useRef, useState } from "react";
-import { Check, ChevronDown, Clock, MessageCircle, Pause, Play } from "lucide-react";
-import { FEATURE_CLAIMS } from "../../content/claims";
+import { ArrowRight, ChevronDown, MessageCircle, Pause, Play } from "lucide-react";
 import { SITE_CONFIG, getWhatsAppHref, hasTodoValue } from "../../content/site";
+import { ComparisonSection } from "../components/ComparisonSection";
 import { DemoForm } from "../components/DemoForm";
+import { HardwareSection } from "../components/HardwareSection";
 import {
-  StepScreenPreview,
-  VenueMiniPreview,
-} from "../components/LiveAppPreview";
-import type { Lang } from "../routes";
+  StepKitchenIllustration,
+  StepOrderIllustration,
+  StepPaySalesIllustration,
+  StepTokenTvIllustration,
+  VenueDiningIllustration,
+  VenueHotelIllustration,
+  VenueTeaIllustration,
+} from "../components/MinimalIllustrations";
+import { getPagePath, type Lang } from "../routes";
 
 interface HomePageProps {
   lang?: Lang;
   onNavigate?: (path: string) => void;
 }
 
-const STEPS = [
-  {
-    id: "order",
-    label: "1. Order",
-    title: "Take the order at the table or counter",
-    desc: "Waiters tap dishes with photos and Tamil names, then send the order straight to the kitchen.",
-  },
-  {
-    id: "kitchen",
-    label: "2. Kitchen",
-    title: "Kitchen gets the ticket with a sound alert",
-    desc: "Cooks see every ticket in order with kitchen notes and a live timer, then tap Ready.",
-  },
-  {
-    id: "serve",
-    label: "3. Serve",
-    title: "Waiter sees ready dishes immediately",
-    desc: "Ready orders appear in one queue on the waiter's phone and clear in a single tap.",
-  },
-  {
-    id: "pay",
-    label: "4. Pay",
-    title: "Settle the bill by cash, UPI or card",
-    desc: "Cashiers pull up open bills, record payment, and print a clean receipt without guesswork.",
-  },
-  {
-    id: "sales",
-    label: "5. Sales",
-    title: "Check today's sales anytime",
-    desc: "Owners see live daily totals, cash vs UPI split, and bestselling items from any phone.",
-  },
-] as const;
+const FLOW_STEPS = {
+  en: [
+    {
+      id: "order",
+      title: "1. Take orders",
+      desc: "Tap dishes in Tamil or English on a phone or counter screen.",
+      Illustration: StepOrderIllustration,
+    },
+    {
+      id: "kitchen",
+      title: "2. Kitchen alert",
+      desc: "Every order lands on the kitchen screen at once with a chime.",
+      Illustration: StepKitchenIllustration,
+    },
+    {
+      id: "tv",
+      title: "3. Token TV & serve",
+      desc: "Waiters get a ready chime, or Token TV calls out the number.",
+      Illustration: StepTokenTvIllustration,
+    },
+    {
+      id: "pay",
+      title: "4. Pay & daily sales",
+      desc: "Record cash, UPI or card and check today's total on your phone.",
+      Illustration: StepPaySalesIllustration,
+    },
+  ],
+  ta: [
+    {
+      id: "order",
+      title: "1. ஆர்டர் எடுங்கள்",
+      desc: "தமிழ் அல்லது ஆங்கிலத்தில் போன் அல்லது கவுண்டரில் தட்டுங்கள்.",
+      Illustration: StepOrderIllustration,
+    },
+    {
+      id: "kitchen",
+      title: "2. சமையலறை ஒலி",
+      desc: "புதிய ஆர்டர்கள் ஒலி அறிவிப்புடன் உடனே சமையலறைக்குச் செல்லும்.",
+      Illustration: StepKitchenIllustration,
+    },
+    {
+      id: "tv",
+      title: "3. டோக்கன் டிவி",
+      desc: "உணவு தயாரானதும் பணியாளர் போன் அல்லது டிவியில் எண் அழைக்கும்.",
+      Illustration: StepTokenTvIllustration,
+    },
+    {
+      id: "pay",
+      title: "4. பில் & விற்பனை",
+      desc: "ரொக்கம், UPI கணக்கை முடித்து இன்றைய விற்பனையைப் பாருங்கள்.",
+      Illustration: StepPaySalesIllustration,
+    },
+  ],
+} as const;
 
-const PROBLEMS = [
-  {
-    before: "Lost paper slips",
-    after: "Every order goes straight from phone to kitchen screen with a sound chime.",
-  },
-  {
-    before: "Dish finished, guest still orders",
-    after: "Mark any dish sold out in one tap so staff stop taking orders for it right away.",
-  },
-  {
-    before: "Where did today's money go?",
-    after: "See cash, UPI and card totals on your phone at any time of day.",
-  },
-] as const;
+const VENUES = {
+  en: [
+    {
+      id: "tea" as const,
+      targetPage: "tea-shops" as const,
+      title: "Tea shop & bakery",
+      desc: "Fast counter billing, token numbers, and live Token TV callouts.",
+      Illustration: VenueTeaIllustration,
+    },
+    {
+      id: "restaurant" as const,
+      targetPage: "restaurants" as const,
+      title: "Cafe & restaurant",
+      desc: "Waiter phone orders, kitchen chime alerts, and one-tap sold-out.",
+      Illustration: VenueDiningIllustration,
+    },
+    {
+      id: "hotel" as const,
+      targetPage: "hotels" as const,
+      title: "Hotel restaurant",
+      desc: "Multiple dining areas, staff logins, and branch sales in one place.",
+      Illustration: VenueHotelIllustration,
+    },
+  ],
+  ta: [
+    {
+      id: "tea" as const,
+      targetPage: "tea-shops" as const,
+      title: "தேநீர்க் கடை & பேக்கரி",
+      desc: "விரைவான கவுண்டர் பில்லிங் மற்றும் டிவி டோக்கன் அழைப்பு.",
+      Illustration: VenueTeaIllustration,
+    },
+    {
+      id: "restaurant" as const,
+      targetPage: "restaurants" as const,
+      title: "கஃபே & உணவகம்",
+      desc: "பணியாளர் போன் ஆர்டர், சமையலறை ஒலி மற்றும் எளிய பில்லிங்.",
+      Illustration: VenueDiningIllustration,
+    },
+    {
+      id: "hotel" as const,
+      targetPage: "hotels" as const,
+      title: "ஹோட்டல் உணவகம்",
+      desc: "பல பிரிவுகள், தனி பணியாளர் உள்நுழைவு மற்றும் கிளை விற்பனை.",
+      Illustration: VenueHotelIllustration,
+    },
+  ],
+} as const;
 
-const VENUES = [
-  {
-    id: "tea" as const,
-    title: "Tea shop and bakery",
-    subtitle: "Fast counter queues with token numbers",
-    badge: null,
-    outcomes: [
-      "Take chai and snack orders in two taps",
-      "Call out token numbers clearly on screen",
-      "Check cash and UPI totals at closing time",
-    ],
-  },
-  {
-    id: "restaurant" as const,
-    title: "Cafe and restaurant",
-    subtitle: "Dining rooms, waiters and a busy kitchen",
-    badge: null,
-    outcomes: [
-      "Send dining orders straight to the kitchen",
-      "Hear a clear chime for every new ticket",
-      "Mark sold-out dishes in one tap",
-    ],
-  },
-  {
-    id: "hotel" as const,
-    title: "Hotel",
-    subtitle: "Multiple dining areas and staff roles",
-    badge: "Room service: Coming soon",
-    outcomes: [
-      "Separate logins for waiters, cooks and cashiers",
-      "Manage multiple dining areas and branches",
-      "One view of daily sales for the owner",
-    ],
-  },
-] as const;
+const FAQ_ITEMS = {
+  en: [
+    {
+      q: "What devices do I need?",
+      a: "Any Android phone, tablet, laptop, or TV with a web browser. No special billing machine is needed to start.",
+    },
+    {
+      q: "Does it work on regular 4G mobile data?",
+      a: "Yes. It is light on data and works over shop Wi-Fi or 4G so screens stay synced live.",
+    },
+    {
+      q: "Can my staff use it in Tamil?",
+      a: "Yes. Every screen and menu item supports Tamil and English.",
+    },
+    {
+      q: "What is not ready yet?",
+      a: "Demo receipts are labelled DEMO RECEIPT. Online UPI payments, staff attendance, and hotel room charges are Coming soon.",
+    },
+  ],
+  ta: [
+    {
+      q: "எந்த சாதனங்கள் தேவை?",
+      a: "இணைய உலாவி உள்ள எந்த Android போன், டேப்லெட், லேப்டாப் அல்லது டிவியிலும் இயங்கும்.",
+    },
+    {
+      q: "சாதாரண 4G இணைப்பில் இயங்குமா?",
+      a: "ஆம். கடை Wi-Fi அல்லது சாதாரண 4G இணைப்பில் திரைகள் நேரலையில் இயங்கும்.",
+    },
+    {
+      q: "பணியாளர்கள் தமிழில் பயன்படுத்தலாமா?",
+      a: "ஆம். அனைத்து திரைகளும் உணவுப் பெயர்களும் தமிழ் மற்றும் ஆங்கிலத்தில் உள்ளன.",
+    },
+    {
+      q: "இன்னும் தயாராகாத வசதிகள் எவை?",
+      a: "டெமோ ரசீதுகளில் DEMO RECEIPT என இருக்கும். ஆன்லைன் UPI, பணியாளர் வருகை, அறை கணக்கு விரைவில் வரும்.",
+    },
+  ],
+} as const;
 
-const FAQ_ITEMS = [
-  {
-    q: "What devices do I need?",
-    a: "ServeMyFood runs in a web browser on any Android phone, tablet, or computer. You do not need special billing hardware to start.",
-  },
-  {
-    q: "Does it work if my internet is slow?",
-    a: "Yes, it is built to be light on mobile data and works on regular 4G connections. An active internet connection is required because orders sync live between screens.",
-  },
-  {
-    q: "Do I need a kitchen printer?",
-    a: "No. Your kitchen can use any spare tablet or phone as a live kitchen screen with a sound alert. Standard browser printing works for counter receipts.",
-  },
-  {
-    q: "Can my staff use it in Tamil?",
-    a: "Yes. Menu items can show both Tamil and English names, and each staff member can switch their screen between Tamil and English.",
-  },
-  {
-    q: "How long does it take to start?",
-    a: "Most shops add their menu, set up staff logins, and take their first live order on the same day after a short walkthrough.",
-  },
-  {
-    q: "What is not ready yet?",
-    a: "Tax invoices (GST), direct online guest UPI payments, and kitchen stock/inventory tracking are not ready yet and are marked Coming soon.",
-  },
-] as const;
+export const HomePage: React.FC<HomePageProps> = ({ lang = "en", onNavigate }) => {
+  const isTa = lang === "ta";
+  const flowSteps = FLOW_STEPS[lang];
+  const venues = VENUES[lang];
+  const faqItems = FAQ_ITEMS[lang];
 
-export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
-  const [activeStep, setActiveStep] = useState(0);
   const [openFaq, setOpenFaq] = useState<number | null>(0);
   const [videoPaused, setVideoPaused] = useState(false);
   const [reducedMotion, setReducedMotion] = useState(false);
@@ -171,314 +213,265 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
     return () => obs.disconnect();
   }, [videoPaused, reducedMotion]);
 
-  const currentStep = STEPS[activeStep] ?? STEPS[0];
-  const liveClaims = FEATURE_CLAIMS.filter((c) => c.status === "LIVE");
-  const soonClaims = FEATURE_CLAIMS.filter((c) => c.status === "SOON");
   const whatsappHref = getWhatsAppHref(
     "Hi ServeMyFood team, I would like a quick demo for my restaurant."
   );
 
+  const handleLinkClick = (e: React.MouseEvent<HTMLAnchorElement>, path: string) => {
+    if (onNavigate && !e.metaKey && !e.ctrlKey && !e.shiftKey && !e.altKey) {
+      e.preventDefault();
+      onNavigate(path);
+    }
+  };
+
   return (
     <div>
-      {/* 1. HERO (Exact Navy #0B1F3B + 8% cream spotlight + faint dot grid) */}
+      {/* 1. HERO (Exact Navy #0B1F3B — kept as requested by owner) */}
       <section
-        className="relative bg-[#0B1F3B] lg:min-h-[calc(100vh-80px)] lg:max-h-[840px] flex items-center py-5 sm:py-8 lg:py-12 overflow-x-hidden"
+        className="relative bg-[#0B1F3B] lg:min-h-[calc(100vh-80px)] lg:max-h-[840px] flex items-center py-6 sm:py-8 lg:py-12 overflow-x-hidden"
         style={{
           backgroundImage:
             "radial-gradient(circle at 72% 48%, rgba(255, 243, 224, 0.08), transparent 58%), radial-gradient(rgba(255, 243, 224, 0.08) 1px, transparent 1px)",
           backgroundSize: "100% 100%, 24px 24px",
         }}
       >
-        <div className="relative z-10 mx-auto w-full max-w-[1280px] px-4 sm:px-8 grid grid-cols-1 lg:grid-cols-12 gap-5 lg:gap-10 items-center">
-          <div className="lg:col-span-5 space-y-3 lg:space-y-5 text-left">
-            <h1 className="font-display font-semibold text-[clamp(30px,3.6vw,48px)] leading-[1.1] text-white">
-              <span className="block whitespace-nowrap">Take orders.</span>
-              <span className="block whitespace-nowrap">Run the kitchen.</span>
-              <span className="block whitespace-nowrap">Get paid.</span>
-              <span className="block whitespace-nowrap">See today&apos;s sales.</span>
-            </h1>
+        <div className="relative z-10 mx-auto w-full max-w-[1280px] px-4 sm:px-8 grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-10 items-center">
+          <div className="lg:col-span-5 space-y-3.5 lg:space-y-5 text-left">
+            {isTa ? (
+              <h1 className="font-display font-semibold text-[clamp(25px,3vw,40px)] leading-[1.28] text-white">
+                ஆர்டர் எடுங்கள். சமையலறையை இயக்குங்கள். பணம் பெறுங்கள். இன்றைய விற்பனையைப்
+                பாருங்கள்.
+              </h1>
+            ) : (
+              <h1 className="font-display font-semibold text-[clamp(30px,3.6vw,48px)] leading-[1.1] text-white">
+                <span className="block whitespace-nowrap">Take orders.</span>
+                <span className="block whitespace-nowrap">Run the kitchen.</span>
+                <span className="block whitespace-nowrap">Get paid.</span>
+                <span className="block whitespace-nowrap">See today&apos;s sales.</span>
+              </h1>
+            )}
 
-            <p className="text-[15px] sm:text-[17px] lg:text-[19px] leading-[1.45] lg:leading-[1.55] text-white/90 max-w-[33ch] lg:max-w-[40ch]">
-              One simple system for tea shops, cafes, restaurants and hotels. Works on a phone,
-              tablet or computer.
+            <p className="text-[15px] sm:text-[17px] lg:text-[19px] leading-[1.5] lg:leading-[1.55] text-white/90 max-w-[38ch] lg:max-w-[42ch]">
+              {isTa
+                ? "தேநீர்க் கடை, கஃபே, உணவகம், ஹோட்டல் அனைத்திற்கும் ஒரே எளிய அமைப்பு. போன், டேப்லெட் அல்லது கணினியில் இயங்கும்."
+                : "One simple system for tea shops, cafes, restaurants and hotels. Works on a phone, tablet or computer."}
             </p>
 
             <div className="flex flex-wrap items-center gap-2.5 lg:gap-3 pt-0.5">
               <a
                 href="#book-demo"
-                className="inline-flex items-center justify-center h-[48px] lg:h-[52px] px-5 sm:px-6 rounded-[12px] bg-[#FF6A00] text-[15px] sm:text-[16px] font-semibold text-[#0B1F3B] hover:-translate-y-0.5 transition-transform"
+                className="inline-flex items-center justify-center min-h-[48px] lg:min-h-[52px] px-5 sm:px-6 rounded-[12px] bg-[#FF6A00] text-[15px] sm:text-[16px] font-semibold text-[#0B1F3B] hover:-translate-y-0.5 transition-transform"
               >
-                Book a free demo
+                {isTa ? "இலவச டெமோ பதிவு" : "Book a free demo"}
               </a>
               <a
                 href="#how-it-works"
-                className="inline-flex items-center justify-center h-[48px] lg:h-[52px] px-5 sm:px-6 rounded-[12px] border border-white/40 bg-transparent text-[15px] sm:text-[16px] font-semibold text-white hover:bg-white/10 transition-colors"
+                className="inline-flex items-center justify-center min-h-[48px] lg:min-h-[52px] px-5 sm:px-6 rounded-[12px] border border-white/40 bg-transparent text-[15px] sm:text-[16px] font-semibold text-white hover:bg-white/10 transition-colors"
               >
-                See how it works
+                {isTa ? "எப்படி இயங்கும் எனப் பார்க்க" : "See how it works"}
               </a>
             </div>
           </div>
 
           <div ref={heroWrapRef} className="lg:col-span-7 space-y-3">
-            <div className="relative overflow-hidden rounded-[18px] border border-white/15 bg-[#0B1F3B] shadow-[0_24px_60px_-15px_rgba(0,0,0,0.6)] aspect-[1280/566]">
-              <img
-                src="/video/hero-demo.webp"
-                alt="ServeMyFood order, kitchen, dashboard and receipt printer walkthrough"
-                width={1280}
-                height={566}
-                className="absolute inset-0 h-full w-full object-cover"
-              />
-              {mounted && !reducedMotion && (
+            {reducedMotion ? (
+              <div
+                data-testid="hero-storyboard"
+                className="rounded-[18px] border border-white/20 bg-[#0B1F3B]/90 p-5 space-y-3 text-white shadow-xl"
+              >
+                <p className="text-xs font-semibold uppercase tracking-wider text-white/90">
+                  {isTa ? "4 படிகள் சுருக்கம் (மாதிரி தரவு)" : "How it works (Sample data)"}
+                </p>
+                <ol className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-[14px]">
+                  {flowSteps.map((st) => (
+                    <li
+                      key={st.id}
+                      className="rounded-[12px] border border-white/15 bg-white/5 px-3.5 py-2.5"
+                    >
+                      <strong className="block text-white">{st.title}</strong>
+                      <span className="text-white/80 text-[13px]">{st.desc}</span>
+                    </li>
+                  ))}
+                </ol>
+              </div>
+            ) : (
+              <div className="relative overflow-hidden rounded-[18px] border border-white/15 bg-[#0B1F3B] shadow-[0_24px_60px_-15px_rgba(0,0,0,0.6)] aspect-[1280/566]">
+                <img
+                  src="/video/hero-demo.webp"
+                  alt="ServeMyFood order, kitchen, dashboard and receipt walkthrough"
+                  width={1280}
+                  height={566}
+                  className="absolute inset-0 h-full w-full object-cover"
+                />
                 <video
                   ref={videoRef}
-                  autoPlay
                   muted
                   playsInline
                   loop
-                  preload="metadata"
+                  preload="none"
                   poster="/video/hero-demo.webp"
                   className="relative h-full w-full object-cover"
                 >
-                  <source src="/video/hero-demo.webm" type="video/webm" />
-                  <source src="/video/hero-demo.mp4" type="video/mp4" />
+                  {mounted && (
+                    <>
+                      <source src="/video/hero-demo.webm" type="video/webm" />
+                      <source src="/video/hero-demo.mp4" type="video/mp4" />
+                    </>
+                  )}
+                  <track
+                    kind="captions"
+                    src="/video/captions-en.vtt"
+                    srcLang="en"
+                    label="English"
+                    default={!isTa}
+                  />
+                  <track
+                    kind="captions"
+                    src="/video/captions-ta.vtt"
+                    srcLang="ta"
+                    label="தமிழ்"
+                    default={isTa}
+                  />
                 </video>
-              )}
-            </div>
+              </div>
+            )}
 
             <div className="flex flex-wrap items-center justify-between gap-3">
               <p className="text-[13px] sm:text-[14px] text-white/85">
-                Product preview · Customer QR ordering: Coming soon
+                {isTa
+                  ? "மாதிரி தரவு · ஆன்லைன் UPI கட்டணம்: விரைவில்"
+                  : "Sample data · Online UPI payments: Coming soon"}
               </p>
 
-              <button
-                type="button"
-                aria-pressed={videoPaused}
-                onClick={() => setVideoPaused((p) => !p)}
-                className="inline-flex items-center justify-center gap-2 min-h-[48px] px-4 rounded-[12px] border border-white/30 bg-white/10 text-[14px] font-semibold text-white hover:bg-white/20 transition-colors"
-              >
-                {videoPaused ? <Play className="h-4 w-4" /> : <Pause className="h-4 w-4" />}
-                <span>{videoPaused ? "Play" : "Pause"}</span>
-              </button>
+              {!reducedMotion && (
+                <button
+                  type="button"
+                  aria-pressed={videoPaused}
+                  aria-label={
+                    isTa
+                      ? videoPaused
+                        ? "இயக்கு — Play animation"
+                        : "நிறுத்து — Pause animation"
+                      : videoPaused
+                        ? "Play — Play animation"
+                        : "Pause — Pause animation"
+                  }
+                  onClick={() => setVideoPaused((p) => !p)}
+                  className="inline-flex items-center justify-center gap-2 min-h-[48px] px-4 rounded-[12px] border border-white/30 bg-white/10 text-[14px] font-semibold text-white hover:bg-white/20 transition-colors"
+                >
+                  {videoPaused ? <Play className="h-4 w-4" /> : <Pause className="h-4 w-4" />}
+                  <span>{videoPaused ? (isTa ? "இயக்கு" : "Play") : isTa ? "நிறுத்து" : "Pause"}</span>
+                </button>
+              )}
             </div>
           </div>
         </div>
       </section>
 
-      {/* 2. FROM ORDER TO SALES IN 5 STEPS (White #FFFFFF) */}
-      <section id="how-it-works" className="bg-white py-14 lg:py-24">
-        <div className="mx-auto max-w-[1280px] px-5 sm:px-8 space-y-8">
-          <div className="space-y-2 max-w-[65ch]">
-            <h2 className="font-display font-semibold text-[28px] leading-[1.2] lg:text-[36px] text-[#0B1F3B]">
-              From order to sales in 5 steps
+      {/* 2. MINIMAL ILLUSTRATED 4-STEP FLOW */}
+      <section id="how-it-works" className="bg-white py-12 lg:py-16">
+        <div className="mx-auto max-w-[1080px] px-5 sm:px-8 space-y-8">
+          <div className="space-y-1.5 max-w-[56ch]">
+            <h2 className="font-display font-semibold text-[24px] leading-[1.25] lg:text-[32px] text-[#0B1F3B]">
+              {isTa ? "எப்படி இயங்குகிறது" : "How it works in 4 simple steps"}
             </h2>
-            <p className="text-[18px] leading-[1.6] text-[#0B1F3B]/80">
-              Tap any step to see the screen your staff uses.
+            <p className="text-[15px] sm:text-[16px] text-[#0B1F3B]/80">
+              {isTa
+                ? "ஆர்டர் முதல் இன்றைய விற்பனை வரை ஒரே எளிய ஓட்டம்."
+                : "From taking an order to closing today's cash and UPI count."}
             </p>
           </div>
 
-          <div
-            className="grid grid-cols-2 sm:grid-cols-5 gap-2.5"
-            role="tablist"
-            aria-label="Order journey steps"
-          >
-            {STEPS.map((step, idx) => {
-              const active = idx === activeStep;
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+            {flowSteps.map((step) => {
+              const Illustration = step.Illustration;
               return (
-                <button
+                <article
                   key={step.id}
-                  type="button"
-                  role="tab"
-                  aria-selected={active}
-                  onClick={() => setActiveStep(idx)}
-                  className={`min-h-[52px] px-3 rounded-[12px] text-[14px] font-semibold transition-colors ${
-                    active
-                      ? "bg-[#FF6A00] text-[#0B1F3B]"
-                      : "bg-[#FFF3E0]/60 border border-[#E6E1D8] text-[#0B1F3B] hover:border-[#0B1F3B]/40"
-                  }`}
+                  className="rounded-[14px] border border-[#E6E1D8] bg-[#FFF3E0]/25 p-5 space-y-3"
                 >
-                  {step.label}
-                </button>
+                  <Illustration />
+                  <h3 className="font-display font-semibold text-[17px] text-[#0B1F3B]">
+                    {step.title}
+                  </h3>
+                  <p className="text-[14px] leading-[1.55] text-[#0B1F3B]/80">{step.desc}</p>
+                </article>
               );
             })}
           </div>
-
-          <div className="rounded-[16px] border border-[#E6E1D8] bg-[#FFF3E0]/45 p-6 lg:p-10 grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
-            <div className="lg:col-span-5 space-y-3">
-              <span className="inline-block text-[13px] font-semibold uppercase tracking-wide text-[#0B1F3B]/75">
-                {currentStep.label}
-              </span>
-              <h3 className="font-display font-semibold text-[24px] leading-[1.25] text-[#0B1F3B]">
-                {currentStep.title}
-              </h3>
-              <p className="text-[18px] leading-[1.6] text-[#0B1F3B]/80">{currentStep.desc}</p>
-            </div>
-
-            <div className="lg:col-span-7 flex justify-center">
-              <StepScreenPreview stepIndex={activeStep} />
-            </div>
-          </div>
         </div>
       </section>
 
-      {/* 3. EVERYDAY PROBLEMS SOLVED (Cream #FFF3E0) */}
-      <section className="bg-[#FFF3E0] py-14 lg:py-24">
-        <div className="mx-auto max-w-[1280px] px-5 sm:px-8 space-y-8">
-          <div className="space-y-2 max-w-[65ch]">
-            <h2 className="font-display font-semibold text-[28px] leading-[1.2] lg:text-[36px] text-[#0B1F3B]">
-              Stop losing orders and money to paper slips
+      {/* 3. MINIMAL COMPARISON: PAPER SLIPS & WHATSAPP VS SERVEMYFOOD */}
+      <ComparisonSection lang={lang} />
+
+      {/* 4. MINIMAL ILLUSTRATED VENUES */}
+      <section id="who-it-is-for" className="bg-white py-12 lg:py-16 border-b border-[#E6E1D8]">
+        <div className="mx-auto max-w-[1080px] px-5 sm:px-8 space-y-8">
+          <div className="space-y-1.5 max-w-[56ch]">
+            <h2 className="font-display font-semibold text-[24px] leading-[1.25] lg:text-[32px] text-[#0B1F3B]">
+              {isTa ? "உங்கள் கடைக்கு ஏற்ற அமைப்பு" : "Built for your shop"}
             </h2>
-            <p className="text-[18px] leading-[1.6] text-[#0B1F3B]/80">
-              Three everyday headaches in small restaurants, fixed simply.
+            <p className="text-[15px] sm:text-[16px] text-[#0B1F3B]/80">
+              {isTa
+                ? "உங்கள் கவுண்டர் அல்லது உணவகத்திற்கு ஏற்ப இன்றே தொடங்குங்கள்."
+                : "Pick your format to see how it fits your daily work."}
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {PROBLEMS.map((item) => (
-              <article
-                key={item.before}
-                className="rounded-[16px] border border-[#E6E1D8] bg-white p-6 space-y-3"
-              >
-                <span className="inline-block rounded-full bg-[#FFF3E0] px-3 py-1 text-[12px] font-semibold text-[#0B1F3B]">
-                  Common problem
-                </span>
-                <h3 className="font-display font-semibold text-[20px] text-[#0B1F3B]">
-                  {item.before}
-                </h3>
-                <p className="text-[16px] leading-[1.6] text-[#0B1F3B]/80">{item.after}</p>
-              </article>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* 4. WHO IT IS FOR (White #FFFFFF) */}
-      <section id="who-it-is-for" className="bg-white py-14 lg:py-24">
-        <div className="mx-auto max-w-[1280px] px-5 sm:px-8 space-y-8">
-          <div className="space-y-2 max-w-[65ch]">
-            <h2 className="font-display font-semibold text-[28px] leading-[1.2] lg:text-[36px] text-[#0B1F3B]">
-              Built for small Indian restaurants
-            </h2>
-            <p className="text-[18px] leading-[1.6] text-[#0B1F3B]/80">
-              Start with what fits your counter or dining room today.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {VENUES.map((venue) => (
-              <article
-                key={venue.id}
-                className="rounded-[16px] border border-[#E6E1D8] bg-white p-6 space-y-5"
-              >
-                <VenueMiniPreview kind={venue.id} />
-
-                <div className="space-y-1.5">
-                  <div className="flex flex-wrap items-center justify-between gap-2">
-                    <h3 className="font-display font-semibold text-[22px] text-[#0B1F3B]">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+            {venues.map((venue) => {
+              const venueHref = getPagePath(venue.targetPage, lang);
+              const Illustration = venue.Illustration;
+              return (
+                <article
+                  key={venue.id}
+                  className="rounded-[14px] border border-[#E6E1D8] bg-white p-5 flex flex-col justify-between gap-4"
+                >
+                  <div className="space-y-3">
+                    <Illustration />
+                    <h3 className="font-display font-semibold text-[18px] text-[#0B1F3B]">
                       {venue.title}
                     </h3>
-                    {venue.badge && (
-                      <span className="inline-flex items-center rounded-full border border-[#E6E1D8] bg-[#FFF3E0] px-2.5 py-1 text-[12px] font-semibold text-[#0B1F3B]">
-                        {venue.badge}
-                      </span>
-                    )}
+                    <p className="text-[14px] leading-[1.55] text-[#0B1F3B]/80">{venue.desc}</p>
                   </div>
-                  <p className="text-[15px] text-[#0B1F3B]/75">{venue.subtitle}</p>
-                </div>
-
-                <ul className="space-y-2.5">
-                  {venue.outcomes.map((line) => (
-                    <li key={line} className="flex items-start gap-2.5 text-[15px] text-[#0B1F3B]">
-                      <Check className="h-4 w-4 text-[#1D9E75] shrink-0 mt-1" aria-hidden="true" />
-                      <span>{line}</span>
-                    </li>
-                  ))}
-                </ul>
-              </article>
-            ))}
+                  <a
+                    href={venueHref}
+                    onClick={(e) => handleLinkClick(e, venueHref)}
+                    className="inline-flex items-center gap-1.5 min-h-[48px] text-[14px] font-semibold text-[#0B1F3B] underline decoration-[#FF6A00] decoration-2 underline-offset-4"
+                  >
+                    <span>{isTa ? `${venue.title} பார்க்க` : `See ${venue.title.toLowerCase()}`}</span>
+                    <ArrowRight className="h-4 w-4" aria-hidden="true" />
+                  </a>
+                </article>
+              );
+            })}
           </div>
         </div>
       </section>
 
-      {/* 5. WORKS TODAY VS COMING SOON (Cream #FFF3E0) */}
-      <section className="bg-[#FFF3E0] py-14 lg:py-24">
-        <div className="mx-auto max-w-[1280px] px-5 sm:px-8 space-y-8">
-          <div className="space-y-2 max-w-[65ch]">
-            <h2 className="font-display font-semibold text-[28px] leading-[1.2] lg:text-[36px] text-[#0B1F3B]">
-              What works today and what&apos;s coming
-            </h2>
-            <p className="text-[18px] leading-[1.6] text-[#0B1F3B]/80">
-              Only features live in the app today are listed on the left. Upcoming work is marked clearly.
-            </p>
-          </div>
+      {/* 5. MINIMAL HARDWARE SECTION */}
+      <HardwareSection lang={lang} onNavigate={onNavigate} />
 
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-            <div className="lg:col-span-7 rounded-[16px] border border-[#E6E1D8] bg-white p-6 lg:p-8 space-y-5">
-              <span className="inline-flex items-center rounded-full bg-[#1D9E75]/15 px-3 py-1 text-[13px] font-semibold text-[#0B1F3B]">
-                Works today
-              </span>
+      {/* 6. MINIMAL FAQ (4 essential questions) */}
+      <section id="faq" className="bg-[#FFF3E0]/70 border-t border-[#E6E1D8] py-12 lg:py-16">
+        <div className="mx-auto max-w-[1080px] px-5 sm:px-8 space-y-6">
+          <h2 className="font-display font-semibold text-[24px] leading-[1.25] lg:text-[32px] text-[#0B1F3B]">
+            {isTa ? "பொதுவான கேள்விகள்" : "Common questions"}
+          </h2>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                {liveClaims.map((claim) => (
-                  <div key={claim.id} className="flex items-start gap-2.5">
-                    <Check className="h-5 w-5 text-[#1D9E75] shrink-0 mt-0.5" aria-hidden="true" />
-                    <div>
-                      <h3 className="font-semibold text-[15px] text-[#0B1F3B]">{claim.titleEn}</h3>
-                      <p className="text-[14px] leading-[1.5] text-[#0B1F3B]/75">{claim.descEn}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <div className="lg:col-span-5 rounded-[16px] border border-[#E6E1D8] bg-white/80 p-6 lg:p-8 space-y-5">
-              <span className="inline-flex items-center gap-1.5 rounded-full border border-[#E6E1D8] bg-[#FFF3E0] px-3 py-1 text-[13px] font-semibold text-[#0B1F3B]">
-                <Clock className="h-3.5 w-3.5" aria-hidden="true" />
-                Coming soon
-              </span>
-
-              <div className="space-y-4">
-                {soonClaims.map((claim) => (
-                  <div key={claim.id} className="space-y-1">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <h3 className="font-semibold text-[15px] text-[#0B1F3B]">{claim.titleEn}</h3>
-                      <span className="rounded-full border border-[#E6E1D8] bg-[#FFF3E0] px-2 py-0.5 text-[11px] font-semibold text-[#0B1F3B]">
-                        Coming soon
-                      </span>
-                    </div>
-                    <p className="text-[14px] leading-[1.5] text-[#0B1F3B]/75">{claim.descEn}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* 6. FAQ (White #FFFFFF) */}
-      <section id="faq" className="bg-white py-14 lg:py-24">
-        <div className="mx-auto max-w-[1280px] px-5 sm:px-8 space-y-8">
-          <div className="space-y-2 max-w-[65ch]">
-            <h2 className="font-display font-semibold text-[28px] leading-[1.2] lg:text-[36px] text-[#0B1F3B]">
-              Common questions
-            </h2>
-            <p className="text-[18px] leading-[1.6] text-[#0B1F3B]/80">
-              Straight answers before you try it in your restaurant.
-            </p>
-          </div>
-
-          <div className="space-y-3 max-w-[820px]">
-            {FAQ_ITEMS.map((item, idx) => {
+          <div className="divide-y divide-[#E6E1D8] rounded-[14px] border border-[#E6E1D8] bg-white">
+            {faqItems.map((item, idx) => {
               const isOpen = openFaq === idx;
               return (
-                <div
-                  key={item.q}
-                  className="rounded-[16px] border border-[#E6E1D8] bg-white overflow-hidden"
-                >
+                <div key={item.q}>
                   <button
+                    id={`faq-btn-${idx}`}
                     type="button"
                     aria-expanded={isOpen}
+                    aria-controls={`faq-panel-${idx}`}
                     onClick={() => setOpenFaq(isOpen ? null : idx)}
-                    className="w-full min-h-[56px] px-6 py-4 flex items-center justify-between gap-4 text-left font-display font-semibold text-[17px] text-[#0B1F3B]"
+                    className="w-full min-h-[52px] px-5 py-3.5 flex items-center justify-between gap-4 text-left font-display font-semibold text-[16px] text-[#0B1F3B]"
                   >
                     <span>{item.q}</span>
                     <ChevronDown
@@ -489,7 +482,12 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
                     />
                   </button>
                   {isOpen && (
-                    <div className="px-6 pb-5 text-[16px] leading-[1.6] text-[#0B1F3B]/80 max-w-[68ch]">
+                    <div
+                      id={`faq-panel-${idx}`}
+                      role="region"
+                      aria-labelledby={`faq-btn-${idx}`}
+                      className="px-5 pb-4 text-[14px] sm:text-[15px] leading-[1.55] text-[#0B1F3B]/80 max-w-[66ch]"
+                    >
                       {item.a}
                     </div>
                   )}
@@ -500,37 +498,38 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
         </div>
       </section>
 
-      {/* 7. BOOK A DEMO BAND (Navy #0B1F3B) */}
-      <section id="book-demo" className="bg-[#0B1F3B] py-14 lg:py-24 text-white">
-        <div className="mx-auto max-w-[1280px] px-5 sm:px-8 grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
-          <div className="lg:col-span-5 space-y-5">
-            <h2 className="font-display font-semibold text-[28px] leading-[1.2] lg:text-[36px] text-white">
-              See ServeMyFood in your own shop
+      {/* 7. BOOK A DEMO */}
+      <section id="book-demo" className="bg-[#0B1F3B] py-12 lg:py-16 text-white">
+        <div className="mx-auto max-w-[1080px] px-5 sm:px-8 grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+          <div className="lg:col-span-5 space-y-4">
+            <h2 className="font-display font-semibold text-[24px] leading-[1.25] lg:text-[32px] text-white">
+              {isTa ? "உங்கள் கடையிலேயே பாருங்கள்" : "See ServeMyFood in your shop"}
             </h2>
-            <p className="text-[18px] leading-[1.6] text-white/85 max-w-[56ch]">
-              Tell us your shop name and phone number. We will show you the waiter, kitchen,
-              cashier and owner screens live.
+            <p className="text-[15px] sm:text-[16px] leading-[1.55] text-white/85">
+              {isTa
+                ? "உங்கள் பெயர் மற்றும் தொலைபேசி எண்ணைப் பகிருங்கள். நேரலை டெமோ காட்டுகிறோம்."
+                : "Share your name and mobile number. We will show you the waiter, kitchen, Token TV, and cashier screens live."}
             </p>
 
-            <div className="flex flex-wrap gap-3">
-              <a
-                href={whatsappHref}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center justify-center gap-2 h-[52px] px-6 rounded-[12px] bg-[#FF6A00] text-[16px] font-semibold text-[#0B1F3B] hover:-translate-y-0.5 transition-transform"
-              >
-                <MessageCircle className="h-5 w-5" aria-hidden="true" />
-                <span>Chat on WhatsApp</span>
-              </a>
-            </div>
+            <a
+              href={whatsappHref}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center justify-center gap-2 min-h-[48px] px-5 rounded-[12px] bg-[#FF6A00] text-[15px] font-semibold text-[#0B1F3B] hover:-translate-y-0.5 transition-transform"
+            >
+              <MessageCircle className="h-4 w-4" aria-hidden="true" />
+              <span>{isTa ? "வாட்ஸ்அப்பில் உரையாட" : "Chat on WhatsApp"}</span>
+            </a>
 
             {!hasTodoValue(SITE_CONFIG.contactPhone) && (
-              <p className="text-[15px] text-white/80">Phone: {SITE_CONFIG.contactPhone}</p>
+              <p className="text-[14px] text-white/80">
+                {isTa ? "தொலைபேசி" : "Phone"}: {SITE_CONFIG.contactPhone}
+              </p>
             )}
           </div>
 
           <div className="lg:col-span-7">
-            <DemoForm lang="en" hideQuickLinks onNavigate={onNavigate} />
+            <DemoForm lang={lang} hideQuickLinks onNavigate={onNavigate} />
           </div>
         </div>
       </section>

@@ -25,6 +25,8 @@ export const DeviceFrame: React.FC<DeviceFrameProps> = ({
           <img
             src={src}
             alt={alt}
+            width={540}
+            height={900}
             loading={eager ? "eager" : "lazy"}
             decoding="async"
             className="h-full w-full object-cover object-top"
@@ -48,6 +50,8 @@ export const DeviceFrame: React.FC<DeviceFrameProps> = ({
           <img
             src={src}
             alt={alt}
+            width={1280}
+            height={800}
             loading={eager ? "eager" : "lazy"}
             decoding="async"
             className="h-full w-full object-cover object-top"
@@ -69,6 +73,8 @@ export const DeviceFrame: React.FC<DeviceFrameProps> = ({
           <img
             src={src}
             alt={alt}
+            width={1280}
+            height={800}
             loading={eager ? "eager" : "lazy"}
             decoding="async"
             className="h-full w-full object-cover object-top"

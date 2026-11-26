@@ -14,6 +14,8 @@ const htmlFiles = [
   "ta/restaurants/index.html",
   "hotels/index.html",
   "ta/hotels/index.html",
+  "hardware/index.html",
+  "ta/hardware/index.html",
   "book-demo/index.html",
   "ta/book-demo/index.html",
   "privacy/index.html",
@@ -38,6 +40,13 @@ const forbiddenPatterns = [
   { name: "paise", re: /\bpaise\b/i },
   { name: "preset", re: /\bpreset\b/i },
   { name: "flag", re: /\bflag\b/i },
+  { name: "better than", re: /\bbetter than\b/i },
+  { name: "Petpooja", re: /\bPetpooja\b/i },
+  { name: "Posist", re: /\bPosist\b/i },
+  { name: "DotPe", re: /\bDotPe\b/i },
+  { name: "Toast POS", re: /\bToast\b/ },
+  { name: "Tamil tax (வரி ரசீது)", re: /வரி\s*ரசீது/ },
+  { name: "Tamil GST (ஜிஎஸ்டி)", re: /ஜிஎஸ்டி/ },
 ];
 
 const errors = [];
@@ -69,8 +78,8 @@ for (const rel of htmlFiles) {
   }
 
   if (rel.includes("tea-shops")) {
-    if (/\btable\b/i.test(textOnly) || /மேஜை/.test(textOnly)) {
-      errors.push(`Forbidden word "table" / "மேஜை" found on tea-shops page: ${rel}`);
+    if (/\btable\b/i.test(textOnly) || /மேஜை/.test(textOnly) || /மேசை/.test(textOnly)) {
+      errors.push(`Forbidden word "table" / "மேஜை" / "மேசை" found on tea-shops page: ${rel}`);
     }
   }
 }

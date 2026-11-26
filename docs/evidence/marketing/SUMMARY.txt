@@ -1,9 +1,9 @@
 ﻿SERVEMYFOOD MARKETING - VERIFICATION SUMMARY
-Generated At: 2026-11-16 21:07:23 +05:30
+Generated At: 2026-11-26 07:42:53 +05:30
 Overall Verdict: PASS
 
-1. Marketing TypeScript Typecheck                                    | PASS | 4.3s | typecheck.txt
-2. Prerender Build (Draft-Allowed Preview)                           | PASS | 9s | build.txt
+1. Marketing TypeScript Typecheck                                    | PASS | 4s | typecheck.txt
+2. Prerender Build (Draft-Allowed Preview)                           | PASS | 7.9s | build.txt
 3. Static HTML, Forbidden Claims, Tea-Shop Zero-Table & JS Budget    | PASS | 0.1s | static-checks.txt
-4. Playwright A11y, Responsive, Animation, Form & 3rd-Party Checks   | PASS | 126.1s | playwright.txt
-5. Lighthouse Mobile Audit (Home EN)                                 | PASS | 141.3s | lighthouse.txt
+4. Playwright A11y, Responsive, Animation, Form & 3rd-Party Checks   | PASS | 82.3s | playwright.txt
+5. Lighthouse Mobile Audit (Home EN)                                 | PASS | 44.9s | lighthouse.txt
