@@ -6,6 +6,7 @@
         </trust-anchors>
     </base-config>
     <domain-config cleartextTrafficPermitted="false">
+        <domain includeSubdomains="true">servemyfood.up.railway.app</domain>
         <domain includeSubdomains="true">restaurant-saas-production-316ea88b.up.railway.app</domain>
         <domain includeSubdomains="true">api.servemyfood.in</domain>
         <domain includeSubdomains="true">staging-api.servemyfood.in</domain>

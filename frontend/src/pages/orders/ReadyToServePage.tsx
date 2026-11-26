@@ -7,6 +7,7 @@ import { unwrapList } from "../../api/pagination";
 import { playOrderAlert, playWaiterCallAlert } from "../../utils/soundAlerts";
 import { Button } from "../../components/ui/button";
 import { Card, CardContent } from "../../components/ui/card";
+import { useLiveSync } from "../../realtime/liveSync";
 
 export const ReadyToServePage: React.FC = () => {
   const { user } = useAuth();
@@ -80,6 +81,10 @@ export const ReadyToServePage: React.FC = () => {
     const interval = setInterval(fetchReadyOrders, 10000);
     return () => clearInterval(interval);
   }, []);
+
+  useLiveSync(() => {
+    void fetchReadyOrders();
+  });
 
   const handleMarkServed = async (orderId: string) => {
     try {

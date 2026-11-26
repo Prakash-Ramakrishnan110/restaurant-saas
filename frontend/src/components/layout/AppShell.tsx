@@ -2,6 +2,9 @@ import React, { useState, useEffect, useMemo, useCallback, useRef } from "react"
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { isNativeApp } from "../../native/bridge";
+import { connectBranchLiveSync, triggerLiveSync, useLiveSync } from "../../realtime/liveSync";
+import { MobileBottomNav } from "./MobileBottomNav";
+import { MobileMoreSheet } from "./MobileMoreSheet";
 import {
   LogOut,
   Sun,
@@ -59,6 +62,8 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
   const { user, memberships, activeTenant, activeRole, selectTenant, logout, can } = useAuth();
   const { theme, setTheme } = useTheme();
   const { i18n } = useTranslation();
+  const nativeApp = isNativeApp();
+  const [moreOpen, setMoreOpen] = useState(false);
   const isTa = i18n.language.startsWith("ta");
   const taLabels: Record<string, string> = {
     "Daily work": "தினசரி பணிகள்",
@@ -210,6 +215,7 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
             }
             if (data.events.length > 0) {
               soundEngine.enqueueBatch(data.events, { isReconnect: wasReconnecting });
+              triggerLiveSync({ source: "events_feed", count: data.events.length });
             }
           }
         }
@@ -412,6 +418,45 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
     const timer = setInterval(pollCounts, 15000);
     return () => clearInterval(timer);
   }, [user]);
+
+  useEffect(() => {
+    if (!user || user.is_platform_admin) return;
+    let cleanup: (() => void) | undefined;
+    const branchId = activeTenant?.branch_ids?.[0];
+    if (branchId) {
+      cleanup = connectBranchLiveSync(branchId);
+    } else {
+      void apiClient
+        .get<any>("/branches/")
+        .then((res) => {
+          const list = unwrapList<any>(res.data);
+          if (list[0]?.id) {
+            cleanup = connectBranchLiveSync(list[0].id);
+          }
+        })
+        .catch(() => undefined);
+    }
+    return () => {
+      if (cleanup) cleanup();
+    };
+  }, [user, activeTenant?.tenant_id]);
+
+  useLiveSync(() => {
+    if (!user || user.is_platform_admin) return;
+    void (async () => {
+      try {
+        const res = await ordersApi.getOrders();
+        const list = unwrapList<Order>(res.data);
+        setActiveOrdersCount(
+          list.filter((o) => ["PLACED", "PREPARING", "READY"].includes(o.status)).length
+        );
+        setReadyOrdersCount(list.filter((o) => o.status === "READY").length);
+        setPendingApprovalsCount(list.filter((o) => o.status === "PENDING_APPROVAL").length);
+      } catch {
+        // Non-blocking
+      }
+    })();
+  });
 
   // Platform Announcements for Tenant Dashboards
   const [announcements, setAnnouncements] = useState<any[]>([]);
@@ -621,17 +666,25 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
         style={{ paddingTop: "max(0.5rem, env(safe-area-inset-top))", paddingBottom: "0.5rem" }}
       >
         <div className="flex flex-1 items-center gap-1.5 sm:gap-3 min-w-0 overflow-hidden">
-          <button
-            type="button"
-            onClick={() => setSidebarOpen(!sidebarOpen)}
-            className="md:hidden p-1.5 rounded-md hover:bg-muted text-foreground min-h-[36px] min-w-[36px] flex items-center justify-center shrink-0"
-            aria-label="Toggle navigation menu"
-          >
-            {sidebarOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-          </button>
+          {!nativeApp && (
+            <button
+              type="button"
+              onClick={() => setSidebarOpen(!sidebarOpen)}
+              className="md:hidden p-1.5 rounded-md hover:bg-muted text-foreground min-h-[36px] min-w-[36px] flex items-center justify-center shrink-0"
+              aria-label="Toggle navigation menu"
+            >
+              {sidebarOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+            </button>
+          )}
 
           <Link
-            to={user?.is_platform_admin ? "/admin" : "/dashboard"}
+            to={
+              user?.is_platform_admin
+                ? "/admin"
+                : nativeApp && activeRole === "WAITER"
+                  ? "/pos"
+                  : "/dashboard"
+            }
             className="flex items-center shrink-0"
           >
             <span className="sm:hidden">
@@ -652,20 +705,33 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
             </span>
           </Link>
 
-          {/* Quick Command Palette Button */}
-          <button
-            type="button"
-            onClick={() => setPaletteOpen(true)}
-            className="hidden sm:flex items-center gap-2 px-2.5 py-1 text-xs text-muted-foreground bg-muted/60 hover:bg-muted border border-border rounded-md min-h-[36px] whitespace-nowrap shrink-0"
-          >
-            <Search className="h-3.5 w-3.5 shrink-0" />
-            <span className="whitespace-nowrap">
-              {isTa ? "தேடு அல்லது செல்ல..." : "Search or jump to..."}
-            </span>
-            <kbd className="hidden lg:inline-flex items-center gap-0.5 px-1.5 py-0.5 text-[10px] font-mono bg-background border border-border rounded text-muted-foreground whitespace-nowrap shrink-0">
-              Ctrl K
-            </kbd>
-          </button>
+          {nativeApp && activeTenant && (
+            <div className="flex flex-col min-w-0 leading-tight ml-1">
+              <span className="text-xs font-bold text-foreground truncate">
+                {activeTenant.tenant_name}
+              </span>
+              <span className="text-[10px] font-semibold text-[#FF6A00] uppercase">
+                {activeRole || activeTenant.role}
+              </span>
+            </div>
+          )}
+
+          {/* Quick Command Palette Button (Web only) */}
+          {!nativeApp && (
+            <button
+              type="button"
+              onClick={() => setPaletteOpen(true)}
+              className="hidden sm:flex items-center gap-2 px-2.5 py-1 text-xs text-muted-foreground bg-muted/60 hover:bg-muted border border-border rounded-md min-h-[36px] whitespace-nowrap shrink-0"
+            >
+              <Search className="h-3.5 w-3.5 shrink-0" />
+              <span className="whitespace-nowrap">
+                {isTa ? "தேடு அல்லது செல்ல..." : "Search or jump to..."}
+              </span>
+              <kbd className="hidden lg:inline-flex items-center gap-0.5 px-1.5 py-0.5 text-[10px] font-mono bg-background border border-border rounded text-muted-foreground whitespace-nowrap shrink-0">
+                Ctrl K
+              </kbd>
+            </button>
+          )}
 
           {/* Branch Switcher */}
           {memberships.length > 0 && !user?.is_platform_admin && (
@@ -872,86 +938,88 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
 
       {/* Main Container with Independent Scrolling */}
       <div className="flex-1 flex overflow-hidden">
-        {/* Desktop Sidebar with Independent Scrolling */}
-        <aside
-          className={`md:flex flex-col w-64 border-r border-border bg-card shrink-0 transition-all overflow-hidden ${
-            sidebarOpen ? "fixed inset-y-0 left-0 z-40 flex shadow-2xl mt-[57px]" : "hidden"
-          }`}
-        >
-          <div className="flex-1 overflow-y-auto py-4 px-3 space-y-4">
-            <nav className="space-y-4" aria-label="Main Navigation">
-              {navGroups.map((group) => (
-                <div key={group.label} className="space-y-1">
-                  <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider px-3 mb-1 block select-none">
-                    {trNav(group.label)}
-                  </span>
-                  {group.items.map((item) => {
-                    const Icon = item.icon;
-                    const isActive = location.pathname === item.path;
-                    const isOrdersNav = item.path === "/orders";
-                    const hasPendingApprovals = isOrdersNav && pendingApprovalsCount > 0;
-                    const badgeCount = hasPendingApprovals
-                      ? pendingApprovalsCount
-                      : item.badgeKey === "activeOrders"
-                        ? activeOrdersCount
-                        : item.badgeKey === "readyOrders"
-                          ? readyOrdersCount
-                          : 0;
+        {/* Desktop Sidebar with Independent Scrolling (Web only) */}
+        {!nativeApp && (
+          <aside
+            className={`md:flex flex-col w-64 border-r border-border bg-card shrink-0 transition-all overflow-hidden ${
+              sidebarOpen ? "fixed inset-y-0 left-0 z-40 flex shadow-2xl mt-[57px]" : "hidden"
+            }`}
+          >
+            <div className="flex-1 overflow-y-auto py-4 px-3 space-y-4">
+              <nav className="space-y-4" aria-label="Main Navigation">
+                {navGroups.map((group) => (
+                  <div key={group.label} className="space-y-1">
+                    <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider px-3 mb-1 block select-none">
+                      {trNav(group.label)}
+                    </span>
+                    {group.items.map((item) => {
+                      const Icon = item.icon;
+                      const isActive = location.pathname === item.path;
+                      const isOrdersNav = item.path === "/orders";
+                      const hasPendingApprovals = isOrdersNav && pendingApprovalsCount > 0;
+                      const badgeCount = hasPendingApprovals
+                        ? pendingApprovalsCount
+                        : item.badgeKey === "activeOrders"
+                          ? activeOrdersCount
+                          : item.badgeKey === "readyOrders"
+                            ? readyOrdersCount
+                            : 0;
 
-                    return (
-                      <Link
-                        key={item.path}
-                        to={item.path}
-                        onClick={() => setSidebarOpen(false)}
-                        className={`flex items-center justify-between px-3 py-2 rounded-lg text-sm font-medium transition-colors min-h-[48px] ${
-                          isActive
-                            ? "bg-[#FF6A00] text-[#0B1F3B] font-bold shadow-sm"
-                            : "text-muted-foreground hover:bg-muted hover:text-foreground"
-                        }`}
-                      >
-                        <div className="flex items-center gap-3">
-                          <Icon className="h-4 w-4 shrink-0" />
-                          <span>{trNav(item.label)}</span>
-                        </div>
-                        {badgeCount > 0 && (
-                          <span
-                            className={`px-2 py-0.5 rounded-full text-xs font-bold ${
-                              isActive
-                                ? "bg-[#0B1F3B] text-white"
-                                : item.badgeKey === "readyOrders"
-                                  ? "bg-emerald-600 text-white"
-                                  : "bg-[#FF6A00] text-[#0B1F3B]"
-                            }`}
-                          >
-                            {badgeCount}
-                          </span>
-                        )}
-                      </Link>
-                    );
-                  })}
-                </div>
-              ))}
-            </nav>
-          </div>
+                      return (
+                        <Link
+                          key={item.path}
+                          to={item.path}
+                          onClick={() => setSidebarOpen(false)}
+                          className={`flex items-center justify-between px-3 py-2 rounded-lg text-sm font-medium transition-colors min-h-[48px] ${
+                            isActive
+                              ? "bg-[#FF6A00] text-[#0B1F3B] font-bold shadow-sm"
+                              : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                          }`}
+                        >
+                          <div className="flex items-center gap-3">
+                            <Icon className="h-4 w-4 shrink-0" />
+                            <span>{trNav(item.label)}</span>
+                          </div>
+                          {badgeCount > 0 && (
+                            <span
+                              className={`px-2 py-0.5 rounded-full text-xs font-bold ${
+                                isActive
+                                  ? "bg-[#0B1F3B] text-white"
+                                  : item.badgeKey === "readyOrders"
+                                    ? "bg-emerald-600 text-white"
+                                    : "bg-[#FF6A00] text-[#0B1F3B]"
+                              }`}
+                            >
+                              {badgeCount}
+                            </span>
+                          )}
+                        </Link>
+                      );
+                    })}
+                  </div>
+                ))}
+              </nav>
+            </div>
 
-          {/* Active Tenant Card in Sidebar Footer */}
-          <div className="p-3 border-t border-border bg-muted/30 shrink-0">
-            <div className="text-xs font-semibold text-foreground truncate">
-              {user?.is_platform_admin
-                ? "ServeMyFood Platform Console"
-                : activeTenant?.tenant_name || "ServeMyFood"}
+            {/* Active Tenant Card in Sidebar Footer */}
+            <div className="p-3 border-t border-border bg-muted/30 shrink-0">
+              <div className="text-xs font-semibold text-foreground truncate">
+                {user?.is_platform_admin
+                  ? "ServeMyFood Platform Console"
+                  : activeTenant?.tenant_name || "ServeMyFood"}
+              </div>
+              <div className="text-xs text-muted-foreground flex items-center justify-between mt-0.5">
+                <span>
+                  Role: {user?.is_platform_admin ? "Super Admin" : activeTenant?.role || "Staff"}
+                </span>
+                <span className="text-emerald-700 dark:text-emerald-400 font-semibold">Active</span>
+              </div>
+              <div className="text-xs text-muted-foreground/80 mt-1 font-mono">
+                ServeMyFood {typeof __APP_VERSION__ !== "undefined" ? __APP_VERSION__ : "v0.8.0"}
+              </div>
             </div>
-            <div className="text-xs text-muted-foreground flex items-center justify-between mt-0.5">
-              <span>
-                Role: {user?.is_platform_admin ? "Super Admin" : activeTenant?.role || "Staff"}
-              </span>
-              <span className="text-emerald-700 dark:text-emerald-400 font-semibold">Active</span>
-            </div>
-            <div className="text-xs text-muted-foreground/80 mt-1 font-mono">
-              ServeMyFood {typeof __APP_VERSION__ !== "undefined" ? __APP_VERSION__ : "v0.8.0"}
-            </div>
-          </div>
-        </aside>
+          </aside>
+        )}
 
         {/* Main Content View with Independent Scrolling & Overscroll Contain */}
         <main
@@ -1100,6 +1168,36 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
           {children}
         </main>
       </div>
+
+      {nativeApp && (
+        <>
+          <MobileBottomNav
+            role={activeRole}
+            allowsRoomService={Boolean(activeTenant?.allows_room_service)}
+            readyCount={readyOrdersCount}
+            liveOrdersCount={activeOrdersCount}
+            onOpenMore={() => setMoreOpen(true)}
+            moreOpen={moreOpen}
+          />
+          <MobileMoreSheet
+            open={moreOpen}
+            onClose={() => setMoreOpen(false)}
+            navGroups={navGroups.map((g) => ({
+              ...g,
+              title: trNav(g.label),
+              items: g.items.map((it) => ({ ...it, label: trNav(it.label) })),
+            }))}
+            userName={user?.full_name || user?.email || ""}
+            roleLabel={activeRole || activeTenant?.role || "STAFF"}
+            isDark={theme === "dark"}
+            onToggleTheme={() => setTheme(theme === "dark" ? "light" : "dark")}
+            soundOn={soundOn}
+            onToggleSound={handleToggleSound}
+            onToggleLanguage={toggleLanguage}
+            onLogout={() => void handleLogout()}
+          />
+        </>
+      )}
 
       {/* Command Palette Dialog (Ctrl+K) */}
       <Dialog open={paletteOpen} onOpenChange={setPaletteOpen}>

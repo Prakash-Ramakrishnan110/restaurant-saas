@@ -42,6 +42,7 @@ import {
   enqueueOfflineOrder,
 } from "../../utils/offlineQueue";
 import { TokenSlipModal, TokenSlipOrderData } from "../../components/orders/TokenSlipModal";
+import { useLiveSync } from "../../realtime/liveSync";
 
 interface DiningTableItem {
   id: string;
@@ -271,6 +272,10 @@ export const FloorPOSPage: React.FC = () => {
     return () => clearInterval(interval);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTenant?.tenant_id, usesTables]);
+
+  useLiveSync(() => {
+    void fetchData();
+  });
 
   const handleSeatGuests = async () => {
     if (!selectedTable) return;

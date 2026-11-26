@@ -7,6 +7,7 @@ import { Badge } from "../../components/ui/badge";
 import { Button } from "../../components/ui/button";
 import { soundEngine } from "../../sound/engine";
 import { isSoundEnabled, setSoundEnabled as persistSoundEnabled } from "../../utils/soundAlerts";
+import { useLiveSync } from "../../realtime/liveSync";
 
 // Readable ticket age: "7m", "2h 5m", "3d 4h" (raw minutes like 9921m are unreadable)
 const formatElapsed = (minutes: number): string => {
@@ -55,6 +56,10 @@ export const KDSPage: React.FC = () => {
     return () => clearInterval(interval);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTenant?.tenant_id, selectedStation]);
+
+  useLiveSync(() => {
+    void fetchTickets();
+  });
 
   const handleBump = async (ticketId: string) => {
     try {

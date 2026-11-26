@@ -38,6 +38,7 @@ import { unwrapList } from "../../api/pagination";
 import { useAuth } from "../../context/AuthContext";
 import { formatRupees } from "../../utils/currency";
 import { playOrderAlert, playWaiterCallAlert } from "../../utils/soundAlerts";
+import { useLiveSync } from "../../realtime/liveSync";
 
 interface EntitlementsResponse {
   plan_name: string;
@@ -233,6 +234,8 @@ export const DashboardPage: React.FC = () => {
 
   // Audio alert tracking
   const prevOrderCount = useRef<number>(0);
+  const [liveSyncTick, setLiveSyncTick] = useState(0);
+  useLiveSync(() => setLiveSyncTick((n) => n + 1));
 
   // Fetch all primary dashboard metrics
   useEffect(() => {
@@ -332,7 +335,7 @@ export const DashboardPage: React.FC = () => {
       isMounted = false;
       clearInterval(interval);
     };
-  }, [user, activeTenant?.tenant_id]);
+  }, [user, activeTenant?.tenant_id, liveSyncTick]);
 
   const ONBOARDING_STEPS = [
     { key: "business_profile", label: "Business Profile", path: "/settings/venue" },

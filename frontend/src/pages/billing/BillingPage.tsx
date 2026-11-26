@@ -28,6 +28,7 @@ import {
 } from "../../components/ui/dialog";
 import { formatRupees, parseRupees } from "../../utils/currency";
 import { unwrapList, ListResponse } from "../../api/pagination";
+import { useLiveSync } from "../../realtime/liveSync";
 import { computeEqualSplitShares } from "../../utils/thermalPrint";
 import { ReceiptTaxBreakdown, ReviewQrFooter } from "../../components/billing/ReceiptTaxAndQrBlock";
 
@@ -213,6 +214,13 @@ export const BillingPage: React.FC = () => {
     fetchSessions();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTenant?.tenant_id]);
+
+  useLiveSync(() => {
+    void fetchSessions();
+    if (selectedSessionId) {
+      void loadSessionBill(selectedSessionId);
+    }
+  });
 
   const handleSelectSession = (sId: string) => {
     setSelectedSessionId(sId);

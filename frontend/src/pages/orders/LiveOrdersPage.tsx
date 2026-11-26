@@ -17,6 +17,7 @@ import {
   Printer,
 } from "lucide-react";
 import { ordersApi, Order } from "../../api/orders";
+import { useLiveSync } from "../../realtime/liveSync";
 import { useAuth } from "../../context/AuthContext";
 import { unwrapList } from "../../api/pagination";
 import { formatRupees } from "../../utils/currency";
@@ -123,6 +124,10 @@ export const LiveOrdersPage: React.FC = () => {
     return () => clearInterval(interval);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedDate]);
+
+  useLiveSync(() => {
+    void fetchOrders();
+  });
 
   const openOrderDetail = async (order: Order) => {
     setSelectedOrder(order);
