@@ -8,7 +8,10 @@
 **/dist
 **/dist-ssr
 backups
-docs
+docs/*
+!docs/help
+docs/help/*
+!docs/help/printers-tested.md
 files
 print-bridge
 .playwright-mcp
