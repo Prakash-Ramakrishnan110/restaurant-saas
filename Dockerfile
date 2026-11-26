@@ -6,6 +6,7 @@ WORKDIR /build/marketing
 COPY marketing/package*.json ./
 RUN npm ci --legacy-peer-deps
 COPY marketing/ ./
+COPY docs/help/printers-tested.md /build/docs/help/printers-tested.md
 RUN npm run build
 
 # --- Stage 2: Build React Staff & Customer QR App ---
