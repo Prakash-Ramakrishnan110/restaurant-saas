@@ -1,3 +1,5 @@
+from decimal import Decimal
+
 from django.db import models
 
 from apps.core.models import TenantOwnedModel, TimeStampedModel, UUIDModel
@@ -126,6 +128,22 @@ class BusinessSettings(TenantOwnedModel):
         max_length=20,
         choices=TaxMode.choices,
         default=TaxMode.INCLUSIVE,
+    )
+    food_gst_percent = models.DecimalField(
+        max_digits=5,
+        decimal_places=2,
+        default=Decimal("5.00"),
+    )
+    hotel_gst_percent = models.DecimalField(
+        max_digits=5,
+        decimal_places=2,
+        default=Decimal("12.00"),
+    )
+    review_qr_url = models.URLField(max_length=500, blank=True, default="")
+    review_qr_label = models.CharField(
+        max_length=80,
+        blank=True,
+        default="Scan to leave us a review",
     )
     invoice_prefix = models.CharField(max_length=20, default="INV-")
     logo_url = models.CharField(max_length=500, blank=True, default="")

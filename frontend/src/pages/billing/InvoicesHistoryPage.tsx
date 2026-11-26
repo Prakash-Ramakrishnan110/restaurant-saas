@@ -20,6 +20,10 @@ import { Input } from "../../components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../../components/ui/dialog";
 import { useAuth } from "../../context/AuthContext";
 import { dispatchThermalPrint } from "../../utils/thermalPrint";
+import {
+  ReceiptTaxBreakdown,
+  ReviewQrFooter,
+} from "../../components/billing/ReceiptTaxAndQrBlock";
 
 const REFUND_REASONS = [
   { value: "ITEM_RETURNED", label: "Item Returned by Guest" },
@@ -577,11 +581,14 @@ export const InvoicesHistoryPage: React.FC = () => {
             <div className="w-full max-w-[80mm] mx-auto border-2 border-dashed border-gray-300 p-4 space-y-4">
               <div className="text-center space-y-1 border-b border-gray-300 pb-3">
                 <div className="font-black text-base uppercase tracking-wider">
-                  {activeTenant?.tenant_name || "ServeMyFood Restaurant"}
+                  {reprintInvoice?.legal_name || activeTenant?.tenant_name || "ServeMyFood Restaurant"}
                 </div>
-                <div className="text-xs text-gray-600 font-sans font-bold">
-                  DEMO RECEIPT - NOT A TAX INVOICE
-                </div>
+                {reprintInvoice?.gstin && (
+                  <div className="text-[10px] text-gray-700 font-semibold">
+                    GSTIN: {reprintInvoice.gstin}
+                  </div>
+                )}
+                <div className="text-xs text-gray-700 font-sans font-bold">TAX INVOICE</div>
                 <div className="text-[10px] text-gray-500">{reprintInvoice?.invoice_number}</div>
                 <div className="text-[10px] text-gray-500">
                   {reprintInvoice?.created_at &&
@@ -607,12 +614,19 @@ export const InvoicesHistoryPage: React.FC = () => {
                 ))}
               </div>
 
-              {/* Authoritative Total */}
+              {/* Authoritative Total & GST */}
               <div className="space-y-1 border-b border-gray-300 pb-3">
-                <div className="flex justify-between font-bold text-sm">
-                  <span>TOTAL PAID</span>
-                  <span>{formatRupees(reprintInvoice?.total_paise || 0)}</span>
-                </div>
+                <ReceiptTaxBreakdown
+                  subtotalPaise={reprintInvoice?.subtotal_paise || 0}
+                  discountPaise={reprintInvoice?.discount_paise || 0}
+                  taxablePaise={reprintInvoice?.taxable_paise || 0}
+                  cgstPaise={reprintInvoice?.cgst_paise || 0}
+                  sgstPaise={reprintInvoice?.sgst_paise || 0}
+                  taxPaise={reprintInvoice?.tax_paise || 0}
+                  taxRatePercent={reprintInvoice?.tax_rate_percent || 0}
+                  taxMode={reprintInvoice?.tax_mode || "INCLUSIVE"}
+                  totalPaise={reprintInvoice?.total_paise || 0}
+                />
                 {(reprintInvoice?.refunded_paise || 0) > 0 && (
                   <div className="flex justify-between text-[11px] text-gray-700">
                     <span>LESS REFUNDS:</span>
@@ -625,10 +639,11 @@ export const InvoicesHistoryPage: React.FC = () => {
                 </div>
               </div>
 
-              <div className="text-center text-[10px] text-gray-500 space-y-0.5 pt-1">
-                <div>Thank you for dining with us!</div>
-                <div>ServeMyFood Cloud POS</div>
-              </div>
+              <ReviewQrFooter
+                reviewQrUrl={reprintInvoice?.review_qr_url}
+                reviewQrLabel={reprintInvoice?.review_qr_label}
+                receiptFooterText={reprintInvoice?.receipt_footer_text}
+              />
             </div>
 
             {/* Print & Close Buttons */}

@@ -1,4 +1,5 @@
 import re
+from decimal import Decimal
 from typing import Any
 
 from rest_framework import serializers
@@ -19,6 +20,10 @@ class BusinessSettingsSerializer(serializers.ModelSerializer):
         model = BusinessSettings
         fields = (
             "tax_mode",
+            "food_gst_percent",
+            "hotel_gst_percent",
+            "review_qr_url",
+            "review_qr_label",
             "invoice_prefix",
             "logo_url",
             "logo_128_url",
@@ -78,6 +83,34 @@ class BusinessProfileSerializer(serializers.ModelSerializer):
         source="business_settings.tax_mode",
         required=False,
     )
+    food_gst_percent = serializers.DecimalField(
+        max_digits=5,
+        decimal_places=2,
+        min_value=Decimal("0.00"),
+        max_value=Decimal("28.00"),
+        source="business_settings.food_gst_percent",
+        required=False,
+    )
+    hotel_gst_percent = serializers.DecimalField(
+        max_digits=5,
+        decimal_places=2,
+        min_value=Decimal("0.00"),
+        max_value=Decimal("28.00"),
+        source="business_settings.hotel_gst_percent",
+        required=False,
+    )
+    review_qr_url = serializers.URLField(
+        max_length=500,
+        source="business_settings.review_qr_url",
+        required=False,
+        allow_blank=True,
+    )
+    review_qr_label = serializers.CharField(
+        max_length=80,
+        source="business_settings.review_qr_label",
+        required=False,
+        allow_blank=True,
+    )
     subscription_status = serializers.CharField(source="subscription.status", read_only=True)
 
     class Meta:
@@ -105,6 +138,10 @@ class BusinessProfileSerializer(serializers.ModelSerializer):
             "document_language",
             "receipt_footer_text",
             "tax_mode",
+            "food_gst_percent",
+            "hotel_gst_percent",
+            "review_qr_url",
+            "review_qr_label",
             "created_at",
             "updated_at",
         )

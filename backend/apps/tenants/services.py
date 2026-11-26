@@ -351,6 +351,10 @@ def update_business_profile(
         "document_language": settings.document_language,
         "receipt_footer_text": settings.receipt_footer_text,
         "tax_mode": settings.tax_mode,
+        "food_gst_percent": str(settings.food_gst_percent),
+        "hotel_gst_percent": str(settings.hotel_gst_percent),
+        "review_qr_url": settings.review_qr_url,
+        "review_qr_label": settings.review_qr_label,
     }
 
     # Settings fields can be passed directly or under business_settings
@@ -370,6 +374,10 @@ def update_business_profile(
         "document_language",
         "receipt_footer_text",
         "tax_mode",
+        "food_gst_percent",
+        "hotel_gst_percent",
+        "review_qr_url",
+        "review_qr_label",
     ]
 
     for field in settings_fields:
@@ -409,6 +417,10 @@ def update_business_profile(
         "document_language": settings.document_language,
         "receipt_footer_text": settings.receipt_footer_text,
         "tax_mode": settings.tax_mode,
+        "food_gst_percent": str(settings.food_gst_percent),
+        "hotel_gst_percent": str(settings.hotel_gst_percent),
+        "review_qr_url": settings.review_qr_url,
+        "review_qr_label": settings.review_qr_label,
     }
 
     log_audit_event(

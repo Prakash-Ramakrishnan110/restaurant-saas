@@ -2,13 +2,15 @@ import json
 import uuid
 from typing import Any
 
+from django.conf import settings
 from django.db.models import Q
 from django.utils import timezone
 from drf_spectacular.utils import extend_schema
+from PIL import Image, ImageOps
 from rest_framework import serializers, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.parsers import FormParser, JSONParser, MultiPartParser
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import BasePermission, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -16,6 +18,7 @@ from apps.audit.services import log_audit_event
 from apps.core.exceptions import BusinessRuleError
 from apps.menu.models import (
     BranchItemAvailability,
+    FoodCatalogItem,
     ItemImage,
     ItemOptionGroup,
     ItemVariant,
@@ -27,6 +30,7 @@ from apps.menu.models import (
 )
 from apps.menu.serializers import (
     BranchItemAvailabilitySerializer,
+    FoodCatalogItemSerializer,
     ItemImageSerializer,
     ItemVariantSerializer,
     MenuCategorySerializer,
@@ -54,7 +58,7 @@ from apps.menu.translation_service import (
     suggest_translations_batch,
 )
 from apps.rbac.constants import Permission
-from apps.rbac.permissions import ActionPermission, HasTenantPermission
+from apps.rbac.permissions import ActionPermission, HasTenantPermission, IsPlatformAdmin
 from apps.subscriptions.services import enforce_limit
 from apps.tenants.models import Branch
 
@@ -966,3 +970,177 @@ class MenuTranslationView(APIView):
             after_state={"language": language, "field": field, "status": next_status},
         )
         return Response(MenuTranslationSerializer(tr).data)
+
+
+class _IsPlatformAdminOrMenuViewer(BasePermission):
+    def has_permission(self, request: Any, view: Any) -> bool:
+        if getattr(request.user, "is_platform_admin", False):
+            return True
+        return HasTenantPermission(Permission.MENU_VIEW)().has_permission(request, view)
+
+
+class FoodCatalogListView(APIView):
+    """Search and browse the global Master Food Catalogue."""
+
+    permission_classes = [IsAuthenticated, _IsPlatformAdminOrMenuViewer]
+
+    @extend_schema(responses={200: FoodCatalogItemSerializer(many=True)})
+    def get(self, request):
+        q = str(request.query_params.get("q") or "").strip()
+        category = str(request.query_params.get("category") or "").strip()
+        food_type = str(request.query_params.get("food_type") or "").strip()
+        unique_only = str(request.query_params.get("unique_only") or "").strip() in ("1", "true")
+        try:
+            limit = max(1, min(100, int(request.query_params.get("limit", 40))))
+        except (TypeError, ValueError):
+            limit = 40
+        try:
+            offset = max(0, int(request.query_params.get("offset", 0)))
+        except (TypeError, ValueError):
+            offset = 0
+
+        qs = FoodCatalogItem.objects.all()
+        if q:
+            qs = qs.filter(
+                Q(name__icontains=q)
+                | Q(name_ta__icontains=q)
+                | Q(subcategory__icontains=q)
+                | Q(item_code__icontains=q)
+            )
+        if category:
+            qs = qs.filter(main_category__iexact=category)
+        if food_type:
+            qs = qs.filter(food_type=food_type)
+        if unique_only:
+            qs = qs.filter(image_card__startswith="/media/catalog/FE")
+
+        total = qs.count()
+        items = qs[offset : offset + limit]
+        categories = list(
+            FoodCatalogItem.objects.values_list("main_category", flat=True)
+            .distinct()
+            .order_by("main_category")
+        )
+        unique_image_count = FoodCatalogItem.objects.filter(
+            image_card__startswith="/media/catalog/FE"
+        ).count()
+        return Response(
+            {
+                "count": total,
+                "unique_image_count": unique_image_count,
+                "categories": categories,
+                "results": FoodCatalogItemSerializer(items, many=True).data,
+            }
+        )
+
+
+class FoodCatalogUploadImageView(APIView):
+    """Upload or replace a dish photo on a Master Food Catalogue item."""
+
+    permission_classes = [IsAuthenticated, IsPlatformAdmin]
+    parser_classes = [MultiPartParser, FormParser]
+
+    @extend_schema(responses={200: FoodCatalogItemSerializer})
+    def post(self, request, catalog_id):
+        catalog_item = FoodCatalogItem.objects.filter(id=catalog_id).first()
+        if not catalog_item:
+            raise BusinessRuleError("NOT_FOUND", "Catalog item not found.", status_code=404)
+
+        upload = request.FILES.get("image")
+        if not upload:
+            raise BusinessRuleError("IMAGE_REQUIRED", "An image file is required.", status_code=400)
+
+        try:
+            img = Image.open(upload).convert("RGB")
+        except Exception:
+            raise BusinessRuleError(
+                "INVALID_IMAGE", "Uploaded file is not a valid image.", status_code=400
+            ) from None
+
+        out_dir = settings.MEDIA_ROOT / "catalog"
+        out_dir.mkdir(parents=True, exist_ok=True)
+        code = catalog_item.item_code
+        ImageOps.fit(img, (800, 600), method=Image.Resampling.LANCZOS).save(
+            out_dir / f"{code}_card.webp", "WEBP", quality=84
+        )
+        ImageOps.fit(img, (300, 300), method=Image.Resampling.LANCZOS).save(
+            out_dir / f"{code}_thumb.webp", "WEBP", quality=82
+        )
+        catalog_item.image_card = f"/media/catalog/{code}_card.webp"
+        catalog_item.image_thumb = f"/media/catalog/{code}_thumb.webp"
+        catalog_item.save(update_fields=["image_card", "image_thumb", "updated_at"])
+        return Response(FoodCatalogItemSerializer(catalog_item).data)
+
+
+class FoodCatalogAddToMenuView(APIView):
+    """Add a global Master Food Catalogue item into the tenant's active menu."""
+
+    permission_classes = [IsAuthenticated, HasTenantPermission(Permission.MENU_MANAGE)]
+
+    @extend_schema(responses={201: MenuItemSerializer})
+    def post(self, request, catalog_id):
+        catalog_item = FoodCatalogItem.objects.filter(id=catalog_id).first()
+        if not catalog_item:
+            raise BusinessRuleError("NOT_FOUND", "Catalog item not found.", status_code=404)
+
+        tenant = request.tenant
+        category_id = request.data.get("category_id")
+        if category_id:
+            category = MenuCategory.objects.filter(tenant=tenant, id=category_id).first()
+            if not category:
+                raise BusinessRuleError(
+                    "INVALID_REFERENCE", "Menu category not found.", status_code=400
+                )
+        else:
+            category, _ = MenuCategory.objects.get_or_create(
+                tenant=tenant,
+                name=catalog_item.main_category[:100],
+                defaults={"is_active": True},
+            )
+
+        existing = MenuItem.objects.filter(
+            tenant=tenant, category=category, name__iexact=catalog_item.name
+        ).first()
+        if existing:
+            return Response(
+                MenuItemSerializer(existing).data,
+                status=status.HTTP_200_OK,
+            )
+
+        enforce_limit(tenant, "menu_items", MenuItem.objects.filter(tenant=tenant).count())
+
+        raw_price = request.data.get("base_price_paise")
+        if raw_price is not None:
+            try:
+                price_paise = max(0, int(raw_price))
+            except (TypeError, ValueError):
+                raise BusinessRuleError(
+                    "INVALID_PRICE",
+                    "base_price_paise must be a non-negative integer.",
+                    status_code=400,
+                ) from None
+        else:
+            price_paise = catalog_item.default_price_paise or 0
+
+        item = MenuItem.objects.create(
+            tenant=tenant,
+            category=category,
+            name=catalog_item.name,
+            name_ta=catalog_item.name_ta,
+            description=catalog_item.description,
+            food_type=catalog_item.food_type,
+            base_price_paise=price_paise,
+            is_bestseller=catalog_item.is_bestseller,
+            image_original=catalog_item.image_card,
+            image_card=catalog_item.image_card,
+            image_thumb=catalog_item.image_thumb,
+        )
+        log_audit_event(
+            action="menu.item.created_from_catalog",
+            entity_type="MenuItem",
+            entity_id=str(item.id),
+            actor=request.user,
+            tenant=tenant,
+            after_state={"catalog_code": catalog_item.item_code, "name": item.name},
+        )
+        return Response(MenuItemSerializer(item).data, status=status.HTTP_201_CREATED)

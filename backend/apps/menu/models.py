@@ -372,3 +372,36 @@ class MenuTranslation(models.Model):
                 name="unique_menu_translation_key",
             )
         ]
+
+
+class FoodCatalogItem(models.Model):
+    """Global master food catalogue used for 1-click menu item creation."""
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    item_code = models.CharField(max_length=24, unique=True, db_index=True)
+    name = models.CharField(max_length=150, db_index=True)
+    name_ta = models.CharField(max_length=150, blank=True, default="")
+    main_category = models.CharField(max_length=100, db_index=True)
+    subcategory = models.CharField(max_length=120, blank=True, default="")
+    cuisine = models.CharField(max_length=80, blank=True, default="")
+    food_type = models.CharField(
+        max_length=20,
+        choices=FoodType.choices,
+        default=FoodType.VEG,
+        db_index=True,
+    )
+    description = models.TextField(blank=True, default="")
+    default_price_paise = models.PositiveIntegerField(null=True, blank=True)
+    is_bestseller = models.BooleanField(default=False)
+    image_key = models.CharField(max_length=64, blank=True, default="")
+    image_card = models.CharField(max_length=500, blank=True, default="")
+    image_thumb = models.CharField(max_length=500, blank=True, default="")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = "food_catalog_items"
+        ordering = ["item_code"]
+
+    def __str__(self) -> str:
+        return f"{self.item_code} - {self.name}"

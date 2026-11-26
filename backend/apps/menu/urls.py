@@ -4,6 +4,9 @@ from rest_framework.routers import DefaultRouter
 from apps.menu.views import (
     BranchItemAvailabilityViewSet,
     BulkPhotoUploadView,
+    FoodCatalogAddToMenuView,
+    FoodCatalogListView,
+    FoodCatalogUploadImageView,
     FullMenuView,
     MenuCategoryViewSet,
     MenuItemGalleryView,
@@ -22,6 +25,17 @@ router.register("availability", BranchItemAvailabilityViewSet, basename="menu-av
 
 urlpatterns = [
     path("full/", FullMenuView.as_view(), name="menu-full"),
+    path("catalog/", FoodCatalogListView.as_view(), name="menu-catalog-list"),
+    path(
+        "catalog/<uuid:catalog_id>/add-to-menu/",
+        FoodCatalogAddToMenuView.as_view(),
+        name="menu-catalog-add",
+    ),
+    path(
+        "catalog/<uuid:catalog_id>/upload-image/",
+        FoodCatalogUploadImageView.as_view(),
+        name="menu-catalog-upload-image",
+    ),
     path("photos/bulk-upload/", BulkPhotoUploadView.as_view(), name="menu-photos-bulk-upload"),
     path("photos/unassigned/", UnassignedPhotoListView.as_view(), name="menu-photos-unassigned"),
     path(

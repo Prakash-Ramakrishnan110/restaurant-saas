@@ -103,10 +103,17 @@ export interface BillItemSummary {
 export interface BillCalculation {
   table_label: string;
   session_code: string;
+  is_hotel_room?: boolean;
   items: BillItemSummary[];
   items_count: number;
   subtotal_paise: number;
   discount_paise?: number;
+  tax_mode?: "INCLUSIVE" | "EXCLUSIVE";
+  tax_rate_percent?: string;
+  taxable_paise?: number;
+  cgst_paise?: number;
+  sgst_paise?: number;
+  tax_paise?: number;
   total_paise: number;
 }
 
@@ -207,7 +214,19 @@ export interface BillInvoice {
   invoice_number: string;
   subtotal_paise: number;
   discount_paise?: number;
+  tax_mode?: "INCLUSIVE" | "EXCLUSIVE";
+  tax_rate_percent?: string | number;
+  taxable_paise?: number;
+  cgst_paise?: number;
+  sgst_paise?: number;
+  tax_paise?: number;
   total_paise: number;
+  gstin?: string;
+  legal_name?: string;
+  registered_address?: string;
+  receipt_footer_text?: string;
+  review_qr_url?: string;
+  review_qr_label?: string;
   refunded_paise?: number;
   net_total_paise?: number;
   refunds?: InvoiceRefundRecord[];

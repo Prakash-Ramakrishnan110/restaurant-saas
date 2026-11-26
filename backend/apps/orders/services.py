@@ -1,5 +1,6 @@
 import datetime
 import zoneinfo
+from decimal import ROUND_HALF_UP, Decimal
 from typing import Any
 
 from django.db import transaction
@@ -699,8 +700,63 @@ def create_order(
             reset_current_tenant(token)
 
 
-def calculate_bill(table_session: TableSession) -> dict[str, Any]:
-    """Calculates authoritative bill breakdown for an active table session without tax (pure sum of lines)."""
+def _compute_tax_breakdown(
+    base_paise: int,
+    gst_percent: Decimal,
+    tax_mode: str,
+) -> dict[str, Any]:
+    """Compute GST (CGST + SGST) breakdown in integer paise."""
+    clean_base = max(0, int(base_paise))
+    rate = max(Decimal("0.00"), gst_percent)
+    if rate <= 0 or clean_base == 0:
+        return {
+            "tax_mode": tax_mode,
+            "tax_rate_percent": rate,
+            "taxable_paise": clean_base,
+            "cgst_paise": 0,
+            "sgst_paise": 0,
+            "tax_paise": 0,
+            "total_paise": clean_base,
+        }
+
+    if tax_mode == "EXCLUSIVE":
+        tax_paise = int(
+            (Decimal(clean_base) * rate / Decimal("100")).quantize(
+                Decimal("1"), rounding=ROUND_HALF_UP
+            )
+        )
+        taxable_paise = clean_base
+        total_paise = clean_base + tax_paise
+    else:
+        tax_paise = int(
+            (Decimal(clean_base) * rate / (Decimal("100") + rate)).quantize(
+                Decimal("1"), rounding=ROUND_HALF_UP
+            )
+        )
+        taxable_paise = clean_base - tax_paise
+        total_paise = clean_base
+
+    cgst_paise = tax_paise // 2
+    sgst_paise = tax_paise - cgst_paise
+    return {
+        "tax_mode": tax_mode,
+        "tax_rate_percent": rate,
+        "taxable_paise": taxable_paise,
+        "cgst_paise": cgst_paise,
+        "sgst_paise": sgst_paise,
+        "tax_paise": tax_paise,
+        "total_paise": total_paise,
+    }
+
+
+def calculate_bill(
+    table_session: TableSession,
+    discount_paise: int = 0,
+    is_hotel_room: bool | None = None,
+) -> dict[str, Any]:
+    """Calculates authoritative bill breakdown for an active table/room session including GST."""
+    from apps.tenants.models import BusinessSettings
+
     prev_tenant = get_current_tenant()
     token = (
         set_current_tenant(table_session.tenant) if prev_tenant != table_session.tenant else None
@@ -719,8 +775,11 @@ def calculate_bill(table_session: TableSession) -> dict[str, Any]:
 
         items_summary: list[dict[str, Any]] = []
         subtotal_paise = 0
+        has_room_service_order = False
 
         for order in active_orders:
+            if order.order_workflow == OrderWorkflow.ROOM_SERVICE:
+                has_room_service_order = True
             for it in order.items.all():
                 items_summary.append(
                     {
@@ -735,17 +794,38 @@ def calculate_bill(table_session: TableSession) -> dict[str, Any]:
                 )
                 subtotal_paise += it.subtotal_paise
 
-        # No tax calculation - pending accountant confirmation.
-        total_paise = subtotal_paise
+        if is_hotel_room is None:
+            table_type = (
+                getattr(table_session.table, "table_type", "") if table_session.table else ""
+            )
+            is_hotel_room = table_type == "ROOM" or has_room_service_order
+
+        biz_settings = BusinessSettings.unscoped.filter(tenant=table_session.tenant).first()
+        tax_mode = biz_settings.tax_mode if biz_settings else BusinessSettings.TaxMode.INCLUSIVE
+        gst_rate = (
+            (biz_settings.hotel_gst_percent if is_hotel_room else biz_settings.food_gst_percent)
+            if biz_settings
+            else Decimal("0.00")
+        )
+
+        clean_discount = min(subtotal_paise, max(0, int(discount_paise)))
+        tax_info = _compute_tax_breakdown(subtotal_paise - clean_discount, gst_rate, tax_mode)
 
         return {
             "table_label": (table_session.table.label if table_session.table else "N/A"),
             "session_code": table_session.session_code,
+            "is_hotel_room": bool(is_hotel_room),
             "items": items_summary,
             "items_count": sum(it["quantity"] for it in items_summary),
             "subtotal_paise": subtotal_paise,
-            "discount_paise": 0,
-            "total_paise": total_paise,
+            "discount_paise": clean_discount,
+            "tax_mode": tax_info["tax_mode"],
+            "tax_rate_percent": str(tax_info["tax_rate_percent"]),
+            "taxable_paise": tax_info["taxable_paise"],
+            "cgst_paise": tax_info["cgst_paise"],
+            "sgst_paise": tax_info["sgst_paise"],
+            "tax_paise": tax_info["tax_paise"],
+            "total_paise": tax_info["total_paise"],
         }
     finally:
         if token is not None:
@@ -805,10 +885,15 @@ def settle_bill(
                     )
                 loyalty_discount_paise = points_to_redeem * 100
                 discount_paise = min(
-                    bill_calc["total_paise"], discount_paise + loyalty_discount_paise
+                    bill_calc["subtotal_paise"], discount_paise + loyalty_discount_paise
                 )
 
-        total_paise = max(0, bill_calc["total_paise"] - discount_paise)
+        final_calc = calculate_bill(
+            table_session,
+            discount_paise=discount_paise,
+            is_hotel_room=(True if payment_method == PaymentMethod.ROOM_FOLIO else None),
+        )
+        total_paise = final_calc["total_paise"]
 
         if amount_tendered_paise is not None and amount_tendered_paise < total_paise:
             raise ValidationError(
@@ -854,8 +939,14 @@ def settle_bill(
             branch=table_session.branch,
             table_session=table_session,
             invoice_number=invoice_number,
-            subtotal_paise=bill_calc["subtotal_paise"],
-            discount_paise=discount_paise,
+            subtotal_paise=final_calc["subtotal_paise"],
+            discount_paise=final_calc["discount_paise"],
+            tax_mode=final_calc["tax_mode"],
+            tax_rate_percent=Decimal(final_calc["tax_rate_percent"]),
+            taxable_paise=final_calc["taxable_paise"],
+            cgst_paise=final_calc["cgst_paise"],
+            sgst_paise=final_calc["sgst_paise"],
+            tax_paise=final_calc["tax_paise"],
             total_paise=total_paise,
             snapshot_lines=snapshot_lines,
             payment_method=payment_method,

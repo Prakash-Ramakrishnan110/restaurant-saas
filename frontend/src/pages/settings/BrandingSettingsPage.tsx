@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
+import QRCode from "qrcode";
 import {
   Upload,
   Trash2,
@@ -32,6 +33,11 @@ interface BusinessSettingsData {
   document_language?: "EN" | "EN_TA";
   brand_primary_color?: string;
   receipt_footer_text?: string;
+  tax_mode?: "INCLUSIVE" | "EXCLUSIVE";
+  food_gst_percent?: string | number;
+  hotel_gst_percent?: string | number;
+  review_qr_url?: string;
+  review_qr_label?: string;
   logo_url?: string | null;
   logo_128_url?: string | null;
   display_name?: string;
@@ -68,6 +74,12 @@ export const BrandingSettingsPage: React.FC<BrandingSettingsPageProps> = ({
   const [legalName, setLegalName] = useState("");
   const [gstin, setGstin] = useState("");
   const [registeredAddress, setRegisteredAddress] = useState("");
+  const [taxMode, setTaxMode] = useState<"INCLUSIVE" | "EXCLUSIVE">("INCLUSIVE");
+  const [foodGstPercent, setFoodGstPercent] = useState("5.00");
+  const [hotelGstPercent, setHotelGstPercent] = useState("12.00");
+  const [reviewQrUrl, setReviewQrUrl] = useState("");
+  const [reviewQrLabel, setReviewQrLabel] = useState("Scan to leave us a review");
+  const [reviewQrPreview, setReviewQrPreview] = useState<string | null>(null);
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
   const [logo128Url, setLogo128Url] = useState<string | null>(null);
   const [logoLoadError, setLogoLoadError] = useState(false);
@@ -109,6 +121,11 @@ export const BrandingSettingsPage: React.FC<BrandingSettingsPageProps> = ({
         setLegalName(b.legal_name || "");
         setGstin(b.gstin || "");
         setRegisteredAddress(b.registered_address || "");
+        setTaxMode(b.tax_mode || "INCLUSIVE");
+        setFoodGstPercent(String(b.food_gst_percent ?? "5.00"));
+        setHotelGstPercent(String(b.hotel_gst_percent ?? "12.00"));
+        setReviewQrUrl(b.review_qr_url || "");
+        setReviewQrLabel(b.review_qr_label || "Scan to leave us a review");
         setLogoUrl(b.logo_url || null);
         setLogo128Url(b.logo_128_url || null);
         setLoading(false);
@@ -123,6 +140,17 @@ export const BrandingSettingsPage: React.FC<BrandingSettingsPageProps> = ({
       isMounted = false;
     };
   }, []);
+
+  useEffect(() => {
+    const trimmed = reviewQrUrl.trim();
+    if (!trimmed) {
+      setReviewQrPreview(null);
+      return;
+    }
+    QRCode.toDataURL(trimmed, { width: 120, margin: 1 })
+      .then((url) => setReviewQrPreview(url))
+      .catch(() => setReviewQrPreview(null));
+  }, [reviewQrUrl]);
 
   const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -212,6 +240,11 @@ export const BrandingSettingsPage: React.FC<BrandingSettingsPageProps> = ({
         legal_name: legalName,
         gstin: gstin.trim().toUpperCase(),
         registered_address: registeredAddress,
+        tax_mode: taxMode,
+        food_gst_percent: Number(foodGstPercent || 0).toFixed(2),
+        hotel_gst_percent: Number(hotelGstPercent || 0).toFixed(2),
+        review_qr_url: reviewQrUrl.trim(),
+        review_qr_label: reviewQrLabel.trim() || "Scan to leave us a review",
       });
       const generatedCount = res.data?.qr_codes_generated ?? 0;
       setSaveStatus("saved");
@@ -565,6 +598,95 @@ export const BrandingSettingsPage: React.FC<BrandingSettingsPageProps> = ({
                     placeholder="Registered commercial address for business receipts..."
                     className="w-full rounded-md border border-input bg-card p-3 text-sm text-foreground shadow-sm focus:ring-2 focus:ring-[#FF6A00] min-h-[80px]"
                   />
+                </div>
+
+                {/* Tax Rates & Mode (Bills + Hotel Rooms) */}
+                <div className="pt-2 border-t border-border/60 space-y-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-semibold text-foreground">Tax Mode</label>
+                      <select
+                        value={taxMode}
+                        onChange={(e) => setTaxMode(e.target.value as "INCLUSIVE" | "EXCLUSIVE")}
+                        className="w-full h-11 rounded-md border border-input bg-card px-3 text-sm text-foreground shadow-sm focus:ring-2 focus:ring-[#FF6A00]"
+                      >
+                        <option value="INCLUSIVE">Tax Inclusive</option>
+                        <option value="EXCLUSIVE">Tax Exclusive</option>
+                      </select>
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-semibold text-foreground">
+                        Restaurant GST %
+                      </label>
+                      <Input
+                        type="number"
+                        step="0.5"
+                        min="0"
+                        max="28"
+                        value={foodGstPercent}
+                        onChange={(e) => setFoodGstPercent(e.target.value)}
+                        className="min-h-[44px]"
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-semibold text-foreground">
+                        Hotel / Room GST %
+                      </label>
+                      <Input
+                        type="number"
+                        step="0.5"
+                        min="0"
+                        max="28"
+                        value={hotelGstPercent}
+                        onChange={(e) => setHotelGstPercent(e.target.value)}
+                        className="min-h-[44px]"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Review QR Settings */}
+                <div className="pt-2 border-t border-border/60 space-y-3">
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="flex-1 space-y-2.5">
+                      <div className="space-y-1.5">
+                        <label className="text-xs font-semibold text-foreground">
+                          Receipt Review QR URL (Google Review / Feedback Link)
+                        </label>
+                        <Input
+                          type="url"
+                          value={reviewQrUrl}
+                          onChange={(e) => setReviewQrUrl(e.target.value)}
+                          placeholder="https://g.page/r/your-restaurant/review"
+                          className="min-h-[44px]"
+                        />
+                      </div>
+                      <div className="space-y-1.5">
+                        <label className="text-xs font-semibold text-foreground">
+                          Review QR Caption
+                        </label>
+                        <Input
+                          type="text"
+                          value={reviewQrLabel}
+                          onChange={(e) => setReviewQrLabel(e.target.value.slice(0, 80))}
+                          placeholder="Scan to leave us a review"
+                          className="min-h-[44px]"
+                        />
+                      </div>
+                    </div>
+                    {reviewQrPreview && (
+                      <div className="flex flex-col items-center p-2 rounded-lg border bg-white text-black shrink-0">
+                        <img
+                          src={reviewQrPreview}
+                          alt="Review QR preview"
+                          className="w-20 h-20 object-contain"
+                        />
+                        <span className="text-[10px] font-medium mt-1 max-w-[90px] text-center truncate">
+                          {reviewQrLabel || "Review QR"}
+                        </span>
+                      </div>
+                    )}
+                  </div>
                 </div>
 
                 {/* Accountant Advisory Note */}

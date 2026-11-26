@@ -1,3 +1,5 @@
+from decimal import Decimal
+
 from django.db import models
 from django.utils import timezone
 
@@ -277,6 +279,12 @@ class BillInvoice(BranchOwnedModel):
     invoice_number = models.CharField(max_length=64, db_index=True)
     subtotal_paise = models.BigIntegerField(default=0)
     discount_paise = models.BigIntegerField(default=0)
+    tax_mode = models.CharField(max_length=20, blank=True, default="INCLUSIVE")
+    tax_rate_percent = models.DecimalField(max_digits=5, decimal_places=2, default=Decimal("0.00"))
+    taxable_paise = models.BigIntegerField(default=0)
+    cgst_paise = models.BigIntegerField(default=0)
+    sgst_paise = models.BigIntegerField(default=0)
+    tax_paise = models.BigIntegerField(default=0)
     total_paise = models.BigIntegerField(default=0)
     snapshot_lines = models.JSONField(default=list, blank=True)
     payment_method = models.CharField(

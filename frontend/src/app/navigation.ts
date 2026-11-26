@@ -80,6 +80,7 @@ export function getNavigationGroups(ctx: NavigationContext): NavGroup[] {
           { label: "Tenants Directory", path: "/admin/tenants", icon: Users },
           { label: "New Customer", path: "/admin/tenants/new", icon: PlusCircle },
           { label: "Subscription Plans", path: "/admin/plans", icon: Layers },
+          { label: "Food Catalogue", path: "/admin/catalog", icon: UtensilsCrossed },
           { label: "System Health", path: "/admin/health", icon: Activity },
           { label: "Audit & Activity", path: "/admin/activity", icon: FileText },
           { label: "Support Desk", path: "/admin/support", icon: LifeBuoy },

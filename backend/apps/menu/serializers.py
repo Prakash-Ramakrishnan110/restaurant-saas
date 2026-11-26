@@ -2,6 +2,7 @@ from rest_framework import serializers
 
 from apps.menu.models import (
     BranchItemAvailability,
+    FoodCatalogItem,
     ItemImage,
     ItemVariant,
     MenuCategory,
@@ -243,3 +244,25 @@ class BranchItemAvailabilitySerializer(serializers.ModelSerializer):
             "updated_at",
         ]
         read_only_fields = ["id", "updated_at", "item_name", "category_name"]
+
+
+class FoodCatalogItemSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = FoodCatalogItem
+        fields = [
+            "id",
+            "item_code",
+            "name",
+            "name_ta",
+            "main_category",
+            "subcategory",
+            "cuisine",
+            "food_type",
+            "description",
+            "default_price_paise",
+            "is_bestseller",
+            "image_key",
+            "image_card",
+            "image_thumb",
+        ]
+        read_only_fields = fields

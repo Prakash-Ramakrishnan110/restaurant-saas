@@ -4,21 +4,52 @@ import { apiClient } from "../../api/client";
 import { unwrapList, ListResponse } from "../../api/pagination";
 import { formatRupees } from "../../utils/currency";
 import { Button } from "../../components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "../../components/ui/dialog";
+import {
+  ReceiptTaxBreakdown,
+  ReviewQrFooter,
+} from "../../components/billing/ReceiptTaxAndQrBlock";
 
 interface Invoice {
   id: string;
   invoice_number: string;
   table_label?: string;
   settled_at: string;
+  subtotal_paise?: number;
+  discount_paise?: number;
+  tax_mode?: "INCLUSIVE" | "EXCLUSIVE";
+  tax_rate_percent?: string | number;
+  taxable_paise?: number;
+  cgst_paise?: number;
+  sgst_paise?: number;
+  tax_paise?: number;
   total_paise: number;
   payment_method: string;
   customer_name?: string;
   room_number?: string;
   settled_by_name?: string;
+  gstin?: string;
+  legal_name?: string;
+  receipt_footer_text?: string;
+  review_qr_url?: string;
+  review_qr_label?: string;
+  snapshot_lines?: Array<{
+    item_name: string;
+    quantity: number;
+    unit_price_paise: number;
+    subtotal_paise?: number;
+  }>;
 }
 
 export const RoomChargesPage: React.FC = () => {
   const [invoices, setInvoices] = useState<Invoice[]>([]);
+  const [selectedReceipt, setSelectedReceipt] = useState<Invoice | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
@@ -175,19 +206,21 @@ export const RoomChargesPage: React.FC = () => {
                 <th className="px-4 py-3">Room / Suite</th>
                 <th className="px-4 py-3">Guest Name / Folio</th>
                 <th className="px-4 py-3">Front Desk Check</th>
+                <th className="px-4 py-3 text-right">GST (CGST+SGST)</th>
                 <th className="px-4 py-3 text-right">Charged Amount</th>
+                <th className="px-4 py-3 text-right">Receipt</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border/60">
               {isLoading ? (
                 <tr>
-                  <td colSpan={6} className="px-4 py-12 text-center text-muted-foreground">
+                  <td colSpan={8} className="px-4 py-12 text-center text-muted-foreground">
                     Loading room folio invoices...
                   </td>
                 </tr>
               ) : filteredInvoices.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="px-4 py-12 text-center text-muted-foreground">
+                  <td colSpan={8} className="px-4 py-12 text-center text-muted-foreground">
                     No room charges recorded for this period.
                   </td>
                 </tr>
@@ -212,8 +245,21 @@ export const RoomChargesPage: React.FC = () => {
                         Signed & Verified
                       </span>
                     </td>
+                    <td className="px-4 py-3 text-xs text-muted-foreground text-right font-mono">
+                      {inv.tax_paise ? `${formatRupees(inv.tax_paise)} (${inv.tax_rate_percent || 0}%)` : "—"}
+                    </td>
                     <td className="px-4 py-3 font-bold text-foreground text-right">
                       {formatRupees(inv.total_paise)}
+                    </td>
+                    <td className="px-4 py-3 text-right">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => setSelectedReceipt(inv)}
+                      >
+                        <Printer className="w-3.5 h-3.5 mr-1" />
+                        Tax Receipt
+                      </Button>
                     </td>
                   </tr>
                 ))
@@ -224,8 +270,66 @@ export const RoomChargesPage: React.FC = () => {
       </div>
 
       <div className="p-3 bg-muted/40 rounded-lg text-xs text-muted-foreground text-center">
-        DEMO FOLIO SUMMARY | Server-verified rupee and paisa amounts with exact rounding.
+        HOTEL FOLIO SUMMARY | Server-verified rupee and paisa amounts with GST (CGST + SGST) and exact rounding.
       </div>
+
+      <Dialog open={!!selectedReceipt} onOpenChange={(open) => !open && setSelectedReceipt(null)}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Hotel Folio Tax Invoice — {selectedReceipt?.invoice_number}</DialogTitle>
+          </DialogHeader>
+          {selectedReceipt && (
+            <div className="p-4 bg-white text-black font-mono text-xs rounded-lg border space-y-2">
+              <div className="text-center pb-2 border-b border-dashed border-gray-400">
+                <h2 className="font-black text-sm uppercase">
+                  {selectedReceipt.legal_name || "ServeMyFood Hotel"}
+                </h2>
+                {selectedReceipt.gstin && (
+                  <p className="text-[11px] font-semibold">GSTIN: {selectedReceipt.gstin}</p>
+                )}
+                <p className="text-xs font-bold">HOTEL FOLIO TAX INVOICE</p>
+                <p className="text-xs text-gray-600">
+                  {selectedReceipt.table_label || "Room Service"} • {selectedReceipt.invoice_number}
+                </p>
+              </div>
+              <div className="py-1 border-b border-dashed border-gray-400 space-y-1">
+                {(selectedReceipt.snapshot_lines || []).map((it, idx) => (
+                  <div key={idx} className="flex justify-between text-xs">
+                    <span>
+                      {it.quantity}x {it.item_name}
+                    </span>
+                    <span>{formatRupees(it.subtotal_paise || it.unit_price_paise * it.quantity)}</span>
+                  </div>
+                ))}
+              </div>
+              <ReceiptTaxBreakdown
+                subtotalPaise={selectedReceipt.subtotal_paise ?? selectedReceipt.total_paise}
+                discountPaise={selectedReceipt.discount_paise || 0}
+                taxablePaise={selectedReceipt.taxable_paise || 0}
+                cgstPaise={selectedReceipt.cgst_paise || 0}
+                sgstPaise={selectedReceipt.sgst_paise || 0}
+                taxPaise={selectedReceipt.tax_paise || 0}
+                taxRatePercent={selectedReceipt.tax_rate_percent || 0}
+                taxMode={selectedReceipt.tax_mode || "INCLUSIVE"}
+                totalPaise={selectedReceipt.total_paise}
+              />
+              <ReviewQrFooter
+                reviewQrUrl={selectedReceipt.review_qr_url}
+                reviewQrLabel={selectedReceipt.review_qr_label}
+                receiptFooterText={selectedReceipt.receipt_footer_text}
+              />
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setSelectedReceipt(null)}>
+              Close
+            </Button>
+            <Button onClick={() => window.print()}>
+              <Printer className="w-4 h-4 mr-1.5" /> Print Invoice
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

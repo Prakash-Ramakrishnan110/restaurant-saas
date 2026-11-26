@@ -33,6 +33,8 @@ export async function dispatchThermalPrint(payload: {
   title: string;
   lines: Array<{ left: string; right?: string; bold?: boolean }>;
   footer?: string[];
+  qrUrl?: string;
+  qrLabel?: string;
 }): Promise<{ method: "LOCAL_BRIDGE" | "BROWSER"; fallbackUsed: boolean }> {
   const cfg = getThermalPrinterConfig();
 

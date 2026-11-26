@@ -316,6 +316,12 @@ class BillInvoiceSerializer(serializers.ModelSerializer[BillInvoice]):
     refunded_paise = serializers.ReadOnlyField()
     net_total_paise = serializers.ReadOnlyField()
     refunds = InvoiceRefundSerializer(many=True, read_only=True)
+    gstin = serializers.SerializerMethodField()
+    legal_name = serializers.SerializerMethodField()
+    registered_address = serializers.SerializerMethodField()
+    receipt_footer_text = serializers.SerializerMethodField()
+    review_qr_url = serializers.SerializerMethodField()
+    review_qr_label = serializers.SerializerMethodField()
 
     class Meta:
         model = BillInvoice
@@ -327,6 +333,12 @@ class BillInvoiceSerializer(serializers.ModelSerializer[BillInvoice]):
             "invoice_number",
             "subtotal_paise",
             "discount_paise",
+            "tax_mode",
+            "tax_rate_percent",
+            "taxable_paise",
+            "cgst_paise",
+            "sgst_paise",
+            "tax_paise",
             "total_paise",
             "refunded_paise",
             "net_total_paise",
@@ -338,12 +350,49 @@ class BillInvoiceSerializer(serializers.ModelSerializer[BillInvoice]):
             "settled_at",
             "notes",
             "refunds",
+            "gstin",
+            "legal_name",
+            "registered_address",
+            "receipt_footer_text",
+            "review_qr_url",
+            "review_qr_label",
         ]
 
     def get_table_label(self, obj: BillInvoice) -> str:
         if obj.table_session and obj.table_session.table:
             return obj.table_session.table.label
         return "Counter"
+
+    def _biz_settings(self, obj: BillInvoice):
+        return getattr(obj.tenant, "business_settings", None)
+
+    def get_gstin(self, obj: BillInvoice) -> str:
+        bs = self._biz_settings(obj)
+        return bs.gstin if bs else ""
+
+    def get_legal_name(self, obj: BillInvoice) -> str:
+        bs = self._biz_settings(obj)
+        return (bs.legal_name or obj.tenant.name) if bs else obj.tenant.name
+
+    def get_registered_address(self, obj: BillInvoice) -> str:
+        bs = self._biz_settings(obj)
+        return bs.registered_address if bs else ""
+
+    def get_receipt_footer_text(self, obj: BillInvoice) -> str:
+        bs = self._biz_settings(obj)
+        return bs.receipt_footer_text if bs else ""
+
+    def get_review_qr_url(self, obj: BillInvoice) -> str:
+        bs = self._biz_settings(obj)
+        return bs.review_qr_url if bs else ""
+
+    def get_review_qr_label(self, obj: BillInvoice) -> str:
+        bs = self._biz_settings(obj)
+        return (
+            (bs.review_qr_label or "Scan to leave us a review")
+            if bs
+            else "Scan to leave us a review"
+        )
 
 
 class SettleBillSerializer(serializers.Serializer):

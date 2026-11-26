@@ -29,6 +29,10 @@ import {
 import { formatRupees, parseRupees } from "../../utils/currency";
 import { unwrapList, ListResponse } from "../../api/pagination";
 import { computeEqualSplitShares } from "../../utils/thermalPrint";
+import {
+  ReceiptTaxBreakdown,
+  ReviewQrFooter,
+} from "../../components/billing/ReceiptTaxAndQrBlock";
 
 interface TableSessionInfo {
   id: string;
@@ -223,7 +227,16 @@ export const BillingPage: React.FC = () => {
       ? Math.min(redeemLoyaltyPoints, matchedGuest.loyalty_points || 0) * 100
       : 0;
   const totalDiscountPaise = discountPaise + loyaltyDiscountPaise;
-  const grandTotalPaise = Math.max(0, (billData?.total_paise || 0) - totalDiscountPaise);
+  const discountedBasePaise = Math.max(0, (billData?.subtotal_paise || 0) - totalDiscountPaise);
+  const previewRate = Number(billData?.tax_rate_percent || 0);
+  const previewTaxPaise =
+    billData?.tax_mode === "EXCLUSIVE"
+      ? Math.round((discountedBasePaise * previewRate) / 100)
+      : Math.round((discountedBasePaise * previewRate) / (100 + previewRate));
+  const grandTotalPaise =
+    billData?.tax_mode === "EXCLUSIVE"
+      ? discountedBasePaise + previewTaxPaise
+      : discountedBasePaise;
   const tenderedPaise = parseRupees(amountTendered) || grandTotalPaise;
   const changeDuePaise = Math.max(0, tenderedPaise - grandTotalPaise);
 
@@ -558,6 +571,26 @@ export const BillingPage: React.FC = () => {
                       <span className="font-mono">-{formatRupees(totalDiscountPaise)}</span>
                     </div>
                   )}
+                  {previewRate > 0 && (
+                    <>
+                      <div className="flex justify-between text-muted-foreground">
+                        <span>
+                          CGST ({(previewRate / 2).toFixed(previewRate % 2 === 0 ? 1 : 2)}%):
+                        </span>
+                        <span className="font-mono">
+                          {formatRupees(Math.floor(previewTaxPaise / 2))}
+                        </span>
+                      </div>
+                      <div className="flex justify-between text-muted-foreground">
+                        <span>
+                          SGST ({(previewRate / 2).toFixed(previewRate % 2 === 0 ? 1 : 2)}%):
+                        </span>
+                        <span className="font-mono">
+                          {formatRupees(previewTaxPaise - Math.floor(previewTaxPaise / 2))}
+                        </span>
+                      </div>
+                    </>
+                  )}
                   <div className="flex justify-between text-base font-extrabold text-foreground pt-2 border-t border-border">
                     <span>Grand Total:</span>
                     <span className="font-mono text-xl text-foreground">
@@ -732,9 +765,14 @@ export const BillingPage: React.FC = () => {
           <div className="p-4 bg-white text-black font-mono text-xs rounded-lg border border-border/80 space-y-2 select-all shadow-inner print:shadow-none">
             <div className="text-center pb-2 border-b border-dashed border-gray-400">
               <h2 className="font-black text-sm uppercase">
-                {activeTenant?.tenant_name || "ServeMyFood"}
+                {settledInvoice?.legal_name || activeTenant?.tenant_name || "ServeMyFood"}
               </h2>
-              <p className="text-xs text-gray-600 font-bold">DEMO RECEIPT - NOT A TAX INVOICE</p>
+              {settledInvoice?.gstin && (
+                <p className="text-[11px] text-gray-700 font-semibold">
+                  GSTIN: {settledInvoice.gstin}
+                </p>
+              )}
+              <p className="text-xs text-gray-700 font-bold">TAX INVOICE</p>
               <p className="text-xs text-gray-600">Invoice: {settledInvoice?.invoice_number}</p>
               <p className="text-xs text-gray-600">
                 {usesTables ? `Table: ${settledInvoice?.table_label}` : "Counter Order"} •{" "}
@@ -743,37 +781,41 @@ export const BillingPage: React.FC = () => {
             </div>
 
             <div className="py-2 border-b border-dashed border-gray-400 space-y-1">
-              {(billData?.items || settledInvoice?.items || []).map((it: any, i: number) => (
-                <div key={i} className="flex justify-between text-xs">
-                  <span>
-                    {it.quantity}x {it.item_name}
-                  </span>
-                  <span>
-                    {formatRupees(it.subtotal_paise || it.unit_price_paise * it.quantity)}
-                  </span>
-                </div>
-              ))}
+              {(billData?.items || settledInvoice?.items || settledInvoice?.snapshot_lines || []).map(
+                (it: any, i: number) => (
+                  <div key={i} className="flex justify-between text-xs">
+                    <span>
+                      {it.quantity}x {it.item_name}
+                    </span>
+                    <span>
+                      {formatRupees(it.subtotal_paise || it.unit_price_paise * it.quantity)}
+                    </span>
+                  </div>
+                )
+              )}
             </div>
 
-            <div className="py-1 text-xs space-y-0.5">
-              <div className="flex justify-between">
-                <span>Subtotal:</span>
-                <span>{formatRupees(settledInvoice?.subtotal_paise || 0)}</span>
-              </div>
-              <div className="flex justify-between font-black text-sm pt-1 border-t border-black">
-                <span>NET TOTAL:</span>
-                <span>{formatRupees(settledInvoice?.total_paise || 0)}</span>
-              </div>
-              <div className="flex justify-between text-xs text-gray-600 pt-1">
-                <span>Paid via {settledInvoice?.payment_method}:</span>
-                <span>{formatRupees(settledInvoice?.amount_tendered_paise || 0)}</span>
-              </div>
+            <ReceiptTaxBreakdown
+              subtotalPaise={settledInvoice?.subtotal_paise || 0}
+              discountPaise={settledInvoice?.discount_paise || 0}
+              taxablePaise={settledInvoice?.taxable_paise || 0}
+              cgstPaise={settledInvoice?.cgst_paise || 0}
+              sgstPaise={settledInvoice?.sgst_paise || 0}
+              taxPaise={settledInvoice?.tax_paise || 0}
+              taxRatePercent={settledInvoice?.tax_rate_percent || 0}
+              taxMode={settledInvoice?.tax_mode || "INCLUSIVE"}
+              totalPaise={settledInvoice?.total_paise || 0}
+            />
+            <div className="flex justify-between text-xs text-gray-600 pt-1">
+              <span>Paid via {settledInvoice?.payment_method}:</span>
+              <span>{formatRupees(settledInvoice?.amount_tendered_paise || 0)}</span>
             </div>
 
-            <div className="text-center pt-2 border-t border-dashed border-gray-400 text-xs text-gray-600">
-              <p>Thank you! Visit again.</p>
-              <p>Powered by ServeMyFood</p>
-            </div>
+            <ReviewQrFooter
+              reviewQrUrl={settledInvoice?.review_qr_url}
+              reviewQrLabel={settledInvoice?.review_qr_label}
+              receiptFooterText={settledInvoice?.receipt_footer_text}
+            />
           </div>
 
           <DialogFooter className="flex sm:justify-between items-center">
