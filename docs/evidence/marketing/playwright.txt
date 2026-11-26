@@ -1,23 +1,23 @@
 ﻿
 Running 15 tests using 1 worker
 
-  ok 1 [chromium] › tests\marketing.spec.ts:26:5 › ServeMyFood Marketing Static Site Verification › Page home-en renders cleanly with zero console/3rd-party/a11y/overflow issues (2.7s)
-  ok 2 [chromium] › tests\marketing.spec.ts:26:5 › ServeMyFood Marketing Static Site Verification › Page home-ta renders cleanly with zero console/3rd-party/a11y/overflow issues (3.6s)
-  ok 3 [chromium] › tests\marketing.spec.ts:26:5 › ServeMyFood Marketing Static Site Verification › Page tea-shops-en renders cleanly with zero console/3rd-party/a11y/overflow issues (3.0s)
-  ok 4 [chromium] › tests\marketing.spec.ts:26:5 › ServeMyFood Marketing Static Site Verification › Page tea-shops-ta renders cleanly with zero console/3rd-party/a11y/overflow issues (3.0s)
-  ok 5 [chromium] › tests\marketing.spec.ts:26:5 › ServeMyFood Marketing Static Site Verification › Page restaurants-en renders cleanly with zero console/3rd-party/a11y/overflow issues (2.8s)
+  ok 1 [chromium] › tests\marketing.spec.ts:26:5 › ServeMyFood Marketing Static Site Verification › Page home-en renders cleanly with zero console/3rd-party/a11y/overflow issues (4.2s)
+  ok 2 [chromium] › tests\marketing.spec.ts:26:5 › ServeMyFood Marketing Static Site Verification › Page home-ta renders cleanly with zero console/3rd-party/a11y/overflow issues (4.7s)
+  ok 3 [chromium] › tests\marketing.spec.ts:26:5 › ServeMyFood Marketing Static Site Verification › Page tea-shops-en renders cleanly with zero console/3rd-party/a11y/overflow issues (3.9s)
+  ok 4 [chromium] › tests\marketing.spec.ts:26:5 › ServeMyFood Marketing Static Site Verification › Page tea-shops-ta renders cleanly with zero console/3rd-party/a11y/overflow issues (3.9s)
+  ok 5 [chromium] › tests\marketing.spec.ts:26:5 › ServeMyFood Marketing Static Site Verification › Page restaurants-en renders cleanly with zero console/3rd-party/a11y/overflow issues (3.7s)
   ok 6 [chromium] › tests\marketing.spec.ts:26:5 › ServeMyFood Marketing Static Site Verification › Page restaurants-ta renders cleanly with zero console/3rd-party/a11y/overflow issues (3.1s)
-  ok 7 [chromium] › tests\marketing.spec.ts:26:5 › ServeMyFood Marketing Static Site Verification › Page hotels-en renders cleanly with zero console/3rd-party/a11y/overflow issues (3.0s)
-  ok 8 [chromium] › tests\marketing.spec.ts:26:5 › ServeMyFood Marketing Static Site Verification › Page hotels-ta renders cleanly with zero console/3rd-party/a11y/overflow issues (4.8s)
-  ok 9 [chromium] › tests\marketing.spec.ts:26:5 › ServeMyFood Marketing Static Site Verification › Page hardware-en renders cleanly with zero console/3rd-party/a11y/overflow issues (4.2s)
-  ok 10 [chromium] › tests\marketing.spec.ts:26:5 › ServeMyFood Marketing Static Site Verification › Page hardware-ta renders cleanly with zero console/3rd-party/a11y/overflow issues (4.0s)
-  ok 11 [chromium] › tests\marketing.spec.ts:26:5 › ServeMyFood Marketing Static Site Verification › Page book-demo-en renders cleanly with zero console/3rd-party/a11y/overflow issues (3.5s)
+  ok 7 [chromium] › tests\marketing.spec.ts:26:5 › ServeMyFood Marketing Static Site Verification › Page hotels-en renders cleanly with zero console/3rd-party/a11y/overflow issues (3.8s)
+  ok 8 [chromium] › tests\marketing.spec.ts:26:5 › ServeMyFood Marketing Static Site Verification › Page hotels-ta renders cleanly with zero console/3rd-party/a11y/overflow issues (3.9s)
+  ok 9 [chromium] › tests\marketing.spec.ts:26:5 › ServeMyFood Marketing Static Site Verification › Page hardware-en renders cleanly with zero console/3rd-party/a11y/overflow issues (4.9s)
+  ok 10 [chromium] › tests\marketing.spec.ts:26:5 › ServeMyFood Marketing Static Site Verification › Page hardware-ta renders cleanly with zero console/3rd-party/a11y/overflow issues (5.1s)
+  ok 11 [chromium] › tests\marketing.spec.ts:26:5 › ServeMyFood Marketing Static Site Verification › Page book-demo-en renders cleanly with zero console/3rd-party/a11y/overflow issues (3.7s)
   ok 12 [chromium] › tests\marketing.spec.ts:26:5 › ServeMyFood Marketing Static Site Verification › Page book-demo-ta renders cleanly with zero console/3rd-party/a11y/overflow issues (4.4s)
-  ok 13 [chromium] › tests\marketing.spec.ts:94:3 › ServeMyFood Marketing Static Site Verification › Hero animation pause/play, reduced-motion storyboard, and video attributes (3.7s)
-  ok 14 [chromium] › tests\marketing.spec.ts:117:3 › ServeMyFood Marketing Static Site Verification › Book a demo form validates invalid phone and submits cleanly (4.2s)
-  ok 15 [chromium] › tests\marketing.spec.ts:135:3 › ServeMyFood Marketing Static Site Verification › Stage 4: Hardware validator rules, LIVE comparison section, and Tea Shop Token TV clip H (5.5s)
+  ok 13 [chromium] › tests\marketing.spec.ts:94:3 › ServeMyFood Marketing Static Site Verification › Hero animation pause/play, reduced-motion storyboard, and video attributes (2.8s)
+  ok 14 [chromium] › tests\marketing.spec.ts:117:3 › ServeMyFood Marketing Static Site Verification › Book a demo form validates invalid phone and submits cleanly (2.9s)
+  ok 15 [chromium] › tests\marketing.spec.ts:135:3 › ServeMyFood Marketing Static Site Verification › Stage 4: Hardware validator rules, LIVE comparison section, and Tea Shop Token TV clip H (4.9s)
 
-  Slow test file: [chromium] › tests\marketing.spec.ts (55.6s)
+  Slow test file: [chromium] › tests\marketing.spec.ts (59.9s)
   Consider running tests from slow files in parallel, see https://playwright.dev/docs/test-parallel.
-  15 passed (1.3m)
+  15 passed (1.2m)
 

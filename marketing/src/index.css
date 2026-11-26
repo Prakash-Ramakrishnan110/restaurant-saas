@@ -34,6 +34,11 @@
 @tailwind components;
 @tailwind utilities;
 
+.cv-auto {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 420px;
+}
+
 @layer base {
   html {
     scroll-behavior: smooth;

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
-import { Globe, Mail, MapPin, MessageCircle, Phone } from "lucide-react";
-import { SITE_CONFIG, getWhatsAppHref } from "../../content/site";
+import { Globe } from "lucide-react";
+import { SITE_CONFIG } from "../../content/site";
 import { getPagePath, type Lang, type PageId } from "../routes";
 
 interface LayoutProps {
@@ -126,10 +126,9 @@ export const Layout: React.FC<LayoutProps> = ({ lang, page, onNavigate, children
       <main className="flex-1">{children}</main>
 
       <footer className="border-t border-[#E6E1D8] bg-white text-[#0B1F3B]">
-        <div className="mx-auto max-w-[1280px] px-5 sm:px-8 py-12 lg:py-16">
-          <div className="grid grid-cols-1 md:grid-cols-12 gap-10 pb-10 border-b border-[#E6E1D8]">
-            {/* Brand Column */}
-            <div className="md:col-span-5 space-y-4">
+        <div className="mx-auto max-w-[1160px] px-5 sm:px-8 py-10">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 pb-8 border-b border-[#E6E1D8]">
+            <div className="space-y-2">
               <a
                 href={homePath}
                 aria-label="ServeMyFood Home"
@@ -144,122 +143,17 @@ export const Layout: React.FC<LayoutProps> = ({ lang, page, onNavigate, children
                   className="h-8 w-auto"
                 />
               </a>
-              <p className="text-[15px] leading-[1.6] text-[#0B1F3B]/80 max-w-[38ch]">
+              <p className="text-[14px] leading-[1.6] text-[#0B1F3B]/75 max-w-[44ch]">
                 {isTa
                   ? "தேநீர்க் கடை, கஃபே, உணவகம் மற்றும் ஹோட்டல்களுக்கான எளிய ஆர்டர், சமையலறை திரை மற்றும் விற்பனை கணக்கு."
                   : "Simple orders, kitchen screen, billing and daily sales for tea shops, cafes, restaurants and hotels."}
               </p>
-              <p className="text-[14px] font-semibold text-[#0B1F3B]">{SITE_CONFIG.companyName}</p>
-            </div>
-
-            {/* Product Links */}
-            <div className="md:col-span-3 space-y-2">
-              <h2 className="font-display font-semibold text-[15px] text-[#0B1F3B] pb-1">
-                {isTa ? "பக்கங்கள்" : "Product"}
-              </h2>
-              <ul className="space-y-0.5 text-[15px]">
-                <li>
-                  <a
-                    href={page === "home" ? "#how-it-works" : `${homePath}#how-it-works`}
-                    className="inline-flex items-center min-h-[48px] text-[#0B1F3B]/90 hover:underline decoration-[#FF6A00] decoration-2 underline-offset-4 transition-colors"
-                  >
-                    {isTa ? "எப்படி இயங்கும்" : "How it works"}
-                  </a>
-                </li>
-                <li>
-                  <a
-                    href={hardwarePath}
-                    onClick={(e) => handleLinkClick(e, hardwarePath)}
-                    className="inline-flex items-center min-h-[48px] text-[#0B1F3B]/90 hover:underline decoration-[#FF6A00] decoration-2 underline-offset-4 transition-colors"
-                  >
-                    {isTa ? "சாதன வழிகாட்டி" : "Hardware guide"}
-                  </a>
-                </li>
-                <li>
-                  <a
-                    href={getPagePath("tea-shops", lang)}
-                    onClick={(e) => handleLinkClick(e, getPagePath("tea-shops", lang))}
-                    className="inline-flex items-center min-h-[48px] text-[#0B1F3B]/90 hover:underline decoration-[#FF6A00] decoration-2 underline-offset-4 transition-colors"
-                  >
-                    {isTa ? "தேநீர்க் கடை & பேக்கரி" : "Tea shops & bakeries"}
-                  </a>
-                </li>
-                <li>
-                  <a
-                    href={getPagePath("restaurants", lang)}
-                    onClick={(e) => handleLinkClick(e, getPagePath("restaurants", lang))}
-                    className="inline-flex items-center min-h-[48px] text-[#0B1F3B]/90 hover:underline decoration-[#FF6A00] decoration-2 underline-offset-4 transition-colors"
-                  >
-                    {isTa ? "கஃபே & உணவகம்" : "Cafes & restaurants"}
-                  </a>
-                </li>
-                <li>
-                  <a
-                    href={getPagePath("hotels", lang)}
-                    onClick={(e) => handleLinkClick(e, getPagePath("hotels", lang))}
-                    className="inline-flex items-center min-h-[48px] text-[#0B1F3B]/90 hover:underline decoration-[#FF6A00] decoration-2 underline-offset-4 transition-colors"
-                  >
-                    {isTa ? "ஹோட்டல்கள்" : "Hotels"}
-                  </a>
-                </li>
-                <li>
-                  <a
-                    href={SITE_CONFIG.appUrl}
-                    className="inline-flex items-center min-h-[48px] text-[#0B1F3B]/90 hover:underline decoration-[#FF6A00] decoration-2 underline-offset-4 transition-colors"
-                  >
-                    {isTa ? "பணியாளர் உள்நுழைவு" : "Staff Login"}
-                  </a>
-                </li>
-              </ul>
-            </div>
-
-            {/* Contact & WhatsApp */}
-            <div className="md:col-span-4 space-y-3">
-              <h2 className="font-display font-semibold text-[15px] text-[#0B1F3B] pb-1">
-                {isTa ? "தொடர்பு & டெமோ" : "Contact & Demo"}
-              </h2>
-              <div className="flex flex-col items-start gap-2.5">
-                <a
-                  href={getWhatsAppHref(
-                    "Hi ServeMyFood team, I would like a quick demo for my restaurant."
-                  )}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 min-h-[48px] px-4 rounded-[12px] bg-[#FF6A00] text-[15px] font-semibold text-[#0B1F3B] hover:bg-[#e55f00] transition-colors"
-                >
-                  <MessageCircle className="h-4 w-4" aria-hidden="true" />
-                  <span>WhatsApp: {SITE_CONFIG.contactPhone}</span>
-                </a>
-
-                <a
-                  href={`tel:${SITE_CONFIG.contactPhone.replace(/[^\d+]/g, "")}`}
-                  className="inline-flex items-center gap-2 min-h-[48px] text-[15px] font-medium text-[#0B1F3B]/85 hover:text-[#0B1F3B] transition-colors"
-                >
-                  <Phone className="h-4 w-4 text-[#0B1F3B]" aria-hidden="true" />
-                  <span>
-                    {isTa ? "அழைக்க" : "Call"}: {SITE_CONFIG.contactPhone}
-                  </span>
-                </a>
-
-                <a
-                  href={`mailto:${SITE_CONFIG.contactEmail}`}
-                  className="inline-flex items-center gap-2 min-h-[48px] text-[15px] font-medium text-[#0B1F3B]/85 hover:text-[#0B1F3B] transition-colors break-all"
-                >
-                  <Mail className="h-4 w-4 shrink-0 text-[#0B1F3B]" aria-hidden="true" />
-                  <span>{SITE_CONFIG.contactEmail}</span>
-                </a>
-
-                <p className="inline-flex items-center gap-2 text-[14px] text-[#0B1F3B]/80 pt-1">
-                  <MapPin className="h-4 w-4 shrink-0 text-[#0B1F3B]" aria-hidden="true" />
-                  <span>{isTa ? "தருமபுரி, தமிழ்நாடு, இந்தியா" : SITE_CONFIG.address}</span>
-                </p>
-              </div>
             </div>
           </div>
 
-          <div className="pt-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 text-[14px] text-[#0B1F3B]/75">
+          <div className="pt-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 text-[14px] text-[#0B1F3B]/75">
             <p>
-              © {new Date().getFullYear()} {SITE_CONFIG.companyName}.{" "}
+              © {new Date().getFullYear()} ServeMyFood.{" "}
               {isTa ? "அனைத்து உரிமைகளும் பாதுகாக்கப்பட்டவை." : "All rights reserved."}
             </p>
             <div className="flex flex-wrap items-center gap-6">

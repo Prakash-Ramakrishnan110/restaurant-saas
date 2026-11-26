@@ -406,7 +406,7 @@ export const HomePage: React.FC<HomePageProps> = ({ lang = "en", onNavigate }) =
       <ComparisonSection lang={lang} />
 
       {/* 4. MINIMAL ILLUSTRATED VENUES */}
-      <section id="who-it-is-for" className="bg-white py-12 lg:py-16 border-b border-[#E6E1D8]">
+      <section id="who-it-is-for" className="cv-auto bg-white py-12 lg:py-16 border-b border-[#E6E1D8]">
         <div className="mx-auto max-w-[1080px] px-5 sm:px-8 space-y-8">
           <div className="space-y-1.5 max-w-[56ch]">
             <h2 className="font-display font-semibold text-[24px] leading-[1.25] lg:text-[32px] text-[#0B1F3B]">
@@ -454,7 +454,7 @@ export const HomePage: React.FC<HomePageProps> = ({ lang = "en", onNavigate }) =
       <HardwareSection lang={lang} onNavigate={onNavigate} />
 
       {/* 6. MINIMAL FAQ (4 essential questions) */}
-      <section id="faq" className="bg-[#FFF3E0]/70 border-t border-[#E6E1D8] py-12 lg:py-16">
+      <section id="faq" className="cv-auto bg-[#FFF3E0]/70 border-t border-[#E6E1D8] py-12 lg:py-16">
         <div className="mx-auto max-w-[1080px] px-5 sm:px-8 space-y-6">
           <h2 className="font-display font-semibold text-[24px] leading-[1.25] lg:text-[32px] text-[#0B1F3B]">
             {isTa ? "பொதுவான கேள்விகள்" : "Common questions"}
@@ -499,7 +499,7 @@ export const HomePage: React.FC<HomePageProps> = ({ lang = "en", onNavigate }) =
       </section>
 
       {/* 7. BOOK A DEMO */}
-      <section id="book-demo" className="bg-[#0B1F3B] py-12 lg:py-16 text-white">
+      <section id="book-demo" className="cv-auto bg-[#0B1F3B] py-12 lg:py-16 text-white">
         <div className="mx-auto max-w-[1080px] px-5 sm:px-8 grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
           <div className="lg:col-span-5 space-y-4">
             <h2 className="font-display font-semibold text-[24px] leading-[1.25] lg:text-[32px] text-white">
