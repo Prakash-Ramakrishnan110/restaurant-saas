@@ -12,3 +12,12 @@ The following items are intentionally excluded from the current release and Upda
 8. **Per-dish recorded human voice studio packs**: Dynamic dish names use Web Speech synthesis (with English fallback when Tamil system voices are absent), while recorded clip packs cover numbers `0..999` and fixed callout phrases.
 9. **Direct USB/LAN ESC/POS hardware bridge**: Browser CSS thermal printing (58mm/80mm) is active; native local bridge remains deferred until physical printer models are tested and recorded in `docs/help/printers-tested.md`.
 10. **Guest UI languages beyond English and Tamil**: Menu translation preparation supports additional languages, while guest UI switcher awaits native-reviewed UI copy.
+11. **Android Staff APK Deferred Scope (from Waiter APK Program)**:
+    - iPhone / iOS app (out of scope; Android staff only).
+    - Google Play Store listing (pilot uses direct signed APK distribution).
+    - Certificate pinning & root detection.
+    - Biometric unlock.
+    - Offline order queue in the Android wrapper.
+    - Direct Bluetooth printing from the phone.
+    - In-app APK auto-install.
+    - Third-party analytics and crash reporting SDKs.

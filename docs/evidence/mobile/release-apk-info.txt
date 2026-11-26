@@ -1,0 +1,8 @@
+﻿Build Type: Release (production)
+Version Code: 160
+Version Name: v1.8.0-sound-6-ged9fe66
+API Base URL: https://api.servemyfood.in
+APK Path: C:\Users\praka\Desktop\Restaurant_saas\mobile\android\app\build\outputs\apk\release\app-release-unsigned.apk
+Size (bytes): 1943042
+Size (MB): 1.85
+SHA-256: 5F58CB1FC859FF6F778E4309AD938EA0474A400B2F04A99CED951754F83E2EB2

@@ -64,6 +64,21 @@ test-results/
 .playwright-mcp/
 
 # Environment & Secrets
+*.jks
+*.keystore
+keystore.properties
+google-services.json
+*firebase-adminsdk*.json
+*service-account*.json
+
+# Android / Capacitor
+mobile/android/.gradle/
+mobile/android/app/build/
+mobile/android/build/
+mobile/android/local.properties
+mobile/android/capacitor-cordova-android-plugins/
+*.apk
+*.aab
 
 # IDE
 .idea/

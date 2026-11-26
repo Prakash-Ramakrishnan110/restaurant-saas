@@ -1,9 +1,13 @@
 from .base import *  # noqa: F403
 
 DEBUG = True
+ALLOWED_HOSTS = ["*"]
 
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOWED_ORIGINS = [
+    "http://localhost",
+    "https://localhost",
+    "capacitor://localhost",
     "http://localhost:5173",
     "http://127.0.0.1:5173",
     "http://localhost:5174",

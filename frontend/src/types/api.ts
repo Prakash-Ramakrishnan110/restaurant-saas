@@ -41,6 +41,23 @@ export interface paths {
         patch: operations["announcements_partial_update"];
         trace?: never;
     };
+    "/api/v1/app/android-config/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description Public minimum/latest Android app version configuration (no-store). */
+        get: operations["app_android_config_retrieve"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/audit-logs/": {
         parameters: {
             query?: never;
@@ -128,6 +145,57 @@ export interface paths {
         head?: never;
         /** @description Returns profile of the authenticated user, all memberships, and permissions for active tenant. */
         patch: operations["auth_me_partial_update"];
+        trace?: never;
+    };
+    "/api/v1/auth/native/login/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** @description Native Android login returning access & refresh in JSON (no cookies). */
+        post: operations["auth_native_login_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/auth/native/logout/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** @description Blacklist native refresh token and clear device push token (no cookies). */
+        post: operations["auth_native_logout_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/auth/native/refresh/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** @description Rotate native refresh token (no cookies). */
+        post: operations["auth_native_refresh_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
         trace?: never;
     };
     "/api/v1/auth/refresh/": {
@@ -319,6 +387,75 @@ export interface paths {
         put?: never;
         /** @description Customer CRM directory for guest preferences, visit counts, and consent (H-24). */
         post: operations["customers_loyalty_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/devices/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description List active staff phones within the tenant/branch scope (OWNER & BRANCH_MANAGER). */
+        get: operations["devices_list"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/devices/{device_id}/revoke/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** @description Remote sign-out for a staff phone within tenant/branch scope. */
+        post: operations["devices_revoke_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/devices/me/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description Register/update current user's device or list own active devices (no tokens returned). */
+        get: operations["devices_me_list"];
+        /** @description Register/update current user's device or list own active devices (no tokens returned). */
+        put: operations["devices_me_update"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/devices/me/test-push/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** @description Trigger test push to current user's active device (Stage 2 delivers via FCM). */
+        post: operations["devices_me_test_push_create"];
         delete?: never;
         options?: never;
         head?: never;
@@ -3593,6 +3730,12 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        AndroidConfigResponse: {
+            minimum_version_code: number;
+            latest_version_code: number;
+            download_url: string;
+            maintenance_message: string;
+        };
         /**
          * @description * `INFO` - Information
          *     * `MAINTENANCE` - Scheduled Maintenance
@@ -4648,6 +4791,38 @@ export interface components {
             image_focus_x?: number;
             /** Format: double */
             image_focus_y?: number;
+        };
+        NativeLoginRequestRequest: {
+            /** Format: email */
+            email: string;
+            password: string;
+            device_id: string;
+            /** @default  */
+            app_version: string;
+            /** @default  */
+            device_name: string;
+        };
+        NativeLoginResponse: {
+            access: string;
+            refresh: string;
+            user: components["schemas"]["User"];
+            /** Format: uuid */
+            active_tenant_id: string | null;
+            memberships: components["schemas"]["MembershipSummary"][];
+            device_id: string;
+        };
+        NativeLogoutRequestRequest: {
+            /** @default  */
+            refresh: string;
+            /** @default  */
+            device_id: string;
+        };
+        NativeRefreshRequestRequest: {
+            refresh: string;
+        };
+        NativeRefreshResponse: {
+            access: string;
+            refresh: string;
         };
         OnboardingStatus: {
             is_complete: boolean;
@@ -5801,6 +5976,11 @@ export interface components {
             outlet_names?: string[];
         };
         /**
+         * @description * `ANDROID` - Android
+         * @enum {string}
+         */
+        PlatformEnum: "ANDROID";
+        /**
          * @description * `LOW` - Low
          *     * `MEDIUM` - Medium
          *     * `HIGH` - High
@@ -6137,6 +6317,9 @@ export interface components {
          * @enum {string}
          */
         RestockActionEnum: "NONE" | "RESTOCK" | "WASTE";
+        RevokeDeviceRequestRequest: {
+            reason: string;
+        };
         Section: {
             /** Format: uuid */
             readonly id: string;
@@ -6259,6 +6442,36 @@ export interface components {
         StaffDetailRequest: {
             role: string;
             is_active?: boolean;
+        };
+        StaffDevicePublic: {
+            /** Format: uuid */
+            readonly id: string;
+            /** Format: uuid */
+            readonly user_id: string;
+            /** Format: email */
+            readonly user_email: string;
+            readonly user_full_name: string;
+            readonly short_device_id: string;
+            platform?: components["schemas"]["PlatformEnum"];
+            device_name?: string;
+            app_version?: string;
+            push_enabled?: boolean;
+            /** Format: date-time */
+            last_seen_at?: string | null;
+            /** Format: date-time */
+            revoked_at?: string | null;
+            revoked_reason?: string;
+            /** Format: date-time */
+            readonly created_at: string;
+        };
+        StaffDeviceUpsertRequest: {
+            device_id: string;
+            /** @default  */
+            device_name: string;
+            /** @default  */
+            app_version: string;
+            push_token?: string | null;
+            push_enabled?: boolean;
         };
         StaffSectionAssignment: {
             /** Format: uuid */
@@ -6911,6 +7124,25 @@ export interface operations {
             };
         };
     };
+    app_android_config_retrieve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AndroidConfigResponse"];
+                };
+            };
+        };
+    };
     audit_logs_list: {
         parameters: {
             query?: {
@@ -7063,6 +7295,101 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["AuthMeResponse"];
+                };
+            };
+        };
+    };
+    auth_native_login_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["NativeLoginRequestRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["NativeLoginRequestRequest"];
+                "multipart/form-data": components["schemas"]["NativeLoginRequestRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NativeLoginResponse"];
+                };
+            };
+            /** @description Missing X-Client header or invalid payload */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Invalid credentials or role disallowed */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Rate limit exceeded */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    auth_native_logout_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["NativeLogoutRequestRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["NativeLogoutRequestRequest"];
+                "multipart/form-data": components["schemas"]["NativeLogoutRequestRequest"];
+            };
+        };
+        responses: {
+            /** @description Logged out */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    auth_native_refresh_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["NativeRefreshRequestRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["NativeRefreshRequestRequest"];
+                "multipart/form-data": components["schemas"]["NativeRefreshRequestRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NativeRefreshResponse"];
                 };
             };
         };
@@ -7555,6 +7882,114 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["Customer"];
                 };
+            };
+        };
+    };
+    devices_list: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StaffDevicePublic"][];
+                };
+            };
+        };
+    };
+    devices_revoke_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                device_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RevokeDeviceRequestRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["RevokeDeviceRequestRequest"];
+                "multipart/form-data": components["schemas"]["RevokeDeviceRequestRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StaffDevicePublic"];
+                };
+            };
+        };
+    };
+    devices_me_list: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StaffDevicePublic"][];
+                };
+            };
+        };
+    };
+    devices_me_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["StaffDeviceUpsertRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["StaffDeviceUpsertRequest"];
+                "multipart/form-data": components["schemas"]["StaffDeviceUpsertRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StaffDevicePublic"];
+                };
+            };
+        };
+    };
+    devices_me_test_push_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Test push status */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };

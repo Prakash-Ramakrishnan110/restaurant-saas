@@ -14,6 +14,7 @@ import { Button } from "../../components/ui/button";
 import { Badge } from "../../components/ui/badge";
 import { AuthContext } from "../../context/AuthContext";
 import { ordersApi } from "../../api/orders";
+import { NativePhoneSection } from "../../components/native/NativePhoneSection";
 import { soundEngine } from "../../sound/engine";
 import {
   composeAnnouncementText,
@@ -696,6 +697,7 @@ export const SoundSettingsPage: React.FC = () => {
       </section>
 
       {/* Privacy Notice */}
+      <NativePhoneSection />
       <div className="rounded-lg border border-border bg-muted/30 p-3 text-xs text-muted-foreground flex items-start gap-2">
         <ShieldAlert className="h-4 w-4 text-[#FF6A00] shrink-0 mt-0.5" />
         <span>

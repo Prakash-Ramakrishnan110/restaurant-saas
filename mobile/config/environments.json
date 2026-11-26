@@ -1,0 +1,14 @@
+{
+  "staging": {
+    "apiBaseUrl": "https://staging-api.servemyfood.in",
+    "allowedHosts": ["staging-api.servemyfood.in"]
+  },
+  "production": {
+    "apiBaseUrl": "https://restaurant-saas-production-316ea88b.up.railway.app",
+    "allowedHosts": ["restaurant-saas-production-316ea88b.up.railway.app", "api.servemyfood.in"]
+  },
+  "emulator": {
+    "apiBaseUrl": "http://10.0.2.2:8000",
+    "allowedHosts": ["10.0.2.2"]
+  }
+}

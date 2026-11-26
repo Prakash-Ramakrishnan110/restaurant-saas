@@ -1,4 +1,5 @@
 import axios, { AxiosError, AxiosRequestConfig, InternalAxiosRequestConfig } from "axios";
+import { getApiBaseUrl, isNativeApp, nativeTokenStorage } from "../native/bridge";
 
 export interface ApiErrorPayload {
   error: {
@@ -28,8 +29,8 @@ export const getActiveTenantId = (): string | null => {
 };
 
 export const apiClient = axios.create({
-  baseURL: "/api/v1",
-  withCredentials: true, // Send httpOnly cookies (refresh token)
+  baseURL: getApiBaseUrl(),
+  withCredentials: !isNativeApp(), // Send httpOnly cookies on web; disabled on native APK
   headers: {
     "Content-Type": "application/json",
   },
@@ -66,6 +67,25 @@ export const refreshAccessToken = async (): Promise<string | null> => {
 
   refreshPromise = (async () => {
     try {
+      if (isNativeApp()) {
+        const storedRefresh = await nativeTokenStorage.getRefreshToken();
+        if (!storedRefresh) {
+          setAccessToken(null);
+          return null;
+        }
+        const response = await axios.post<{ access: string; refresh: string }>(
+          `${getApiBaseUrl()}/auth/native/refresh/`,
+          { refresh: storedRefresh },
+          { withCredentials: false }
+        );
+        const { access, refresh } = response.data;
+        if (refresh) {
+          await nativeTokenStorage.setRefreshToken(refresh);
+        }
+        setAccessToken(access);
+        return access;
+      }
+
       const response = await axios.post<{ access: string }>(
         "/api/v1/auth/refresh/",
         {},
@@ -74,8 +94,16 @@ export const refreshAccessToken = async (): Promise<string | null> => {
       const newAccess = response.data.access;
       setAccessToken(newAccess);
       return newAccess;
-    } catch {
-      setAccessToken(null);
+    } catch (err) {
+      const status = (err as AxiosError)?.response?.status;
+      if (isNativeApp() && (status === 401 || status === 403)) {
+        await nativeTokenStorage.clearRefreshToken();
+        setAccessToken(null);
+        return null;
+      }
+      if (!isNativeApp()) {
+        setAccessToken(null);
+      }
       return null;
     } finally {
       refreshPromise = null;
@@ -110,7 +138,8 @@ apiClient.interceptors.response.use(
     const isAuthRoute =
       originalRequest.url?.includes("/auth/login/") ||
       originalRequest.url?.includes("/auth/refresh/") ||
-      originalRequest.url?.includes("/auth/logout/");
+      originalRequest.url?.includes("/auth/logout/") ||
+      originalRequest.url?.includes("/auth/native/");
 
     if (error.response?.status === 401 && !originalRequest._retry && !isAuthRoute) {
       originalRequest._retry = true;

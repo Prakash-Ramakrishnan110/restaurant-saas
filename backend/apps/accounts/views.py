@@ -357,6 +357,15 @@ class ChangePasswordView(APIView):
         for tok in OutstandingToken.objects.filter(user=user):
             BlacklistedToken.objects.get_or_create(token=tok)
 
+        from apps.accounts.native_service import revoke_user_devices
+
+        revoke_user_devices(
+            user,
+            reason="Password changed",
+            actor=user,
+            request=request,
+        )
+
         # Issue fresh token pair (access in JSON body, refresh in httpOnly cookie only)
         fresh_refresh = RefreshToken.for_user(user)
         fresh_access = str(fresh_refresh.access_token)

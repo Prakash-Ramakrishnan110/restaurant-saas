@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">ServeMyFood Staff</string>
+    <string name="title_activity_main">ServeMyFood Staff</string>
+    <string name="package_name">in.fusionengine.servemyfood.staff</string>
+    <string name="custom_url_scheme">in.fusionengine.servemyfood.staff</string>
+</resources>

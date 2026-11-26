@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import { isNativeApp } from "../../native/bridge";
 import {
   LogOut,
   Sun,
@@ -259,6 +260,7 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
   const [installPrompt, setInstallPrompt] = useState<any>(null);
 
   useEffect(() => {
+    if (isNativeApp()) return;
     const onBeforeInstall = (e: Event) => {
       e.preventDefault();
       setInstallPrompt(e);

@@ -1,0 +1,8 @@
+﻿Build Type: Debug
+Version Code: 160
+Version Name: v1.8.0-sound-6-ged9fe66
+API Base URL: https://restaurant-saas-production-316ea88b.up.railway.app
+APK Path: C:\Users\praka\Desktop\Restaurant_saas\mobile\android\app\build\outputs\apk\debug\app-debug.apk
+Size (bytes): 5222325
+Size (MB): 4.98
+SHA-256: B7BAB73D1312260B07A588AAF987A081CCD9CB65C9FDA72682F63DB5128CD3AE

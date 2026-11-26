@@ -6,6 +6,12 @@ import {
   setAccessToken,
   setActiveTenantId,
 } from "../api/client";
+import {
+  getInstalledAppVersion,
+  getOrCreateDeviceId,
+  isNativeApp,
+  nativeTokenStorage,
+} from "../native/bridge";
 
 export interface UserProfile {
   id: string;
@@ -96,10 +102,33 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, []);
 
-  // Initial silent authentication via refresh cookie
+  // Initial silent authentication via refresh cookie (web) or Keystore refresh token (native)
   useEffect(() => {
     let active = true;
     const initAuth = async () => {
+      if (isNativeApp()) {
+        const storedRefresh = await nativeTokenStorage.getRefreshToken();
+        if (!storedRefresh) {
+          if (active) setIsLoading(false);
+          return;
+        }
+        try {
+          const access = getAccessToken() || (await refreshAccessToken());
+          if (!active) return;
+          if (access) {
+            await fetchProfile();
+          } else {
+            setAccessToken(null);
+          }
+        } catch {
+          if (!active) return;
+          setAccessToken(null);
+        } finally {
+          if (active) setIsLoading(false);
+        }
+        return;
+      }
+
       const hasSession = localStorage.getItem("servemyfood_has_session");
       if (!hasSession) {
         if (active) setIsLoading(false);
@@ -134,20 +163,47 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const login = async (email: string, password: string) => {
     setIsLoading(true);
     try {
-      const res = await apiClient.post<{
-        access: string;
-        user?: { must_change_password?: boolean };
-      }>("/auth/login/", {
-        email,
-        password,
-      });
-      setAccessToken(res.data.access);
-      localStorage.setItem("servemyfood_has_session", "true");
+      let loginUser: { must_change_password?: boolean } | undefined;
+      if (isNativeApp()) {
+        const [deviceId, appInfo] = await Promise.all([
+          getOrCreateDeviceId(),
+          getInstalledAppVersion(),
+        ]);
+        const res = await apiClient.post<{
+          access: string;
+          refresh: string;
+          user?: { must_change_password?: boolean };
+        }>(
+          "/auth/native/login/",
+          {
+            email,
+            password,
+            device_id: deviceId,
+            app_version: appInfo.name,
+            device_name: "Android Staff",
+          },
+          { headers: { "X-Client": "android-staff" } }
+        );
+        await nativeTokenStorage.setRefreshToken(res.data.refresh);
+        setAccessToken(res.data.access);
+        loginUser = res.data.user;
+      } else {
+        const res = await apiClient.post<{
+          access: string;
+          user?: { must_change_password?: boolean };
+        }>("/auth/login/", {
+          email,
+          password,
+        });
+        setAccessToken(res.data.access);
+        localStorage.setItem("servemyfood_has_session", "true");
+        loginUser = res.data.user;
+      }
       const profile = await fetchProfile();
       const needsChange = Boolean(
         profile?.must_change_password ??
         profile?.user?.must_change_password ??
-        res.data?.user?.must_change_password
+        loginUser?.must_change_password
       );
       const isPlatformAdmin = Boolean(
         profile?.user?.is_platform_admin ??
@@ -167,9 +223,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const logout = async () => {
     setIsLoading(true);
     try {
-      await apiClient.post("/auth/logout/");
+      if (isNativeApp()) {
+        const [refresh, deviceId] = await Promise.all([
+          nativeTokenStorage.getRefreshToken(),
+          getOrCreateDeviceId(),
+        ]);
+        await apiClient.post("/auth/native/logout/", {
+          refresh: refresh || "",
+          device_id: deviceId,
+        });
+        await nativeTokenStorage.clearRefreshToken();
+      } else {
+        await apiClient.post("/auth/logout/");
+      }
     } catch {
-      // Ignore errors on logout
+      if (isNativeApp()) {
+        await nativeTokenStorage.clearRefreshToken();
+      }
     } finally {
       setAccessToken(null);
       setUser(null);

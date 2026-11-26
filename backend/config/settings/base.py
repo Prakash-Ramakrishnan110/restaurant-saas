@@ -185,6 +185,7 @@ CORS_ALLOW_HEADERS = [
     *default_headers,
     "idempotency-key",
     "x-tenant-id",
+    "x-client",
 ]
 CORS_ALLOWED_ORIGINS = env.list(
     "CORS_ALLOWED_ORIGINS",
@@ -233,6 +234,8 @@ REST_FRAMEWORK = {
         "public_qr_ip": "30/minute",
         "public_qr_token": "20/minute",
         "public_order_track": "60/minute",
+        "device_register": "30/minute",
+        "test_push": "3/minute",
     },
 }
 
@@ -268,6 +271,18 @@ SIMPLE_JWT = {
 # Cookie Settings for Refresh Token
 REFRESH_COOKIE_NAME = "refresh_token"
 COOKIE_SECURE = env.bool("COOKIE_SECURE", default=False)
+
+# Native Android Staff App Settings
+NATIVE_ALLOWED_ROLES = env.list(
+    "NATIVE_ALLOWED_ROLES",
+    default=["OWNER", "BRANCH_MANAGER", "CASHIER", "WAITER", "KITCHEN"],
+)
+ANDROID_APP_CONFIG = {
+    "minimum_version_code": env.int("ANDROID_MINIMUM_VERSION_CODE", default=1),
+    "latest_version_code": env.int("ANDROID_LATEST_VERSION_CODE", default=1),
+    "download_url": env.str("ANDROID_DOWNLOAD_URL", default=""),
+    "maintenance_message": env.str("ANDROID_MAINTENANCE_MESSAGE", default=""),
+}
 COOKIE_SAMESITE = env.str("COOKIE_SAMESITE", default="Lax")
 COOKIE_PATH = "/api/v1/auth/"
 

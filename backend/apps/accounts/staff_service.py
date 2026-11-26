@@ -258,6 +258,16 @@ def update_staff_member(
         membership.is_active = is_active
     membership.save()
 
+    if is_active is False:
+        from apps.accounts.native_service import revoke_user_devices
+
+        revoke_user_devices(
+            membership.user,
+            reason="Staff account deactivated",
+            actor=actor,
+            request=request,
+        )
+
     if branches is not None:
         membership.branches.set(branches)
 

@@ -23,6 +23,7 @@ import {
   DialogFooter,
 } from "../../components/ui/dialog";
 import { ConfirmDialog } from "../../components/ui/confirm-dialog";
+import { StaffPhonesPanel } from "../../components/native/StaffPhonesPanel";
 import { apiClient } from "../../api/client";
 import { useAuth } from "../../context/AuthContext";
 import { useTranslation } from "react-i18next";
@@ -501,6 +502,8 @@ export const StaffPage: React.FC = () => {
           </table>
         </div>
       )}
+
+      <StaffPhonesPanel />
 
       {/* Add Staff Dialog */}
       <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>

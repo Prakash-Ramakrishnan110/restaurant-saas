@@ -103,3 +103,43 @@ class Membership(UUIDModel, TimeStampedModel):
 
     def __str__(self) -> str:
         return f"{self.user.email} -> {self.tenant.name} [{self.role}]"
+
+
+class StaffDevice(UUIDModel, TimeStampedModel):
+    """Registered native mobile device for a staff user (Keystore session & push target)."""
+
+    class Platform(models.TextChoices):
+        ANDROID = "ANDROID", "Android"
+
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name="staff_devices",
+        db_index=True,
+    )
+    device_id = models.CharField(max_length=128, db_index=True)
+    platform = models.CharField(
+        max_length=16,
+        choices=Platform.choices,
+        default=Platform.ANDROID,
+    )
+    device_name = models.CharField(max_length=120, blank=True, default="")
+    app_version = models.CharField(max_length=32, blank=True, default="")
+    push_token = models.CharField(max_length=512, null=True, blank=True)
+    push_enabled = models.BooleanField(default=True)
+    current_refresh_jti = models.CharField(max_length=64, blank=True, default="", db_index=True)
+    last_seen_at = models.DateTimeField(null=True, blank=True)
+    revoked_at = models.DateTimeField(null=True, blank=True, db_index=True)
+    revoked_reason = models.CharField(max_length=255, blank=True, default="")
+
+    class Meta:
+        ordering = ["-last_seen_at", "-created_at"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["user", "device_id"],
+                name="unique_staff_device_per_user",
+            )
+        ]
+
+    def __str__(self) -> str:
+        return f"{self.user.email} [{self.platform}:{self.device_id[:8]}]"
