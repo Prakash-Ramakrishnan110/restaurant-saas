@@ -612,7 +612,7 @@ test.describe("ServeMyFood: 5-Minute End-to-End Live Demo Journey (D1)", () => {
     await settleBtn.click();
 
     // Verify 80mm Thermal Receipt Modal
-    await expect(page.locator("text=DEMO RECEIPT - NOT A TAX INVOICE")).toBeVisible({ timeout: 10000 });
+    await expect(page.locator("text=TAX INVOICE")).toBeVisible({ timeout: 10000 });
     await expect(page.getByRole("dialog").getByText("INV-DEMO-001").first()).toBeVisible();
     await expect(page.getByRole("dialog").getByRole("heading", { name: "The Grand Kaveri Cafe" })).toBeVisible();
 

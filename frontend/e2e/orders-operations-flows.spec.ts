@@ -629,7 +629,7 @@ test.describe("Production Operational & Sidebar Suite", () => {
 
     // Verify 80mm Thermal Receipt Dialog appears
     await expect(page.getByText(/Receipt INV-2026-5001/i)).toBeVisible();
-    await expect(page.getByText("DEMO RECEIPT - NOT A TAX INVOICE")).toBeVisible();
+    await expect(page.getByText("TAX INVOICE")).toBeVisible();
     await expect(page.getByRole("button", { name: "Print 80mm Receipt" })).toBeVisible();
   });
 
@@ -801,7 +801,7 @@ test.describe("Production Operational & Sidebar Suite", () => {
     await reprintBtn.click();
 
     // Verify 80mm Receipt dialog
-    await expect(page.getByText("DEMO RECEIPT - NOT A TAX INVOICE")).toBeVisible();
+    await expect(page.getByText("TAX INVOICE")).toBeVisible();
     await expect(page.getByText("INV-2026-5001").first()).toBeVisible();
   });
 });

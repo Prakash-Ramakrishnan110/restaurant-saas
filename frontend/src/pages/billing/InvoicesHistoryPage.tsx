@@ -20,10 +20,7 @@ import { Input } from "../../components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../../components/ui/dialog";
 import { useAuth } from "../../context/AuthContext";
 import { dispatchThermalPrint } from "../../utils/thermalPrint";
-import {
-  ReceiptTaxBreakdown,
-  ReviewQrFooter,
-} from "../../components/billing/ReceiptTaxAndQrBlock";
+import { ReceiptTaxBreakdown, ReviewQrFooter } from "../../components/billing/ReceiptTaxAndQrBlock";
 
 const REFUND_REASONS = [
   { value: "ITEM_RETURNED", label: "Item Returned by Guest" },
@@ -581,7 +578,9 @@ export const InvoicesHistoryPage: React.FC = () => {
             <div className="w-full max-w-[80mm] mx-auto border-2 border-dashed border-gray-300 p-4 space-y-4">
               <div className="text-center space-y-1 border-b border-gray-300 pb-3">
                 <div className="font-black text-base uppercase tracking-wider">
-                  {reprintInvoice?.legal_name || activeTenant?.tenant_name || "ServeMyFood Restaurant"}
+                  {reprintInvoice?.legal_name ||
+                    activeTenant?.tenant_name ||
+                    "ServeMyFood Restaurant"}
                 </div>
                 {reprintInvoice?.gstin && (
                   <div className="text-[10px] text-gray-700 font-semibold">

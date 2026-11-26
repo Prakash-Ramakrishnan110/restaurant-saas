@@ -63,7 +63,9 @@ export const PlatformCatalogPage: React.FC = () => {
       setTotalCount(res.data?.count || 0);
       setUniqueCount(res.data?.unique_image_count || 0);
     } catch {
-      setError("Could not load food catalogue. Make sure the backend and PostgreSQL database are running.");
+      setError(
+        "Could not load food catalogue. Make sure the backend and PostgreSQL database are running."
+      );
     } finally {
       setLoading(false);
     }
@@ -81,11 +83,9 @@ export const PlatformCatalogPage: React.FC = () => {
     try {
       const form = new FormData();
       form.append("image", file);
-      const res = await apiClient.post<CatalogItem>(
-        `/menu/catalog/${itemId}/upload-image/`,
-        form,
-        { headers: { "Content-Type": "multipart/form-data" } }
-      );
+      const res = await apiClient.post<CatalogItem>(`/menu/catalog/${itemId}/upload-image/`, form, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
       setItems((prev) => prev.map((it) => (it.id === itemId ? res.data : it)));
       setCacheBust((prev) => ({ ...prev, [itemId]: Date.now() }));
     } finally {

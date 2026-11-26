@@ -29,10 +29,7 @@ import {
 import { formatRupees, parseRupees } from "../../utils/currency";
 import { unwrapList, ListResponse } from "../../api/pagination";
 import { computeEqualSplitShares } from "../../utils/thermalPrint";
-import {
-  ReceiptTaxBreakdown,
-  ReviewQrFooter,
-} from "../../components/billing/ReceiptTaxAndQrBlock";
+import { ReceiptTaxBreakdown, ReviewQrFooter } from "../../components/billing/ReceiptTaxAndQrBlock";
 
 interface TableSessionInfo {
   id: string;
@@ -781,18 +778,21 @@ export const BillingPage: React.FC = () => {
             </div>
 
             <div className="py-2 border-b border-dashed border-gray-400 space-y-1">
-              {(billData?.items || settledInvoice?.items || settledInvoice?.snapshot_lines || []).map(
-                (it: any, i: number) => (
-                  <div key={i} className="flex justify-between text-xs">
-                    <span>
-                      {it.quantity}x {it.item_name}
-                    </span>
-                    <span>
-                      {formatRupees(it.subtotal_paise || it.unit_price_paise * it.quantity)}
-                    </span>
-                  </div>
-                )
-              )}
+              {(
+                billData?.items ||
+                settledInvoice?.items ||
+                settledInvoice?.snapshot_lines ||
+                []
+              ).map((it: any, i: number) => (
+                <div key={i} className="flex justify-between text-xs">
+                  <span>
+                    {it.quantity}x {it.item_name}
+                  </span>
+                  <span>
+                    {formatRupees(it.subtotal_paise || it.unit_price_paise * it.quantity)}
+                  </span>
+                </div>
+              ))}
             </div>
 
             <ReceiptTaxBreakdown

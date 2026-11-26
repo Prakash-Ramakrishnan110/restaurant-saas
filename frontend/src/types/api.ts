@@ -1127,6 +1127,57 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/menu/catalog/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description Search and browse the global Master Food Catalogue. */
+        get: operations["menu_catalog_list"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/menu/catalog/{catalog_id}/add-to-menu/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** @description Add a global Master Food Catalogue item into the tenant's active menu. */
+        post: operations["menu_catalog_add_to_menu_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/menu/catalog/{catalog_id}/upload-image/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** @description Upload or replace a dish photo on a Master Food Catalogue item. */
+        post: operations["menu_catalog_upload_image_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/menu/categories/": {
         parameters: {
             query?: never;
@@ -3604,6 +3655,17 @@ export interface components {
             subtotal_paise?: number;
             /** Format: int64 */
             discount_paise?: number;
+            tax_mode?: string;
+            /** Format: decimal */
+            tax_rate_percent?: string;
+            /** Format: int64 */
+            taxable_paise?: number;
+            /** Format: int64 */
+            cgst_paise?: number;
+            /** Format: int64 */
+            sgst_paise?: number;
+            /** Format: int64 */
+            tax_paise?: number;
             /** Format: int64 */
             total_paise?: number;
             readonly refunded_paise: number;
@@ -3619,6 +3681,12 @@ export interface components {
             settled_at?: string | null;
             notes?: string;
             readonly refunds: components["schemas"]["InvoiceRefund"][];
+            readonly gstin: string;
+            readonly legal_name: string;
+            readonly registered_address: string;
+            readonly receipt_footer_text: string;
+            readonly review_qr_url: string;
+            readonly review_qr_label: string;
         };
         BillInvoiceRequest: {
             invoice_number: string;
@@ -3626,6 +3694,17 @@ export interface components {
             subtotal_paise?: number;
             /** Format: int64 */
             discount_paise?: number;
+            tax_mode?: string;
+            /** Format: decimal */
+            tax_rate_percent?: string;
+            /** Format: int64 */
+            taxable_paise?: number;
+            /** Format: int64 */
+            cgst_paise?: number;
+            /** Format: int64 */
+            sgst_paise?: number;
+            /** Format: int64 */
+            tax_paise?: number;
             /** Format: int64 */
             total_paise?: number;
             snapshot_lines?: unknown;
@@ -3761,6 +3840,13 @@ export interface components {
             document_language?: components["schemas"]["DocumentLanguageEnum"];
             receipt_footer_text?: string;
             tax_mode?: components["schemas"]["TaxMode"];
+            /** Format: decimal */
+            food_gst_percent?: string;
+            /** Format: decimal */
+            hotel_gst_percent?: string;
+            /** Format: uri */
+            review_qr_url?: string;
+            review_qr_label?: string;
             /** Format: date-time */
             readonly created_at: string;
             /** Format: date-time */
@@ -3768,6 +3854,13 @@ export interface components {
         };
         BusinessSettings: {
             tax_mode?: components["schemas"]["TaxMode"];
+            /** Format: decimal */
+            food_gst_percent?: string;
+            /** Format: decimal */
+            hotel_gst_percent?: string;
+            /** Format: uri */
+            review_qr_url?: string;
+            review_qr_label?: string;
             invoice_prefix?: string;
             logo_url?: string;
             logo_128_url?: string;
@@ -3781,6 +3874,13 @@ export interface components {
         };
         BusinessSettingsRequest: {
             tax_mode?: components["schemas"]["TaxMode"];
+            /** Format: decimal */
+            food_gst_percent?: string;
+            /** Format: decimal */
+            hotel_gst_percent?: string;
+            /** Format: uri */
+            review_qr_url?: string;
+            review_qr_label?: string;
             invoice_prefix?: string;
             logo_url?: string;
             logo_128_url?: string;
@@ -4107,6 +4207,23 @@ export interface components {
          * @enum {string}
          */
         EventTypeEnum: "CREATED" | "STATUS_CHANGED" | "ITEM_FIRED" | "TOKEN_CALLED" | "CANCELLED" | "COMPLETED";
+        FoodCatalogItem: {
+            /** Format: uuid */
+            readonly id: string;
+            readonly item_code: string;
+            readonly name: string;
+            readonly name_ta: string;
+            readonly main_category: string;
+            readonly subcategory: string;
+            readonly cuisine: string;
+            readonly food_type: components["schemas"]["FoodTypeEnum"];
+            readonly description: string;
+            readonly default_price_paise: number | null;
+            readonly is_bestseller: boolean;
+            readonly image_key: string;
+            readonly image_card: string;
+            readonly image_thumb: string;
+        };
         /**
          * @description * `VEG` - Vegetarian
          *     * `NON_VEG` - Non-Vegetarian
@@ -5352,6 +5469,13 @@ export interface components {
             document_language?: components["schemas"]["DocumentLanguageEnum"];
             receipt_footer_text?: string;
             tax_mode?: components["schemas"]["TaxMode"];
+            /** Format: decimal */
+            food_gst_percent?: string;
+            /** Format: decimal */
+            hotel_gst_percent?: string;
+            /** Format: uri */
+            review_qr_url?: string;
+            review_qr_label?: string;
         };
         PatchedCustomerRequest: {
             name?: string;
@@ -9454,6 +9578,67 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["BranchItemAvailability"];
+                };
+            };
+        };
+    };
+    menu_catalog_list: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FoodCatalogItem"][];
+                };
+            };
+        };
+    };
+    menu_catalog_add_to_menu_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                catalog_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MenuItem"];
+                };
+            };
+        };
+    };
+    menu_catalog_upload_image_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                catalog_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FoodCatalogItem"];
                 };
             };
         };

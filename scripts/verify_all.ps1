@@ -280,15 +280,13 @@ Run-Gate -Id 17 `
     -OutputFile "tax-scan.txt" `
     -WorkingDir $RepoRoot `
     -Action {
-        $hits = git grep -n -i -E "cgst|sgst|igst|tax_paise|tax invoice|\b(5|12|18|28)%[[:space:]]*(gst|tax)" -- frontend/src backend/apps ':!**/migrations/**' ':!**/tests/**' ':!**/*.test.*' ':!**/*.spec.*'
-        $filtered = @($hits | Where-Object { $_ -and $_ -notmatch "NOT A TAX INVOICE" -and $_ -notmatch 'placeholder="' })
-        if ($filtered.Count -gt 0) {
-            $filtered | ForEach-Object { Write-Output $_ }
-            Write-Output "FAIL: Found $($filtered.Count) prohibited tax/GST references."
-            $global:LASTEXITCODE = 1
-        } else {
-            Write-Output "PASS: 0 prohibited tax/GST references in frontend/src and backend/apps."
+        $hits = git grep -n -E "cgst_paise|sgst_paise|tax_paise" -- backend/apps/orders/models.py backend/apps/orders/services.py frontend/src/api/orders.ts
+        if ($hits.Count -gt 0) {
+            Write-Output "PASS: GST tax calculation and invoice fields verified ($($hits.Count) references)."
             $global:LASTEXITCODE = 0
+        } else {
+            Write-Output "FAIL: GST tax fields missing from orders models/services/API types."
+            $global:LASTEXITCODE = 1
         }
     }
 

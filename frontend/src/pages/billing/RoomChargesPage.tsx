@@ -11,10 +11,7 @@ import {
   DialogTitle,
   DialogFooter,
 } from "../../components/ui/dialog";
-import {
-  ReceiptTaxBreakdown,
-  ReviewQrFooter,
-} from "../../components/billing/ReceiptTaxAndQrBlock";
+import { ReceiptTaxBreakdown, ReviewQrFooter } from "../../components/billing/ReceiptTaxAndQrBlock";
 
 interface Invoice {
   id: string;
@@ -246,17 +243,15 @@ export const RoomChargesPage: React.FC = () => {
                       </span>
                     </td>
                     <td className="px-4 py-3 text-xs text-muted-foreground text-right font-mono">
-                      {inv.tax_paise ? `${formatRupees(inv.tax_paise)} (${inv.tax_rate_percent || 0}%)` : "—"}
+                      {inv.tax_paise
+                        ? `${formatRupees(inv.tax_paise)} (${inv.tax_rate_percent || 0}%)`
+                        : "—"}
                     </td>
                     <td className="px-4 py-3 font-bold text-foreground text-right">
                       {formatRupees(inv.total_paise)}
                     </td>
                     <td className="px-4 py-3 text-right">
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => setSelectedReceipt(inv)}
-                      >
+                      <Button size="sm" variant="outline" onClick={() => setSelectedReceipt(inv)}>
                         <Printer className="w-3.5 h-3.5 mr-1" />
                         Tax Receipt
                       </Button>
@@ -270,7 +265,8 @@ export const RoomChargesPage: React.FC = () => {
       </div>
 
       <div className="p-3 bg-muted/40 rounded-lg text-xs text-muted-foreground text-center">
-        HOTEL FOLIO SUMMARY | Server-verified rupee and paisa amounts with GST (CGST + SGST) and exact rounding.
+        HOTEL FOLIO SUMMARY | Server-verified rupee and paisa amounts with GST (CGST + SGST) and
+        exact rounding.
       </div>
 
       <Dialog open={!!selectedReceipt} onOpenChange={(open) => !open && setSelectedReceipt(null)}>
@@ -298,7 +294,9 @@ export const RoomChargesPage: React.FC = () => {
                     <span>
                       {it.quantity}x {it.item_name}
                     </span>
-                    <span>{formatRupees(it.subtotal_paise || it.unit_price_paise * it.quantity)}</span>
+                    <span>
+                      {formatRupees(it.subtotal_paise || it.unit_price_paise * it.quantity)}
+                    </span>
                   </div>
                 ))}
               </div>

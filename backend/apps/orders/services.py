@@ -800,7 +800,7 @@ def calculate_bill(
             )
             is_hotel_room = table_type == "ROOM" or has_room_service_order
 
-        biz_settings = BusinessSettings.unscoped.filter(tenant=table_session.tenant).first()
+        biz_settings = BusinessSettings.objects.filter(tenant=table_session.tenant).first()
         tax_mode = biz_settings.tax_mode if biz_settings else BusinessSettings.TaxMode.INCLUSIVE
         gst_rate = (
             (biz_settings.hotel_gst_percent if is_hotel_room else biz_settings.food_gst_percent)

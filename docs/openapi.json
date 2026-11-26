@@ -2882,6 +2882,68 @@ paths:
               schema:
                 $ref: '#/components/schemas/BranchItemAvailability'
           description: ''
+  /api/v1/menu/catalog/:
+    get:
+      operationId: menu_catalog_list
+      description: Search and browse the global Master Food Catalogue.
+      tags:
+      - menu
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/FoodCatalogItem'
+          description: ''
+  /api/v1/menu/catalog/{catalog_id}/add-to-menu/:
+    post:
+      operationId: menu_catalog_add_to_menu_create
+      description: Add a global Master Food Catalogue item into the tenant's active
+        menu.
+      parameters:
+      - in: path
+        name: catalog_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - menu
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MenuItem'
+          description: ''
+  /api/v1/menu/catalog/{catalog_id}/upload-image/:
+    post:
+      operationId: menu_catalog_upload_image_create
+      description: Upload or replace a dish photo on a Master Food Catalogue item.
+      parameters:
+      - in: path
+        name: catalog_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - menu
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FoodCatalogItem'
+          description: ''
   /api/v1/menu/categories/:
     get:
       operationId: menu_categories_list
@@ -7934,6 +7996,33 @@ components:
           maximum: 9223372036854775807
           minimum: -9223372036854775808
           format: int64
+        tax_mode:
+          type: string
+          maxLength: 20
+        tax_rate_percent:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,3}(?:\.\d{0,2})?$
+        taxable_paise:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: -9223372036854775808
+          format: int64
+        cgst_paise:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: -9223372036854775808
+          format: int64
+        sgst_paise:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: -9223372036854775808
+          format: int64
+        tax_paise:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: -9223372036854775808
+          format: int64
         total_paise:
           type: integer
           maximum: 9223372036854775807
@@ -7971,13 +8060,37 @@ components:
           items:
             $ref: '#/components/schemas/InvoiceRefund'
           readOnly: true
+        gstin:
+          type: string
+          readOnly: true
+        legal_name:
+          type: string
+          readOnly: true
+        registered_address:
+          type: string
+          readOnly: true
+        receipt_footer_text:
+          type: string
+          readOnly: true
+        review_qr_url:
+          type: string
+          readOnly: true
+        review_qr_label:
+          type: string
+          readOnly: true
       required:
       - branch_id
+      - gstin
       - id
       - invoice_number
+      - legal_name
       - net_total_paise
+      - receipt_footer_text
       - refunded_paise
       - refunds
+      - registered_address
+      - review_qr_label
+      - review_qr_url
       - table_label
       - table_session_id
     BillInvoiceRequest:
@@ -7993,6 +8106,33 @@ components:
           minimum: -9223372036854775808
           format: int64
         discount_paise:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: -9223372036854775808
+          format: int64
+        tax_mode:
+          type: string
+          maxLength: 20
+        tax_rate_percent:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,3}(?:\.\d{0,2})?$
+        taxable_paise:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: -9223372036854775808
+          format: int64
+        cgst_paise:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: -9223372036854775808
+          format: int64
+        sgst_paise:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: -9223372036854775808
+          format: int64
+        tax_paise:
           type: integer
           maximum: 9223372036854775807
           minimum: -9223372036854775808
@@ -8311,6 +8451,21 @@ components:
           maxLength: 200
         tax_mode:
           $ref: '#/components/schemas/TaxMode'
+        food_gst_percent:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,3}(?:\.\d{0,2})?$
+        hotel_gst_percent:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,3}(?:\.\d{0,2})?$
+        review_qr_url:
+          type: string
+          format: uri
+          maxLength: 500
+        review_qr_label:
+          type: string
+          maxLength: 80
         created_at:
           type: string
           format: date-time
@@ -8334,6 +8489,21 @@ components:
       properties:
         tax_mode:
           $ref: '#/components/schemas/TaxMode'
+        food_gst_percent:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,3}(?:\.\d{0,2})?$
+        hotel_gst_percent:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,3}(?:\.\d{0,2})?$
+        review_qr_url:
+          type: string
+          format: uri
+          maxLength: 500
+        review_qr_label:
+          type: string
+          maxLength: 80
         invoice_prefix:
           type: string
           maxLength: 20
@@ -8367,6 +8537,21 @@ components:
       properties:
         tax_mode:
           $ref: '#/components/schemas/TaxMode'
+        food_gst_percent:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,3}(?:\.\d{0,2})?$
+        hotel_gst_percent:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,3}(?:\.\d{0,2})?$
+        review_qr_url:
+          type: string
+          format: uri
+          maxLength: 500
+        review_qr_label:
+          type: string
+          maxLength: 80
         invoice_prefix:
           type: string
           minLength: 1
@@ -9091,6 +9276,69 @@ components:
         * `TOKEN_CALLED` - Token Called
         * `CANCELLED` - Order Cancelled
         * `COMPLETED` - Order Completed
+    FoodCatalogItem:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        item_code:
+          type: string
+          readOnly: true
+        name:
+          type: string
+          readOnly: true
+        name_ta:
+          type: string
+          readOnly: true
+        main_category:
+          type: string
+          readOnly: true
+        subcategory:
+          type: string
+          readOnly: true
+        cuisine:
+          type: string
+          readOnly: true
+        food_type:
+          allOf:
+          - $ref: '#/components/schemas/FoodTypeEnum'
+          readOnly: true
+        description:
+          type: string
+          readOnly: true
+        default_price_paise:
+          type: integer
+          readOnly: true
+          nullable: true
+        is_bestseller:
+          type: boolean
+          readOnly: true
+        image_key:
+          type: string
+          readOnly: true
+        image_card:
+          type: string
+          readOnly: true
+        image_thumb:
+          type: string
+          readOnly: true
+      required:
+      - cuisine
+      - default_price_paise
+      - description
+      - food_type
+      - id
+      - image_card
+      - image_key
+      - image_thumb
+      - is_bestseller
+      - item_code
+      - main_category
+      - name
+      - name_ta
+      - subcategory
     FoodTypeEnum:
       enum:
       - VEG
@@ -11614,6 +11862,21 @@ components:
           maxLength: 200
         tax_mode:
           $ref: '#/components/schemas/TaxMode'
+        food_gst_percent:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,3}(?:\.\d{0,2})?$
+        hotel_gst_percent:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,3}(?:\.\d{0,2})?$
+        review_qr_url:
+          type: string
+          format: uri
+          maxLength: 500
+        review_qr_label:
+          type: string
+          maxLength: 80
     PatchedCustomerRequest:
       type: object
       properties:
