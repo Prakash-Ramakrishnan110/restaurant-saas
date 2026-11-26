@@ -662,10 +662,10 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
 
       {/* Top Application Bar */}
       <header
-        className="sticky top-0 z-30 shrink-0 border-b border-border bg-card/95 backdrop-blur px-2 sm:px-6 flex items-center justify-between gap-1 min-w-0"
+        className="sticky top-0 z-30 shrink-0 border-b border-border bg-card/95 backdrop-blur px-3 sm:px-6 min-h-[56px] flex items-center justify-between gap-2 min-w-0"
         style={{ paddingTop: "max(0.5rem, env(safe-area-inset-top))", paddingBottom: "0.5rem" }}
       >
-        <div className="flex flex-1 items-center gap-1.5 sm:gap-3 min-w-0 overflow-hidden">
+        <div className="flex flex-1 items-center gap-2 sm:gap-3 min-w-0 overflow-hidden">
           {!nativeApp && (
             <button
               type="button"
@@ -687,13 +687,17 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
             }
             className="flex items-center shrink-0"
           >
-            <span className="sm:hidden">
-              <BrandLogo
-                variant="full"
-                size={20}
-                compact
-                theme={theme === "dark" ? "dark" : "auto"}
-              />
+            <span className="sm:hidden flex items-center">
+              {activeTenant ? (
+                <BrandLogo variant="icon" size={24} theme={theme === "dark" ? "dark" : "auto"} />
+              ) : (
+                <BrandLogo
+                  variant="full"
+                  size={20}
+                  compact
+                  theme={theme === "dark" ? "dark" : "auto"}
+                />
+              )}
             </span>
             <span className="hidden sm:inline-flex">
               <BrandLogo
@@ -705,12 +709,12 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
             </span>
           </Link>
 
-          {nativeApp && activeTenant && (
-            <div className="flex flex-col min-w-0 leading-tight ml-1">
-              <span className="text-xs font-bold text-foreground truncate">
+          {activeTenant && (
+            <div className="flex sm:hidden flex-col min-w-0 leading-tight">
+              <span className="text-sm font-bold text-foreground truncate">
                 {activeTenant.tenant_name}
               </span>
-              <span className="text-[10px] font-semibold text-[#FF6A00] uppercase">
+              <span className="text-[11px] font-semibold text-[#FF6A00] uppercase leading-none mt-0.5">
                 {activeRole || activeTenant.role}
               </span>
             </div>
@@ -820,7 +824,7 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
             variant="ghost"
             size="sm"
             onClick={toggleLanguage}
-            className="text-xs font-semibold min-h-[32px] min-w-[32px] sm:min-h-[36px] px-1.5 sm:px-2.5"
+            className="hidden sm:inline-flex text-xs font-semibold min-h-[36px] px-2.5"
             aria-label="Switch language"
           >
             <Globe className="h-3.5 w-3.5 sm:mr-1" />
@@ -885,7 +889,7 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
             variant="ghost"
             size="sm"
             onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-            className="min-h-[34px] min-w-[32px] sm:min-h-[36px] sm:min-w-[36px] p-1.5 sm:p-2"
+            className="hidden sm:inline-flex min-h-[36px] min-w-[36px] p-2"
             aria-label="Toggle theme"
           >
             {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
@@ -918,7 +922,11 @@ export const AppShell: React.FC<{ children: React.ReactNode }> = ({ children }) 
           )}
 
           {/* User & Sign Out */}
-          <div className="flex items-center gap-1 sm:gap-2 border-l border-border pl-1 sm:pl-3">
+          <div
+            className={`${
+              nativeApp ? "hidden sm:flex" : "flex"
+            } items-center gap-1 sm:gap-2 border-l border-border pl-1 sm:pl-3`}
+          >
             <span className="hidden lg:inline text-xs font-medium text-foreground">
               {user?.full_name}
             </span>

@@ -25,6 +25,37 @@ export function setSoundVolume(volume: number): void {
   soundEngine.updatePreferences({ volume: Math.min(1, Math.max(0, volume)) });
 }
 
+const VIBRATE_STORAGE_KEY = "smf:vibrate";
+
+export function isVibrateEnabled(): boolean {
+  if (typeof window === "undefined") return false;
+  try {
+    return window.localStorage.getItem(VIBRATE_STORAGE_KEY) !== "false";
+  } catch {
+    return true;
+  }
+}
+
+export function setVibrateEnabled(enabled: boolean): void {
+  if (typeof window === "undefined") return;
+  try {
+    window.localStorage.setItem(VIBRATE_STORAGE_KEY, enabled ? "true" : "false");
+  } catch {
+    // Ignore storage errors
+  }
+}
+
+export function triggerVibrate(pattern: number | number[] = [150, 70, 150]): void {
+  if (!isVibrateEnabled()) return;
+  if (typeof navigator !== "undefined" && typeof navigator.vibrate === "function") {
+    try {
+      navigator.vibrate(pattern);
+    } catch {
+      // Ignore unsupported vibrate errors
+    }
+  }
+}
+
 function resolveToneKeyForFrequency(frequency1: number, frequency2: number): ToneKey {
   if (frequency1 >= 640 && frequency2 >= 950) return "request";
   if (frequency1 <= 530) return "ready";
@@ -68,6 +99,7 @@ export function speakText(
  * Triggers audio alert and voice announcement for a newly received order.
  */
 export function playOrderAlert(tableOrTarget?: string): void {
+  triggerVibrate([140, 60, 140]);
   playChime(587.33, 880.0, 0.5);
   if (tableOrTarget) {
     setTimeout(() => {
@@ -80,6 +112,7 @@ export function playOrderAlert(tableOrTarget?: string): void {
  * Triggers audio alert for digital waiter call.
  */
 export function playWaiterCallAlert(tableOrTarget?: string): void {
+  triggerVibrate([200, 80, 200, 80, 200]);
   playChime(659.25, 987.77, 0.6);
   if (tableOrTarget) {
     setTimeout(() => {
@@ -95,6 +128,7 @@ export function playReadyAlert(
   targetOrToken?: string,
   options?: { bypassMuteSetting?: boolean; withVoice?: boolean }
 ): void {
+  triggerVibrate([180, 70, 180]);
   if (typeof window === "undefined") return;
   if (!options?.bypassMuteSetting && !isSoundEnabled()) return;
 
@@ -115,6 +149,7 @@ export function playTokenCallAlert(
   lang: "EN" | "TA" = "EN",
   options?: { bypassMuteSetting?: boolean; withVoice?: boolean }
 ): void {
+  triggerVibrate([150, 70, 150]);
   if (typeof window === "undefined") return;
   if (!options?.bypassMuteSetting && !isSoundEnabled()) return;
 

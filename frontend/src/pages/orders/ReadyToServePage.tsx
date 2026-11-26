@@ -7,7 +7,7 @@ import { unwrapList } from "../../api/pagination";
 import { playOrderAlert, playWaiterCallAlert } from "../../utils/soundAlerts";
 import { Button } from "../../components/ui/button";
 import { Card, CardContent } from "../../components/ui/card";
-import { useLiveSync } from "../../realtime/liveSync";
+import { triggerLiveSync, useLiveSync } from "../../realtime/liveSync";
 
 export const ReadyToServePage: React.FC = () => {
   const { user } = useAuth();
@@ -91,6 +91,7 @@ export const ReadyToServePage: React.FC = () => {
       setServingId(orderId);
       await ordersApi.serveOrder(orderId);
       await fetchReadyOrders();
+      triggerLiveSync({ type: "order.status_changed" });
     } catch (err) {
       const message = err instanceof Error ? err.message : "Unknown error";
       alert("Failed to mark order as served: " + message);

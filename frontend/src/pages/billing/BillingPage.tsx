@@ -28,7 +28,7 @@ import {
 } from "../../components/ui/dialog";
 import { formatRupees, parseRupees } from "../../utils/currency";
 import { unwrapList, ListResponse } from "../../api/pagination";
-import { useLiveSync } from "../../realtime/liveSync";
+import { triggerLiveSync, useLiveSync } from "../../realtime/liveSync";
 import { computeEqualSplitShares } from "../../utils/thermalPrint";
 import { ReceiptTaxBreakdown, ReviewQrFooter } from "../../components/billing/ReceiptTaxAndQrBlock";
 
@@ -188,6 +188,7 @@ export const BillingPage: React.FC = () => {
         notes: "Counter QR pay-first settlement",
       });
       await fetchSessions();
+      triggerLiveSync({ type: "table.updated" });
     } catch (err: any) {
       setErrorMessage(
         err.response?.data?.error?.message ||
@@ -273,6 +274,7 @@ export const BillingPage: React.FC = () => {
       setSelectedSessionId(null);
       setBillData(null);
       await fetchSessions();
+      triggerLiveSync({ type: "table.updated" });
     } catch (err: unknown) {
       const axiosErr = err as {
         response?: { data?: { message?: string; detail?: string } };
@@ -1023,6 +1025,7 @@ export const BillingPage: React.FC = () => {
                         setOpsNotice(`Moved ${ids.length} item(s) to target table.`);
                         setSplitModalOpen(false);
                         await fetchSessions();
+                        triggerLiveSync({ type: "table.updated" });
                       }}
                       className="h-9 text-xs font-bold"
                     >
@@ -1042,6 +1045,7 @@ export const BillingPage: React.FC = () => {
                       setSplitModalOpen(false);
                       setSelectedSessionId(mergeTargetSessionId);
                       await fetchSessions();
+                      triggerLiveSync({ type: "table.updated" });
                     }}
                     className="h-9 bg-[#FF6A00] hover:bg-[#E55F00] text-[#0B1F3B] text-xs font-bold"
                   >

@@ -42,7 +42,7 @@ import {
   enqueueOfflineOrder,
 } from "../../utils/offlineQueue";
 import { TokenSlipModal, TokenSlipOrderData } from "../../components/orders/TokenSlipModal";
-import { useLiveSync } from "../../realtime/liveSync";
+import { triggerLiveSync, useLiveSync } from "../../realtime/liveSync";
 
 interface DiningTableItem {
   id: string;
@@ -289,6 +289,7 @@ export const FloorPOSPage: React.FC = () => {
       setSeatModalOpen(false);
       setSuccessToast(`Table ${selectedTable.label} seated with ${guestCount} guests.`);
       await fetchData();
+      triggerLiveSync({ type: "order.created" });
     } catch (err: any) {
       const msg =
         err.response?.data?.error?.message ||
@@ -310,6 +311,7 @@ export const FloorPOSPage: React.FC = () => {
       setTransferModalOpen(false);
       setSuccessToast("Table session successfully transferred.");
       await fetchData();
+      triggerLiveSync({ type: "order.created" });
     } catch {
       setErrorToast("Could not transfer table session.");
     } finally {
@@ -382,12 +384,35 @@ export const FloorPOSPage: React.FC = () => {
 
   const handleFireOrder = async () => {
     if (cart.length === 0) return;
-    if (usesTables && !selectedSessionId) {
-      setErrorToast("Please select and seat an active table first.");
+    if (usesTables && !selectedTable) {
+      setErrorToast("Please select a table first.");
       return;
     }
 
     setSubmitting(true);
+    let resolvedSessionId = selectedSessionId;
+    if (usesTables && !resolvedSessionId && selectedTable) {
+      if (typeof navigator !== "undefined" && !navigator.onLine) {
+        setErrorToast("Please seat the table while online before queuing offline orders.");
+        setSubmitting(false);
+        return;
+      }
+      try {
+        const seatRes = await apiClient.post<any>("/table-sessions/open/", {
+          table_id: selectedTable.id,
+          guest_count: guestCount || 2,
+        });
+        resolvedSessionId = seatRes.data.id;
+        setSelectedSessionId(resolvedSessionId);
+      } catch (seatErr: any) {
+        setErrorToast(
+          seatErr?.response?.data?.error?.message || "Could not auto-seat the selected table."
+        );
+        setSubmitting(false);
+        return;
+      }
+    }
+
     const clientOrderId = generateClientOrderId();
     const itemsPayload = cart.map((i) => ({
       menu_item_id: i.menu_item_id,
@@ -398,7 +423,7 @@ export const FloorPOSPage: React.FC = () => {
       notes: i.notes,
     }));
     const orderPayload = {
-      table_session_id: usesTables ? selectedSessionId : null,
+      table_session_id: usesTables ? resolvedSessionId : null,
       token_number: null,
       order_workflow: (usesTables ? "TABLE_SERVICE" : "COUNTER_TOKEN") as
         "TABLE_SERVICE" | "COUNTER_TOKEN",
@@ -453,6 +478,7 @@ export const FloorPOSPage: React.FC = () => {
         );
       }
       await fetchData();
+      triggerLiveSync({ type: "order.created" });
     } catch (err: any) {
       if (!err?.response) {
         enqueueOfflineOrder({
@@ -853,6 +879,7 @@ export const FloorPOSPage: React.FC = () => {
                         });
                         setSuccessToast(`Table ${selectedTable.label} is now Free.`);
                         await fetchData();
+                        triggerLiveSync({ type: "order.created" });
                         setSelectedTable((prev) =>
                           prev ? { ...prev, status: "AVAILABLE" } : null
                         );
@@ -927,6 +954,7 @@ export const FloorPOSPage: React.FC = () => {
                         setCart([]);
                         setSuccessToast("Table freed.");
                         await fetchData();
+                        triggerLiveSync({ type: "order.created" });
                       } catch (err: any) {
                         setErrorToast(
                           err?.response?.data?.error?.message ||
@@ -1054,6 +1082,37 @@ export const FloorPOSPage: React.FC = () => {
                     onChange={(e) => updateItemNotes(line.menu_item_id, e.target.value)}
                     className="h-9 text-xs px-2 rounded border border-input/60 bg-transparent text-foreground placeholder:text-muted-foreground/70"
                   />
+                  <div className="flex flex-wrap gap-1">
+                    {["Less Spicy", "No Onion/Garlic", "Parcel"].map((chip) => {
+                      const active = (line.notes || "").includes(chip);
+                      return (
+                        <button
+                          key={chip}
+                          type="button"
+                          onClick={() => {
+                            const current = line.notes || "";
+                            const next = active
+                              ? current
+                                  .split(",")
+                                  .map((s) => s.trim())
+                                  .filter((s) => s && s !== chip)
+                                  .join(", ")
+                              : current
+                                ? `${current}, ${chip}`
+                                : chip;
+                            updateItemNotes(line.menu_item_id, next);
+                          }}
+                          className={`px-2 py-0.5 rounded-full text-[10px] font-semibold border transition-colors ${
+                            active
+                              ? "bg-[#FF6A00] text-[#0B1F3B] border-[#FF6A00]"
+                              : "bg-muted/40 text-muted-foreground border-border hover:text-foreground"
+                          }`}
+                        >
+                          {chip}
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
               ))
             )}
@@ -1265,6 +1324,34 @@ export const FloorPOSPage: React.FC = () => {
         restaurantName={activeTenant?.tenant_name || "ServeMyFood"}
         order={lastTokenSlipOrder}
       />
+
+      {/* Sticky Mobile Quick-Fire Order Bar */}
+      {cart.length > 0 && (
+        <div
+          className="sm:hidden fixed left-3 right-3 z-30 flex items-center justify-between gap-2 rounded-xl bg-[#0B1F3B] text-white px-3.5 py-2.5 shadow-xl border border-white/10"
+          style={{ bottom: "calc(74px + env(safe-area-inset-bottom))" }}
+        >
+          <div className="min-w-0">
+            <p className="text-xs font-bold truncate">
+              {cart.reduce((s, i) => s + i.quantity, 0)} items
+              {usesTables && selectedTable ? ` · Table ${selectedTable.label}` : ""}
+            </p>
+            {!isWaiter && (
+              <p className="text-[11px] text-white/80">{formatRupees(cartTotalPaise)}</p>
+            )}
+          </div>
+          <Button
+            type="button"
+            size="sm"
+            disabled={submitting}
+            onClick={handleFireOrder}
+            className="min-h-[40px] px-4 bg-[#FF6A00] hover:bg-[#FF6A00]/90 text-[#0B1F3B] font-bold text-xs gap-1.5 shrink-0"
+          >
+            <Send className="h-3.5 w-3.5" />
+            {submitting ? "Sending..." : "Place Order"}
+          </Button>
+        </div>
+      )}
     </div>
   );
 };
