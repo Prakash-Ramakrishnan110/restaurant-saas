@@ -87,3 +87,4 @@ mobile/android/capacitor-cordova-android-plugins/
 
 # Database Backups
 backups/
+config.bat
